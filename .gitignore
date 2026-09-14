@@ -1,0 +1,56 @@
+# Dependencies and generated build output
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Test and QA output
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+allure-results/
+allure-report/
+/.visual-reference/
+/screenshots/
+/__visual-qa/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+*.pid.lock
+
+# Tool caches and temporary files
+.cache/
+.eslintcache
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+__pycache__/
+*.py[cod]
+
+# IDE metadata
+.idea/
+.vscode/
+*.iml
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+._*
+__MACOSX/

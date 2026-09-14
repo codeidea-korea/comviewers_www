@@ -1,0 +1,27 @@
+@import './tokens.css';
+@import './base.css';
+@import './components.css';
+@import './pages.css';
+@import './commerce.css';
+@import './mypage.css';
+@import './community-company.css';
+@import './visual-qa.css';
+@import './responsive.css';
+@import './mobile-shell.css';
+@import './mobile-products.css';
+@import './mobile-lists.css';
+@import './mobile-flows.css';
+
+/* Live dialogs are portalled to document.body. Let fixed positioning resolve
+   every edge from the real viewport instead of a dynamic viewport unit. */
+[data-ui='dialog-layer'] {
+  height: auto !important;
+  inset: 0 !important;
+  position: fixed;
+  width: auto !important;
+}
+/* Route chunks load in place without exposing implementation status copy. */
+.route-loading { display: flex; min-height: 160px; align-items: center; justify-content: center; }
+.route-loading--compact { min-height: 48px; }
+.route-loading__indicator { width: 24px; height: 24px; border: 3px solid #dedede; border-top-color: #424242; border-radius: 50%; animation: route-loading-spin 0.8s linear infinite; }
+@keyframes route-loading-spin { to { transform: rotate(360deg); } }

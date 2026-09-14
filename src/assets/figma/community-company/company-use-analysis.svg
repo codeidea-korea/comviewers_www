@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="android_cell_4_bar">
+<mask id="mask0_0_136" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="28">
+<rect id="Bounding box" width="28" height="28" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_0_136)">
+<path id="android_cell_4_bar_2" d="M1.75 23.3333V14H5.25V23.3333H1.75ZM8.75 23.3333V11.0833H12.25V23.3333H8.75ZM15.75 23.3333V8.16667H19.25V23.3333H15.75ZM22.75 23.3333V4.66667H26.25V23.3333H22.75Z" fill="#1C1B1F"/>
+</g>
+</g>
+</svg>

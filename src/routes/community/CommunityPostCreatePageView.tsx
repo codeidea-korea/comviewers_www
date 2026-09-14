@@ -1,0 +1,68 @@
+import { useRef, useState, type FormEvent } from 'react'
+import type { JSONContent } from '@tiptap/core'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { RelativeLink as Link } from '../../components/navigation/RelativeLinkView'
+import { RichTextEditor } from '../../components/ui/RichTextEditorControl'
+import { LoadingState } from '../../components/ui/LoadingStateControl'
+import { usePost, usePostActions } from '@/routes/community/-components/hooks/useContent'
+import type { Post } from '@/domain/storefront/services'
+import { CommunityShell } from './CommunityComponentsView'
+import closeIcon from '../../assets/figma/product-list-close.svg'
+
+type EditorAttachment = { id?: string; localId: string; name: string; size?: string; type?: string; file?: File }
+
+const escapeHtml = (text: string) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+const toEditorHtml = (paragraphs: string[]) => paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')
+export function CommunityPostCreatePage({ mode = 'create' }: { mode?: 'create' | 'edit' }) {
+  const { postId } = useParams()
+  const result = usePost(mode === 'edit' ? postId : undefined)
+  if (mode === 'edit' && result.isPending) return <CommunityShell><LoadingState label="게시글을 불러오는 중입니다." /></CommunityShell>
+  if (mode === 'edit' && (result.isError || !result.data || !result.data.isMine)) return <CommunityShell><p role="alert">수정할 게시글을 찾을 수 없습니다.</p><Link to="/community/posts">목록으로</Link></CommunityShell>
+  return <PostEditor key={postId ?? 'new'} mode={mode} editingPost={result.data ?? null} />
+}
+
+function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPost: Post | null }) {
+  const actions = usePostActions()
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const submitting = useRef(false)
+  const [files, setFiles] = useState<EditorAttachment[]>((editingPost?.attachments ?? []).map((file, index) => ({ ...file, localId: file.id ?? `${file.name}-${index}` })))
+  const [title, setTitle] = useState(editingPost?.title || '')
+  const [content, setContent] = useState(editingPost ? toEditorHtml(editingPost.content || []) : '')
+  const [richContent, setRichContent] = useState<JSONContent | null>((editingPost?.richContent as JSONContent | null | undefined) ?? null)
+  const [notice, setNotice] = useState('')
+  const submitLabel = mode === 'edit' ? '수정 완료' : '등록'
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (submitting.current) return
+    const document = new DOMParser().parseFromString(content, 'text/html')
+    const blocks = Array.from(document.body.querySelectorAll('p, li, h1, h2, h3, pre')).map((node) => node.textContent?.trim() ?? '').filter(Boolean)
+    const paragraphs = blocks.length ? blocks : [(document.body.textContent ?? '').trim()].filter(Boolean)
+    const plainText = paragraphs.join('\n').trim()
+    if (!title.trim()) { setNotice('제목을 입력해 주세요.'); return }
+    if (title.trim().length < 2 || title.trim().length > 100) { setNotice('제목은 2~100자로 입력해 주세요.'); return }
+    if (!plainText) { setNotice('게시글 내용을 입력해 주세요.'); return }
+    if (plainText.length < 10 || plainText.length > 10_000) { setNotice('게시글 내용은 10~10,000자로 입력해 주세요.'); return }
+    submitting.current = true
+    try {
+      const saved = await actions.save.mutateAsync({
+        id: editingPost?.postId,
+        draft: { title: title.trim(), content: paragraphs, richContent, attachments: files.map(({ id, name, size, type, file }) => ({ id, name, size: size ?? '', type: type ?? '', file })) },
+      })
+      const listParams = params.toString()
+      navigate(`/community/posts/${saved.postId}${listParams ? `?${listParams}` : ''}`, { replace: true })
+    } catch (error) { setNotice(error instanceof Error ? error.message : '저장에 실패했습니다.') } finally { submitting.current = false }
+  }
+  return (
+    <CommunityShell>
+      <form className={`post-editor content-container${mode === 'edit' ? ' post-editor--edit' : ` post-editor--files-${files.length}`}`} onSubmit={submit}>
+        <h1>{mode === 'edit' ? '게시글 수정' : '게시글 작성'}</h1>
+        <label><span>제목</span><input aria-label="제목" maxLength={100} onChange={(event) => { setTitle(event.target.value); setNotice('') }} placeholder="제목을 입력해 주세요." value={title} /></label>
+        <div className="post-editor__editor-field"><span id="post-editor-content-label">내용</span><RichTextEditor ariaLabelledby="post-editor-content-label" onChange={(value) => { setContent(value); setNotice('') }} onDocumentChange={(document) => setRichContent(document)} placeholder="" value={richContent ?? content} /></div>
+        <section className="post-files"><h2>첨부파일</h2><p>* 최대 3개까지 첨부 가능</p><label className="file-select">파일 선택<input className="sr-only" onChange={(event) => { const selected = Array.from(event.target.files ?? []).map((file) => ({ localId: crypto.randomUUID(), name: file.name, size: `${Math.ceil(file.size / 1024)}KB`, type: file.type, file })); setFiles((current) => [...current, ...selected].slice(0, 3)); event.currentTarget.value = '' }} type="file" multiple /></label>{files.map((file) => <div key={file.localId}><span>{file.name} <small>{file.size}</small></span><button aria-label={`${file.name} 삭제`} onClick={() => setFiles((current) => current.filter((item) => item.localId !== file.localId))} type="button"><img alt="" src={closeIcon} /></button></div>)}</section>
+        <div className="post-editor__actions"><Link to={editingPost ? `/community/posts/${editingPost.postId}${params.toString() ? `?${params.toString()}` : ''}` : `/community/posts${params.toString() ? `?${params.toString()}` : ''}`}>취소</Link><button disabled={actions.save.isPending} type="submit">{submitLabel}</button></div>
+        {notice ? <p aria-live="polite" className="community-notice">{notice}</p> : null}
+      </form>
+    </CommunityShell>
+  )
+}

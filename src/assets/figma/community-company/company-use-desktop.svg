@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="desktop_windows">
+<mask id="mask0_0_133" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="28">
+<rect id="Bounding box" width="28" height="28" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_0_133)">
+<path id="desktop_windows_2" d="M9.33271 24.5V22.1667H11.666V19.8333H4.66604C4.02437 19.8333 3.47507 19.6049 3.01812 19.1479C2.56118 18.691 2.3327 18.1417 2.3327 17.5V5.83333C2.3327 5.19167 2.56118 4.64236 3.01812 4.18542C3.47507 3.72847 4.02437 3.5 4.66604 3.5H23.3327C23.9744 3.5 24.5237 3.72847 24.9806 4.18542C25.4376 4.64236 25.666 5.19167 25.666 5.83333V17.5C25.666 18.1417 25.4376 18.691 24.9806 19.1479C24.5237 19.6049 23.9744 19.8333 23.3327 19.8333H16.3327V22.1667H18.666V24.5H9.33271ZM4.66604 17.5H23.3327V5.83333H4.66604V17.5Z" fill="#1C1B1F"/>
+</g>
+</g>
+</svg>

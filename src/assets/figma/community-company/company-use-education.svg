@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="checkbook">
+<mask id="mask0_0_130" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="28">
+<rect id="Bounding box" width="28" height="28" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_0_130)">
+<path id="checkbook_2" d="M7 17.5H15.1667L17.5 15.1667H7V17.5ZM7 12.8333H14V10.5H7V12.8333ZM4.66667 8.16667V19.8333H12.8333L10.5 22.1667H2.33333V5.83333H25.6667V9.33333H23.3333V8.16667H4.66667ZM26.7167 14.35C26.8139 14.4472 26.8625 14.5542 26.8625 14.6708C26.8625 14.7875 26.8139 14.8944 26.7167 14.9917L25.6667 16.0417L23.625 14L24.675 12.95C24.7722 12.8528 24.8792 12.8042 24.9958 12.8042C25.1125 12.8042 25.2194 12.8528 25.3167 12.95L26.7167 14.35ZM15.1667 24.5V22.4583L22.925 14.7L24.9667 16.7417L17.2083 24.5H15.1667Z" fill="#1C1B1F"/>
+</g>
+</g>
+</svg>

@@ -1,0 +1,17 @@
+.session-controls { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.utility-menu .session-controls,
+.utility-menu .session-organization { flex-wrap: nowrap; }
+.session-controls button { font: inherit; color: inherit; cursor: pointer; }
+.session-organization { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.session-organization select { color: #111827; background: #fff; max-width: 180px; border: 1px solid #d1d5db; border-radius: 4px; padding: 4px; }
+.session-notice { margin: 40px auto; padding: 24px; max-width: 640px; display: grid; gap: 16px; }
+.session-user-menu { position: relative; }
+.session-user-menu > summary { align-items: center; cursor: pointer; display: inline-flex; gap: 4px; list-style: none; }
+.session-user-menu > summary::-webkit-details-marker { display: none; }
+.session-user-menu > summary::after { border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; content: ''; margin-left: 2px; }
+.session-user-menu > summary img { border-radius: 50%; height: 20px; width: 20px; }
+.session-user-menu > div { align-items: stretch; background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 6px 18px rgb(0 0 0 / 12%); color: #111; display: flex; flex-direction: column; gap: 0; min-width: 150px; padding: 8px; position: absolute; right: 0; top: calc(100% + 10px); z-index: 20; }
+.session-user-menu > div > a,
+.session-user-menu > div > button { background: transparent; border: 0; box-sizing: border-box; display: block; padding: 8px 10px; text-align: left; width: 100%; }
+.session-user-menu > div > a:hover,
+.session-user-menu > div > button:hover { background: #f5f5f5; }

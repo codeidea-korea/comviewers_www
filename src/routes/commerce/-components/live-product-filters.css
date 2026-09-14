@@ -1,0 +1,16 @@
+.live-product-filter .product-filter__section label { display: flex; align-items: center; gap: 8px; margin-block: 10px; }
+.live-product-filter .product-filter__section label span { margin-inline-start: auto; }
+.live-product-filter summary { cursor: pointer; font-weight: 600; }
+.live-product-filter p { font-size: 12px; line-height: 1.6; }
+.live-product-selectors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.live-price-distribution { display: flex; align-items: end; gap: 4px; min-height: 120px; }
+.live-price-distribution > button { flex: 1; min-width: 0; padding: 2px; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.live-price-distribution__bar { display: block; width: 100%; border-radius: 3px 3px 0 0; background: #8ba6c7; }
+.live-price-distribution > button[aria-pressed=true] .live-price-distribution__bar { background: #2256a2; }
+.live-price-distribution > button:focus-visible { outline: 2px solid #2256a2; }
+.live-price-distribution__count, .live-price-distribution__label { font-size: 10px; }
+.live-price-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-top: 12px; }
+.live-price-presets > button { background: var(--color-gray-100); border: 1px solid transparent; border-radius: 4px; color: var(--color-gray-500); cursor: pointer; font-size: 12px; height: 32px; padding: 0 4px; }
+.live-price-presets > button[aria-pressed=true] { background: var(--color-gray-800); color: var(--color-white); }
+.live-price-presets > button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.live-product-filter__inline-action { background: transparent; border: 0; color: inherit; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }

@@ -1,0 +1,45 @@
+* { box-sizing: border-box; }
+html { background: var(--color-white); scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+body { margin: 0; min-width: 320px; }
+body:has(.vqa-component-canvas), body:has(.vqa-color-system), body:has(.vqa-icons), body:has(.vqa-library-canvas) { min-width: 0; }
+body:has(.review-create-backdrop.is-composite),
+body:has(.rcpc-popup-layer.is-composite),
+body:has(.favorites-modal-layer.is-composite),
+body:has(.inquiry-preview-layer.is-composite),
+body:has(.manager-preview.is-composite) {
+  height: 1080px;
+  overflow: hidden;
+}
+body:has(.review-create-backdrop.is-composite) #root,
+body:has(.rcpc-popup-layer.is-composite) #root,
+body:has(.favorites-modal-layer.is-composite) #root,
+body:has(.inquiry-preview-layer.is-composite) #root,
+body:has(.manager-preview.is-composite) #root {
+  height: 1080px;
+  overflow: clip;
+  position: relative;
+}
+button, input, select { font: inherit; }
+/* The Figma button primitive is a 4px rectangle. Circular, segmented and
+   editor controls retain their component-specific corners below. */
+button { border-radius: var(--radius-sm); }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+img[src^='data:image/svg+xml'],
+img[src*='.svg'] { object-fit: contain; }
+.sr-only { height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+p, h1, h2, h3, dl, dd { margin: 0; }
+:is(a[href], button, input, select, textarea, [contenteditable="true"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+/* Pointer focus must not add a ring, including native text-input focus rings. */
+:root[data-input-modality="pointer"] :focus { outline: none; }
+html.visual-qa-capture *:focus-visible { outline: none !important; }
+.app-shell { min-height: 100vh; }
+.content-container { margin-inline: auto; max-width: none; width: var(--layout-content); }
+.skip-link { background: var(--color-black); color: var(--color-white); left: var(--page-gutter); padding: 10px 14px; position: fixed; top: 0; transform: translateY(-120%); z-index: 100; }
+.skip-link:focus { transform: translateY(0); }
+.eyebrow { color: var(--color-primary-500); font-size: 13px; font-weight: 700; letter-spacing: .08em; }
