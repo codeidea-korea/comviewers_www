@@ -6,10 +6,10 @@ interface Props {
   selectedCount: number
   disabled: boolean
   onPurchase: () => void
-  onBrowse: () => void
+  onPrevious: () => void
 }
 
-export function CartEstimateSummary({ estimate, selectedCount, disabled, onPurchase, onBrowse }: Props) {
+export function CartEstimateSummary({ estimate, selectedCount, disabled, onPurchase, onPrevious }: Props) {
   return <aside className="purchase-summary cart-summary">
     <h2>주문 예상 금액</h2>
     <div className="purchase-summary__box cart-summary__box">
@@ -28,6 +28,6 @@ export function CartEstimateSummary({ estimate, selectedCount, disabled, onPurch
       </dl>
       <p>쿠폰·포인트는 결제 단계에서 사용할 수 있습니다.</p>
     </div>
-    <div className="purchase-summary__actions cart-summary__actions"><button disabled={disabled || !selectedCount} onClick={onPurchase} type="button"><strong>선택 상품 {selectedCount}개</strong> 구매하기</button><button onClick={onBrowse} type="button">상품 둘러보기</button></div>
+    <div className="purchase-summary__actions cart-summary__actions"><button disabled={disabled || !selectedCount} onClick={onPurchase} type="button"><strong>선택 상품 {selectedCount}개</strong> 구매하기</button><button onClick={onPrevious} type="button">이전 페이지</button></div>
   </aside>
 }

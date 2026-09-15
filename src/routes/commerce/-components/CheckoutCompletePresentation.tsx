@@ -34,7 +34,6 @@ function CompleteProductTable({ product }: { product: CheckoutCompleteProduct })
 
 export function CheckoutCompletePresentation({ title, products, paymentRows, contactRows, receiptRows, showRemoteInfo }: Props) {
   return <>
-    <div className="complete-check">✓</div>
     <PageTitle>{title}</PageTitle>
     <section><SectionTitle>주문정보</SectionTitle>{products.map(product => <CompleteProductTable key={product.key} product={product} />)}
       {showRemoteInfo ? <><RelativeLink className="order-detail-link" to="/mypage/rcpc">원격 접속 정보 확인하기 ›</RelativeLink><p className="commerce-help">보안을 위해 원격 접속 정보는 마이페이지에서 확인해 주세요.</p></> : null}

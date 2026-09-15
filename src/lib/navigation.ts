@@ -69,5 +69,8 @@ export function toRelativeHref(to: string, currentPathname = window.location.pat
   const { pathname, suffix } = splitRoute(to)
   if (!pathname.startsWith('/')) return to
 
-  return `${relativePathname(currentPathname, joinBasename(basename, pathname))}${suffix}`
+  const resolvedPathname = joinBasename(basename, pathname)
+  const relative = relativePathname(currentPathname, resolvedPathname)
+  if (relative === '.' && suffix.startsWith('?')) return `${resolvedPathname}${suffix}`
+  return `${relative}${suffix}`
 }

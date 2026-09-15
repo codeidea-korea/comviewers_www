@@ -25,7 +25,7 @@ export function CartPage() {
           <SelectionToolbar checked={cart.allSelected} indeterminate={cart.selectedIds.length > 0 && !cart.allSelected} className="cart-selection-bar" onChange={cart.toggleAll} onRemove={() => cart.remove(cart.selectedIds)} removeDisabled={cart.isChanging || !cart.selectedIds.length} />
           {cart.items.map((item) => <CartProductRow item={item} key={item.id} selected={cart.selectedIds.includes(item.id)} disabled={cart.isChanging} onToggle={() => cart.toggle(item.id)} onRemove={() => cart.remove([item.id])} onQuantityChange={(quantity) => cart.changeQuantity(item.id, quantity)} />)}
         </section>
-        <CartEstimateSummary estimate={cart.estimate} selectedCount={cart.selectedIds.length} disabled={cart.isChanging || cart.checkoutBlocked || cart.selectedIds.length > 100} onBrowse={browse} onPurchase={() => { void navigate(checkoutPreviewUrl(cart.selectedIds)) }} />
+        <CartEstimateSummary estimate={cart.estimate} selectedCount={cart.selectedIds.length} disabled={cart.isChanging || cart.checkoutBlocked || cart.selectedIds.length > 100} onPrevious={() => navigate(-1)} onPurchase={() => { void navigate(checkoutPreviewUrl(cart.selectedIds)) }} />
       </div>}
     </div>
   </AppShell>
