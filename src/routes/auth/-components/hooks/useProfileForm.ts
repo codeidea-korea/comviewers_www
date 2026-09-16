@@ -11,21 +11,6 @@ type Profile = typeof emptyProfile
 type FieldErrorKey = 'loginId' | 'password' | 'passwordConfirm' | 'name' | 'nickname' | 'email' | 'phone' | 'messenger'
 type FieldErrors = Readonly<Partial<Record<FieldErrorKey, string>>>
 const fieldValidationOrder: readonly FieldErrorKey[] = ['loginId', 'password', 'passwordConfirm', 'name', 'nickname', 'email', 'phone', 'messenger']
-const blockedPasswords = new Set([
-  '12345678', '123456789', '1234567890', 'password', 'password1', 'password12',
-  'qwerty12', 'qwerty123', 'admin123', 'admin1234', 'comviewers', 'comviewers1',
-])
-
-function passwordPolicyMessage(password: string, loginId: string, email: string): string | undefined {
-  const normalizedPassword = password.toLowerCase()
-  const emailLocalPart = email.split('@', 1)[0]?.toLowerCase() ?? ''
-  const identifiers = [loginId.toLowerCase(), emailLocalPart].filter((value) => value.length >= 4)
-  if (blockedPasswords.has(normalizedPassword) || identifiers.some((value) => normalizedPassword.includes(value))) {
-    return '아이디·이메일 앞부분 또는 자주 사용하는 비밀번호는 사용할 수 없습니다.'
-  }
-  return undefined
-}
-
 const loginIdSchema = z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.')
 const passwordSchema = z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.')
 const nameSchema = z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.')
@@ -46,10 +31,6 @@ const profileInputSchema = z.object({
 }).refine((value) => value.password === value.passwordConfirm, { message: '비밀번호가 일치하지 않습니다.', path: ['passwordConfirm'] })
   .refine((value) => Boolean(value.phone2) === Boolean(value.phone3), { message: '휴대폰 번호를 모두 입력해 주세요.', path: ['phone2'] })
   .refine((value) => Boolean(value.messenger.trim()) === Boolean(value.messengerId.trim()), { message: '메신저 종류와 아이디를 함께 입력해 주세요.', path: ['messenger'] })
-  .superRefine((value, context) => {
-    const message = passwordPolicyMessage(value.password, value.loginId, value.email)
-    if (message) context.addIssue({ code: 'custom', message, path: ['password'] })
-  })
 
 function schemaMessage(schema: z.ZodType<string>, value: string): string | undefined {
   const result = schema.safeParse(value)
@@ -61,7 +42,6 @@ function fieldValidationMessage(field: FieldErrorKey, profile: Profile): string 
   switch (field) {
     case 'loginId': return schemaMessage(loginIdSchema, profile.loginId)
     case 'password': return schemaMessage(passwordSchema, profile.password)
-      ?? passwordPolicyMessage(profile.password, profile.loginId, email)
     case 'passwordConfirm':
       if (!profile.passwordConfirm) return '비밀번호 확인을 입력해 주세요.'
       return profile.password === profile.passwordConfirm ? undefined : '비밀번호가 일치하지 않습니다.'
@@ -87,15 +67,15 @@ function allFieldErrors(profile: Profile): FieldErrors {
   }))
 }
 
-function affectedFields(name: keyof Profile, profile: Profile, currentErrors: FieldErrors): readonly FieldErrorKey[] {
+function affectedFields(name: keyof Profile, profile: Profile): readonly FieldErrorKey[] {
   switch (name) {
-    case 'loginId': return profile.password || currentErrors.password ? ['loginId', 'password'] : ['loginId']
+    case 'loginId': return ['loginId']
     case 'password': return profile.passwordConfirm || currentErrors.passwordConfirm ? ['password', 'passwordConfirm'] : ['password']
     case 'passwordConfirm': return ['passwordConfirm']
     case 'name': return ['name']
     case 'nickname': return ['nickname']
     case 'emailId':
-    case 'emailDomain': return profile.password || currentErrors.password ? ['email', 'password'] : ['email']
+    case 'emailDomain': return ['email']
     case 'phone1':
     case 'phone2':
     case 'phone3': return ['phone']
@@ -110,6 +90,7 @@ export function useProfileForm() {
   const [profile, setProfile] = useState(emptyProfile)
   const [profilePreview, setProfilePreview] = useState(userProfileIcon)
   const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [profileImageError, setProfileImageError] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -126,7 +107,7 @@ export function useProfileForm() {
     signupCoordinator.cancel()
     const nextProfile = { ...profile, [name]: value }
     setProfile(nextProfile)
-    setFieldErrors((current) => affectedFields(name, nextProfile, current).reduce<FieldErrors>((next, field) => ({
+    setFieldErrors((current) => affectedFields(name, nextProfile).reduce<FieldErrors>((next, field) => ({
       ...next,
       [field]: fieldValidationMessage(field, nextProfile) ?? '',
     }), current))
@@ -200,6 +181,14 @@ export function useProfileForm() {
     if (!api || agreements.length === 0) { setError('약관 동의 단계부터 다시 진행해 주세요.'); return }
     setBusy(true); setError('')
     try {
+      if (profileImage) {
+        setProfileImageError('')
+        try { await api.preflightProfileImage(profileImage) }
+        catch (cause) {
+          setProfileImageError(cause instanceof Error ? cause.message : '프로필 이미지 업로드 준비 상태를 확인하지 못했습니다.')
+          return
+        }
+      }
       const requested = await api.requestEmailVerification(email)
       signupCoordinator.begin(requested.requestId, email, {
         image: profileImage,
@@ -223,10 +212,10 @@ export function useProfileForm() {
   }
   function selectProfileImage(file: File | null) {
     if (signupCoordinator.awaitingEmail) setNotice('프로필 이미지가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
-    signupCoordinator.cancel(); setProfileImage(file)
+    signupCoordinator.cancel(); setProfileImageError(''); setProfileImage(file)
   }
   return { profile, profilePreview, setProfilePreview, setProfileImage: selectProfileImage,
-    error: error || signupCoordinator.error, setError, notice, usernameFeedback, fieldErrors, busy: busy || signupCoordinator.busy, complete,
+    error: error || signupCoordinator.error, setError, notice, profileImageError, setProfileImageError, usernameFeedback, fieldErrors, busy: busy || signupCoordinator.busy, complete,
     awaitingVerification: signupCoordinator.awaitingEmail === email, restartSignup: signupCoordinator.cancel,
     checkedUsername, checkUsername, setField, setFieldValue, submit }
 }

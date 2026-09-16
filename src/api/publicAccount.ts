@@ -38,6 +38,12 @@ export interface RegistrationInput {
 export function createPublicAccountApi(baseUrl: string) {
   const client = createApiClient({ baseUrl })
   return {
+    async preflightProfileImage(file: File) {
+      const body = new FormData(); body.set('file', file)
+      try {
+        return await client.request('/api/auth/signup/profile-image/preflight', z.object({ ready: z.literal(true) }), { method: 'POST', body })
+      } catch { throw new Error('프로필 이미지 업로드 준비를 완료하지 못했습니다. JPG·PNG 5MB 제한과 이미지 저장소·보안 검사 서비스 상태를 확인해 주세요.') }
+    },
     async stageProfileImage(file: File, verificationProof: string) {
       const body = new FormData(); body.set('file', file); body.set('verificationProof', verificationProof)
       try {

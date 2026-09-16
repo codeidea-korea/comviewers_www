@@ -180,6 +180,7 @@
 .auth-panel--compact .file-button { height: 45px; }
 .file-button input { height: 1px; overflow: hidden; position: absolute; width: 1px; }
 .profile-image-field small { color: var(--color-gray-500); line-height: 24px; white-space: nowrap; }
+.profile-image-field__error { color: var(--color-system-error); font-size: 14px; line-height: 20px; margin-top: -12px; }
 .field-with-action { position: relative; }
 .field-with-action > button { background: transparent; border: 0; color: var(--color-blue-500); cursor: pointer; font-size: 14px; font-weight: 700; position: absolute; right: 0; top: 0; }
 .field-success { color: var(--color-system-success); font-size: 14px; margin-top: -16px; }

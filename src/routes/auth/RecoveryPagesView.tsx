@@ -12,7 +12,6 @@ import { formatPasswordResetCountdown as countdown, passwordResetCountdownLabel,
 
 const idRecoveryResultKey = 'comviewers.id-recovery.result'
 const passwordResetRequestKey = 'comviewers.password-reset.request'
-
 interface PasswordResetRequestState {
   requested: true
   username: string
@@ -186,25 +185,34 @@ function ResetPasswordPage() {
   }, [])
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const [confirmationTouched, setConfirmationTouched] = useState(false)
+  const [passwordPolicyError, setPasswordPolicyError] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [complete, setComplete] = useState(false)
-  const validPassword = /^[A-Za-z0-9!@#$%]{8,16}$/.test(password)
+  const validPasswordFormat = /^[A-Za-z0-9!@#$%]{8,16}$/.test(password)
+  const validPassword = validPasswordFormat
+  const passwordError = passwordPolicyError || (passwordTouched && !validPasswordFormat ? '비밀번호는 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)만 사용할 수 있습니다.' : undefined)
+  const confirmationError = confirmationTouched && password !== confirmation ? '비밀번호가 일치하지 않습니다.' : undefined
   async function submit() {
     if (!api || !token) { setError('비밀번호 재설정 링크가 올바르지 않습니다.'); return }
     if (!validPassword) { setError('비밀번호는 8~16자의 영문, 숫자, ! @ # $ %만 사용할 수 있습니다.'); return }
     if (password !== confirmation) { setError('비밀번호가 일치하지 않습니다.'); return }
     setBusy(true); setError('')
     try { await api.confirmPasswordReset(token, password, confirmation); setComplete(true) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : '비밀번호를 재설정하지 못했습니다.') }
+    catch (cause) {
+      if (cause instanceof ApiClientError && cause.code === 'A006') setPasswordPolicyError('기존 비밀번호와 다른 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 입력해 주세요.')
+      else setError(cause instanceof Error ? cause.message : '비밀번호를 재설정하지 못했습니다.')
+    }
     finally { setBusy(false) }
   }
   const helperText = '8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)만 사용할 수 있습니다.'
   return <><LoginPage />
     <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={() => navigate('/login', { replace: true })} onConfirm={() => { void submit() }} showClose={false} title="비밀번호 재설정">
       <div className="popup-form">
-        <PasswordField autoComplete="new-password" helperText={helperText} label="새 비밀번호" maxLength={16} onChange={(event) => { setPassword(event.target.value); setError('') }} required value={password} />
-        <PasswordField autoComplete="new-password" error={confirmation && password !== confirmation ? '비밀번호가 일치하지 않습니다.' : undefined} helperText={helperText} label="비밀번호 확인" maxLength={16} onChange={(event) => { setConfirmation(event.target.value); setError('') }} required value={confirmation} />
+        <PasswordField autoComplete="new-password" error={passwordError} helperText={helperText} label="새 비밀번호" maxLength={16} onChange={(event) => { setPasswordTouched(true); setPasswordPolicyError(''); setPassword(event.target.value); setError('') }} required value={password} />
+        <PasswordField autoComplete="new-password" error={confirmationError} helperText={helperText} label="비밀번호 확인" maxLength={16} onChange={(event) => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} required value={confirmation} />
         {error ? <p className="form-error" role="alert">{error}</p> : null}
       </div>
     </Modal>

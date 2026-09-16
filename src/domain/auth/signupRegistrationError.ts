@@ -3,7 +3,7 @@ export function signupRegistrationErrorMessage(code: string | undefined): string
 }
 
 const signupCompletionErrorMessages: Readonly<Record<string, string>> = {
-  A006: '비밀번호가 보안 정책에 맞지 않습니다. 아이디·이메일 앞부분 또는 자주 사용하는 비밀번호를 제외해 다시 입력해 주세요.',
+  A006: '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.',
   A007: '요청이 너무 많습니다. 잠시 후 회원가입을 다시 신청해 주세요.',
   A008: '현재 인증 요청을 처리할 수 없습니다. 잠시 후 회원가입을 다시 신청해 주세요.',
   A009: '이메일 인증 정보가 만료되었거나 현재 신청과 일치하지 않습니다. 회원가입을 다시 신청해 주세요.',

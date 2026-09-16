@@ -18,7 +18,7 @@ export function SignupProfileStep() {
 
 function StandardSignupProfileStep() {
   const { profile, profilePreview, setProfilePreview, setProfileImage,
-    error, setError, notice, usernameFeedback, fieldErrors, busy, complete, awaitingVerification, restartSignup,
+    error, setError, notice, profileImageError, setProfileImageError, usernameFeedback, fieldErrors, busy, complete, awaitingVerification, restartSignup,
     checkedUsername, checkUsername, setField, setFieldValue, submit } = useProfileForm()
 
   if (awaitingVerification) {
@@ -44,7 +44,8 @@ function StandardSignupProfileStep() {
         <AuthHeading current={2} title="회원가입" total={2} />
         <form className="auth-form profile-form" onSubmit={submit}>
           <h2>회원정보 입력</h2>
-          <ProfileImagePicker alt={profilePreview === userProfileIcon ? '' : '선택된 프로필 미리보기'} disabled={busy} onSelect={(source, file) => { setProfilePreview(source); setProfileImage(file); setError('') }} value={profilePreview} variant="auth" />
+          <ProfileImagePicker alt={profilePreview === userProfileIcon ? '' : '선택된 프로필 미리보기'} disabled={busy} onError={setProfileImageError} onSelect={(source, file) => { setProfilePreview(source); setProfileImage(file); setError('') }} value={profilePreview} variant="auth" />
+          {profileImageError ? <p aria-live="polite" className="profile-image-field__error" role="alert">* {profileImageError}</p> : null}
           <div className="field-with-action">
             <TextField
               error={fieldErrors.loginId || (usernameFeedback?.tone === 'error' ? usernameFeedback.message : undefined)}
