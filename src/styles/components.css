@@ -96,6 +96,9 @@
 .button__icon { align-items: center; display: inline-flex; height: 20px; justify-content: center; overflow: hidden; width: 20px; }
 .button__icon .icon { height: 12px; width: 7.4px; }
 .button__icon .icon--disabled { height: 10px; width: 6.16667px; }
+
+.data-state { align-items: center; display: flex; gap: 12px; justify-content: center; text-align: center; }
+.data-state__message { margin: 0; }
 .icon { flex: 0 0 auto; object-fit: contain; }
 .icon--inverse { filter: brightness(0) invert(1); }
 

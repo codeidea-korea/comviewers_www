@@ -207,10 +207,6 @@ export function StatusBadge({ children, tone = 'green' }: { children: ReactNode;
   return <span className={`mypage-status mypage-status--${tone}`}>{children}</span>
 }
 
-export function EmptyState({ children }: { children: ReactNode }) {
-  return <div className="mypage-empty">{children}</div>
-}
-
 export function PeriodFilter({ open = false, onApply }: { open?: boolean; onApply?: (start: string, end: string) => void }) {
   const [quickPeriod, setQuickPeriod] = useState('')
   const [startDate, setStartDate] = useState('')

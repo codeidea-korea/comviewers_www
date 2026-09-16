@@ -7,7 +7,7 @@ import { Checkbox } from '../../components/ui/CheckboxControl'
 import { useReviews, useReviewProduct } from '@/routes/community/-components/hooks/useContent'
 import { BoardToolbar, CommunityShell, CommunityTabs, Stars } from './CommunityComponentsView'
 import { useSession } from '@/app/session/SessionProvider'
-import { LoadingState } from '@/components/ui/LoadingStateControl'
+import { AsyncContentState, resolveAsyncContentStatus } from '@/components/common/AsyncContentState'
 
 function RentalReviewListContent() {
   const [search, setSearch] = useState('')
@@ -25,18 +25,21 @@ function RentalReviewListContent() {
   const totalPages = Math.ceil(reviews.length / 9)
   const page = totalPages > 0 ? Math.min(currentPage, totalPages) : 1
   const displayedReviews = reviews.slice((page - 1) * 9, page * 9)
+  const contentStatus = resolveAsyncContentStatus({ isPending: result.isPending, isError: result.isError, isEmpty: reviews.length === 0 })
+  const stateOnly = contentStatus === 'error' || contentStatus === 'empty'
 
   return (
-    <div className={`board-page content-container${!result.isPending && !result.isError && !reviews.length ? ' board-page--empty' : ''}`} ref={boardRef}>
+    <div className={`board-page content-container${stateOnly ? ' board-page--empty' : ''}`} ref={boardRef}>
       <CommunityTabs active="reviews" />
       <BoardToolbar count={reviews.length} onSearchChange={(value) => { setSearch(value); setCurrentPage(1) }} onSortChange={(value) => { setSort(value); setCurrentPage(1) }} search={search} sort={sort} />
-      <div className="rental-review-list">{result.isPending ? <LoadingState className="route-loading--compact" label="후기를 불러오는 중입니다." /> : result.isError ? <p role="alert">후기를 불러오지 못했습니다. <button type="button" onClick={() => void result.refetch()}>다시 시도</button></p> : !reviews.length ? <div className="board-empty">검색 결과가 없습니다.</div> : null}
-        {displayedReviews.map((review) => (
+      <div className="rental-review-list">
+        <AsyncContentState className="board-empty" emptyMessage="검색 결과가 없습니다." errorMessage="후기를 불러오지 못했습니다." loadingClassName="route-loading--compact" loadingLabel="후기를 불러오는 중입니다." onRetry={() => void result.refetch()} status={contentStatus} />
+        {contentStatus === null ? displayedReviews.map((review) => (
           <Link key={review.id} state={{ reviewId: review.reviewId }} to="/community/reviews">
             <span className="rental-review-list__top"><span><i>{review.reviewId}</i>{review.isMine ? <em>내 후기</em> : null}<Stars tone="mono" value={review.rating} /></span><span className="rental-review-list__meta">{review.author}<i />{review.date}</span></span>
             <span className="rental-review-list__body"><span><span className="rental-review-list__product-id"><span>품번</span><b>{review.productId}</b></span><small>{review.center}</small></span><p>{review.content}</p></span>
           </Link>
-        ))}
+        )) : null}
       </div>
       {session.status === 'authenticated' && (catalogReviews.length > 0 || mineOnly) ? <label className="board-mine-toggle"><Checkbox checked={mineOnly} onChange={(event) => { setMineOnly(event.target.checked); setCurrentPage(1) }} role="switch" variant="switch" /> 내 후기만 보기</label> : null}
       <Pagination currentPage={page} onPageChange={(page) => { setCurrentPage(page); boardRef.current?.scrollIntoView({ block: 'start' }) }} totalPages={totalPages} />
