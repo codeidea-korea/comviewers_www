@@ -496,3 +496,16 @@
     overscroll-behavior: contain;
   }
 }
+
+.commerce-field > .commerce-field__error {
+  color: var(--color-system-error);
+  display: block;
+  font-size: 12px;
+  line-height: 20px;
+  margin-top: 4px;
+}
+
+.checkout-customer .commerce-field:has(> .commerce-field__error) {
+  height: auto;
+  min-height: 98px;
+}

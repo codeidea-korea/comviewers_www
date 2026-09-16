@@ -60,6 +60,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
   const [selected, setSelected] = useState<number[]>([])
   const [method, setMethod] = useState<RefundDirectQuoteRequest['method']>('original')
   const [reason, setReason] = useState('')
+  const [reasonTouched, setReasonTouched] = useState(false)
   const [phone, setPhone] = useState<string | null>(null)
   const [bank, setBank] = useState({ code: '', name: '', accountNumber: '', holder: '' })
   const [agreed, setAgreed] = useState(false)
@@ -169,10 +170,10 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
         }) : selectedTargets.map(item => <article key={`${item.operationRequestTargetId}:${item.orderItemId}`}><CandidateSummary item={item}/></article>)}
         {targets.data && (selectFromCandidates ? targets.data.length === 0 : selectedTargets.length === 0) ? <p className="refund-application__empty">선택한 상품 중 해지 신청 가능한 이용 중 상품이 없습니다.</p> : null}
       </fieldset>
-      <label className="refund-application__reason"><span><b>*</b> 환불 사유</span><select required value={reason} onChange={(event) => setReason(event.target.value)}>
+      <label className="refund-application__reason"><span><b>*</b> 환불 사유</span><select required value={reason} onBlur={() => setReasonTouched(true)} onChange={(event) => { setReasonTouched(true); setReason(event.target.value) }}>
         <option value="">환불 사유를 선택해 주세요.</option>
         {reasonOptions.map(value => <option key={value} value={value}>{value}</option>)}
-      </select>{!reason ? <small>환불 사유를 선택해 주세요.</small> : null}</label>
+      </select>{reasonTouched && !reason ? <small role="alert">환불 사유를 선택해 주세요.</small> : null}</label>
       <footer><button type="button" onClick={close}>취소</button><button type="submit" disabled={!selectedCount || !reason || locked}>다음</button></footer>
     </form> : <form className="refund-application refund-application--quote" onSubmit={(event) => {
       event.preventDefault()

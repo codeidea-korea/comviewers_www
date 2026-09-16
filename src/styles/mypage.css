@@ -801,6 +801,7 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .refund-application__reason b { color: var(--color-system-error); }
 .refund-application__reason select,.refund-application__phone input,.refund-application__bank input,.refund-application__bank select { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); font: inherit; height: 42px; padding: 0 12px; width: 100%; }
 .refund-application__reason small { color: var(--color-system-error); display: block; margin-top: 8px; }
+.profile-catalog__phone:has(> small.is-error),.profile-catalog__messenger:has(> small.is-error) { height: 118px; }
 .refund-application > footer { background: var(--color-white); bottom: 0; display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 12px; position: sticky; z-index: 1; }
 .refund-application > footer button { background: var(--color-white); border: 1px solid var(--color-gray-300); border-radius: 4px; color: var(--color-black); font-weight: 600; height: 44px; min-width: 80px; padding: 0 20px; }
 .refund-application > footer button:last-child { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }
