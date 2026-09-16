@@ -24,7 +24,7 @@ export function mapCatalogProduct(dto: CatalogListItem | CatalogDetail): Product
     unitPrice: dto.pricing.unitPrice,
     pricingType: dto.pricing.pricingType,
     minPurchaseQuantity: 'minUnits' in dto && dto.pricing.pricingType === 'one_time' ? dto.minUnits : null,
-    maxPurchaseQuantity: 'maxUnits' in dto && dto.pricing.pricingType === 'one_time' ? Math.min(dto.maxUnits, dto.stockQuantity) : null,
+    maxPurchaseQuantity: 'maxUnits' in dto && dto.pricing.pricingType === 'one_time' ? dto.maxUnits : null,
     billingUnit: dto.pricing.billingUnit, available: 'instantAvailable' in dto ? dto.instantAvailable ?? null : null, saleAvailability: dto.availability,
     pointRate: dto.pricing.pointRate,
     minRentalUnits: 'minUnits' in dto && ['hour', 'day', 'thirty_day'].includes(dto.pricing.billingUnit) ? dto.minUnits : null,

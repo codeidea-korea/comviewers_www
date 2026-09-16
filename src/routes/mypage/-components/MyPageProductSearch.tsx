@@ -18,7 +18,7 @@ export function MyPageProductSearch() {
     const timer = window.setTimeout(() => setKeyword(value.trim()), 250)
     return () => window.clearTimeout(timer)
   }, [value])
-  const result = useQuery({ queryKey: ['my-account', 'http', 'product-autocomplete', keyword],
+  const result = useQuery({ queryKey: ['my-account', 'read', 'product-autocomplete', keyword],
     enabled: Boolean(myAccount.rcpcApi && keyword), retry: false,
     queryFn: ({ signal }) => myAccount.rcpcApi!.list({ productNo: keyword, page: 0, size: 10 }, signal) })
   function select(productNo: string) {

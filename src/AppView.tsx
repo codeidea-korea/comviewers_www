@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router'
 import { RouteErrorBoundary } from './app/RouteErrorBoundary'
 import { lazy, Suspense, useLayoutEffect } from 'react'
 const LoginPage = lazy(() => import('./routes/auth/LoginPageView').then(module => ({ default: module.LoginPage })))
+const ManagerPortalGate = lazy(() => import('./routes/mypage/ManagerPortalGate').then(module => ({ default: module.ManagerPortalGate })))
 const RecoveryPages = lazy(() => import('./routes/auth/RecoveryPagesView').then(module => ({ default: module.RecoveryPages })))
 const EmailVerificationPage = lazy(() => import('./routes/auth/EmailVerificationPage').then(module => ({ default: module.EmailVerificationPage })))
 const SocialLoginCallbackPage = lazy(() => import('./routes/auth/SocialLoginCallbackPage').then(module => ({ default: module.SocialLoginCallbackPage })))
@@ -60,6 +61,15 @@ export function App() {
       <RouteErrorBoundary><CustomerCapabilityGate><Routes>
       <Route index element={<HomePage />} />
       <Route path="login" element={<LoginPage />} />
+      <Route path="manager/:organizationCode/mypage" element={<ManagerPortalGate />}>
+        <Route index element={<RcpcListPage />} />
+        <Route path="rcpc" element={<RcpcListPage />} />
+        <Route path="rcpc/:rcpcId" element={<RcpcDetailPage />} />
+        <Route path="favorites" element={<FavoritesPage />} />
+        <Route path="favorites/settings" element={<FavoritesPage settings />} />
+        <Route path="inquiries" element={<InquiryListPage />} />
+        <Route path="inquiries/:inquiryId" element={<InquiryDetailPage />} />
+      </Route>
       <Route path="email-verification" element={<EmailVerificationPage />} />
       <Route path="auth/social/callback" element={<SocialLoginCallbackPage />} />
       <Route path="signup/terms" element={<SignupPages page="terms" />} />

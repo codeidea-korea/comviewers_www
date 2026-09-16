@@ -57,8 +57,7 @@ export function SocialSignupProfileStep() {
 
   async function saveImage() {
     if (!imageFile) return
-    const baseUrl = import.meta.env.VITE_API_BASE_URL
-    if (!baseUrl) throw new Error('이미지 서비스 연결을 확인해 주세요.')
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/'
     const mutations = createCustomerProfileMutations(createApiClient({ baseUrl, getAccessToken: () => sessionStore.getAccessToken() }))
     let attachmentId = uploadedImage.current?.file === imageFile ? uploadedImage.current.attachmentId : undefined
     if (attachmentId === undefined) {

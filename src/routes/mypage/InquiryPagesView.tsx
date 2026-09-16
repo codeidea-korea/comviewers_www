@@ -1,6 +1,6 @@
 import { useServices } from '@/app/ServiceProvider'
 import { MyPageLayout } from './MypageComponentsView'
-import { InquiryDetailContent, InquiryListContent } from './-components/HttpInquiryPages'
+import { InquiryDetailContent, InquiryListContent } from './-components/inquiries/InquiryPagesContent'
 
 function useInquiryServices() {
   const { myAccount } = useServices()

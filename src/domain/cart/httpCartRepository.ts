@@ -63,8 +63,8 @@ export function createHttpCartRepository(api: CartApi, catalog: CatalogApi): Car
       const product = await catalog.get(productNo)
       const part = product.pricing.pricingType === 'one_time' && product.pricing.billingUnit === 'unit'
       const rental = product.pricing.pricingType === 'rental' && ['thirty_day', 'day', 'hour'].includes(product.pricing.billingUnit)
-      const maximum = part ? Math.min(product.maxUnits, product.stockQuantity) : product.maxUnits
-      if (product.availability !== 'AVAILABLE' || (!part && !rental) || rentalPeriods < product.minUnits || rentalPeriods > maximum) {
+      const maximum = product.maxUnits
+      if ((!part && !rental) || rentalPeriods < product.minUnits || rentalPeriods > maximum) {
         throw new Error('선택한 상품의 수량 또는 이용기간을 확인해 주세요.')
       }
       await api.putItem(productNo, part ? { quantity: rentalPeriods, durationUnits: null } : { quantity: 1, durationUnits: rentalPeriods })

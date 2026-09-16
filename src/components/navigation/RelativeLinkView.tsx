@@ -1,6 +1,7 @@
 import { forwardRef, type AnchorHTMLAttributes, type MouseEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { toRelativeHref } from '../../lib/navigation'
+import { managerScopedPath } from '@/routes/mypage/-components/managerPortalPath'
 
 export interface RelativeLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
   to: string
@@ -17,7 +18,8 @@ export const RelativeLink = forwardRef<HTMLAnchorElement, RelativeLinkProps>(fun
 }, ref) {
   const location = useLocation()
   const navigate = useNavigate()
-  const href = toRelativeHref(to, window.location.pathname || location.pathname)
+  const scopedTo = managerScopedPath(to, location.pathname)
+  const href = toRelativeHref(scopedTo, window.location.pathname || location.pathname)
   const disabled = linkProps['aria-disabled'] === true || linkProps['aria-disabled'] === 'true'
 
   return (
@@ -31,10 +33,10 @@ export const RelativeLink = forwardRef<HTMLAnchorElement, RelativeLinkProps>(fun
           event.preventDefault()
           return
         }
-        if (to.startsWith('/')) {
+        if (scopedTo.startsWith('/')) {
           event.preventDefault()
           window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-          void navigate(to, { replace, state })
+          void navigate(scopedTo, { replace, state })
         }
       }}
       ref={ref}

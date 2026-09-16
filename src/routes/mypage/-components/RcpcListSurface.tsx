@@ -2,17 +2,14 @@ import { Link } from 'react-router'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import serverDisabledIcon from '@/assets/figma/icon-server-disabled.svg'
-import serverOffIcon from '@/assets/figma/icon-server-off.svg'
-import serverOnIcon from '@/assets/figma/icon-server-on.svg'
-import serverWaitingIcon from '@/assets/figma/icon-server-waiting.svg'
 import { Button } from '@/components/ui/ButtonControl'
 import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
-import { RcpcExtensionCheckout } from './RcpcExtensionCheckout'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, extensionTarget, serverStatusLabels, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, totalTraffic } from './rcpcPresentation'
+import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
+import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -92,28 +89,13 @@ function RcpcProduct({ api, canEditAlias, item, mutations }: {
 }
 
 function RcpcState({ item }: { item: MyRcpcItem }) {
-  return <div className="rcpc-list__state" role="cell"><img alt="" src={rcpcStateIcon(item)}/><span>{serverStatusLabels[item.serverStatus] ?? item.serverStatus}</span></div>
-}
-
-function rcpcStateIcon(item: MyRcpcItem) {
-  return extensionBlocked(item)
-    ? serverDisabledIcon
-    : item.serverStatus === 'needs_attention'
-      ? serverOffIcon
-      : item.serverStatus === 'extension_waiting'
-        ? serverWaitingIcon
-        : serverOnIcon
+  return <div className="rcpc-list__state" role="cell"><RcpcStatusContents item={item}/></div>
 }
 
 function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
-  const unavailable = extensionBlocked(item)
   return <div className="rcpc-list__actions" role="cell">
     <span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span>
-    {canExtend
-      ? unavailable
-        ? <Button disabled size="small">기간연장</Button>
-        : <RcpcExtensionCheckout api={api} displayTargets={[extensionTarget(item)]} rentalIds={[item.rentalId]} triggerLabel="기간연장"/>
-      : null}
+    <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
   </div>
 }
 
@@ -133,18 +115,14 @@ function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations }: {
     </header>
     <dl className="mobile-rcpc-card__facts">
       <div><dt>서버실</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>
-      <div><dt>서버 상태</dt><dd className="mobile-rcpc-card__state"><img alt="" src={rcpcStateIcon(item)}/><span>{serverStatusLabels[item.serverStatus] ?? item.serverStatus}</span></dd></div>
+      <div><dt>서버 상태</dt><dd className="mobile-rcpc-card__state"><RcpcStatusContents item={item}/></dd></div>
       <div><dt>이용 기간</dt><dd><strong><RcpcPeriodLabel item={item}/></strong></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
       <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
     <footer>
       <span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span>
-      {canExtend
-        ? unavailable
-          ? <Button disabled size="small">기간연장</Button>
-          : <RcpcExtensionCheckout api={api} displayTargets={[extensionTarget(item)]} rentalIds={[item.rentalId]} triggerLabel="기간연장"/>
-        : null}
+      <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
     </footer>
   </article>
 }

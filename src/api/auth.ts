@@ -10,10 +10,10 @@ const stringIdSchema = z.string()
   .refine((id) => /^[1-9]\d{0,18}$/.test(id) && BigInt(id) <= 9223372036854775807n)
 const tokenSchema = z.string().min(1).regex(/^[A-Za-z0-9._~+/=-]+$/)
 const loginResponseSchema = z.object({
-  userId: idSchema, role: z.literal('USER'), status: z.literal('ACTIVE'), passwordChangeRequired: z.boolean(),
+  userId: idSchema, role: z.enum(['USER', 'C_MANAGER']), status: z.literal('ACTIVE'), passwordChangeRequired: z.boolean(),
   accessToken: tokenSchema.nullish(), tokenType: z.literal('Bearer').nullish(), expiresInMs: z.number().int().nonnegative().safe(),
 }).refine((value) => value.passwordChangeRequired || Boolean(value.accessToken && value.tokenType === 'Bearer' && value.expiresInMs > 0))
-const organizationsSchema = z.array(z.object({ id: stringIdSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']) }))
+const organizationsSchema = z.array(z.object({ id: stringIdSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']), organizationNo: z.string().optional() }))
   .refine((values) => new Set(values.map((value) => value.id)).size === values.length)
 const socialSignupContextSchema = z.object({ provider: z.enum(['google', 'naver', 'kakao']), email: z.email().max(100), name: z.string().max(100).nullable() })
 const socialSignupInputSchema = z.object({
@@ -47,9 +47,9 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
   }
   const post = (path: string, body?: unknown, accessToken?: string | null) => request('POST', path, body, accessToken)
   let restoreInFlight: Promise<AuthResult> | null = null
-  async function establishResult(result: { data: unknown; receivedAt: number }, allowPasswordChange: boolean): Promise<AuthResult> {
+  async function establishResult(result: { data: unknown; receivedAt: number }, allowPasswordChange: boolean, expectedRole?: 'USER' | 'C_MANAGER'): Promise<AuthResult> {
       const login = loginResponseSchema.safeParse(result.data)
-      if (!login.success || (!allowPasswordChange && login.data.passwordChangeRequired)) {
+      if (!login.success || (expectedRole && login.data.role !== expectedRole) || (!allowPasswordChange && login.data.passwordChangeRequired)) {
         // A valid cookie may already have been issued for an account this application cannot accept.
         try { await post('/api/auth/logout') } catch { throw new ApiClientError('network') }
         throw new ApiClientError('contract')
@@ -70,7 +70,18 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
       const parsed = loginCredentialsSchema.safeParse(input)
       if (!parsed.success) throw new ApiClientError('request')
       if (restoreInFlight) await restoreInFlight.catch(() => undefined)
-      return establishResult(await post('/api/auth/login', parsed.data), true)
+      return establishResult(await post('/api/auth/login', parsed.data), true, 'USER')
+    },
+    async managerLogin(organizationCode, input) {
+      const parsed = loginCredentialsSchema.safeParse({ ...input, autoLogin: false })
+      if (!parsed.success || !/^ORG_[A-Za-z0-9_]{1,46}$/i.test(organizationCode)) throw new ApiClientError('request')
+      if (restoreInFlight) await restoreInFlight.catch(() => undefined)
+      const result = await establishResult(await post(`/api/auth/manager/${encodeURIComponent(organizationCode)}/login`, { username: parsed.data.username, password: parsed.data.password }), false, 'C_MANAGER')
+      if (!result.organizations?.some(organization => organization.role === 'c_manager' && organization.organizationNo?.toLowerCase() === organizationCode.toLowerCase())) {
+        try { await post('/api/auth/logout') } catch { throw new ApiClientError('network') }
+        throw new ApiClientError('contract')
+      }
+      return result
     },
     restore() {
       if (restoreInFlight) return restoreInFlight

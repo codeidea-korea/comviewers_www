@@ -1,6 +1,6 @@
 import { SessionControls } from '../../app/session/SessionControls'
 import { useSession } from '../../app/session/SessionProvider'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import logoPrimary from '../../assets/figma/logo-primary.png'
 import logoWhite from '../../assets/figma/logo-white.png'
@@ -8,6 +8,7 @@ import shoppingBagIcon from '../../assets/figma/shopping-bag.svg'
 import closeIcon from '../../assets/figma/inquiry-modal-close.svg'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import { menuItems, utilityMenuItems } from '../../navigation/menuItems'
+import { useMobileOverlay } from '../ui/useMobileOverlay'
 
 export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: number; onCartClick?: () => void; state?: 'main' | 'sub' }) {
   const navigate = useNavigate()
@@ -20,20 +21,10 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
   const [mobileOpen, setMobileOpen] = useState(false)
   const mobileToggleRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    document.body.classList.toggle('mobile-overlay-open', mobileOpen)
-    if (!mobileOpen) return () => document.body.classList.remove('mobile-overlay-open')
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      setMobileOpen(false)
-      requestAnimationFrame(() => mobileToggleRef.current?.focus({ preventScroll: true }))
-    }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('keydown', closeOnEscape)
-      document.body.classList.remove('mobile-overlay-open')
-    }
-  }, [mobileOpen])
+  useMobileOverlay(mobileOpen, () => {
+    setMobileOpen(false)
+    requestAnimationFrame(() => mobileToggleRef.current?.focus({ preventScroll: true }))
+  })
 
   const closeMobileMenu = () => setMobileOpen(false)
   const openCart = () => {

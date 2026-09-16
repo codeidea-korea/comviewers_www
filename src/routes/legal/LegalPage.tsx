@@ -20,23 +20,21 @@ function DocumentBody({ kind }: { kind: LegalKind }) {
   const selectedId = params.get('version')
   const document = selectedId ? query.data.find(item => item.id === selectedId) : query.data[0]
   return <>
-    {query.data.length > 0 && <label>문서 버전 <select value={document?.id ?? ''} onChange={event => setParams(current => {
-      const next = new URLSearchParams(current); next.set('version', event.target.value); return next
-    })}>{!document && <option value="">버전을 선택해 주세요.</option>}{query.data.map(item => <option key={item.id} value={item.id}>{item.version} · {item.effectiveDate}</option>)}</select></label>}
-    {!document ? <p role="status">{selectedId ? '선택한 문서 버전을 찾을 수 없습니다.' : '등록된 문서가 없습니다.'}</p> : <article>
-      <h2>{document.title}</h2><p>버전 {document.version} · 적용일 <time dateTime={document.effectiveDate}>{document.effectiveDate}</time></p>
+    {!document ? <p role="status">{selectedId ? '선택한 문서 버전을 찾을 수 없습니다.' : '등록된 문서가 없습니다.'}</p> : <article className="legal-page__document">
       <RichContentRenderer document={document.richContent} fallback={document.paragraphs} />
     </article>}
+    {query.data.length > 0 && <label className="legal-page__version">문서 버전 <select value={document?.id ?? ''} onChange={event => setParams(current => {
+      const next = new URLSearchParams(current); next.set('version', event.target.value); return next
+    })}>{!document && <option value="">버전을 선택해 주세요.</option>}{query.data.map(item => <option key={item.id} value={item.id}>{item.version} · {item.effectiveDate}</option>)}</select></label>}
   </>
 }
 export function LegalPage({ privacy = false }: { privacy?: boolean }) {
   const [params] = useSearchParams()
   const section = privacy ? 'privacy' : params.get('section') === 'point' ? 'point' : params.get('section') === 'refund' ? 'refund' : params.get('section') === 'rental' ? 'rental' : 'terms'
   const title = privacy ? '개인정보처리방침' : section === 'rental' ? 'RCPC 렌탈약관' : section === 'refund' ? '취소·환불·포인트 정책' : section === 'point' ? '포인트·쿠폰 정책' : '서비스 이용약관'
-  return <AppShell><section className="not-ready-page legal-page">
-    <div className="auth-panel auth-panel--result legal-page__panel">
+  return <AppShell><section className="legal-page">
+    <div className="legal-page__panel">
       <header className="legal-page__heading">
-        <p className="eyebrow">LEGAL</p>
         <h1>{title}</h1>
       </header>
       {!privacy && <nav aria-label="약관 종류" className="legal-page__nav">

@@ -6,7 +6,7 @@ import { extensionSelectionSchema, type ExtensionCheckoutInput, type ExtensionSe
 import { RcpcExtensionSurface, type RcpcDialogTarget } from '@/components/mypage/RcpcDialogsControl'
 import { ApiClientError } from '@/api/httpClient'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import { HttpOrderPaymentContinuation } from './http/HttpOrderPaymentContinuation'
+import { OrderPaymentContinuation } from './orders/OrderPaymentContinuation'
 import { extensionResultText } from './rcpcExtensionPresentation'
 import { Button } from '@/components/ui/ButtonControl'
 
@@ -96,7 +96,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       {canRevise && <button type="button" onClick={() => { draft.current = null; create.reset(); void quote.refetch() }}>입력 수정 후 견적 다시 확인</button>}
       {create.data && <div role="status"><p>연장 주문이 생성되었습니다. 결제 기한: {create.data.paymentDueAt.replace('T', ' ')}</p>
         <Link to={`/mypage/orders/${encodeURIComponent(create.data.orderNo)}`}>연장 주문 상세</Link>
-        <HttpOrderPaymentContinuation orderNo={create.data.orderNo} orderStatus="payment_pending" paymentStatus="pending"/>
+        <OrderPaymentContinuation orderNo={create.data.orderNo} orderStatus="payment_pending" paymentStatus="pending"/>
       </div>}
     </>
   return pageMode ? <section aria-label="연장 주문서">{content}<Link to={offerIds?.length ? '/mypage/storage' : '/mypage/rcpc'}>목록으로</Link></section> : <section aria-label="RCPC 기간 연장">

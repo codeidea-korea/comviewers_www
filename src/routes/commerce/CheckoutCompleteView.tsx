@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import type { AccountOrderDetail, AccountOrderItem } from '@/api/myAccountOrders'
-import { accountDate, accountMoney } from '../mypage/-components/http/AccountReadCommon'
+import { accountDate, accountMoney } from '@/lib/accountFormat'
 import { PageTitle } from './CommerceComponents'
 
 export function CheckoutCompletePage() {
@@ -36,7 +36,7 @@ function CheckoutPaymentResult() {
   const valid = Number.isSafeInteger(paymentId) && paymentId > 0 && Boolean(checkout.payment)
   const result = useQuery({ queryKey: ['checkout', 'payment', paymentId], enabled: valid, queryFn: ({ signal }) => checkout.payment!(paymentId, signal), retry: false,
     refetchInterval: query => query.state.data && ['pending', 'ready', 'waiting_for_deposit'].includes(query.state.data.status) ? 10000 : false })
-  const order = useQuery({ queryKey: ['my-account', 'http', 'order', result.data?.orderNo], enabled: Boolean(myAccount.readApi && result.data?.orderNo), queryFn: ({ signal }) => myAccount.readApi!.order(result.data!.orderNo, signal), retry: false })
+  const order = useQuery({ queryKey: ['my-account', 'read', 'order', result.data?.orderNo], enabled: Boolean(myAccount.readApi && result.data?.orderNo), queryFn: ({ signal }) => myAccount.readApi!.order(result.data!.orderNo, signal), retry: false })
   const paid = result.data?.status === 'approved'
   const virtual = result.data?.paymentMethod === 'virtual_account' && !paid
   const payment = order.data?.payments.find(item => item.paymentId === String(paymentId)) ?? order.data?.payments[0]

@@ -15,8 +15,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
   const keyboardActive = product.keyboardIncluded === true
   const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
-  const instantAvailabilityRequired = !part
-  const productPrice = part ? product.unitPrice : product.monthlyPrice
+  const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
 
   return (
     <tr className="product-list-table__row" role="link" tabIndex={0} onClick={event => { if (!(event.target as HTMLElement).closest('button,a,input,select,textarea')) void navigate(`/products/${product.productId}`) }} onKeyDown={event => { if (event.key === 'Enter') void navigate(`/products/${product.productId}`) }}>
@@ -41,7 +40,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       <td>{product.serverState === null ? "정보 없음" : <span className={`product-table-status${serverOnline ? ' is-online' : ''}`}><img alt={serverOnline ? '서버 연결됨' : '서버 연결 끊김'} src={serverOnline ? serverLinkIcon : linkOffIcon} /></span>}</td>
       <td className="product-table-price"><strong>{product.setupFee.toLocaleString('ko-KR')}</strong><span>원</span></td>
       <td className="product-table-price"><strong>{productPrice?.toLocaleString('ko-KR') ?? '정보 없음'}</strong><span>원</span></td>
-      <td><button disabled={productPrice === null || product.saleAvailability === "SOLD_OUT" || (instantAvailabilityRequired && product.available !== true)} aria-label={`${product.productId} 장바구니 담기`} onClick={() => onAddToCart(product)} type="button"><img alt="" src={shoppingBagIcon} /></button></td>
+      <td><button disabled={productPrice === null} aria-label={`${product.productId} 장바구니 담기`} onClick={() => onAddToCart(product)} type="button"><img alt="" src={shoppingBagIcon} /></button></td>
     </tr>
   )
 }

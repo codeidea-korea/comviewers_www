@@ -40,8 +40,7 @@ export function ProductCard({ image, onAddToCart, product, size = 'medium' }: { 
   const hasKeyboard = Boolean(product.keyboardIncluded)
   const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
-  const instantAvailabilityRequired = !part
-  const productPrice = part ? product.unitPrice : product.monthlyPrice
+  const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
   const imageSource = image ?? product.image ?? (part ? defaultPartProductImage : defaultProductImage)
 
   return (
@@ -87,7 +86,7 @@ export function ProductCard({ image, onAddToCart, product, size = 'medium' }: { 
             {isLarge ? <span>세팅비 <PriceValue amount={product.setupFee} compact /></span> : null}
             <span>{part ? '상품 금액' : '월 렌탈료'} <PriceValue amount={productPrice} /></span>
           </div>
-          {isLarge ? <button disabled={productPrice === null || product.saleAvailability === "SOLD_OUT" || (instantAvailabilityRequired && product.available !== true)} className="product-card__cart" onClick={() => onAddToCart?.(product)} type="button">담기 <img alt="" src={shoppingBagIcon} /></button> : null}
+          {isLarge ? <button disabled={productPrice === null} className="product-card__cart" onClick={() => onAddToCart?.(product)} type="button">담기 <img alt="" src={shoppingBagIcon} /></button> : null}
         </div>
       </div>
       <Link aria-label={`상품 ${product.productId} 상세 보기`} className="product-card__detail-overlay" to={`/products/${product.productId}`} />

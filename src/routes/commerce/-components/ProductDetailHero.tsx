@@ -31,7 +31,6 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const setupFee = product.setupFee
   const totalAmount = rentalUnitPrice === null || quantity === null ? null : part ? (setupFee + rentalUnitPrice) * quantity : setupFee + rentalUnitPrice * quantity
   const safeTotalAmount = totalAmount !== null && Number.isSafeInteger(totalAmount) ? totalAmount : null
-  const immediatelyPurchasable = part || product.available === true
   const specs = [['OS', product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
@@ -65,8 +64,8 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
           </div>
           <div className="product-detail-total"><span>총 금액</span><strong><b>{safeTotalAmount === null ? '계산 불가' : safeTotalAmount.toLocaleString('ko-KR')}</b><small>원</small></strong></div>
           <div className="product-detail-actions">
-            <button aria-label="장바구니 담기" className="product-detail-favorite" disabled={cartPending || !canSelectPeriod || safeTotalAmount === null || product.saleAvailability === "SOLD_OUT" || !immediatelyPurchasable} onClick={() => { if (quantity !== null && safeTotalAmount !== null) onCart(quantity) }} type="button"><img alt="" src={shoppingBag} /></button>
-            <Button className="commerce-primary-button" disabled={buyPending || !canSelectPeriod || safeTotalAmount === null || product.saleAvailability === "SOLD_OUT" || !immediatelyPurchasable} fullWidth onClick={() => { if (quantity !== null) onBuy(quantity) }} size="large">바로구매</Button>
+            <button aria-label="장바구니 담기" className="product-detail-favorite" disabled={cartPending || !canSelectPeriod || safeTotalAmount === null} onClick={() => { if (quantity !== null && safeTotalAmount !== null) onCart(quantity) }} type="button"><img alt="" src={shoppingBag} /></button>
+            <Button className="commerce-primary-button" disabled={buyPending || !canSelectPeriod || safeTotalAmount === null || product.saleAvailability === "SOLD_OUT" || (!part && product.available !== true)} fullWidth onClick={() => { if (quantity !== null) onBuy(quantity) }} size="large">바로구매</Button>
           </div>
           <p aria-live="polite" className="product-detail-message">{message}</p>
         </div>

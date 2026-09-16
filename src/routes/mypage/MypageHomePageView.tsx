@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { MypageDashboardContent } from './-components/http/HttpDashboardPage'
+import { MypageDashboardContent } from './-components/dashboard/DashboardPageContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function MypageHomePage({ detailMode = false }: { detailMode?: boolean }) {

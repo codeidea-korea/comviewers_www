@@ -67,7 +67,7 @@ function allFieldErrors(profile: Profile): FieldErrors {
   }))
 }
 
-function affectedFields(name: keyof Profile, profile: Profile): readonly FieldErrorKey[] {
+function affectedFields(name: keyof Profile, profile: Profile, currentErrors: FieldErrors): readonly FieldErrorKey[] {
   switch (name) {
     case 'loginId': return ['loginId']
     case 'password': return profile.passwordConfirm || currentErrors.passwordConfirm ? ['password', 'passwordConfirm'] : ['password']
@@ -107,7 +107,7 @@ export function useProfileForm() {
     signupCoordinator.cancel()
     const nextProfile = { ...profile, [name]: value }
     setProfile(nextProfile)
-    setFieldErrors((current) => affectedFields(name, nextProfile).reduce<FieldErrors>((next, field) => ({
+    setFieldErrors((current) => affectedFields(name, nextProfile, current).reduce<FieldErrors>((next, field) => ({
       ...next,
       [field]: fieldValidationMessage(field, nextProfile) ?? '',
     }), current))

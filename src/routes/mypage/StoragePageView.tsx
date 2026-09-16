@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { StoragePageContent } from './-components/http/HttpAccountPages'
+import { StoragePageContent } from './-components/storage/StoragePageContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function StoragePage() {

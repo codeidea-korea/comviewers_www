@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { RcpcListContent } from './-components/HttpRcpcPages'
+import { RcpcListContent } from './-components/rcpc/RcpcPagesContent'
 import { MyPageLayout } from './MypageComponentsView'
 import { MypageHomePage } from './MypageHomePageView'
 

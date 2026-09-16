@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { PointsPageContent } from './-components/http/HttpBenefitPages'
+import { PointsPageContent } from './-components/benefits/BenefitPagesContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function PointsPage() {

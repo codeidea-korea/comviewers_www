@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { CouponsPageContent } from './-components/http/HttpBenefitPages'
+import { CouponsPageContent } from './-components/benefits/BenefitPagesContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function CouponsPage() {

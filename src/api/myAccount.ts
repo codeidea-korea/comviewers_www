@@ -3,7 +3,7 @@ import { partStorageOfferSchema, partStorageSelectionSchema } from './partStorag
 import { partFulfillmentSchema } from './partFulfillment'
 import type { ApiClient } from './httpClient'
 import { createChangeOrderRefundApi } from './changeOrderRefunds'
-import { accountId, accountPageQuery, accountPathId, profileResponseSchema, benefitSummarySchema, pointPageSchema, couponPageSchema, downloadableCouponSchema, storagePageSchema, storageItemResponseSchema } from './myAccountSchemas'
+import { accountId, accountPageQuery, accountPathId, profileResponseSchema, benefitSummarySchema, pointPageSchema, couponPageSchema, downloadableCouponSchema, storagePageSchema, storageSummarySchema, storageItemResponseSchema } from './myAccountSchemas'
 import { accountOrderQuerySchema, accountOrderPageSchema, accountOrderDetailSchema, type AccountOrderQuery } from './myAccountOrders'
 export type AccountPageQuery = z.input<typeof accountPageQuery>
 const benefitDateQuery = z.object({ from: z.iso.date().optional(), to: z.iso.date().optional() }).refine(value => !value.from || !value.to || value.from <= value.to)
@@ -21,7 +21,7 @@ export function createMyAccountApi(client: ApiClient, organizationId: string | n
         rentals:z.array(z.object({itemId:z.number().int().positive().safe(),durationUnits:z.number().int().positive().nullable()})).max(100),
         parts:partStorageSelectionSchema.array().max(100)}).refine(value=>value.rentals.length+value.parts.length>0&&value.rentals.length+value.parts.length<=100).parse(input)}),
     partFulfillment: (itemId: string) => client.request(`/api/v1/my/order-items/${accountPathId.parse(itemId)}/part-fulfillment`, partFulfillmentSchema, context()),
-    partStorageOffers: (page=0) => client.request('/api/v1/my/storage/parts', partStorageOfferSchema.array(), { ...context(),query:{page:z.number().int().nonnegative().max(1000000).parse(page)} }),
+    partStorageOffers: (page=0, signal?: AbortSignal) => client.request('/api/v1/my/storage/parts', partStorageOfferSchema.array(), { ...context(),signal,query:{page:z.number().int().nonnegative().max(1000000).parse(page)} }),
     movePartStorageBatch: (items: readonly { id: number; quantity: number }[], key: string) => client.request('/api/v1/my/storage/parts/move-to-cart', partStorageOfferSchema.array(),
       { ...context(), method: 'POST', idempotencyKey: z.string().uuid().parse(key), body: { items: partStorageSelectionSchema.array().min(1).max(100).parse(items) } }),
     changeOrderRefunds: createChangeOrderRefundApi(client, context),
@@ -40,6 +40,7 @@ export function createMyAccountApi(client: ApiClient, organizationId: string | n
         accruedPoints: z.number().int().nonnegative(), pointBalance: z.number().int().nonnegative(), confirmedAt: z.iso.datetime({ local: true }), replayed: z.boolean() }),
       { ...context(), method: 'POST', idempotencyKey: `purchase-confirmation:${idempotencyKeyPartSchema.parse(key)}` }),
     storage: (input: AccountPageQuery & { status?: StorageStatus } = {}, signal?: AbortSignal) => client.request('/api/v1/my/storage', storagePageSchema, { ...context(), signal, query: { ...accountPageQuery.parse(input), status: z.enum(['stored', 'moved_to_cart', 'ordered', 'expired', 'cancelled', 'unpaid']).optional().parse(input.status) } }),
+    storageSummary: (signal?: AbortSignal) => client.request('/api/v1/my/storage/summary', storageSummarySchema, { ...context(), signal }),
     storageItem: (id: string, signal?: AbortSignal) => client.request(`/api/v1/my/storage/${accountPathId.parse(id)}`, storageItemResponseSchema, { ...context(), signal }),
     moveStorageBatch: (items: readonly { itemId: number; durationUnits: number | null }[], key: string) => client.request('/api/v1/my/storage/move-to-cart', z.array(storageItemResponseSchema),
       { ...context(), method: 'POST', body: z.object({ items: z.array(z.object({ itemId: z.number().int().positive().safe(), durationUnits: z.number().int().positive().nullable() })).min(1).max(100) }).parse({ items }), idempotencyKey: idempotencyKeyPartSchema.parse(key) }),

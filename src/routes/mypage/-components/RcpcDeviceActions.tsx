@@ -33,17 +33,27 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
     {request.error && <span role="alert">재부팅을 요청하지 못했습니다. 다시 시도해 주세요.</span>}</>
 }
 
-export function RcpcWanIp({ api, item, compact = false }: { api: MyRcpcReadServices; item: MyRcpcItem; compact?: boolean }) {
+export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { api: MyRcpcReadServices; item: MyRcpcItem; compact?: boolean; autoReveal?: boolean }) {
   const [value, setValue] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [pending, setPending] = useState(false)
   const sequence = useRef(0)
+  const allowed = ['running', 'needs_attention'].includes(item.serverStatus) && ['active', 'expiring'].includes(item.rentalStatus)
   useEffect(() => {
     const clear = () => { sequence.current += 1; setValue(null); setMessage(''); setPending(false) }
     window.addEventListener('blur', clear)
     return () => { sequence.current += 1; window.removeEventListener('blur', clear) }
   }, [api.organizationId, item.rentalId])
   useEffect(() => { if (value === null) return; const timer = window.setTimeout(() => setValue(null), 30000); return () => window.clearTimeout(timer) }, [value])
+  useEffect(() => {
+    if (!autoReveal || !allowed) return
+    const controller = new AbortController()
+    const token = ++sequence.current
+    void api.wanIp(item.rentalId, 'reveal', controller.signal).then(result => {
+      if (token === sequence.current) setValue(result.wanIp)
+    }).catch(() => { /* Explicit button remains available when automatic disclosure is denied. */ })
+    return () => { controller.abort(); sequence.current += 1 }
+  }, [api, item.rentalId, allowed, autoReveal])
   async function act(action: 'reveal' | 'copy') {
     const token = ++sequence.current
     setPending(true); setMessage('')
@@ -55,7 +65,6 @@ export function RcpcWanIp({ api, item, compact = false }: { api: MyRcpcReadServi
     } catch (error) { if (token === sequence.current) setMessage(error instanceof Error ? error.message : 'IP 정보를 확인할 수 없습니다.') }
     finally { if (token === sequence.current) setPending(false) }
   }
-  const allowed = ['running', 'needs_attention'].includes(item.serverStatus) && ['active', 'expiring'].includes(item.rentalStatus)
   if (compact) return <div className="rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><span>{value ?? '********'}</span><button aria-label={`WAN IP ${value ? '숨기기' : '보기'}`} aria-pressed={Boolean(value)} type="button" disabled={!allowed || pending} onClick={() => value ? setValue(null) : void act('reveal')}><img alt="" src={eyeIcon}/></button><button aria-label="WAN IP 복사" type="button" disabled={!allowed || pending} onClick={() => void act('copy')}><img alt="" src={copyIcon}/></button>{message ? <span className="rcpc-copy-toast" role="status">{message}</span> : null}</div>
   return <div>WAN IP: <span>{value ?? '••••••••'}</span> <button type="button" disabled={!allowed || pending} onClick={() => value ? setValue(null) : void act('reveal')}>{value ? '숨기기' : '표시'}</button> <button type="button" disabled={!allowed || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
 }

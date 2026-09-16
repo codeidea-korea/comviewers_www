@@ -19,6 +19,7 @@ export interface AuthResult { response: unknown; receivedAt: number; organizatio
 export interface AuthAdapter {
   /** Return the server response with its original receipt timestamp and verified active membership IDs; never invent credentials. */
   login(input: { username: string; password: string; autoLogin: boolean }): Promise<AuthResult>
+  managerLogin?(organizationCode: string, input: { username: string; password: string }): Promise<AuthResult>
   restore?(): Promise<AuthResult>
   socialLoginUrl?(provider: SocialAuthProvider): string
   socialSignupContext?(): Promise<SocialSignupContext>
@@ -31,6 +32,7 @@ interface AuthController {
   logoutNotice: string
   socialLoginAvailable: boolean
   login(username: string, password: string, autoLogin?: boolean): Promise<'authenticated' | 'password-change-required'>
+  managerLogin(organizationCode: string, username: string, password: string): Promise<void>
   restoreSession(): Promise<void>
   startSocialLogin(provider: SocialAuthProvider): void
   loadSocialSignupContext(): Promise<SocialSignupContext>
@@ -93,6 +95,21 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       const session = store.getSnapshot()
       if (session.status === 'anonymous') throw new Error('로그인하지 못했습니다.')
       return session.status
+    },
+    async managerLogin(organizationCode, username, password) {
+      if (restoring) throw new Error('로그인 상태를 확인하고 있습니다. 잠시 후 다시 시도해 주세요.')
+      const credentials = loginCredentialsSchema.safeParse({ username, password, autoLogin: false })
+      if (!credentials.success || !adapter?.managerLogin) throw new Error('아이디 또는 비밀번호를 확인해 주세요.')
+      const expectedRevision = store.getSnapshot().revision
+      let result: AuthResult
+      try { result = await adapter.managerLogin(organizationCode, credentials.data) }
+      catch { throw new Error('아이디 또는 비밀번호를 확인해 주세요.') }
+      store.establishFromVerifiedResponse(result.response, { expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
+      const established = store.getSnapshot()
+      if (established.status !== 'authenticated' || established.role !== 'C_MANAGER') {
+        store.logout()
+        throw new Error('담당자 계정을 확인할 수 없습니다.')
+      }
     },
     async restoreSession() {
       if (!adapter?.restore) throw new Error('로그인 상태를 확인할 수 없습니다.')

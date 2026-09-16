@@ -14,7 +14,7 @@ import { CheckoutSummary } from './-components/checkout/CheckoutSummary'
 import { CheckoutPaymentWidget } from './-components/checkout/CheckoutPaymentWidget'
 import type { PreparedPayment } from '@/api/ordersPayments'
 import type { CheckoutValidatedDraft } from './-components/checkout/hooks/useCheckoutForm'
-import { LoadingState } from '@/components/ui/LoadingStateControl'
+import { CommerceCartState } from './-components/CommerceCartState'
 import { PageTitle } from './CommerceComponents'
 
 function CheckoutContent({ ids }: { ids: readonly string[] }) {
@@ -53,12 +53,11 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     if (draft) submit.mutate(draft)
   }
   const pageState = result.data ? 'filled' : 'empty'
+  const contentStatus = !result.validSelection ? 'empty' : result.isPending ? 'loading' : result.isError ? 'error' : null
   return <AppShell className={`commerce-shell checkout-page checkout-page--${pageState}${showReceipt ? ' checkout-page--with-receipt' : ''}`}>
     <div className="content-container commerce-page"><PageTitle>주문서 작성</PageTitle>
       
-      {prepared ? <CheckoutPaymentWidget payment={prepared} /> : !result.validSelection ? <section className="cart-empty"><p>장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.</p><RelativeLink to="/cart">장바구니로 이동</RelativeLink></section>
-        : result.isPending ? <section className="cart-empty" aria-busy="true"><LoadingState label="선택 상품의 예상 금액을 불러오는 중입니다." /></section>
-          : result.isError ? <section className="cart-empty"><p role="alert">선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다.</p><button onClick={() => { void result.refetch() }} type="button">다시 시도</button><RelativeLink to="/cart">장바구니로 이동</RelativeLink></section>
+      {prepared ? <CheckoutPaymentWidget payment={prepared} /> : contentStatus ? <CommerceCartState status={contentStatus} loadingLabel="선택 상품의 예상 금액을 불러오는 중입니다." errorMessage="선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다." onRetry={() => { void result.refetch() }} errorAction={<RelativeLink to="/cart">장바구니로 이동</RelativeLink>}><p>장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.</p><RelativeLink to="/cart">장바구니로 이동</RelativeLink></CommerceCartState>
             : result.data ? <div className="checkout-layout" aria-busy={result.isFetching}><div className="checkout-main">
               <CheckoutProducts items={result.data.items} /><CheckoutDiscounts quote={benefits.data} couponId={couponId} points={points} disabled={!checkout.benefitQuote || submit.isPending} pending={benefits.isFetching} error={benefits.isError} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={() => void benefits.refetch()} />
               {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}

@@ -7,7 +7,7 @@ import type { RentalChangeCheckoutInput } from '@/api/rentalChangeCheckout'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { AccountQueryState } from './AccountQueryState'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
-import { HttpOrderPaymentContinuation } from './http/HttpOrderPaymentContinuation'
+import { OrderPaymentContinuation } from './orders/OrderPaymentContinuation'
 
 const statusLabels: Record<string, string> = {
   quoted: '견적 보관 / 결제 대기',
@@ -131,7 +131,7 @@ export function RcpcReplacementCheckout({ api }: { api: MyRcpcReadServices }) {
       {detail.data?.events.length ? <details><summary>교체 처리 이력</summary>{detail.data.events.map(event => <p key={event.id}>{date(event.createdAt)} · {event.eventType} · {event.reason ?? ''}</p>)}</details> : null}</> : null}
     {create.error ? <p role="alert">{create.error.message} <Link to="/mypage/orders">주문 내역 확인</Link></p> : null}
     {canRevise ? <button type="button" onClick={() => { draft.current = null; create.reset(); quote.reset() }}>입력 수정 후 견적 다시 확인</button> : null}
-    {create.data ? <div role="status"><p>교체 주문이 생성되었습니다. 결제 기한: {date(create.data.paymentDueAt)}</p><Link to={`/mypage/orders/${encodeURIComponent(create.data.orderNo)}`}>교체 주문 상세</Link><HttpOrderPaymentContinuation orderNo={create.data.orderNo} orderStatus="payment_pending" paymentStatus="pending" /></div> : null}
+    {create.data ? <div role="status"><p>교체 주문이 생성되었습니다. 결제 기한: {date(create.data.paymentDueAt)}</p><Link to={`/mypage/orders/${encodeURIComponent(create.data.orderNo)}`}>교체 주문 상세</Link><OrderPaymentContinuation orderNo={create.data.orderNo} orderStatus="payment_pending" paymentStatus="pending" /></div> : null}
     <Link to={row ? `/mypage/rcpc/${row.rentalId}` : '/mypage/rcpc'}>RCPC 상세로 돌아가기</Link>
   </section>
 }

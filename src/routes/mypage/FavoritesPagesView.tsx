@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { FavoritesPageContent } from './-components/HttpFavoritesPage'
+import { FavoritesPageContent } from './-components/favorites/FavoritesPageContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function FavoritesPage({ settings = false }: { settings?: boolean }) {

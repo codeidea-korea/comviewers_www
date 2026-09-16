@@ -359,7 +359,7 @@
   .mypage-home-summary { display: flex; flex-direction: column; }
   .mypage-home-rcpc { overflow-x: auto; }
   .mypage-home-rcpc__head,
-  .mypage-home-rcpc article { min-width: 976px; }
+  .mypage-home-rcpc > article { min-width: 976px; }
   .mypage-tabs { overflow-x: auto; }
   .mypage-tabs a { flex: 0 0 auto; }
   .mypage-toolbar { align-items: stretch; flex-direction: column; gap: 10px; height: auto; padding: 12px 0; }
@@ -703,7 +703,7 @@
   .order-catalog-item__spec { height: auto; line-height: 18px; overflow: visible; white-space: normal; }
   .order-catalog-item__period,
   .order-catalog-item__totals { height: auto; min-height: 24px; }
-  .order-catalog-item__actions { grid-template-columns: repeat(2, minmax(0, 1fr)); height: auto; }
+  .orders-catalog-list .order-catalog-item__actions { grid-template-columns: minmax(0, 1fr); height: auto; }
   .order-catalog-item__actions button { min-height: 40px; }
 
   .post-list > a { grid-template-columns: minmax(0, 1fr) auto; padding: 16px 0; }

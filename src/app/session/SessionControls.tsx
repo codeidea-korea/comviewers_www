@@ -7,6 +7,7 @@ import { Modal } from '../../components/ui/ModalControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
 import userIcon from '../../assets/figma/icon-user.png'
 import { isMyPageOnlyPathAllowed, loginPathWithReturnTo } from './sessionRouteNavigation'
+import { managerOrganizationCode } from '@/routes/mypage/-components/managerPortalPath'
 import './session.css'
 
 export function OrganizationSelector() {
@@ -98,6 +99,13 @@ export function CustomerCapabilityGate({ children }: { children: ReactNode }) {
   const { restoring } = useAuthentication()
   const { pathname } = useLocation()
   if (session.status !== 'authenticated') return children
+  if (managerOrganizationCode(pathname)) return children
+  if (session.role === 'C_MANAGER') {
+    const code = session.organizations.find(item => item.id === session.organizationId)?.organizationNo
+      ?? session.organizations.find(item => item.role === 'c_manager')?.organizationNo
+    return code ? <Navigate to={`/manager/${encodeURIComponent(code)}/mypage`} replace />
+      : <main className="session-notice"><p role="alert">담당자 접속 링크를 확인할 수 없습니다.</p></main>
+  }
   const communityWriteRoute = /^\/community\/posts\/(?:new|[^/]+\/edit)(?:\/|$)/.test(pathname)
   const protectedCustomerRoute = /^\/(cart|checkout)(?:\/|$)/.test(pathname) || /^\/mypage(?:\/|$)/.test(pathname) || communityWriteRoute
   if (!protectedCustomerRoute) return children

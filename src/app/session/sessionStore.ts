@@ -3,14 +3,14 @@ import { z } from 'zod'
 
 const idSchema = z.union([z.string(), z.number().int().positive().safe()])
   .transform(String).refine(value => /^[1-9]\d{0,18}$/.test(value) && BigInt(value) <= 9223372036854775807n)
-const roleSchema = z.enum(['USER', 'ADMIN'])
+const roleSchema = z.enum(['USER', 'ADMIN', 'C_MANAGER'])
 const loginSchema = z.object({
   userId: idSchema, role: roleSchema, status: z.literal('ACTIVE'),
   passwordChangeRequired: z.boolean(), accessToken: z.string().optional().nullable(),
   tokenType: z.string().optional().nullable(), expiresInMs: z.number().int().nonnegative().safe(),
 })
 const organizationIdsSchema = z.array(idSchema).refine(ids => new Set(ids).size === ids.length)
-export const sessionOrganizationSchema = z.object({ id: idSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']) })
+export const sessionOrganizationSchema = z.object({ id: idSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']), organizationNo: z.string().optional() })
 const organizationsSchema = z.array(sessionOrganizationSchema).refine(values => new Set(values.map(value => value.id)).size === values.length)
 export type SessionOrganization = Readonly<z.infer<typeof sessionOrganizationSchema>>
 export type SessionRole = z.infer<typeof roleSchema>

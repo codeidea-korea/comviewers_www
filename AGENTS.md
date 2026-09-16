@@ -2,7 +2,7 @@
 
 이 폴더는 ComViewers 사용자 서비스 프론트다. 2026-09-07 사용자 요청에 따라 ADR 0024의 React + TypeScript + Vite + React Router + TanStack Query + Zod 기반을 적용했다. 2026-09-08 서비스 src를 모두 TS/TSX로 전환하고 allowJs/checkJs를 제거했다. `VITE_API_BASE_URL` opt-in에서 실제 인증·refresh·조직 capability, 상품·장바구니·주문 견적과 마이페이지 주요 조회 API를 사용한다. 프로필 지원 필드 PATCH, RCPC 별명·즐겨찾기, 서버 그룹 ID 기반 그룹 편집·배정, 구매확정 렌탈을 선택하는 상품후기 저장을 연결했다. 실제 주문 생성·결제는 미연결이다. 기존 프리뷰는 `legacy-preview`에 보존했다.
 
-새 데이터·상태 코드는 strict TypeScript로 작성한다. 화면은 repository 구현 대신 기능 훅을 사용하고 `app/ServiceProvider`에서 mock 구현을 주입한다. 서비스 src 전체는 strict TypeScript 검사 대상이다. `npm run typecheck`, `npm run lint`, `npm run build`는 명시 요청 시에만 실행한다. `../comviewers-pub`는 퍼블리싱 원본으로 보존한다. 현재 전환 범위는 README를 따른다.
+새 데이터·상태 코드는 strict TypeScript로 작성한다. 화면은 repository 구현 대신 기능 훅을 사용하고 `app/ServiceProvider`에서 실제 API 서비스를 주입한다. 마이페이지 화면 컴포넌트는 `routes/mypage/-components/` 아래 기능별 폴더에 두며, HTTP transport 구현은 `domain/` 계층에 둔다. 서비스 src 전체는 strict TypeScript 검사 대상이다. `npm run typecheck`, `npm run lint`, `npm run build`는 명시 요청 시에만 실행한다. `../comviewers-pub`는 퍼블리싱 원본으로 보존한다. 현재 전환 범위는 README를 따른다.
 
 프론트 작업 시에는 상위 `../AGENTS.md`를 먼저 따르고, 컴포넌트 구조는 이 파일의 규칙을 추가로 따른다. 단독 workspace로 이 폴더를 열었더라도 `../HANDOFF.md`, `../AGENTS.md`, `../docs/INDEX.md`를 먼저 확인하고, `../docs/INDEX.md`가 지정하는 메뉴/요구사항 문서를 읽은 뒤 작업한다.
 

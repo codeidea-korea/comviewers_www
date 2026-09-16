@@ -1,4 +1,5 @@
 import { isActiveManager } from '@/domain/myAccount/managerServices'
+import { useSession } from '@/app/session/SessionProvider'
 import { useEffect, useMemo, useState } from 'react'
 import moreIcon from '../../../assets/figma/comment-more-fill.svg'
 import addIcon from '../../../assets/figma/icon-add.svg'
@@ -17,6 +18,7 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
   onToggleMenu: (id: string) => void; openMenuRow?: string | null;
 }) {
   const account = useMyAccount()
+  const session = useSession()
   const managers = useMemo(() => [...(account.data?.managers ?? [])].filter(isActiveManager).sort((left, right) => left.name.localeCompare(right.name, 'ko')), [account.data?.managers])
   const managerRows = (account.data?.rcpcs ?? []).map((item) => {
     const assigned = managers.filter((manager) => manager.assignedRcpcIds.includes(item.id) || manager.assignedRcpcIds.includes(item.rcpcId))
@@ -27,6 +29,7 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   const [mobileGroupsOpen, setMobileGroupsOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const filteredRows = managerRows.filter((row) => (managerFilter === null || (managerFilter === 'unassigned' ? !row.managerIds.length : row.managerIds.includes(managerFilter)))
@@ -46,10 +49,13 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
     : current.filter((id) => id !== rowId))
   const copyAccessLink = async () => {
     try {
+      const organization = session.status === 'authenticated' ? session.organizations.find(item => item.id === session.organizationId) : null
+      if (!organization?.organizationNo) throw new Error('Organization code unavailable')
       if (!navigator.clipboard) throw new Error('Clipboard unavailable')
-      await navigator.clipboard.writeText(`${window.location.origin}/login`)
+      await navigator.clipboard.writeText(`${window.location.origin}/manager/${encodeURIComponent(organization.organizationNo)}/mypage`)
       setCopied(true)
-    } catch { setCopied(false) }
+      setCopyError(false)
+    } catch { setCopied(false); setCopyError(true) }
   }
   useEffect(() => {
     if (!copied) return
@@ -81,6 +87,7 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
       {mobileSearchOpen ? <label className="manager-catalog__mobile-search"><span className="sr-only">담당자 검색</span><input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명" value={search}/></label> : null}
     </div>
     {copied ? <p className="manager-catalog__copy-toast" role="status">복사되었습니다.</p> : null}
+    {copyError ? <p role="alert">접속 링크를 복사하지 못했습니다. 다시 시도해 주세요.</p> : null}
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
       {managers.map((manager) => <button className={managerFilter === manager.id ? 'is-active' : ''} key={manager.id} onClick={() => { setManagerFilter(manager.id); setCurrentPage(1) }} type="button"><b>{manager.name}<em>{manager.assignedRcpcIds.length}</em></b></button>)}
       {managers.length ? <button className={managerFilter === 'unassigned' ? 'is-active' : ''} onClick={() => { setManagerFilter('unassigned'); setCurrentPage(1) }} type="button"><b>미배정<em>{unassignedCount}</em></b></button> : <p>등록된 담당자가 없습니다.</p>}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import type { usePostDetail } from './hooks/usePostDetail'
 import commentFace from '../../../assets/figma/comment-face-fill.svg'
@@ -16,6 +16,7 @@ export function PostCommentSection({
   displayedCommentCount, commentAuthenticated,
 }: CommentSectionProps) {
   const [loginOpen, setLoginOpen] = useState(false)
+  const registerButtonRef = useRef<HTMLButtonElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
   const session = useSession()
@@ -36,7 +37,7 @@ export function PostCommentSection({
         <span className="sr-only">댓글 입력</span>
         <textarea maxLength={1000} onChange={(event) => setComment(event.target.value)} onClick={() => { if (!commentAuthenticated) requestLogin() }} onFocus={() => { if (!commentAuthenticated) requestLogin() }} placeholder="댓글을 입력해 주세요." readOnly={!commentAuthenticated} rows={5} value={comment} />
         <small>{comment.length.toLocaleString('ko-KR')} / 1,000</small>
-        <button disabled={commentAuthenticated && (!comment.trim() || comment.length > 1000 || commentQuery.save.isPending || commentQuery.remove.isPending)} onClick={registerComment} type="button">댓글 등록</button>
+        <button disabled={commentAuthenticated && (!comment.trim() || comment.length > 1000 || commentQuery.save.isPending || commentQuery.remove.isPending)} onClick={registerComment} ref={registerButtonRef} type="button">댓글 등록</button>
       </label> : null}
       <div>
         {comments.map((item, index) => (
@@ -60,7 +61,7 @@ export function PostCommentSection({
           </article>
         ))}
       </div>
-      <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginOpen} onClose={() => setLoginOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`)} title="로그인이 필요합니다."><p>댓글을 작성하려면 로그인해 주세요.<br />로그인 후 댓글 작성을 계속할 수 있습니다.</p></Modal>
+      <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginOpen} onClose={() => setLoginOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`)} returnFocusRef={registerButtonRef} title="로그인이 필요합니다."><p>댓글을 작성하려면 로그인해 주세요.<br />로그인 후 댓글 작성을 계속할 수 있습니다.</p></Modal>
     </section>
   )
 }

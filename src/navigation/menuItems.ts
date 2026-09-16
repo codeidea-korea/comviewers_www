@@ -17,6 +17,7 @@ export const utilityMenuItems: readonly MenuItem[] = [
 export const footerMenuItems: readonly MenuItem[] = [
   { id: 'company', label: '회사소개', href: '/company' },
   { id: 'colocation', label: '입점신청', href: '/colocation/apply' },
+  { id: 'support', label: '고객센터', href: '/support' },
 ]
 
 export const communityMenuItems: readonly MenuItem[] = [

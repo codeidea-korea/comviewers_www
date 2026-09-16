@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { ProfilePageContent } from './-components/http/HttpAccountPages'
+import { ProfilePageContent } from './-components/profile/ProfilePageContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function ProfilePage() {

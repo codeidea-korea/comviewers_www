@@ -38,6 +38,13 @@ export const myRcpcSummarySchema = z.object({ total: count, usageCounts: z.objec
   access_restricted: count, expired: count, termination_pending: count, resetting: count,
   terminated: count, cancelled: count, refunded: count, other: count,
 }) })
+export const myRcpcFilterOptionsSchema = z.object({
+  regions: z.array(z.string()),
+  serverRooms: z.array(z.object({ id, name: text, region: text })),
+  total: count,
+  usageCounts: z.record(z.string(), count),
+  unclassifiedFavoriteCount: count,
+})
 export const myRcpcDetailSchema = myRcpcItemSchema.extend({
   productTitle: text.default(null), orderedAt: instant.default(null), serviceEndsAt: instant, maskedWanIp: text,
 })
@@ -53,6 +60,7 @@ export type MyRcpcItem = z.infer<typeof myRcpcItemSchema>
 export type RemoteAccessType = 'anydesk' | 'teamviewer'
 const rebootStatusSchema = z.object({ status: z.enum(['idle', 'requested', 'failed', 'expired', 'communication_resumed', 'waiting_communication']), pending: z.boolean(), available: z.boolean() })
 const remoteAccessSchema = z.object({ accessType: z.enum(['anydesk', 'teamviewer']), remoteId: z.string(), password: z.string().optional(), serviceEndsAt: z.iso.datetime({ offset: true }) })
+const remoteIdentifierSchema = z.object({ remoteId: z.string().min(1), serviceEndsAt: z.iso.datetime({ offset: true }) })
 
 export function createMyRcpcApi(client: ApiClient, organizationId: string) {
   const customerOrganizationId = z.string().regex(/^[1-9]\d{0,18}$/).refine((value) => BigInt(value) <= 9223372036854775807n).parse(organizationId)
@@ -63,11 +71,13 @@ export function createMyRcpcApi(client: ApiClient, organizationId: string) {
     changeCheckout: createRentalChangeCheckoutApi(client, customerOrganizationId),
     rebootStatus: (rentalId: number, signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/reboot`, rebootStatusSchema, { ...context, signal }),
     reboot: (rentalId: number, idempotencyKey: string) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/reboot`, rebootStatusSchema, { ...context, method: 'POST', idempotencyKey: z.uuid().parse(idempotencyKey) }),
-    wanIp: (rentalId: number, action: 'reveal' | 'copy') => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/wan-ip/${z.enum(['reveal', 'copy']).parse(action)}`, z.object({ wanIp: z.string().min(1).max(45) }), { ...context, method: 'POST' }),
+    wanIp: (rentalId: number, action: 'reveal' | 'copy', signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/wan-ip/${z.enum(['reveal', 'copy']).parse(action)}`, z.object({ wanIp: z.string().min(1).max(45) }), { ...context, method: 'POST', signal }),
     list: (query: MyRcpcQuery = {}, signal?: AbortSignal) => client.request('/api/v1/my/rcpcs', myRcpcPageSchema, { ...context, query: myRcpcQuerySchema.parse(query), signal }),
     summary: (signal?: AbortSignal) => client.request('/api/v1/my/rcpcs/summary', myRcpcSummarySchema, { ...context, signal }),
+    filterOptions: (signal?: AbortSignal) => client.request('/api/v1/my/rcpcs/filter-options', myRcpcFilterOptionsSchema, { ...context, signal }),
     detail: (rentalId: number, signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}`, myRcpcDetailSchema, { ...context, signal }),
     reveal: (rentalId: number, accessType: RemoteAccessType, signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/remote-access/${z.enum(['anydesk', 'teamviewer']).parse(accessType)}/reveal`, remoteAccessSchema, { ...context, method: 'POST', signal }),
+    identifier: (rentalId: number, accessType: RemoteAccessType, signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/remote-access/${z.enum(['anydesk', 'teamviewer']).parse(accessType)}/identifier`, remoteIdentifierSchema, { ...context, method: 'POST', signal }),
     copy: (rentalId: number, accessType: RemoteAccessType, field: 'remote_id' | 'password', signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/remote-access/${z.enum(['anydesk', 'teamviewer']).parse(accessType)}/copy`, z.undefined(), { ...context, method: 'POST', body: { field: z.enum(['remote_id', 'password']).parse(field) }, signal }),
     extensionQuote: (rentalId: number, units: number) => client.request(`/api/v1/my/rentals/${id.parse(rentalId)}/extension-quotes`,
       z.object({ rentalId: id, extensionType: z.string(), units: z.number().int().positive(), billingUnit: z.string(),

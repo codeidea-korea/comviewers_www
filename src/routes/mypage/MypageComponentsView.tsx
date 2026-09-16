@@ -1,4 +1,5 @@
 import { useSession } from '@/app/session/SessionProvider'
+import { useAuthentication } from '@/app/session/AuthProvider'
 import { currentKstDate, dateRangeError, quickAccountDates } from './-components/accountDates'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -8,29 +9,24 @@ import { AppShell } from '../../components/layout/AppShellView'
 import { mypageManagerMenu, mypageMenu } from '../../navigation/menuItems'
 import { MyPageProductSearch } from './-components/MyPageProductSearch'
 import { SearchField } from '@/components/ui/SearchFieldControl'
+import { useMobileOverlay } from '@/components/ui/useMobileOverlay'
 import searchIcon from '@/assets/figma/mypage-search.svg'
 import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
+import { managerOrganizationCode, managerScopedPath } from './-components/managerPortalPath'
 
 interface MyPageMenuItem { id: string; label: string; href: string; disabled?: boolean }
 interface MyPageMenuGroup { id: string; label: string; href?: string; disabled?: boolean; opensPasswordGate?: boolean; items: readonly MyPageMenuItem[] }
 
 export function MobileBottomSheet({ children, hideHeader = false, id, label, onClose, open }: { children: ReactNode; hideHeader?: boolean; id: string; label: string; onClose?: () => void; open: boolean }) {
   const surfaceRef = useRef<HTMLElement | null>(null)
+  useMobileOverlay(open, onClose)
 
   useEffect(() => {
     if (!open) return undefined
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose?.()
-    }
-    document.body.classList.add('mobile-overlay-open')
-    document.addEventListener('keydown', closeOnEscape)
-    requestAnimationFrame(() => surfaceRef.current?.focus({ preventScroll: true }))
-    return () => {
-      document.body.classList.remove('mobile-overlay-open')
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [onClose, open])
+    const focusFrame = requestAnimationFrame(() => surfaceRef.current?.focus({ preventScroll: true }))
+    return () => cancelAnimationFrame(focusFrame)
+  }, [open])
 
   if (!open) return null
   const titleId = `${id}-title`
@@ -84,6 +80,8 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const session = useSession()
+  const auth = useAuthentication()
+  const managerPortalCode = managerOrganizationCode(pathname)
   const capability = session.status === 'authenticated' ? session.customerSession : null
   const isManager = capability?.myPageOnly === true
   const baseMenu = isManager ? mypageManagerMenu : mypageMenu
@@ -97,30 +95,31 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [mobileSearchValue, setMobileSearchValue] = useState('')
+  useMobileOverlay(mobileMenuOpen, () => setMobileMenuOpen(false))
 
   useEffect(() => {
     setMobileMenuOpen(false)
     setMobileSearchOpen(false)
   }, [pathname])
 
-  useEffect(() => {
-    if (!mobileMenuOpen) return undefined
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileMenuOpen(false)
-    }
-    document.body.classList.add('mobile-overlay-open')
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.body.classList.remove('mobile-overlay-open')
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [mobileMenuOpen])
-
   const submitMobileSearch = () => {
     const productNumber = mobileSearchValue.trim()
     if (!productNumber) return
     setMobileSearchOpen(false)
-    navigate(`/mypage/rcpc?productNo=${encodeURIComponent(productNumber)}`)
+    navigate(managerScopedPath(`/mypage/rcpc?productNo=${encodeURIComponent(productNumber)}`, pathname))
+  }
+
+  if (managerPortalCode) {
+    const links = [
+      { label: '이용 RCPC', href: '/mypage/rcpc' },
+      { label: '즐겨찾기', href: '/mypage/favorites' },
+      { label: '문의 관리', href: '/mypage/inquiries' },
+    ]
+    return <div className="manager-portal-page">
+      <div className="manager-portal-page__top"><strong>담당 RCPC</strong><button onClick={() => { void auth.logout() }} type="button">로그아웃</button></div>
+      <nav aria-label="담당자 페이지" className="manager-portal-page__nav">{links.map(item => <Link aria-current={pathname.startsWith(managerScopedPath(item.href, pathname)) ? 'page' : undefined} key={item.href} to={item.href}>{item.label}</Link>)}</nav>
+      <main className="mypage-content" id="main-content" tabIndex={-1}>{title ? <h1 className="mypage-title">{title}</h1> : null}{children}</main>
+    </div>
   }
 
   return (

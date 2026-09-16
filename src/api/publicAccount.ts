@@ -102,6 +102,6 @@ let cached: PublicAccountApi | null | undefined
 export function getPublicAccountApi(): PublicAccountApi | null {
   if (cached !== undefined) return cached
   const baseUrl = import.meta.env.VITE_API_BASE_URL
-  cached = baseUrl ? createPublicAccountApi(baseUrl) : null
+  cached = createPublicAccountApi(baseUrl || '/')
   return cached
 }

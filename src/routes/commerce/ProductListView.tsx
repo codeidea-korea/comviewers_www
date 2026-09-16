@@ -19,6 +19,10 @@ import viewListIcon from '../../assets/figma/view-list.svg'
 import { useSession } from '@/app/session/SessionProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
+function matchesMedia(query: string) {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches
+}
+
 export function ProductListPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,8 +35,8 @@ export function ProductListPage() {
     facets, capabilities, isPending, isError, errorMessage, refetch,
   } = productList
   const [filterOpen, setFilterOpen] = useState(false)
-  const [filterDrawer, setFilterDrawer] = useState(() => window.matchMedia('(max-width: 1799px)').matches)
-  const [mobileViewport, setMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches)
+  const [filterDrawer, setFilterDrawer] = useState(() => matchesMedia('(max-width: 1799px)'))
+  const [mobileViewport, setMobileViewport] = useState(() => matchesMedia('(max-width: 767px)'))
   const [view, setView] = useState<'cards' | 'list'>('cards')
   const [cartPopupOpen, setCartPopupOpen] = useState(false)
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
@@ -61,14 +65,18 @@ export function ProductListPage() {
   const filterRef = useRef<HTMLElement>(null)
   const filterTriggerRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined
     const media = window.matchMedia('(max-width: 1799px)')
     const updateFilterMode = (event: MediaQueryListEvent) => setFilterDrawer(event.matches)
+    setFilterDrawer(media.matches)
     media.addEventListener('change', updateFilterMode)
     return () => media.removeEventListener('change', updateFilterMode)
   }, [])
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined
     const media = window.matchMedia('(max-width: 767px)')
     const updateMobileViewport = (event: MediaQueryListEvent) => setMobileViewport(event.matches)
+    setMobileViewport(media.matches)
     media.addEventListener('change', updateMobileViewport)
     return () => media.removeEventListener('change', updateMobileViewport)
   }, [])

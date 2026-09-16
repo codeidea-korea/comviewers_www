@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { OrderDetailPageContent } from './-components/http/HttpOrderPages'
+import { OrderDetailPageContent } from './-components/orders/OrderPagesContent'
 import { MyPageLayout } from './MypageComponentsView'
 
 export function OrderDetailPage() {

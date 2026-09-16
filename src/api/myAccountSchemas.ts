@@ -19,6 +19,7 @@ export const couponPageSchema = z.object({ ...accountPageFields, items: z.array(
 export const downloadableCouponSchema = z.object({ serverRoomName: text, couponId: accountId, name: z.string(), discountType: z.string(), discountValue: integer.nonnegative(), minOrderAmount: integer.nonnegative(), serverRoomId: accountId.nullable(), validDaysAfterDownload: integer.positive().nullable(), startsAt: time, endsAt: time })
 export const storageItemResponseSchema = z.object({ id: accountId, status: z.string(), reservationFulfillmentId: accountId.nullable(), productId: accountId.nullable(), productNo: text, productTitle: text, serverRoomName: text, specSummary: text, imageUrl: text, instantAvailable: z.boolean(), pricingType: text, billingUnit: text, unitPrice: integer.nonnegative().nullable(), setupFee: integer.nonnegative().nullable(), minUnits: integer.positive().nullable(), maxUnits: integer.nonnegative().nullable(), pcAssetId: accountId.nullable(), managementNo: text, cartItemId: accountId.nullable(), orderItemId: accountId.nullable(), paymentDueAt: time, storedAt: time, removedAt: time })
 export const storagePageSchema = z.object({ ...accountPageFields, items: z.array(storageItemResponseSchema) })
+export const storageSummarySchema = z.object({ rentalCount: count, partCount: count, totalCount: count })
 export type AccountProfileRead = z.infer<typeof profileResponseSchema>
 export type AccountPointPage = z.infer<typeof pointPageSchema>
 export type AccountCouponPage = z.infer<typeof couponPageSchema>
