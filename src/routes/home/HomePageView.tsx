@@ -20,8 +20,8 @@ export function HomePage() {
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
   const [loginRequiredMessage, setLoginRequiredMessage] = useState('상품을 구매하려면 로그인해 주세요.\n로그인 후 구매를 계속할 수 있습니다.')
   const [loginReturnPath, setLoginReturnPath] = useState('/products')
-  const [recommendedCategory, setRecommendedCategory] = useState('전체')
-  const content = useHomeContent(recommendedCategory)
+  const [recommendedUseOptionId, setRecommendedUseOptionId] = useState<number | null>(null)
+  const content = useHomeContent(recommendedUseOptionId)
   const writeCommunityPost = () => {
     if (session.status === 'authenticated') { void navigate('/community/posts/new'); return }
     setLoginRequiredMessage('게시글을 작성하려면 로그인해 주세요.\n로그인 후 커뮤니티 글쓰기를 계속할 수 있습니다.')
@@ -32,7 +32,7 @@ export function HomePage() {
     <AppShell className="app-shell--home" headerState="main">
       <HomeHeroSection />
       <HomeIntroSection />
-      <HomeRecommendedSection query={content.recommended} category={recommendedCategory} onCategoryChange={setRecommendedCategory} />
+      <HomeRecommendedSection content={content} selectedOptionId={recommendedUseOptionId} onOptionChange={setRecommendedUseOptionId} />
       <HomeBannerSection />
       <HomeCommunitySection content={content} onWritePost={writeCommunityPost} />
       <HomeUsageSection articleId={content.usageGuides.data?.[0]?.articleId} />

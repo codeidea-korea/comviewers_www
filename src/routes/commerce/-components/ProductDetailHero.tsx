@@ -11,7 +11,7 @@ import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
 import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
 import addIcon from '../../../assets/figma/icon-add.svg'
 import removeIcon from '../../../assets/figma/icon-remove.svg'
-import defaultProductImage from '../../../assets/figma/windows-card-render.png'
+import defaultProductImage from '../../../assets/figma/product-detail-89023.png'
 import defaultPartProductImage from '../../../assets/figma/cart-product-partner.png'
 
 const formatWon = (amount: number | null) => amount === null ? "정보 없음" : `${amount.toLocaleString('ko-KR')}원`
