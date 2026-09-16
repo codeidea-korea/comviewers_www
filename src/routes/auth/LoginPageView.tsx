@@ -6,18 +6,13 @@ import { useState } from 'react'
 import { Button } from '../../components/ui/ButtonControl'
 import { TextField } from '../../components/ui/TextFieldControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
-import {
-  LOGIN_ID_HELPER_TEXT,
-  LOGIN_ID_PATTERN,
-  LOGIN_PASSWORD_HELPER_TEXT,
-  LOGIN_PASSWORD_PATTERN,
-} from '../../domain/auth/loginCredentials'
+import { restoreRememberedLoginId } from '../../domain/auth/loginCredentials'
 import type { FormEvent } from 'react'
 import { AuthHeading, AuthLinks, AuthPage, AuthPanel, Checkbox, PasswordField, SocialLoginButtons, usePublishingState } from './AuthComponentsView'
 
 const rememberedIdKey = 'comviewers.login.remembered-id'
 function readRememberedId() {
-  try { return localStorage.getItem(rememberedIdKey)?.slice(0, 20) ?? '' }
+  try { return restoreRememberedLoginId(localStorage.getItem(rememberedIdKey)) }
   catch { return '' }
 }
 
@@ -38,13 +33,15 @@ export function LoginPage() {
   const [password, setPassword] = useState(isFilledPreview ? 'password' : '')
   const [autoLogin, setAutoLogin] = useState(isFilledPreview)
   const [rememberId, setRememberId] = useState(isFilledPreview || Boolean(savedId))
-  const [notice, setNotice] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [socialError, setSocialError] = useState('')
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (pending) return
     setPending(true)
-    setNotice('')
+    setLoginError('')
+    setSocialError('')
     try {
       const status = await auth.login(loginId, password, autoLogin)
       if (status === 'authenticated') {
@@ -54,7 +51,7 @@ export function LoginPage() {
         } catch { /* Browser storage restrictions must not prevent an authenticated login. */ }
         navigate(returnPath, { replace: true })
       }
-    } catch (error) { setNotice(error instanceof Error ? error.message : '로그인하지 못했습니다.') }
+    } catch { setLoginError('아이디 또는 비밀번호가 일치하지 않습니다.') }
     finally { setPassword(''); setPending(false) }
   }
 
@@ -68,26 +65,18 @@ export function LoginPage() {
         <form className="auth-form auth-form--login" noValidate onSubmit={submit}>
           <TextField
             autoComplete="username"
-            minLength={3}
-            maxLength={20}
-            helperText={LOGIN_ID_HELPER_TEXT}
             label="아이디"
             onChange={(event) => setLoginId(event.target.value)}
             placeholder="로그인 아이디를 입력해 주세요."
-            pattern={LOGIN_ID_PATTERN}
             required
             value={loginId}
           />
           <PasswordField
             autoComplete="current-password"
-            minLength={8}
-            maxLength={16}
-            helperText={LOGIN_PASSWORD_HELPER_TEXT}
             label="비밀번호"
             displayAsText={isFilledPreview}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="비밀번호를 입력해 주세요."
-            pattern={LOGIN_PASSWORD_PATTERN}
             required
             value={password}
           />
@@ -96,14 +85,16 @@ export function LoginPage() {
             <Checkbox disabled={pending} checked={rememberId} name="remember-id" onChange={(event) => setRememberId(event.target.checked)}>아이디 저장</Checkbox>
           </div>
           <Button disabled={pending || !loginId || !password} size="large" type="submit">로그인</Button>
+          {loginError ? <p aria-live="polite" className="auth-notice">{loginError}</p> : null}
           <AuthLinks />
         </form>
         <SocialLoginButtons onSelect={(provider) => {
-          setNotice('')
+          setLoginError('')
+          setSocialError('')
           try { auth.startSocialLogin(provider) }
-          catch (error) { setNotice(error instanceof Error ? error.message : '현재 소셜 로그인을 이용할 수 없습니다.') }
+          catch (error) { setSocialError(error instanceof Error ? error.message : '현재 소셜 로그인을 이용할 수 없습니다.') }
         }} />
-        {notice ? <p aria-live="polite" className="auth-notice">{notice}</p> : null}
+        {socialError ? <p aria-live="polite" className="auth-notice">{socialError}</p> : null}
       </AuthPanel>
     </AuthPage>
   )
