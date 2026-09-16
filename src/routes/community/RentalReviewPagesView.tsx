@@ -41,8 +41,10 @@ function RentalReviewListContent() {
           </Link>
         )) : null}
       </div>
-      {session.status === 'authenticated' && (catalogReviews.length > 0 || mineOnly) ? <label className="board-mine-toggle"><Checkbox checked={mineOnly} onChange={(event) => { setMineOnly(event.target.checked); setCurrentPage(1) }} role="switch" variant="switch" /> 내 후기만 보기</label> : null}
-      <Pagination currentPage={page} onPageChange={(page) => { setCurrentPage(page); boardRef.current?.scrollIntoView({ block: 'start' }) }} totalPages={totalPages} />
+      <div className="board-page__footer">
+        {session.status === 'authenticated' && (catalogReviews.length > 0 || mineOnly) ? <label className="board-mine-toggle"><Checkbox checked={mineOnly} onChange={(event) => { setMineOnly(event.target.checked); setCurrentPage(1) }} role="switch" variant="switch" /> 내 후기만 보기</label> : null}
+        <Pagination currentPage={page} onPageChange={(page) => { setCurrentPage(page); boardRef.current?.scrollIntoView({ block: 'start' }) }} totalPages={totalPages} />
+      </div>
     </div>
   )
 }
