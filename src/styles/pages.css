@@ -191,7 +191,7 @@
 .split-field > div { align-items: center; display: grid; gap: 12px; grid-template-columns: 1fr auto 1fr 1fr; }
 .email-field input, .email-field select, .split-field input, .split-field select { background: transparent; border: 0; border-bottom: 1px solid var(--color-black); height: 50px; min-width: 0; outline: 0; }
 .email-field select, .split-field select { cursor: pointer; }
-.email-field__error { color: var(--color-system-error); font-size: 14px; line-height: 24px; }
+.email-field__error, .split-field__error { color: var(--color-system-error); font-size: 14px; line-height: 24px; margin: 4px 0 0; }
 .split-field > div { grid-template-columns: repeat(3, 1fr); }
 .split-field--messenger > div { grid-template-columns: repeat(2, 1fr); }
 .required-fieldset { position: relative; }

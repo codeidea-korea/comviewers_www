@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { signupRegistrationErrorMessage } from '@/domain/auth/signupRegistrationError'
+import { signupCompletionErrorMessage, signupRegistrationErrorMessage } from '@/domain/auth/signupRegistrationError'
 import { ApiClientError, createApiClient } from './httpClient'
 
 const id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER)
@@ -69,7 +69,7 @@ export function createPublicAccountApi(baseUrl: string) {
       try {
         return await client.request('/api/auth/register', registration, { method: 'POST', body: input })
       } catch (cause) {
-        const message = cause instanceof ApiClientError ? signupRegistrationErrorMessage(cause.code) : undefined
+        const message = cause instanceof ApiClientError ? signupCompletionErrorMessage(cause.code) : undefined
         if (message) throw new Error(message)
         throw cause
       }

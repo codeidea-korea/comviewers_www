@@ -6,12 +6,38 @@ import { loadSignupAgreements } from '../signupDraft'
 import { useSignupCoordinator } from '../SignupCoordinator'
 
 const emptyProfile = { loginId: '', password: '', passwordConfirm: '', name: '', nickname: '', emailId: '', emailDomain: '', phone1: '010', phone2: '', phone3: '', messenger: '', messengerId: '' }
+type UsernameFeedback = Readonly<{ message: string; tone: 'error' | 'success' }> | null
+type Profile = typeof emptyProfile
+type FieldErrorKey = 'loginId' | 'password' | 'passwordConfirm' | 'name' | 'nickname' | 'email' | 'phone' | 'messenger'
+type FieldErrors = Readonly<Partial<Record<FieldErrorKey, string>>>
+const fieldValidationOrder: readonly FieldErrorKey[] = ['loginId', 'password', 'passwordConfirm', 'name', 'nickname', 'email', 'phone', 'messenger']
+const blockedPasswords = new Set([
+  '12345678', '123456789', '1234567890', 'password', 'password1', 'password12',
+  'qwerty12', 'qwerty123', 'admin123', 'admin1234', 'comviewers', 'comviewers1',
+])
+
+function passwordPolicyMessage(password: string, loginId: string, email: string): string | undefined {
+  const normalizedPassword = password.toLowerCase()
+  const emailLocalPart = email.split('@', 1)[0]?.toLowerCase() ?? ''
+  const identifiers = [loginId.toLowerCase(), emailLocalPart].filter((value) => value.length >= 4)
+  if (blockedPasswords.has(normalizedPassword) || identifiers.some((value) => normalizedPassword.includes(value))) {
+    return '아이디·이메일 앞부분 또는 자주 사용하는 비밀번호는 사용할 수 없습니다.'
+  }
+  return undefined
+}
+
+const loginIdSchema = z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.')
+const passwordSchema = z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.')
+const nameSchema = z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.')
+const nicknameSchema = z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 한글, 영문, 숫자만 사용할 수 있습니다.')
+const emailSchema = z.email('이메일 주소를 확인해 주세요.').max(100, '이메일은 100자 이하로 입력해 주세요.')
+
 const profileInputSchema = z.object({
-  loginId: z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.'),
-  password: z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.'), passwordConfirm: z.string(),
-  name: z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.'),
-  nickname: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 문자와 숫자만 사용할 수 있습니다.'),
-  email: z.email('이메일 주소를 확인해 주세요.').max(100),
+  loginId: loginIdSchema,
+  password: passwordSchema, passwordConfirm: z.string().min(1, '비밀번호 확인을 입력해 주세요.'),
+  name: nameSchema,
+  nickname: nicknameSchema,
+  email: emailSchema,
   phone1: z.string().regex(/^\d{2,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
   phone2: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
   phone3: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
@@ -20,6 +46,63 @@ const profileInputSchema = z.object({
 }).refine((value) => value.password === value.passwordConfirm, { message: '비밀번호가 일치하지 않습니다.', path: ['passwordConfirm'] })
   .refine((value) => Boolean(value.phone2) === Boolean(value.phone3), { message: '휴대폰 번호를 모두 입력해 주세요.', path: ['phone2'] })
   .refine((value) => Boolean(value.messenger.trim()) === Boolean(value.messengerId.trim()), { message: '메신저 종류와 아이디를 함께 입력해 주세요.', path: ['messenger'] })
+  .superRefine((value, context) => {
+    const message = passwordPolicyMessage(value.password, value.loginId, value.email)
+    if (message) context.addIssue({ code: 'custom', message, path: ['password'] })
+  })
+
+function schemaMessage(schema: z.ZodType<string>, value: string): string | undefined {
+  const result = schema.safeParse(value)
+  return result.success ? undefined : result.error.issues[0]?.message
+}
+
+function fieldValidationMessage(field: FieldErrorKey, profile: Profile): string | undefined {
+  const email = `${profile.emailId}@${profile.emailDomain}`
+  switch (field) {
+    case 'loginId': return schemaMessage(loginIdSchema, profile.loginId)
+    case 'password': return schemaMessage(passwordSchema, profile.password)
+      ?? passwordPolicyMessage(profile.password, profile.loginId, email)
+    case 'passwordConfirm':
+      if (!profile.passwordConfirm) return '비밀번호 확인을 입력해 주세요.'
+      return profile.password === profile.passwordConfirm ? undefined : '비밀번호가 일치하지 않습니다.'
+    case 'name': return schemaMessage(nameSchema, profile.name)
+    case 'nickname': return schemaMessage(nicknameSchema, profile.nickname)
+    case 'email': return schemaMessage(emailSchema, email)
+    case 'phone':
+      if (!profile.phone2 && !profile.phone3) return undefined
+      if (!profile.phone2 || !profile.phone3) return '휴대폰 번호를 모두 입력해 주세요.'
+      return /^\d{2,4}$/.test(profile.phone1) && /^\d{1,4}$/.test(profile.phone2) && /^\d{1,4}$/.test(profile.phone3)
+        ? undefined : '휴대폰 번호는 숫자만 입력해 주세요.'
+    case 'messenger':
+      if (Boolean(profile.messenger.trim()) !== Boolean(profile.messengerId.trim())) return '메신저 종류와 아이디를 함께 입력해 주세요.'
+      if (profile.messenger.length > 50 || profile.messengerId.length > 100) return '메신저 정보를 입력 가능한 길이로 줄여 주세요.'
+      return undefined
+  }
+}
+
+function allFieldErrors(profile: Profile): FieldErrors {
+  return Object.fromEntries(fieldValidationOrder.flatMap((field) => {
+    const message = fieldValidationMessage(field, profile)
+    return message ? [[field, message]] : []
+  }))
+}
+
+function affectedFields(name: keyof Profile, profile: Profile, currentErrors: FieldErrors): readonly FieldErrorKey[] {
+  switch (name) {
+    case 'loginId': return profile.password || currentErrors.password ? ['loginId', 'password'] : ['loginId']
+    case 'password': return profile.passwordConfirm || currentErrors.passwordConfirm ? ['password', 'passwordConfirm'] : ['password']
+    case 'passwordConfirm': return ['passwordConfirm']
+    case 'name': return ['name']
+    case 'nickname': return ['nickname']
+    case 'emailId':
+    case 'emailDomain': return profile.password || currentErrors.password ? ['email', 'password'] : ['email']
+    case 'phone1':
+    case 'phone2':
+    case 'phone3': return ['phone']
+    case 'messenger':
+    case 'messengerId': return ['messenger']
+  }
+}
 
 export function useProfileForm() {
   const api = getPublicAccountApi()
@@ -31,15 +114,23 @@ export function useProfileForm() {
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
   const [checkedUsername, setCheckedUsername] = useState('')
+  const [usernameFeedback, setUsernameFeedback] = useState<UsernameFeedback>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const email = `${profile.emailId}@${profile.emailDomain}`
   const complete = Boolean(profile.loginId && checkedUsername === profile.loginId && profile.password && profile.password === profile.passwordConfirm && profile.name && profile.nickname && profile.emailId && profile.emailDomain)
+    && !Object.values(fieldErrors).some(Boolean)
 
   function setFieldValue(name: keyof typeof emptyProfile, value: string) {
     if (signupCoordinator.awaitingEmail) setNotice('회원정보가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
     else if (name === 'loginId') setNotice('')
     signupCoordinator.cancel()
-    setProfile((current) => ({ ...current, [name]: value }))
-    if (name === 'loginId') setCheckedUsername('')
+    const nextProfile = { ...profile, [name]: value }
+    setProfile(nextProfile)
+    setFieldErrors((current) => affectedFields(name, nextProfile, current).reduce<FieldErrors>((next, field) => ({
+      ...next,
+      [field]: fieldValidationMessage(field, nextProfile) ?? '',
+    }), current))
+    if (name === 'loginId') { setCheckedUsername(''); setUsernameFeedback(null) }
     setError('')
   }
   function setField(name: keyof typeof emptyProfile) {
@@ -48,13 +139,20 @@ export function useProfileForm() {
 
   async function checkUsername() {
     if (busy || !api) return
-    if (!/^[A-Za-z0-9_]{3,20}$/.test(profile.loginId)) { setError('아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.'); return }
-    setBusy(true); setError(''); setNotice(''); setCheckedUsername('')
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(profile.loginId)) {
+      setFieldErrors((current) => ({ ...current, loginId: '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.' }))
+      return
+    }
+    setBusy(true); setError(''); setNotice(''); setCheckedUsername(''); setUsernameFeedback(null)
     try {
       const result = await api.usernameAvailability(profile.loginId)
-      if (result.available) { setCheckedUsername(profile.loginId); setNotice('사용 가능한 아이디입니다.') }
-      else setError('이미 사용 중인 아이디입니다.')
-    } catch { setError('아이디 중복 확인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.') }
+      if (result.available) {
+        setCheckedUsername(profile.loginId)
+        setUsernameFeedback({ message: '사용 가능한 아이디입니다.', tone: 'success' })
+      } else setUsernameFeedback({ message: '이미 사용 중인 아이디입니다.', tone: 'error' })
+    } catch {
+      setUsernameFeedback({ message: '아이디 중복 확인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.', tone: 'error' })
+    }
     finally { setBusy(false) }
   }
 
@@ -65,6 +163,7 @@ export function useProfileForm() {
     const focusInvalidField = (field: string) => {
       const selectors: Record<string, string> = {
         email: 'input[aria-label="이메일 아이디"]',
+        phone: 'select[aria-label="휴대전화 앞자리"]',
         phone1: 'select[aria-label="휴대전화 앞자리"]',
         phone2: 'input[aria-label="휴대전화 중간자리"]',
         phone3: 'input[aria-label="휴대전화 끝자리"]',
@@ -79,6 +178,13 @@ export function useProfileForm() {
       }
     }
     const result = profileInputSchema.safeParse({ ...profile, email })
+    const validationErrors = allFieldErrors(profile)
+    setFieldErrors(validationErrors)
+    const firstInvalidField = fieldValidationOrder.find((field) => validationErrors[field])
+    if (firstInvalidField) {
+      focusInvalidField(firstInvalidField)
+      return
+    }
     if (!result.success) {
       const issue = result.error.issues[0]
       setError(issue?.message ?? '입력값을 확인해 주세요.')
@@ -86,7 +192,7 @@ export function useProfileForm() {
       return
     }
     if (checkedUsername !== profile.loginId) {
-      setError('아이디 중복 확인을 진행해 주세요.')
+      setUsernameFeedback({ message: '아이디 중복 확인을 진행해 주세요.', tone: 'error' })
       focusInvalidField('loginId')
       return
     }
@@ -120,6 +226,7 @@ export function useProfileForm() {
     signupCoordinator.cancel(); setProfileImage(file)
   }
   return { profile, profilePreview, setProfilePreview, setProfileImage: selectProfileImage,
-    error: error || signupCoordinator.error, setError, notice, busy: busy || signupCoordinator.busy, complete,
-    awaitingVerification: signupCoordinator.awaitingEmail === email, checkedUsername, checkUsername, setField, setFieldValue, submit }
+    error: error || signupCoordinator.error, setError, notice, usernameFeedback, fieldErrors, busy: busy || signupCoordinator.busy, complete,
+    awaitingVerification: signupCoordinator.awaitingEmail === email, restartSignup: signupCoordinator.cancel,
+    checkedUsername, checkUsername, setField, setFieldValue, submit }
 }
