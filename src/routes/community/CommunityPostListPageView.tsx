@@ -38,7 +38,7 @@ export function CommunityPostListPage() {
   const posts = useMemo(() => {
     const filtered = catalogPosts.filter((post) => (!mineOnly || post.isMine) && `${post.title} ${post.content.join(' ')}`.toLowerCase().includes(search.trim().toLowerCase()))
     return filtered
-  }, [empty, mineOnly, search, catalogPosts])
+  }, [mineOnly, search, catalogPosts])
   const totalPages = Math.ceil(posts.length / 10)
   const page = totalPages > 0 ? Math.min(currentPage, totalPages) : 1
   const visiblePosts = posts.slice((page - 1) * 10, page * 10)
@@ -58,7 +58,7 @@ export function CommunityPostListPage() {
   }
   return (
     <CommunityShell>
-      <div className={`board-page content-container${empty || (!result.isPending && !result.isError && !posts.length) ? ' board-page--empty' : ''}`} ref={boardRef}>
+      <div className={`board-page content-container${!result.isPending && !result.isError && !posts.length ? ' board-page--empty' : ''}`} ref={boardRef}>
         <CommunityTabs active="posts" />
         <BoardToolbar count={posts.length} onSearchChange={(value) => { setSearch(value); setCurrentPage(1); updateListState(value, sort, mineOnly) }} onSortChange={(value) => { setSort(value); setCurrentPage(1); updateListState(search, value, mineOnly) }} onWrite={session.status === 'authenticated' ? undefined : () => setLoginRequired(true)} search={search} showWrite={communityWriteAllowed} sort={sort} sortOptions={[{ label: '최신순', value: 'latest' }, { label: '조회순', value: 'views' }, { label: '댓글순', value: 'comments' }]} writeLabel="글쓰기" writeTo={writePath} />
         {result.isPending ? <div className="board-empty"><LoadingState className="route-loading--compact" label="게시글을 불러오는 중입니다." /></div> : result.isError ? <div className="board-empty" role="alert">게시글을 불러오지 못했습니다. <button type="button" onClick={() => void result.refetch()}>다시 시도</button></div> : posts.length ? <div className="post-list">{visiblePosts.map((post) => <Link key={post.id} to={`/community/posts/${post.postId}${detailSuffix}`}><span className="post-list__number">{post.number}</span><span className="post-list__main"><strong>{post.isMine ? <em className="post-list__badge">내 글</em> : null}<span>{post.title}</span>{post.attachments.length ? <img alt="첨부파일 있음" className="post-list__document" src={attachmentIcon} /> : null}</strong><small>{post.author} <i aria-hidden="true" /> 조회 {post.views} <i aria-hidden="true" /> <img alt="" src={communityBubble} /> {post.comments}</small></span><time>{post.date}</time></Link>)}</div> : <div className="board-empty">{mineOnly ? '작성한 게시글이 없습니다.' : search.trim() ? '검색 조건에 해당하는 게시글이 없습니다.' : '등록된 게시글이 없습니다.'}</div>}
