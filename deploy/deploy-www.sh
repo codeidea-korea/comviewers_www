@@ -32,6 +32,12 @@ require_command() {
 
 acquire_deploy_lock() {
   if [[ "${COMVIEWERS_DEPLOY_LOCK_HELD:-}" == "1" ]]; then
+    local expected_lock
+    local inherited_lock
+    expected_lock="$(readlink -f "$LOCK_FILE" 2>/dev/null || true)"
+    inherited_lock="$(readlink -f "/proc/$$/fd/9" 2>/dev/null || true)"
+    [[ -n "$expected_lock" && "$inherited_lock" == "$expected_lock" ]] \
+      || fail "Inherited file descriptor 9 does not reference $LOCK_FILE."
     flock -n 9 || fail "Inherited ComViewers deployment lock is not available."
     return
   fi
@@ -42,10 +48,24 @@ acquire_deploy_lock() {
 
 validate_release_dir() {
   local release_dir="$1"
-  case "$release_dir" in
-    "$DEPLOY_ROOT"/*/"$APP_NAME") ;;
-    *) fail "Release directory must be under $DEPLOY_ROOT and end with /$APP_NAME: $release_dir" ;;
-  esac
+  local expected_root
+  local relative_path
+  local release_id
+  local resolved_dir
+
+  expected_root="$(realpath -m -- "$DEPLOY_ROOT")"
+  resolved_dir="$(realpath -m -- "$release_dir")"
+  [[ "$release_dir" == "$resolved_dir" ]] \
+    || fail "Release directory must be canonical: $release_dir"
+  [[ "$resolved_dir" == "$expected_root/"* ]] \
+    || fail "Release directory is outside $DEPLOY_ROOT: $release_dir"
+
+  relative_path="${resolved_dir#"$expected_root"/}"
+  release_id="${relative_path%/"$APP_NAME"}"
+  [[ "$relative_path" == "$release_id/$APP_NAME" \
+    && "$release_id" != */* \
+    && "$release_id" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+$ ]] \
+    || fail "Invalid release directory: $release_dir"
 }
 
 require_repo() {
@@ -169,7 +189,7 @@ activate_release() {
 }
 
 [[ $EUID -eq 0 ]] || fail "Run this script as root."
-for command_name in git npm curl flock install mv chown find chmod rm touch tee; do
+for command_name in git npm curl flock install mv chown find chmod rm touch tee readlink realpath; do
   require_command "$command_name"
 done
 acquire_deploy_lock
