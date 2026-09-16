@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
-import { usePublishingPopupPreview } from '../../../../lib/usePublishingPopupPreview'
+import { useNavigate, useParams } from 'react-router'
 import { useComments, usePostActions } from './useContent'
 import type { Post } from '@/domain/storefront/services'
 import { useSession } from '@/app/session/SessionProvider'
@@ -8,10 +7,7 @@ import { useSession } from '@/app/session/SessionProvider'
 export function usePostDetail(post: Post, listUrl: string) {
   const { postId } = useParams()
   const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const publishingState = import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' ? params.get('publishingState') : null
-  const compact = publishingState === 'comment-filled'
-  const menusOpenPreview = publishingState === 'menus-open'
+  const compact = false
   const actions = usePostActions()
   const session = useSession()
   const mutationInFlight = useRef(false)
@@ -20,16 +16,13 @@ export function usePostDetail(post: Post, listUrl: string) {
   const attachments = post.attachments || []
   const displayTitle = compact ? `${post.title} ${post.title} ${post.title}` : post.title
   const postContent = post.content
-  const [comment, setComment] = useState(compact ? '저는' : '')
-  const [menuOpen, setMenuOpen] = useState(menusOpenPreview)
-  const [commentMenuIndex, setCommentMenuIndex] = useState<number | null>(menusOpenPreview ? 0 : null)
+  const [comment, setComment] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [commentMenuIndex, setCommentMenuIndex] = useState<number | null>(null)
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [commentDeleteId, setCommentDeleteId] = useState<string | null>(null)
   const [notice, setNotice] = useState('')
-  usePublishingPopupPreview({
-    '게시글을 삭제하시겠습니까?': () => setDeleteOpen(true),
-  })
   const addComment = async () => {
     if (!comment.trim() || mutationInFlight.current) return
     if (session.status !== 'authenticated') { setNotice('로그인 후 댓글을 작성할 수 있습니다.'); return }

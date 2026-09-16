@@ -15,7 +15,7 @@ export function CheckoutProducts({ items }: { items: readonly CartItem[] }) {
       <div className="commerce-product-row__content">
         <div className="commerce-product-row__image">{item.image && <img alt={item.label} src={item.image} />}{!partner && <img alt="" src={windowsLogo} />}</div>
         <div className="commerce-product-row__body">
-          {!partner && <p className="commerce-product-row__status">{(item.source !== 'api' || item.instantAvailable !== null) && <i><img alt="" src={(item.source === 'mock' ? item.rowKind !== 'waiting' : item.instantAvailable) ? serverOnIcon : serverOffIcon} /></i>}{item.source === 'api' ? !item.available ? '판매 불가' : item.instantAvailable === null ? '접속 상태 확인 필요' : item.instantAvailable ? '이용 가능' : '준비 중' : item.rowKind === 'waiting' ? '준비 중' : '이용 가능'}</p>}
+          {!partner && <p className="commerce-product-row__status">{item.instantAvailable !== null && <i><img alt="" src={item.instantAvailable ? serverOnIcon : serverOffIcon} /></i>}{!item.available ? '판매 불가' : item.instantAvailable === null ? '접속 상태 확인 필요' : item.instantAvailable ? '이용 가능' : '준비 중'}</p>}
           <p className="commerce-product-row__spec">{item.spec ?? '-'}</p>
         </div>
       </div>

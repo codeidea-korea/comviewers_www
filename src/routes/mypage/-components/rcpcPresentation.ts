@@ -11,6 +11,19 @@ export const traffic = (bytes: number | null) => bytes === null ? '-' : `${(byte
 export const totalTraffic = (downloadBytes: number | null, uploadBytes: number | null) =>
   traffic(downloadBytes === null && uploadBytes === null ? null : (downloadBytes ?? 0) + (uploadBytes ?? 0))
 
+export function extensionTarget(item: MyRcpcItem) {
+  const spec = item.pcSpec
+  return {
+    rcpcId: item.productNo,
+    location: item.serverRoomName ?? undefined,
+    os: [spec?.osName, spec?.osVersion].filter(Boolean).join(' '),
+    cpu: [spec?.cpuModel, spec?.cpuCores == null ? null : `${spec.cpuCores}코어`, spec?.cpuThreads == null ? null : `${spec.cpuThreads}스레드`].filter(Boolean).join(' · '),
+    ram: [spec?.ramGb == null ? null : `${spec.ramGb}GB`, spec?.ramType].filter(Boolean).join(' '),
+    disk: spec ? [`SSD ${spec.ssdGb ?? '-'}GB`, `HDD ${spec.hddGb ?? '-'}GB`].join(' / ') : '',
+    gpu: [spec?.gpuModel, spec?.gpuVramGb == null ? null : `${spec.gpuVramGb}GB`].filter(Boolean).join(' · '),
+  }
+}
+
 // Enumerate the caller's authorized rentals, not public/admin server-room data.
 export async function loadAuthorizedRcpcs(api: MyRcpcReadServices, signal?: AbortSignal): Promise<MyRcpcItem[]> {
   const first = await api.list({ page: 0, size: 100 }, signal)

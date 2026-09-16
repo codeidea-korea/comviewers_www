@@ -1,5 +1,4 @@
 import { useSession } from '@/app/session/SessionProvider'
-import { useAuthentication } from '@/app/session/AuthProvider'
 import { currentKstDate, dateRangeError, quickAccountDates } from './-components/accountDates'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -12,13 +11,6 @@ import { SearchField } from '@/components/ui/SearchFieldControl'
 import searchIcon from '@/assets/figma/mypage-search.svg'
 import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
-
-export const isManagerPreview = (search: string) => {
-  const params = new URLSearchParams(search)
-  return import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' && (params.get('publishingState') === 'manager' || params.get('publishingRole') === 'manager')
-}
-
-export const withManagerPreview = (href: string, manager: boolean) => manager ? `${href}${href.includes('?') ? '&' : '?'}publishingRole=manager` : href
 
 interface MyPageMenuItem { id: string; label: string; href: string; disabled?: boolean }
 interface MyPageMenuGroup { id: string; label: string; href?: string; disabled?: boolean; opensPasswordGate?: boolean; items: readonly MyPageMenuItem[] }
@@ -88,15 +80,14 @@ export function MyPageMobileHeader({ menuOpen = false, onBack, onMenuToggle, onS
   )
 }
 
-export function MyPageLayout({ children, manager = false, title }: { children: ReactNode; manager?: boolean; title?: string }) {
-  const { pathname, search } = useLocation()
+export function MyPageLayout({ children, title }: { children: ReactNode; title?: string }) {
+  const { pathname } = useLocation()
   const navigate = useNavigate()
   const session = useSession()
-  const { accessMode } = useAuthentication()
   const capability = session.status === 'authenticated' ? session.customerSession : null
-  const isManager = accessMode === 'preview' ? manager || isManagerPreview(search) : capability?.myPageOnly === true
+  const isManager = capability?.myPageOnly === true
   const baseMenu = isManager ? mypageManagerMenu : mypageMenu
-  const menu: readonly MyPageMenuGroup[] = accessMode === 'preview' ? baseMenu : baseMenu.filter(group => {
+  const menu: readonly MyPageMenuGroup[] = baseMenu.filter(group => {
     if (!capability) return false
     if (capability.myPageOnly) return ['rcpc', 'support'].includes(group.id)
     if (group.id === 'managers') return capability.cManagerManagementAvailable
@@ -129,7 +120,7 @@ export function MyPageLayout({ children, manager = false, title }: { children: R
     const productNumber = mobileSearchValue.trim()
     if (!productNumber) return
     setMobileSearchOpen(false)
-    navigate(withManagerPreview(`/mypage/rcpc?productNo=${encodeURIComponent(productNumber)}`, isManager))
+    navigate(`/mypage/rcpc?productNo=${encodeURIComponent(productNumber)}`)
   }
 
   return (
@@ -143,11 +134,11 @@ export function MyPageLayout({ children, manager = false, title }: { children: R
       {mobileMenuOpen ? <nav aria-label="모바일 마이페이지 메뉴" className="mypage-mobile-menu" id="mypage-mobile-menu">
         {menu.map((group) => (
           <section className={group.items.length ? 'has-children' : ''} key={group.id}>
-            <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? { openProfilePasswordGate: true } : undefined} to={withManagerPreview(group.href, isManager)}>{group.label}</Link>) : group.label}</h2>
+            <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? { openProfilePasswordGate: true } : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
             {group.items.map((item) => (
               item.disabled
                 ? <span className="mypage-mobile-menu__disabled" key={item.id}>{item.label}</span>
-                : <Link className={pathname === item.href ? 'is-active' : undefined} key={item.id} onClick={() => setMobileMenuOpen(false)} to={withManagerPreview(item.href, isManager)}>{item.label}</Link>
+                : <Link className={pathname === item.href ? 'is-active' : undefined} key={item.id} onClick={() => setMobileMenuOpen(false)} to={item.href}>{item.label}</Link>
             ))}
           </section>
         ))}
@@ -159,12 +150,12 @@ export function MyPageLayout({ children, manager = false, title }: { children: R
           <nav aria-label="마이페이지 메뉴">
             {menu.map((group) => (
               <section key={group.id}>
-                <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? { openProfilePasswordGate: true } : undefined} to={withManagerPreview(group.href, isManager)}>{group.label}</Link>) : group.label}</h2>
+                <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? { openProfilePasswordGate: true } : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
                 {group.items.map((item) => (
                   item.disabled ? <span className="mypage-sidebar__disabled" key={item.id}>{item.label}</span> : <Link
                     className={pathname === item.href ? 'is-active' : undefined}
                     key={item.id}
-                    to={withManagerPreview(item.href, isManager)}
+                    to={item.href}
                   >
                     {item.label}
                   </Link>
@@ -196,12 +187,10 @@ export function MyPageLayout({ children, manager = false, title }: { children: R
 }
 
 export function MyPageTabs({ active, items }: { active: string; items: readonly { id: string; label: string; href: string }[] }) {
-  const { search } = useLocation()
-  const manager = isManagerPreview(search)
   return (
     <nav aria-label="페이지 구분" className="mypage-tabs">
       {items.map((item) => {
-        const href = withManagerPreview(item.href, manager)
+        const href = item.href
         return href.startsWith('/')
           ? <Link className={active === item.id ? 'is-active' : ''} key={item.id} to={href}>{item.label}</Link>
           : <a className={active === item.id ? 'is-active' : ''} href={href} key={item.id}>{item.label}</a>

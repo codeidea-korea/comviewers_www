@@ -1,10 +1,8 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
 import { colocationDraftInputSchema, colocationDraftSchema, type ColocationDraft } from '@/domain/colocation/draftRepository'
-import { usePublishingPopupPreview } from '../../../../lib/usePublishingPopupPreview'
-import { mockColocationApplicant } from '../../../../mocks/communityCompany'
 import { assignColocationEvidenceTypes, colocationSubmissionErrorMessage, hasRequiredColocationEvidenceTypes, validateColocation } from '../colocationInput'
 
 const draftKey = ['colocationDraft'] as const
@@ -14,9 +12,7 @@ export function useColocationDraft() {
 }
 export function useColocationForm(initialDraft: ColocationDraft | null) {
   const navigate = useNavigate()
-  const [params] = useSearchParams()
   const repository = useServices().colocationDraft
-  const filled = repository.mode !== 'live' && import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' && params.get('publishingState') === 'filled'
   const client = useQueryClient()
   const busy = useRef(false)
   const [files, setFiles] = useState<File[]>(initialDraft?.files ?? [])
@@ -26,14 +22,12 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
   const [validationIssue, setValidationIssue] = useState<{ field: string; message: string } | null>(null)
   const [completeOpen, setCompleteOpen] = useState(false)
   const [emailDomain, setEmailDomain] = useState('direct')
-  const [emailDomainInput, setEmailDomainInput] = useState(initialDraft?.fields.emailDomain ?? (filled ? mockColocationApplicant.emailDomain : ''))
+  const [emailDomainInput, setEmailDomainInput] = useState(initialDraft?.fields.emailDomain ?? '')
   const [phonePrefix, setPhonePrefix] = useState(initialDraft?.fields.phonePrefix ?? '010')
-  const [messenger, setMessenger] = useState(initialDraft?.fields.messenger ?? (filled ? mockColocationApplicant.messenger : ''))
+  const [messenger, setMessenger] = useState(initialDraft?.fields.messenger ?? '')
   const save = useMutation({ mutationFn: async (input: Parameters<typeof repository.save>[0]) => colocationDraftSchema.parse(await repository.save(input)), onSuccess: (draft) => client.setQueryData(draftKey, draft) })
-  const live = repository.mode === 'live'
   const terms = useQuery({ queryKey: ['colocation', 'terms'], enabled: Boolean(repository.terms), queryFn: ({ signal }) => repository.terms!(signal) })
-  usePublishingPopupPreview({ '입점 신청 완료': () => { if (!live) setCompleteOpen(true) } })
-  const fixture: Partial<ColocationDraft['fields']> & { phone?: string[] } = initialDraft ? { ...initialDraft.fields, phone: [initialDraft.fields.phonePrefix, initialDraft.fields.phoneMiddle, initialDraft.fields.phoneLast] } : filled ? mockColocationApplicant : {}
+  const fixture: Partial<ColocationDraft['fields']> & { phone?: string[] } = initialDraft ? { ...initialDraft.fields, phone: [initialDraft.fields.phonePrefix, initialDraft.fields.phoneMiddle, initialDraft.fields.phoneLast] } : {}
   function updateFiles(event: ChangeEvent<HTMLInputElement>) {
     const incoming = Array.from(event.target.files ?? [])
     const next = [...files, ...incoming.filter((file) => !files.some((current) => current.name === file.name && current.size === file.size && current.lastModified === file.lastModified))]
@@ -57,8 +51,8 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
       return
     }
     setValidationIssue(null)
-    if (live && !terms.data) { setValidationIssue({ field: 'accepted', message: '입점 약관을 불러온 후 다시 신청해 주세요.' }); return }
-    if (live && !hasRequiredColocationEvidenceTypes(fileTypes)) {
+    if (!terms.data) { setValidationIssue({ field: 'accepted', message: '입점 약관을 불러온 후 다시 신청해 주세요.' }); return }
+    if (!hasRequiredColocationEvidenceTypes(fileTypes)) {
       setValidationIssue({ field: 'files', message: '사업자등록증과 통장 사본을 각각 한 개 첨부해 주세요.' })
       const evidenceFiles = form.elements.namedItem('evidenceFiles')
       if (evidenceFiles instanceof HTMLElement) evidenceFiles.focus()
@@ -67,7 +61,7 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     const values = Object.fromEntries(new FormData(event.currentTarget))
     const input = { fields: { ...values, emailDomain: emailDomainInput, phonePrefix, messenger }, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
     const fingerprint = JSON.stringify({ ...input, files: files.map(file => [file.name, file.size, file.lastModified]) })
-    if (live && submissionKey.current?.fingerprint !== fingerprint) {
+    if (submissionKey.current?.fingerprint !== fingerprint) {
       try { submissionKey.current = { fingerprint, key: crypto.randomUUID() } }
       catch { setNotice('안전한 연결 환경에서 다시 신청해 주세요.'); return }
     }
@@ -83,17 +77,17 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     busy.current = true
     setNotice('')
     try { await save.mutateAsync(result.data); setCompleteOpen(true) }
-    catch (error) { setNotice(colocationSubmissionErrorMessage(error, live)) }
+    catch (error) { setNotice(colocationSubmissionErrorMessage(error)) }
     finally { busy.current = false }
   }
-  return { filled, fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => { setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)) },
+  return { fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => { setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)); setNotice(current => current === '파일을 선택했습니다.' ? '' : current) },
     notice, validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailDomainInput, setEmailDomainInput,
     phonePrefix, setPhonePrefix, messenger, setMessenger, pending: save.isPending,
-    submitLabel: live ? '입점 신청' : '초안 저장',
-    pendingLabel: live ? '제출 중…' : '저장 중…',
-    completeTitle: live ? '입점 신청 완료' : '초안 저장 완료',
-    completeMessage: live ? '입점 신청이 접수되었습니다. 제출하신 정보를 검토한 후 담당자 연락처로 결과를 안내해 드리겠습니다.' : '입력 내용을 초안으로 저장했습니다.',
-    live, terms: terms.data, termsPending: live && terms.isPending, termsError: live && (terms.isError || (terms.isSuccess && !terms.data)), retryTerms: () => void terms.refetch(),
-    closeComplete: () => { setCompleteOpen(false); if (live) navigate('/') },
+    submitLabel: '입점 신청',
+    pendingLabel: '제출 중…',
+    completeTitle: '입점 신청 완료',
+    completeMessage: '입점 신청이 접수되었습니다. 제출하신 정보를 검토한 후 담당자 연락처로 결과를 안내해 드리겠습니다.',
+    terms: terms.data, termsPending: terms.isPending, termsError: terms.isError || (terms.isSuccess && !terms.data), retryTerms: () => void terms.refetch(),
+    closeComplete: () => { setCompleteOpen(false); navigate('/') },
     updateFiles, submit }
 }

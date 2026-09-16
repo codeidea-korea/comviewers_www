@@ -6,6 +6,7 @@ import { RcpcRebootSurface } from '@/components/mypage/RcpcDialogsControl'
 import copyIcon from '@/assets/figma/icon-content-copy.svg'
 import eyeIcon from '@/assets/figma/scrap-eye.svg'
 import webIcon from '@/assets/figma/icon-connect-web.svg'
+import { Button } from '@/components/ui/ButtonControl'
 
 export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcpcItem }) {
   const [open, setOpen] = useState(false)
@@ -22,7 +23,7 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
       key.current = crypto.randomUUID()
       await client.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] })
     } })
-  return <><button type="button" disabled={!canRequest || !status.data?.available || status.data.pending || request.isPending} onClick={() => setOpen(true)}>재부팅</button>
+  return <><Button size="small" variant="secondary" disabled={!canRequest || !status.data?.available || status.data.pending || request.isPending} onClick={() => setOpen(true)}>재부팅</Button>
     {status.data?.pending && <span role="status">명령 접수 · 장치 재통신 대기 중</span>}
     {status.data?.status === 'communication_resumed' && <span role="status">장치 통신 재개 확인</span>}
     {(status.data?.status === 'failed' || status.data?.status === 'expired') && <span role="status">이전 요청 실패 또는 기한 만료</span>}

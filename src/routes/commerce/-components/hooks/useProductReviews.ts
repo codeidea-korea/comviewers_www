@@ -1,19 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { productReviewSchema, reviewDraftSchema, reviewPageSchema, type ReviewDraft } from '@/domain/reviews/reviewRepository'
-import { usePublishingPopupPreview } from '../../../../lib/usePublishingPopupPreview'
 
 const reviewPageSize = 3
-function isReviewPopupState(state: unknown): boolean {
-  return import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true'
-    && typeof state === 'object' && state !== null && 'publishingPopup' in state && state.publishingPopup === 'product-review'
-}
-
-export function useProductReviews({ productId, noReviewsPreview, visualComposite, onMessage }: { productId: string | undefined; noReviewsPreview: boolean; visualComposite: boolean; onMessage: (message: string) => void }) {
-  const location = useLocation()
-  const navigate = useNavigate()
+export function useProductReviews({ productId, onMessage }: { productId: string | undefined; onMessage: (message: string) => void }) {
   const repository = useServices().reviews
   const client = useQueryClient()
   const [reviewPage, setReviewPage] = useState(1)
@@ -28,7 +19,7 @@ export function useProductReviews({ productId, noReviewsPreview, visualComposite
   const [reviewMenuIndex, setReviewMenuIndex] = useState<string | null>(null)
   const [deleteReviewIndex, setDeleteReviewIndex] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [reviewDialogMode, setReviewDialogMode] = useState<'create' | 'edit' | null>(isReviewPopupState(location.state) ? 'create' : null)
+  const [reviewDialogMode, setReviewDialogMode] = useState<'create' | 'edit' | null>(null)
   const [error, setError] = useState('')
   const busyRef = useRef(false)
   const reviewCreateTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -48,14 +39,6 @@ export function useProductReviews({ productId, noReviewsPreview, visualComposite
   const remove = useMutation({ mutationFn: (id: string) => repository.remove(productId!, id),
     onSettled: async () => { await Promise.all([client.invalidateQueries({ queryKey: ['productReviews', productId] }), client.invalidateQueries({ queryKey: eligibilityQueryKey })]) } })
   const pending = save.isPending || remove.isPending
-  usePublishingPopupPreview({
-    '후기 작성': () => { if (visualComposite) return false; setReviewDialogMode('create') },
-    '후기를 삭제하시겠습니까?': () => setDeleteReviewIndex(reviews.find((review) => review.isMine)?.id ?? null),
-  })
-  useEffect(() => {
-    if (!isReviewPopupState(location.state)) return
-    navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null })
-  }, [location.hash, location.pathname, location.search, location.state, navigate])
   async function submitReview(draft: ReviewDraft, rentalId: string) {
     if (busyRef.current) return
     const parsed = reviewDraftSchema.safeParse(draft)
@@ -101,7 +84,7 @@ export function useProductReviews({ productId, noReviewsPreview, visualComposite
     reviewMenuButtonRefs.current = element ? new Map([...previous, [id, element]]) : new Map([...previous].filter(([key]) => key !== id))
   }
   return { reviews, eligibleRentals, eligibilityQuery, query, error, pending, submitReview, editingReview: reviews.find((review) => review.id === editingId),
-    reviewsEmpty: noReviewsPreview || reviews.length === 0,
+    reviewsEmpty: reviews.length === 0,
     reviewSectionClass: !reviews.length ? ' product-detail-reviews--empty' : reviews.length < 3 ? ` product-detail-reviews--count-${reviews.length}` : '',
     reviewMenuIndex, setReviewMenuIndex, deleteReviewIndex, setDeleteReviewIndex, reviewDialogMode, setReviewDialogMode,
     reviewCreateTriggerRef, reviewDialogReturnFocusRef, reviewDeleteReturnFocusRef,

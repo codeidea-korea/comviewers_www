@@ -25,9 +25,13 @@ export function RcpcFavoriteButton({ api, mutations, item, compact = false }: { 
   } })
   const createGroup = useMutation({ mutationFn: ({ name, parentId }: { name: string; parentId: string | null }) => mutations.createGroup({ name, parentGroupId: parentId ? Number(parentId) : null }), onSuccess: async () => { await groups.refetch(); setCreating(false); setOpen(true) } })
   const label = item.preference.favorite ? '즐겨찾기 해제' : '즐겨찾기 추가'
-  return <><button aria-label={label} className={compact ? 'rcpc-live-favorite' : undefined} type="button" disabled={save.isPending} onClick={() => { save.reset(); if (item.preference.favorite) { save.mutate(null); return } setCreating(false); setOpen(true) }}>{compact ? <img alt="" src={item.preference.favorite ? starFilled : starEmpty}/> : label}</button>
+  const openSettings = () => { save.reset(); createGroup.reset(); setCreating(false); setOpen(true) }
+  const closeSettings = () => { if (!save.isPending) { save.reset(); setOpen(false) } }
+  const openNewGroup = () => { save.reset(); createGroup.reset(); setOpen(false); setCreating(true) }
+  const closeNewGroup = () => { if (!createGroup.isPending) { createGroup.reset(); setCreating(false); setOpen(true) } }
+  return <><button aria-label={label} className={compact ? 'mypage-home-rcpc__favorite' : undefined} type="button" disabled={save.isPending} onClick={() => { save.reset(); if (item.preference.favorite) { save.mutate(null); return } openSettings() }}>{compact ? <img alt="" src={item.preference.favorite ? starFilled : starEmpty}/> : label}</button>
     {!open && save.error ? <p role="alert">{save.error.message}</p> : null}
-    <FavoritesSettingsDialog error={groups.error || unclassified.error ? '그룹을 조회하지 못했습니다.' : save.error?.message} groups={visualGroups} isOpen={open} onClose={() => { if (!save.isPending) setOpen(false) }} onNewGroup={() => { setOpen(false); setCreating(true) }} onSave={(id) => save.mutate(id === 'unclassified' ? null : Number(id))} pending={save.isPending || groups.isPending || unclassified.isPending} />
-    <NewFavoritesGroupDialog error={createGroup.error?.message} groups={visualGroups} isOpen={creating} onAdd={(name, parentId) => createGroup.mutate({ name, parentId })} onClose={() => { if (!createGroup.isPending) { setCreating(false); setOpen(true) } }} pending={createGroup.isPending} />
+    <FavoritesSettingsDialog error={groups.error || unclassified.error ? '그룹을 조회하지 못했습니다.' : save.error?.message} groups={visualGroups} isOpen={open} onClose={closeSettings} onNewGroup={openNewGroup} onSave={(id) => save.mutate(id === 'unclassified' ? null : Number(id))} pending={save.isPending || groups.isPending || unclassified.isPending} />
+    <NewFavoritesGroupDialog error={createGroup.error?.message} groups={visualGroups} isOpen={creating} onAdd={(name, parentId) => createGroup.mutate({ name, parentId })} onClose={closeNewGroup} pending={createGroup.isPending} />
   </>
 }

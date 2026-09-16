@@ -6,33 +6,29 @@ import { Modal } from '../../components/ui/ModalControl'
 import { Pagination } from '../../components/ui/PaginationControl'
 import type { Product, DetailSelections } from '../../domain/products/types'
 import { ProductResults } from './-components/ProductResults'
-import { ProductListFilterControls } from './-components/ProductListFilterControls'
 import { Checkbox } from '../../components/ui/CheckboxControl'
 import { useProductList } from './-components/hooks/useProductList'
 import { useAddToCart } from './-components/hooks/useAddToCart'
 import { ProductFilter } from './-components/ProductFiltersView'
-import { LiveProductFilter, LiveProductFilterControls } from './-components/LiveProductFilters'
+import { ProductCatalogFilterControls } from './-components/ProductCatalogFilterControls'
 export { ProductFilter } from './-components/ProductFiltersView'
 import filterChevronBackwardIcon from '../../assets/figma/filter-chevron-backward.svg'
 import filterTuneIcon from '../../assets/figma/filter-tune.svg'
 import viewGridIcon from '../../assets/figma/view-grid.svg'
 import viewListIcon from '../../assets/figma/view-list.svg'
-import { useAuthentication } from '@/app/session/AuthProvider'
 import { useSession } from '@/app/session/SessionProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
 export function ProductListPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const auth = useAuthentication()
   const session = useSession()
   const cartAddition = useAddToCart()
   const productList = useProductList()
   const {
     visibleProducts, resultTotal, totalPages, currentPage, setCurrentPage,
-    instantOnly, setInstantOnly, selectedRooms, setSelectedRooms,
-    detailSelections, setDetailSelections, selectorSelections, setSelectorSelections,
-    resetFilters, facets, capabilities, isPending, isError, errorMessage, refetch,
+    instantOnly, setInstantOnly, detailSelections, setDetailSelections,
+    facets, capabilities, isPending, isError, errorMessage, refetch,
   } = productList
   const [filterOpen, setFilterOpen] = useState(false)
   const [filterDrawer, setFilterDrawer] = useState(() => window.matchMedia('(max-width: 1799px)').matches)
@@ -55,7 +51,7 @@ export function ProductListPage() {
   const catalogIsEmpty = !isPending && !isError && resultTotal === 0 && !hasAdjustableFilters
   const showCatalogControls = !isError
   const addToCart = (product: Product) => {
-    if (auth.accessMode !== 'preview' && session.status !== 'authenticated') {
+    if (session.status !== 'authenticated') {
       setLoginRequiredOpen(true)
       return
     }
@@ -101,8 +97,8 @@ export function ProductListPage() {
       <section aria-label={categoryTitle} className={`products-hero${filterOpen && !filterDrawer ? ' products-hero--filter-open' : ''}`}>
         <h1 className="products-hero__title">{categoryTitle}</h1>
       </section>
-      <div className={`products-body${filterOpen ? ' products-body--filter-open' : ''}${filterOpen && filterDrawer ? ' products-body--filter-drawer' : ''}${catalogIsEmpty ? ' products-body--empty' : ''}`}>
-        {showCatalogControls && !filterOpen && !mobileViewport ? <button disabled={productList.liveFilters ? productList.filterMetadataPending || productList.filterMetadata?.groups.length === 0 : capabilities?.detailFilters.length === 0} aria-label="상세 필터 열기" className="product-filter-trigger product-filter-trigger--desktop" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterChevronBackwardIcon} /></button> : null}
+      <div className={`products-body${filterOpen && !filterDrawer ? ' products-body--filter-open' : ''}${catalogIsEmpty ? ' products-body--empty' : ''}${isError ? ' products-body--error' : ''}`}>
+        {showCatalogControls && !filterOpen && !mobileViewport ? <button disabled={productList.filterMetadataPending || productList.filterMetadata?.groups.length === 0} aria-label="상세 필터 열기" className="product-filter-trigger product-filter-trigger--desktop" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterChevronBackwardIcon} /></button> : null}
         {filterOpen && filterDrawer ? (
           <DialogLayer
             asChild
@@ -114,18 +110,18 @@ export function ProductListPage() {
             showTitle={false}
             title="상세 상품 필터"
           >
-            {productList.liveFilters ? <LiveProductFilter controls={productList} drawer filterRef={filterRef} onClose={closeFilter} /> : <ProductFilter detailSelections={detailSelections} drawer facets={facets} filterRef={filterRef} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} />}
+            <ProductFilter controls={productList} detailSelections={detailSelections} drawer facets={facets} filterRef={filterRef} mobile={mobileViewport} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} />
           </DialogLayer>
         ) : null}
-        <div className={`products-layout${filterOpen ? ' products-layout--filter-open' : ''}`}>
-          {filterOpen && !filterDrawer ? productList.liveFilters ? <LiveProductFilter controls={productList} filterRef={filterRef} onClose={closeFilter} /> : <ProductFilter detailSelections={detailSelections} facets={facets} filterRef={filterRef} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} /> : null}
+        <div className={`products-layout${filterOpen && !filterDrawer ? ' products-layout--filter-open' : ''}`}>
+          {filterOpen && !filterDrawer ? <ProductFilter controls={productList} detailSelections={detailSelections} facets={facets} filterRef={filterRef} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} /> : null}
           <section className="products-content">
-          {showCatalogControls ? productList.liveFilters ? <LiveProductFilterControls controls={productList} mobileFilterTrigger={!filterOpen && mobileViewport ? <button disabled={productList.filterMetadataPending || productList.filterMetadata?.groups.length === 0} aria-label="모바일 상세 필터 열기" className="product-filter-trigger product-filter-trigger--mobile" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterTuneIcon} /></button> : null} /> : <ProductListFilterControls capabilities={capabilities} selectedRooms={selectedRooms} setSelectedRooms={setSelectedRooms} detailSelections={detailSelections} setDetailSelections={setDetailSelections} selectorSelections={selectorSelections} setSelectorSelections={setSelectorSelections} resetFilters={resetFilters} mobileFilterTrigger={!filterOpen && mobileViewport ? <button disabled={capabilities?.detailFilters.length === 0} aria-label="모바일 상세 필터 열기" className="product-filter-trigger product-filter-trigger--mobile" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterTuneIcon} /></button> : null} /> : null}
+          {showCatalogControls ? <ProductCatalogFilterControls controls={productList} mobileFilterTrigger={!filterOpen && mobileViewport ? <button disabled={productList.filterMetadataPending || productList.filterMetadata?.groups.length === 0} aria-label="모바일 상세 필터 열기" className="product-filter-trigger product-filter-trigger--mobile" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterTuneIcon} /></button> : null} /> : null}
           {showCatalogControls ? <div className="product-results-toolbar" ref={resultsToolbarRef}>
             <div><span className="product-result-count"><span>총</span><span><strong>{resultTotal}</strong>개</span><span>상품</span></span><span className="product-results-toolbar__divider" /><label className="product-availability-switch"><Checkbox disabled={capabilities?.instantOnly === false} aria-label="즉시 사용 가능 상품만 보기" checked={instantOnly} onChange={(event) => setInstantOnly(event.target.checked)} role="switch" variant="switch" /><span aria-hidden="true" />즉시 사용 가능 상품만 보기</label></div>
             <div className="product-view-toggle"><button aria-label="카드형 보기" aria-pressed={view === 'cards'} onClick={() => setView('cards')} type="button"><img alt="" src={viewGridIcon} /></button><button aria-label="리스트형 보기" aria-pressed={view === 'list'} onClick={() => setView('list')} type="button"><img alt="" src={viewListIcon} /></button></div>
           </div> : null}
-          {isPending ? <LoadingState label="상품을 불러오고 있습니다." /> : isError ? <div role="alert"><p>{errorMessage}</p><button onClick={() => refetch()} type="button">다시 시도</button></div> : visibleProducts.length === 0 ? <div className="product-list-empty" role="status">새로운 상품이 등록될 예정입니다.</div> : <ProductResults products={visibleProducts} view={view} onAddToCart={addToCart} />}
+          {isPending ? <LoadingState label="상품을 불러오고 있습니다." /> : isError ? <div className="product-results-state product-results-state--error" role="alert"><p>{errorMessage}</p><button className="product-results-state__retry" onClick={() => refetch()} type="button">다시 시도</button></div> : visibleProducts.length === 0 ? <div className="product-list-empty" role="status">새로운 상품이 등록될 예정입니다.</div> : <ProductResults products={visibleProducts} view={view} onAddToCart={addToCart} />}
           {!isPending && !isError && totalPages > 0 ? <Pagination currentPage={currentPage} onPageChange={changePage} totalPages={totalPages} /> : null}
           </section>
         </div>

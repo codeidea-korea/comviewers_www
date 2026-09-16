@@ -1,10 +1,13 @@
-import type { CSSProperties, Ref } from 'react'
+import type { CSSProperties, ReactNode, Ref } from 'react'
 import type { DetailSelections, ProductPage } from '../../../domain/products/types'
+import type { CatalogFilterMetadata } from '@/api/catalog'
+import type { useProductList } from './hooks/useProductList'
 type FilterId = keyof DetailSelections
 type FilterMenuDefinition = { id: FilterId; label: string; count?: number } & ({ type: 'range'; options: string[] } | { type?: undefined; options: [string, number][] })
 type SelectionProps = { selectedValues: string[]; onSelectionChange: (values: string[]) => void }
 import { useId, useState } from 'react'
 import { Checkbox } from '../../../components/ui/CheckboxControl'
+import { LoadingState } from '../../../components/ui/LoadingStateControl'
 import filterChevronUpIcon from '../../../assets/figma/filter-chevron-up.svg'
 import filterChevronBackwardIcon from '../../../assets/figma/filter-chevron-backward.svg'
 const componentFilterSections: { title: string; menus: FilterMenuDefinition[] }[] = [
@@ -56,6 +59,9 @@ const componentFilterSections: { title: string; menus: FilterMenuDefinition[] }[
 
 const productFilterSections = componentFilterSections
 
+export type ProductCatalogControls = Pick<ReturnType<typeof useProductList>, 'filterMetadata' | 'filterMetadataPending' | 'filterMetadataError' | 'refetchFilterMetadata' | 'catalogSelections' | 'setCatalogSelections' | 'resetFilters'>
+type CatalogFilterGroup = CatalogFilterMetadata['groups'][number]
+
 const PRICE_RANGE_INITIAL_PERCENT = 60
 const PRICE_RANGE_PRESETS = [
   { label: '전체', percent: 60 },
@@ -73,7 +79,7 @@ function priceFromRangePercent(percent: number) {
   return Math.round(amount / 10000) * 10000
 }
 
-function MonthlyPriceRange({ selectedValues, onSelectionChange }: SelectionProps) {
+export function MonthlyPriceRange({ selectedValues, onSelectionChange }: SelectionProps) {
   const inputId = useId()
   const selectedAmount = Number(selectedValues[0])
   const percent = selectedAmount > 0
@@ -122,9 +128,38 @@ function MonthlyPriceRange({ selectedValues, onSelectionChange }: SelectionProps
   )
 }
 
+interface ProductFilterMenuFrameProps {
+  children: ReactNode
+  count?: number
+  id: string
+  isOpen: boolean
+  label: string
+  onSelectAll: (checked: boolean) => void
+  onToggle: () => void
+  selected: boolean
+}
+
+export function ProductFilterMenuFrame({ children, count, id, isOpen, label, onSelectAll, onToggle, selected }: ProductFilterMenuFrameProps) {
+  const menuId = `filter-${id}`
+  return (
+    <div className="product-filter-menu">
+      <div className="product-filter-menu__heading">
+        <label aria-label={`${label} 필터 선택`} className="product-filter-menu__checkbox">
+          <Checkbox checked={selected} onChange={(event) => onSelectAll(event.target.checked)} />
+        </label>
+        <button aria-controls={menuId} aria-expanded={isOpen} className="product-filter-menu__toggle" onClick={onToggle} type="button">
+          <span>{label}</span>
+          {count ? <em>{count}</em> : null}
+          <img alt="" src={filterChevronUpIcon} />
+        </button>
+      </div>
+      {isOpen ? <div className="product-filter-menu__content" id={menuId}>{children}</div> : null}
+    </div>
+  )
+}
+
 function FilterMenu({ menu, isOpen, onToggle, selectedValues, onSelectionChange, facetCounts }: SelectionProps & { menu: FilterMenuDefinition; isOpen: boolean; onToggle: () => void; facetCounts?: Record<string, number> | null }) {
   const isRange = menu.type === 'range'
-  const menuId = `filter-${menu.id}`
   const optionLabels = menu.type === 'range' ? [] : menu.options.map(([label]) => label)
   const selected = selectedValues.length > 0
   const toggleValue = (label: string, checked: boolean) => onSelectionChange(checked
@@ -132,44 +167,109 @@ function FilterMenu({ menu, isOpen, onToggle, selectedValues, onSelectionChange,
     : selectedValues.filter((value) => value !== label))
 
   return (
-    <div className="product-filter-menu">
-      <div className="product-filter-menu__heading">
-        <label aria-label={`${menu.label} 필터 선택`} className="product-filter-menu__checkbox">
-          <Checkbox checked={selected} onChange={(event) => onSelectionChange(event.target.checked ? (isRange ? ['100000'] : optionLabels) : [])} />
-        </label>
-        <button aria-controls={menuId} aria-expanded={isOpen} className="product-filter-menu__toggle" onClick={onToggle} type="button">
-          <span>{menu.label}</span>
-          {menu.count ? <em>{menu.count}</em> : null}
-          <img alt="" src={filterChevronUpIcon} />
-        </button>
-      </div>
-      {isOpen ? (
-        <div className="product-filter-menu__content" id={menuId}>
-          {menu.type === 'range' ? (
-            <MonthlyPriceRange onSelectionChange={onSelectionChange} selectedValues={selectedValues} />
-          ) : (
-            <div className="product-filter-options">
-              {menu.options.map(([label, count]) => <label key={label}><Checkbox checked={selectedValues.includes(label)} onChange={(event) => toggleValue(label, event.target.checked)} /><span>{label}</span><small>{facetCounts === null ? '—' : facetCounts ? (facetCounts[label] ?? 0) : count}</small></label>)}
-            </div>
-          )}
+    <ProductFilterMenuFrame count={menu.count} id={menu.id} isOpen={isOpen} label={menu.label} onSelectAll={(checked) => onSelectionChange(checked ? (isRange ? ['100000'] : optionLabels) : [])} onToggle={onToggle} selected={selected}>
+      {menu.type === 'range' ? (
+        <MonthlyPriceRange onSelectionChange={onSelectionChange} selectedValues={selectedValues} />
+      ) : (
+        <div className="product-filter-options">
+          {menu.options.map(([label, count]) => <label key={label}><Checkbox checked={selectedValues.includes(label)} onChange={(event) => toggleValue(label, event.target.checked)} /><span>{label}</span><small>{facetCounts === null ? '—' : facetCounts ? (facetCounts[label] ?? 0) : count}</small></label>)}
         </div>
-      ) : null}
-    </div>
+      )}
+    </ProductFilterMenuFrame>
   )
 }
 
+function CatalogFilterSections({ controls }: { controls: ProductCatalogControls }) {
+  const { filterMetadata: metadata, catalogSelections: selected, setCatalogSelections: update } = controls
+  const priceBasis = selected.priceBasis ?? 'monthly'
+  const priceLabel = priceBasis === 'unit' ? '상품 금액' : '월 렌탈료'
+  const [notice, setNotice] = useState('')
+  const [collapsedMenus, setCollapsedMenus] = useState<Set<string>>(() => new Set())
+  const ids = selected.filterOptionIds ?? []
+  const counts = new Map(metadata?.optionCounts.map(count => [count.optionId, count.productCount]) ?? [])
+  const isMenuOpen = (id: string) => !collapsedMenus.has(id)
+  const toggleMenu = (id: string) => setCollapsedMenus((current) => {
+    const next = new Set(current)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  })
+  const applyOptionIds = (next: number[]) => {
+    if (next.length > 50) { setNotice('상세 조건은 최대 50개까지 선택할 수 있습니다.'); return }
+    setNotice('')
+    update({ filterOptionIds: next })
+  }
+  const toggleOption = (id: number) => {
+    applyOptionIds(ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id])
+  }
+  const renderGroup = (group: CatalogFilterGroup) => {
+    const menuId = `catalog-${group.code}-${group.id}`
+    const groupOptionIds = group.options.map(option => option.id)
+    const selectedInGroup = groupOptionIds.filter(id => ids.includes(id))
+    return <ProductFilterMenuFrame id={menuId} isOpen={isMenuOpen(menuId)} key={group.id} label={group.name}
+      onSelectAll={(checked) => applyOptionIds(checked
+        ? [...ids.filter(id => !groupOptionIds.includes(id)), ...groupOptionIds]
+        : ids.filter(id => !groupOptionIds.includes(id)))}
+      onToggle={() => toggleMenu(menuId)} selected={selectedInGroup.length > 0}>
+      <div className="product-filter-options">
+        {group.options.map(option => <label key={option.id}><Checkbox checked={ids.includes(option.id)} onChange={() => toggleOption(option.id)} /><span>{option.label}</span><small>{counts.get(option.id) ?? 0}</small></label>)}
+      </div>
+    </ProductFilterMenuFrame>
+  }
+  const renderCategory = (categoryCode: string, title: string) => {
+    const groups = metadata?.groups.filter(group => group.categoryCode === categoryCode) ?? []
+    return groups.length ? <section className="product-filter__section" key={categoryCode}><h2>{title}</h2>{groups.map(renderGroup)}</section> : null
+  }
+  const priceMenuId = 'catalog-monthly-fee'
+  const deviceMenuId = 'catalog-peripheral'
+  const gameGroups = metadata?.groups.filter(group => group.categoryCode === 'game') ?? []
+  const deviceSelected = selected.keyboardConnectionStatus === 'connected' || selected.mouseConnectionStatus === 'connected'
+
+  return <>
+    {controls.filterMetadataPending ? <LoadingState className="route-loading--compact" label="검색 조건을 불러오고 있습니다." /> : null}
+    {controls.filterMetadataError ? <p role="alert">검색 조건을 불러오지 못했습니다. <button className="product-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}>다시 시도</button></p> : null}
+    <section className="product-filter__section"><h2>이용 조건</h2>
+      <ProductFilterMenuFrame count={1} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
+        onSelectAll={(checked) => update({ priceBasis, minPrice: undefined, maxPrice: checked ? 100000 : undefined })}
+        onToggle={() => toggleMenu(priceMenuId)} selected={selected.minPrice !== undefined || selected.maxPrice !== undefined}>
+        <MonthlyPriceRange selectedValues={selected.maxPrice === undefined ? [] : [String(selected.maxPrice)]}
+          onSelectionChange={(values) => update({ priceBasis, minPrice: undefined, maxPrice: values[0] ? Number(values[0]) : undefined })} />
+      </ProductFilterMenuFrame>
+    </section>
+    {renderCategory('os', 'OS')}
+    {renderCategory('cpu', 'CPU')}
+    {renderCategory('ram', 'RAM')}
+    {renderCategory('disk', 'DISK')}
+    {renderCategory('gpu', 'GPU')}
+    <section className="product-filter__section"><h2>이용 환경</h2>
+      <ProductFilterMenuFrame id={deviceMenuId} isOpen={isMenuOpen(deviceMenuId)} label="주변 기기"
+        onSelectAll={(checked) => update({ keyboardConnectionStatus: checked ? 'connected' : undefined, mouseConnectionStatus: checked ? 'connected' : undefined })}
+        onToggle={() => toggleMenu(deviceMenuId)} selected={deviceSelected}>
+        <div className="product-filter-options">
+          <label><Checkbox checked={selected.keyboardConnectionStatus === 'connected'} onChange={(event) => update({ keyboardConnectionStatus: event.target.checked ? 'connected' : undefined })} /><span>키보드</span></label>
+          <label><Checkbox checked={selected.mouseConnectionStatus === 'connected'} onChange={(event) => update({ mouseConnectionStatus: event.target.checked ? 'connected' : undefined })} /><span>마우스</span></label>
+        </div>
+      </ProductFilterMenuFrame>
+      {gameGroups.map(renderGroup)}
+    </section>
+    {notice ? <p role="alert">{notice}</p> : null}
+  </>
+}
+
 interface ProductFilterProps {
+  controls?: ProductCatalogControls
   detailSelections?: DetailSelections
   drawer?: boolean
   facets?: ProductPage['facets']
   filterRef?: Ref<HTMLElement>
+  mobile?: boolean
   onClose?: () => void
   onDetailSelectionChange?: (id: FilterId, values: string[]) => void
   resetVersion?: number
   variant?: 'product' | 'component-library'
 }
 
-export function ProductFilter({ detailSelections = {}, drawer = false, facets, filterRef, onClose, onDetailSelectionChange = () => {}, variant = 'product' }: ProductFilterProps) {
+export function ProductFilter({ controls, detailSelections = {}, drawer = false, facets, filterRef, mobile = false, onClose, onDetailSelectionChange = () => {}, variant = 'product' }: ProductFilterProps) {
   const sections = variant === 'component-library' ? componentFilterSections : productFilterSections
   const [expandedMenus, setExpandedMenus] = useState(() => new Set(['monthly-fee', 'os', 'cpu-type', 'cpu-clock', 'cpu-core', 'ram-spec', 'ram-size', 'disk-type', 'disk-size', 'gpu-type', 'gpu-memory', 'peripheral', 'game']))
   const toggleMenu = (id: FilterId) => setExpandedMenus((current) => {
@@ -180,8 +280,9 @@ export function ProductFilter({ detailSelections = {}, drawer = false, facets, f
   })
   return (
     <aside aria-label="상세 상품 필터" aria-modal={drawer || undefined} className={`product-filter${drawer ? ' product-filter--drawer' : ''}`} ref={filterRef} role={drawer ? 'dialog' : undefined} tabIndex={drawer ? -1 : undefined}>
+      {mobile ? <header className="product-filter-mobile-header"><button aria-label="상세 필터 닫기" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /></button><strong>상세 필터</strong></header> : null}
       <p className="product-filter__caption">상세 필터</p>
-      {sections.map((section) => (
+      {controls ? <CatalogFilterSections controls={controls} /> : sections.map((section) => (
         <section className="product-filter__section" key={section.title}>
           <h2>{section.title}</h2>
           {section.menus.map((menu) => <FilterMenu facetCounts={facets === null ? null : facets ? (facets[menu.id] ?? {}) : undefined} isOpen={expandedMenus.has(menu.id)} key={menu.id} menu={menu} onSelectionChange={(values) => onDetailSelectionChange(menu.id, values)} onToggle={() => toggleMenu(menu.id)} selectedValues={detailSelections[menu.id] ?? []} />)}

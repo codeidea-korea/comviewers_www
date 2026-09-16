@@ -52,23 +52,18 @@ def verify_login_form(browser):
     username.wait_for(state="visible")
 
     assert username.get_attribute("required") == "", "아이디 required 속성이 없습니다."
-    assert username.get_attribute("minlength") == "3"
-    assert username.get_attribute("maxlength") == "20"
-    assert username.get_attribute("pattern") == "[A-Za-z0-9_]{3,20}"
+    assert username.get_attribute("minlength") is None
+    assert username.get_attribute("maxlength") is None
+    assert username.get_attribute("pattern") is None
     assert username.get_attribute("autocomplete") == "username"
     assert password.get_attribute("required") == "", "비밀번호 required 속성이 없습니다."
-    assert password.get_attribute("minlength") == "8"
-    assert password.get_attribute("maxlength") == "16"
-    assert password.get_attribute("pattern") == "[A-Za-z0-9!@#$%]{8,16}"
+    assert password.get_attribute("minlength") is None
+    assert password.get_attribute("maxlength") is None
+    assert password.get_attribute("pattern") is None
     assert password.get_attribute("autocomplete") == "current-password"
     assert password.get_attribute("type") == "password"
 
-    username_help = page.locator(f"#{username.get_attribute('aria-describedby')}")
-    password_help = page.locator(f"#{password.get_attribute('aria-describedby')}")
-    assert username_help.inner_text() == "* 3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다."
-    assert password_help.inner_text() == "* 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)만 사용할 수 있습니다."
-
-    username.fill("wrong_user")
+    username.fill("legacy.user+01")
     password.fill("Wrong123!")
     page.get_by_role("button", name="로그인", exact=True).click()
     notice = page.locator("p.auth-notice")
@@ -76,7 +71,7 @@ def verify_login_form(browser):
     assert notice.inner_text() == "아이디 또는 비밀번호가 일치하지 않습니다."
     assert notice.get_attribute("aria-live") == "polite"
     assert password.input_value() == "", "실패 후 비밀번호 입력값이 지워지지 않았습니다."
-    assert submitted == [{"username": "wrong_user", "password": "Wrong123!", "autoLogin": False}]
+    assert submitted == [{"username": "legacy.user+01", "password": "Wrong123!", "autoLogin": False}]
     context.close()
 
 
@@ -194,7 +189,7 @@ def verify_c_manager_favorites_capabilities(browser):
     page.get_by_label("비밀번호", exact=True).fill("Password1!")
     page.get_by_role("button", name="로그인", exact=True).click()
     page.wait_for_url("**/mypage/rcpc")
-    page.get_by_text("QA-CM-RCPC-01", exact=True).wait_for(state="visible")
+    page.locator(".mypage-home-rcpc").get_by_text("담당 RCPC", exact=True).wait_for(state="visible")
 
     assert page.get_by_role("button", name="기간연장", exact=True).count() == 0
     assert page.get_by_role("link", name="기간연장", exact=True).count() == 0
@@ -206,7 +201,7 @@ def verify_c_manager_favorites_capabilities(browser):
     page.get_by_role("link", name="즐겨찾기", exact=True).click()
     page.wait_for_url("**/mypage/favorites")
     page.locator(".favorites-live-results").wait_for(state="visible")
-    page.get_by_text("QA-CM-RCPC-01", exact=True).wait_for(state="visible")
+    page.locator(".mypage-home-rcpc").get_by_text("담당 RCPC", exact=True).wait_for(state="visible")
     assert page.get_by_role("link", name="문의", exact=True).count() >= 1
     assert page.locator('.favorites-live-groups a:has-text("편집")').count() == 1
     assert page.locator('.favorites-live-groups button:has-text("추가")').count() == 1
@@ -360,13 +355,22 @@ def verify_dashboard_pdf_cta_and_responsive_product_search(browser):
         page.wait_for_url("**/mypage")
 
         orders_link = page.get_by_role("link", name="주문내역 보기", exact=True)
-        orders_link.wait_for(state="visible")
-        href = orders_link.get_attribute("href")
-        assert href and urlparse(page.url).scheme
-        assert urlparse(page.evaluate("([href]) => new URL(href, window.location.href).href", [href])).path == "/mypage/orders"
-        assert page.get_by_role("link", name="더보기", exact=True).count() >= 1
+        if width >= 768:
+            orders_link.wait_for(state="visible")
+            href = orders_link.get_attribute("href")
+            assert href and urlparse(page.url).scheme
+            assert urlparse(page.evaluate("([href]) => new URL(href, window.location.href).href", [href])).path == "/mypage/orders"
+        else:
+            assert not orders_link.is_visible(), "모바일 원본에서 숨긴 주문 요약이 노출됐습니다."
+        more_links = page.get_by_role("link", name="더보기", exact=True)
+        if width >= 768:
+            assert more_links.count() >= 1
+        else:
+            assert more_links.count() == 0, "모바일 원본에서 숨긴 요약 더보기가 노출됐습니다."
 
-        search = page.get_by_role("search").filter(has=page.get_by_label("품번 검색")).get_by_label("품번 검색")
+        if width < 768:
+            page.get_by_role("button", name="품번 검색 열기", exact=True).click()
+        search = page.get_by_label("품번 검색", exact=True).filter(visible=True)
         search.wait_for(state="visible")
         search_box = search.bounding_box()
         assert search_box is not None
@@ -374,14 +378,18 @@ def verify_dashboard_pdf_cta_and_responsive_product_search(browser):
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
         search.fill("QA-OWNER-RCPC-01")
-        result = page.get_by_role("button", name="QA-OWNER-RCPC-01", exact=True)
-        result.wait_for(state="visible")
-        result_box = result.bounding_box()
-        assert result_box is not None
-        assert result_box["x"] >= 0 and result_box["x"] + result_box["width"] <= width
-        result.click()
+        if width >= 768:
+            result = page.get_by_role("button", name="QA-OWNER-RCPC-01", exact=True)
+            result.wait_for(state="visible")
+            result_box = result.bounding_box()
+            assert result_box is not None
+            assert result_box["x"] >= 0 and result_box["x"] + result_box["width"] <= width
+            result.click()
+        else:
+            page.get_by_role("button", name="조회", exact=True).click()
         page.wait_for_url("**/mypage/rcpc?productNo=QA-OWNER-RCPC-01")
-        assert searched_queries, f"{width}px에서 품번 검색 API가 호출되지 않았습니다."
+        if width >= 768:
+            assert searched_queries, f"{width}px에서 품번 검색 API가 호출되지 않았습니다."
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
         context.close()
 

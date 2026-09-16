@@ -4,12 +4,12 @@ import { RelativeLink as Link } from '../../../components/navigation/RelativeLin
 import { Pagination } from '../../../components/ui/PaginationControl'
 import { SearchField } from '../../../components/ui/SearchFieldControl'
 import { NativeSelect } from '../../../components/ui/SelectControl'
-import { inquiryStatusOptions,inquiryTypeOptions } from '../../../mocks/selectOptions'
-import { MyPageLayout,withManagerPreview } from '../MypageComponentsView'
+import { inquiryStatusOptions,inquiryTypeOptions } from '../../../lib/formOptions'
+import { MyPageLayout } from '../MypageComponentsView'
 import { AccountQueryState } from './AccountQueryState'
 import { useMyAccount } from './hooks/useMyAccount'
 
-export function InquiryCatalogBase({ compact = false, manager = false, children }: { compact?: boolean; manager?: boolean; children?: ReactNode }) {
+export function InquiryCatalogBase({ compact = false, children }: { compact?: boolean; children?: ReactNode }) {
   const account = useMyAccount()
   const inquiryRows = (account.data?.inquiries ?? []).map((item) => ({ ...item, rcpc: item.rcpcIds.join(', '), message: item.title + '\n' + item.content, recent: item.createdAt }))
   const [typeFilter, setTypeFilter] = useState('')
@@ -33,13 +33,13 @@ export function InquiryCatalogBase({ compact = false, manager = false, children 
           <label><span className="sr-only">문의 유형</span><NativeSelect onChange={(event) => setTypeFilter(event.target.value)} value={typeFilter}><option value="">전체 문의 유형</option>{inquiryTypeOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect></label>
           <label><span className="sr-only">처리 상태</span><NativeSelect onChange={(event) => setStatusFilter(event.target.value)} value={statusFilter}><option value="">전체 처리 상태</option>{inquiryStatusOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect></label>
           <SearchField className="inquiry-catalog__search" icon={mypageSearch} iconClassName="inquiry-catalog__search-icon" label="문의 검색" onChange={(event) => setSearch(event.target.value)} placeholder="문의 제목 또는 품번을 입력해 주세요." value={search} />
-          <Link state={{ inquiryState: 'select-product', publishingPopup: 'inquiry-create' }} to={withManagerPreview('/mypage/inquiries', manager)}>문의 접수</Link>
+          <Link state={{ inquiryState: 'select-product' }} to="/mypage/inquiries">문의 접수</Link>
         </div>
         <div aria-label="문의 목록" className="inquiry-catalog__table" role="table">
           <div className="inquiry-catalog__head" role="row"><span role="columnheader">문의 유형</span><span role="columnheader">대상 RCPC</span><span role="columnheader">최근 메시지</span><span role="columnheader">최근 활동</span><span role="columnheader">문의 상태</span><span role="columnheader">등록일</span></div>
           {rows.map((row) => (
             <div className="inquiry-catalog__row" key={row.id} role="row">
-              <span role="cell"><Link className="inquiry-catalog__row-link" to={withManagerPreview(`/mypage/inquiries/${row.inquiryId}`, manager)}>{row.type}<span className="sr-only"> 문의 상세 보기</span></Link></span>
+              <span role="cell"><Link className="inquiry-catalog__row-link" to={`/mypage/inquiries/${row.inquiryId}`}>{row.type}<span className="sr-only"> 문의 상세 보기</span></Link></span>
               <span role="cell">{row.rcpc}</span><span role="cell">{row.message.split('\n').map((line) => <small key={line}>{line}</small>)}</span><span role="cell">{row.recent}</span><span role="cell">{row.status}</span><span role="cell">{row.createdAt}</span>
             </div>
           ))}

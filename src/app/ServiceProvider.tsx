@@ -29,7 +29,7 @@ export interface Services {
 
 const ServiceContext = createContext<Services | null>(null)
 
-// Defaults stay local. A live service factory must be explicitly injected into AppProviders.
+// Test-only service graph. The application runtime injects the API service factory.
 export function createMockServices(): Services {
   const products = createMockProductRepository()
   const cart = createMockCartRepository(products)

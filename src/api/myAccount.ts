@@ -9,7 +9,7 @@ export type AccountPageQuery = z.input<typeof accountPageQuery>
 const benefitDateQuery = z.object({ from: z.iso.date().optional(), to: z.iso.date().optional() }).refine(value => !value.from || !value.to || value.from <= value.to)
 export type BenefitDateQuery = z.input<typeof benefitDateQuery>
 export type PointEntryType = 'all' | 'earned' | 'used'
-export type CouponStatus = 'all' | 'available' | 'used' | 'expired' | 'reserved' | 'revoked'
+export type CouponStatus = 'all' | 'held' | 'available' | 'used' | 'expired' | 'reserved' | 'revoked'
 export type StorageStatus = 'stored' | 'moved_to_cart' | 'ordered' | 'expired' | 'cancelled' | 'unpaid'
 const storageMoveRequestSchema = z.object({ durationUnits: z.number().int().positive().nullable() })
 const idempotencyKeyPartSchema = z.string().uuid()
@@ -28,7 +28,7 @@ export function createMyAccountApi(client: ApiClient, organizationId: string | n
     profile: (signal?: AbortSignal) => client.request('/api/v1/my/profile', profileResponseSchema, { authenticated: true, signal }),
     benefits: (signal?: AbortSignal) => client.request('/api/v1/my/benefits/summary', benefitSummarySchema, { ...context(), signal }),
     points: (input: AccountPageQuery & BenefitDateQuery & { entryType?: PointEntryType } = {}, signal?: AbortSignal) => client.request('/api/v1/my/benefits/points', pointPageSchema, { ...context(), signal, query: { ...accountPageQuery.parse(input), ...benefitDateQuery.parse(input), entryType: z.enum(['all', 'earned', 'used']).parse(input.entryType ?? 'all') } }),
-    coupons: (input: AccountPageQuery & BenefitDateQuery & { status?: CouponStatus } = {}, signal?: AbortSignal) => client.request('/api/v1/my/benefits/coupons', couponPageSchema, { ...context(), signal, query: { ...accountPageQuery.parse(input), ...benefitDateQuery.parse(input), status: z.enum(['all', 'available', 'used', 'expired', 'reserved', 'revoked']).parse(input.status ?? 'all') } }),
+    coupons: (input: AccountPageQuery & BenefitDateQuery & { status?: CouponStatus } = {}, signal?: AbortSignal) => client.request('/api/v1/my/benefits/coupons', couponPageSchema, { ...context(), signal, query: { ...accountPageQuery.parse(input), ...benefitDateQuery.parse(input), status: z.enum(['all', 'held', 'available', 'used', 'expired', 'reserved', 'revoked']).parse(input.status ?? 'all') } }),
     downloadableCoupons: (signal?: AbortSignal) => client.request('/api/v1/my/benefits/coupons/downloadable', z.array(downloadableCouponSchema), { ...context(), signal }),
     downloadCoupon: (couponId: string, key: string = crypto.randomUUID()) => client.request(`/api/v1/my/benefits/coupons/${accountPathId.parse(couponId)}/download`,
       z.object({ userCouponId: accountId, couponId: accountId, downloadedAt: z.iso.datetime({ local: true }), expiresAt: z.iso.datetime({ local: true }).nullable(), replayed: z.boolean() }),

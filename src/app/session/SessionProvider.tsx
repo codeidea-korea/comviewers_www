@@ -14,7 +14,7 @@ export function useSession(): SessionState {
   const store = useSessionStore()
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot)
 }
-/** UI guard only; server authorization remains mandatory. Apply when live routes are enabled. */
+/** UI guard only; server authorization remains mandatory. */
 export function RequireSession({ children, fallback, roles, requireOrganization = false }: {
   children: ReactNode; fallback: ReactNode; roles?: readonly SessionRole[]; requireOrganization?: boolean
 }) {

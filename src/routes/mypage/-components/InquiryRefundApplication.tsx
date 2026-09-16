@@ -45,7 +45,7 @@ export function InquiryRefundApplication({ api, initialRentalIds = [], triggerLa
   const triggerRef = useRef<HTMLButtonElement>(null)
   if (!triggerEnabled && !open) return null
   return <section className="refund-application-trigger">
-    {triggerEnabled ? <button ref={triggerRef} type="button" onClick={() => setOpen(true)}>{triggerLabel}</button> : null}
+    {triggerEnabled ? <button className="button button--small button--secondary" ref={triggerRef} type="button" onClick={() => setOpen(true)}>{triggerLabel}</button> : null}
     {open ? <ApplicationDialog api={api} initialRentalIds={initialRentalIds} onClose={() => setOpen(false)} returnFocusRef={triggerRef}/> : null}
   </section>
 }

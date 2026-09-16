@@ -27,7 +27,6 @@ export type ColocationDraftInput = z.infer<typeof colocationDraftInputSchema>
 export const colocationDraftSchema = colocationDraftInputSchema.extend({ savedAt: z.iso.datetime(), applicationId: z.number().int().positive().optional() })
 export type ColocationDraft = z.infer<typeof colocationDraftSchema>
 export interface ColocationDraftRepository {
-  readonly mode?: 'draft' | 'live'
   get(signal?: AbortSignal): Promise<ColocationDraft | null>
   save(input: ColocationDraftInput): Promise<ColocationDraft>
   terms?(signal?: AbortSignal): Promise<{ id: number; title: string; version: string; effectiveDate: string; content: string } | null>

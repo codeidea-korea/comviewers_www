@@ -32,13 +32,21 @@ function DocumentBody({ kind }: { kind: LegalKind }) {
 export function LegalPage({ privacy = false }: { privacy?: boolean }) {
   const [params] = useSearchParams()
   const section = privacy ? 'privacy' : params.get('section') === 'point' ? 'point' : params.get('section') === 'refund' ? 'refund' : params.get('section') === 'rental' ? 'rental' : 'terms'
-  return <AppShell><section className="support-page content-container">
-    <h1>{privacy ? '개인정보처리방침' : '약관 및 정책'}</h1>
-    {!privacy && <nav aria-label="약관 종류" style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 24 }}>
-      <Link to="/terms" aria-current={section === 'terms' ? 'page' : undefined}>서비스 이용약관</Link>
-      <Link to="/terms?section=rental" aria-current={section === 'rental' ? 'page' : undefined}>RCPC 렌탈약관</Link>
-      <Link to="/terms?section=refund" aria-current={section === 'refund' ? 'page' : undefined}>취소·환불·포인트 정책</Link>
-    </nav>}
-    {section === 'refund' ? <ProductRefundSection /> : <DocumentBody key={section} kind={section} />}
+  const title = privacy ? '개인정보처리방침' : section === 'rental' ? 'RCPC 렌탈약관' : section === 'refund' ? '취소·환불·포인트 정책' : section === 'point' ? '포인트·쿠폰 정책' : '서비스 이용약관'
+  return <AppShell><section className="not-ready-page legal-page">
+    <div className="auth-panel auth-panel--result legal-page__panel">
+      <header className="legal-page__heading">
+        <p className="eyebrow">LEGAL</p>
+        <h1>{title}</h1>
+      </header>
+      {!privacy && <nav aria-label="약관 종류" className="legal-page__nav">
+        <Link to="/terms" aria-current={section === 'terms' ? 'page' : undefined}>서비스 이용약관</Link>
+        <Link to="/terms?section=rental" aria-current={section === 'rental' ? 'page' : undefined}>RCPC 렌탈약관</Link>
+        <Link to="/terms?section=refund" aria-current={section === 'refund' ? 'page' : undefined}>취소·환불·포인트 정책</Link>
+      </nav>}
+      <div className="legal-page__content">
+        {section === 'refund' ? <ProductRefundSection /> : <DocumentBody key={section} kind={section} />}
+      </div>
+    </div>
   </section></AppShell>
 }

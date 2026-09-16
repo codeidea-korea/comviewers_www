@@ -1,8 +1,9 @@
 import { useServices } from '@/app/ServiceProvider'
-import { HttpOrderDetailPage } from './-components/http/HttpOrderPages'
+import { OrderDetailPageContent } from './-components/http/HttpOrderPages'
+import { MyPageLayout } from './MypageComponentsView'
 
 export function OrderDetailPage() {
   const { myAccount } = useServices()
-  if (!myAccount.readApi) throw new Error('주문 상세 API가 설정되지 않았습니다.')
-  return <HttpOrderDetailPage api={myAccount.readApi} />
+  if (!myAccount.readApi) return <MyPageLayout title="주문 상세"><p role="alert">주문 상세를 불러오지 못했습니다.</p></MyPageLayout>
+  return <OrderDetailPageContent api={myAccount.readApi} />
 }

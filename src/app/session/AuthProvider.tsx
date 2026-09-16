@@ -5,7 +5,6 @@ import type { SessionOrganization } from './sessionStore'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useSession, useSessionStore } from './SessionProvider'
 
-export type AccessMode = 'preview' | 'enforced'
 export type SocialAuthProvider = 'google' | 'naver' | 'kakao'
 export interface SocialSignupContext { provider: SocialAuthProvider; email: string; name: string | null }
 export interface SocialSignupInput {
@@ -28,7 +27,6 @@ export interface AuthAdapter {
   logout?(input: { accessToken: string | null }): Promise<void>
 }
 interface AuthController {
-  accessMode: AccessMode
   restoring: boolean
   logoutNotice: string
   socialLoginAvailable: boolean
@@ -45,7 +43,7 @@ function isAuthenticationFailure(error: unknown): boolean {
   return error instanceof ApiClientError
     && (error.status === 401 || (error.code ? AUTHENTICATION_ERROR_CODES.has(error.code) : false))
 }
-export function AuthProvider({ children, adapter, accessMode }: { children: ReactNode; adapter?: AuthAdapter; accessMode: AccessMode }) {
+export function AuthProvider({ children, adapter }: { children: ReactNode; adapter?: AuthAdapter }) {
   const store = useSessionStore()
   const session = useSession()
   const [logoutNotice, setLogoutNotice] = useState('')
@@ -80,7 +78,7 @@ export function AuthProvider({ children, adapter, accessMode }: { children: Reac
     return () => abort.abort()
   }, [adapter, session, store])
   const controller = useMemo<AuthController>(() => ({
-    accessMode, restoring, logoutNotice, socialLoginAvailable: Boolean(adapter?.socialLoginUrl),
+    restoring, logoutNotice, socialLoginAvailable: Boolean(adapter?.socialLoginUrl),
     async login(username, password, autoLogin = false) {
       if (restoring) throw new Error('로그인 상태를 확인하고 있습니다. 잠시 후 다시 시도해 주세요.')
       const credentials = loginCredentialsSchema.safeParse({ username, password, autoLogin })
@@ -134,7 +132,7 @@ export function AuthProvider({ children, adapter, accessMode }: { children: Reac
         catch { if (store.getSnapshot().revision === loggedOutRevision) setLogoutNotice('이 기기에서는 로그아웃했습니다. 서버 로그아웃을 완료하지 못했습니다.') }
       }
     },
-  }), [accessMode, adapter, store, logoutNotice, restoring])
+  }), [adapter, store, logoutNotice, restoring])
   return <AuthContext.Provider value={controller}>{children}</AuthContext.Provider>
 }
 export function useAuthentication(): AuthController {

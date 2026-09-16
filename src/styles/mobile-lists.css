@@ -40,8 +40,7 @@
     padding: 0;
   }
   .rcpc-list-page .rcpc-list--table,
-  .rcpc-list-page--live > .mypage-home-rcpc,
-  .mypage-home-section--live-rcpc > .mypage-home-rcpc { display: none; }
+  .mypage-home-section--rcpc > .mypage-home-rcpc { display: none; }
   .inquiry-catalog__table { display: none; }
   .manager-catalog__table { display: none; }
   .mobile-rcpc-list,

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { CommerceItem } from '../../lib/commerceCalculations'
 interface SummaryItem extends CommerceItem { label: string; product: { image: string }; displayAmount?: number; displayTermDuration?: string }
 type CommerceSummary = ReturnType<typeof calculateCommerceSummary>
-import { formatWon } from '../../mocks/commerce'
+import { formatWon } from '../../lib/currency'
 import windowsLogo from '../../assets/figma/windows-logo.svg'
 import serverOnIcon from '../../assets/figma/icon-server-on.svg'
 import tollIcon from '../../assets/figma/icon-toll-green.svg'

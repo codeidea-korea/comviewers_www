@@ -21,11 +21,12 @@ import { useAuthentication } from '@/app/session/AuthProvider'
 import { Checkbox } from '@/components/ui/CheckboxControl'
 import { NativeSelect } from '@/components/ui/SelectControl'
 import eyeIcon from '@/assets/figma/eye.svg'
-import { emailDomainOptions, messengerOptionLabel, messengerOptions, phonePrefixOptions } from '@/mocks/selectOptions'
+import { emailDomainOptions, messengerOptionLabel, messengerOptions, phonePrefixOptions } from '@/lib/formOptions'
 import { listenForEmailVerification } from '@/routes/auth/-components/emailVerificationChannel'
 import { profileEmailChange } from './profileEmailChange'
+import { Button } from '@/components/ui/ButtonControl'
 type ProfileMutations = ReturnType<typeof createCustomerProfileMutations>
-export function HttpProfilePage({ api, mutations, withdrawal }: { api: Pick<MyAccountReadServices, 'profile'>; mutations?: ProfileMutations; withdrawal?: CustomerWithdrawalApi }) {
+export function ProfilePageContent({ api, mutations, withdrawal }: { api: Pick<MyAccountReadServices, 'profile'>; mutations?: ProfileMutations; withdrawal?: CustomerWithdrawalApi }) {
   const [confirmedPassword, setConfirmedPassword] = useState<string | null>(null)
   const result = useAccountRead(['profile'], (signal) => api.profile(signal))
   const profile = result.data
@@ -113,6 +114,12 @@ function HttpProfileEditor({ mutations, profile, withdrawal, currentPassword }: 
   const requestId = emailRequest.data?.requestId ?? ''
   useEffect(() => listenForEmailVerification(requestId, result => setVerificationProof(result.verificationProof)), [requestId])
   const confirmEmail = useMutation({ mutationFn: () => mutations.confirmEmailChange(verificationProof), onSuccess: async () => { await auth.logout(); void navigate('/login', { replace: true }) } })
+  const resetEmailVerification = () => {
+    if (emailRequest.isPending || confirmEmail.isPending) return
+    setVerificationProof('')
+    confirmEmail.reset()
+    emailRequest.reset()
+  }
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const phone = phoneMiddle || phoneLast ? `${phonePrefix}-${phoneMiddle}-${phoneLast}` : ''
@@ -139,14 +146,14 @@ function HttpProfileEditor({ mutations, profile, withdrawal, currentPassword }: 
     setValidation('')
     try {
       if (hasProfileFields || hasImageChange) await save.mutateAsync(parsed?.data ?? {})
-      if (wantsEmailChange) await emailRequest.mutateAsync(nextEmail)
+      if (wantsEmailChange) { resetEmailVerification(); await emailRequest.mutateAsync(nextEmail) }
       else if (wantsPasswordChange) await passwordChange.mutateAsync()
       else if (hasProfileFields || hasImageChange) await queryClient.invalidateQueries({ queryKey: ['my-account', 'http', 'profile'] })
     } catch { /* 각 mutation 오류를 아래에 표시한다. */ }
   }
   const pending = save.isPending || passwordChange.isPending || emailRequest.isPending
   const currentDomainOptions = emailDomain && !emailDomainOptions.includes(emailDomain) ? [emailDomain, ...emailDomainOptions] : emailDomainOptions
-  return <><form className="profile-form profile-catalog profile-catalog--actual" onSubmit={submit}>
+  return <><form className="profile-form profile-catalog" onSubmit={submit}>
     <ProfileImagePicker alt="프로필 이미지" disabled={save.isPending} inputClassName="sr-only" value={removeImage ? userProfileIcon : imagePreview || currentImage || userProfileIcon}
       onError={setValidation} onSelect={(source, file) => { setImageFile(file); setImagePreview(source); setRemoveImage(false); setValidation('') }}/>
     <label className="profile-catalog__field"><span><b>*</b> 아이디</span><input disabled value={profile.username}/></label>
@@ -154,10 +161,10 @@ function HttpProfileEditor({ mutations, profile, withdrawal, currentPassword }: 
     <label className="profile-catalog__field"><span><b>*</b> 비밀번호 확인</span><div className="profile-catalog__password"><input autoComplete="new-password" maxLength={16} onChange={event => setNewPasswordConfirm(event.target.value)} type={showPasswordConfirm ? 'text' : 'password'} value={newPasswordConfirm}/><button aria-label={showPasswordConfirm ? '비밀번호 확인 숨기기' : '비밀번호 확인 보기'} aria-pressed={showPasswordConfirm} onClick={() => setShowPasswordConfirm(value => !value)} type="button"><img alt="" src={eyeIcon}/></button></div>{newPasswordConfirm && newPassword !== newPasswordConfirm ? <small className="is-error">* 비밀번호가 일치하지 않습니다.</small> : null}</label>
     <label className="profile-catalog__field"><span><b>*</b> 이름</span><input maxLength={18} onChange={event => setName(event.target.value)} value={name}/><small>* 1~18자, 한글, 영문자, 하이픈(-), 아포스트로피(')</small></label>
     <label className="profile-catalog__field"><span><b>*</b> 닉네임</span><input maxLength={18} onChange={event => setNickname(event.target.value)} value={nickname}/><small>* 닉네임은 마지막 수정 후 30일 이후 변경할 수 있습니다.{profile.nicknameChangeAvailableAt ? ` (${accountDate(profile.nicknameChangeAvailableAt)})` : ''}</small></label>
-    <div className="profile-catalog__email"><span><b>*</b> E-mail</span><div><input aria-label="프로필 이메일 아이디" maxLength={100} onChange={event => setEmailLocal(event.target.value)} value={emailLocal}/><i>@</i><input aria-label="프로필 이메일 도메인" maxLength={100} onChange={event => setEmailDomain(event.target.value)} value={emailDomain}/><NativeSelect aria-label="이메일 도메인 선택" onChange={event => setEmailDomain(event.target.value)} value={emailDomain}>{currentDomainOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect></div><small>* 이메일을 변경하시면 회원 인증을 다시 하셔야 합니다.</small><label className="profile-check"><Checkbox checked={marketingEmailAgreed} onChange={event => setMarketingEmailAgreed(event.target.checked)}/><span>[선택] 광고성 정보 수신 동의(이메일)</span><small className="profile-check__date">{marketingEmailAgreed ? `동의일자: ${accountDate(profile.marketingEmailConsentChangedAt)}` : '미동의'}</small></label></div>
+    <div className="profile-catalog__email"><span><b>*</b> E-mail</span><div><input aria-label="프로필 이메일 아이디" autoComplete="email" maxLength={100} onChange={event => setEmailLocal(event.target.value)} value={emailLocal}/><i>@</i><input aria-label="프로필 이메일 도메인" list="profile-email-domains" maxLength={100} onChange={event => setEmailDomain(event.target.value)} value={emailDomain}/><datalist id="profile-email-domains">{currentDomainOptions.map(option => <option key={option} value={option}/>)}</datalist></div><small>* 이메일을 변경하시면 회원 인증을 다시 하셔야 합니다.</small><label className="profile-check"><Checkbox checked={marketingEmailAgreed} onChange={event => setMarketingEmailAgreed(event.target.checked)}/><span>[선택] 광고성 정보 수신 동의(이메일)</span><small className="profile-check__date">{marketingEmailAgreed ? `동의일자: ${accountDate(profile.marketingEmailConsentChangedAt)}` : '미동의'}</small></label></div>
     <div className="profile-catalog__phone"><span>핸드폰</span><div><NativeSelect aria-label="핸드폰 번호 앞자리" onChange={event => setPhonePrefix(event.target.value)} value={phonePrefix}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="핸드폰 번호 가운데 자리" inputMode="numeric" maxLength={4} onChange={event => setPhoneMiddle(event.target.value.replace(/\D/g, ''))} value={phoneMiddle}/><input aria-label="핸드폰 번호 끝자리" inputMode="numeric" maxLength={4} onChange={event => setPhoneLast(event.target.value.replace(/\D/g, ''))} value={phoneLast}/></div></div>
     <div className="profile-catalog__messenger"><span>메신저 ID</span><div><NativeSelect aria-label="메신저 선택" onChange={event => setMessengerType(event.target.value)} value={messengerType}><option value="">선택 안 함</option>{messengerType && !messengerOptions.includes(messengerType) ? <option value={messengerType}>{messengerType}</option> : null}{messengerOptions.map(option => <option key={option} value={option}>{messengerOptionLabel(option)}</option>)}</NativeSelect><input aria-label="프로필 메신저 아이디" maxLength={100} onChange={event => setMessengerId(event.target.value)} placeholder="메신저 ID 입력" value={messengerId}/></div></div>
-    <div className="profile-catalog__actions"><button disabled={pending} type="submit">{pending ? '처리 중…' : '정보 수정'}</button><button disabled={pending} onClick={() => void navigate('/mypage')} type="button">취소</button></div>
+    <div className="profile-catalog__actions"><Button disabled={pending} size="large" variant="secondary" type="submit">{pending ? '처리 중…' : '정보 수정'}</Button><Button disabled={pending} size="large" onClick={() => void navigate('/mypage')}>취소</Button></div>
     {validation ? <p className="mypage-notice" role="alert">{validation}</p> : null}
     {save.isError ? <p className="mypage-notice" role="alert">{save.error.message || '내 정보를 저장하지 못했습니다.'}</p> : null}
     {passwordChange.isError ? <p className="mypage-notice" role="alert">비밀번호를 변경하지 못했습니다.</p> : null}
@@ -167,11 +174,11 @@ function HttpProfileEditor({ mutations, profile, withdrawal, currentPassword }: 
   </form>
   {withdrawal && eligibility.data && !eligibility.data.eligible ? <Modal className="modal--withdrawal-unavailable" isOpen title="회원탈퇴를 진행할 수 없습니다." closeLabel="확인" onClose={() => eligibility.reset()} onConfirm={() => eligibility.reset()} showClose={false}><div className="popup-copy"><p>현재 이용 중이거나 처리 중인 서비스가 있어 회원탈퇴가 제한됩니다. 아래 항목을 확인한 후 다시 시도해 주세요.</p><div className="popup-copy__box">{eligibility.data.restrictions.map(item => <span key={item.code}>• {item.message}<br/></span>)}</div><p>모든 이용 및 처리가 완료된 후 회원탈퇴를 진행할 수 있습니다.</p></div></Modal> : null}
   <Modal closeLabel="취소" closeVariant="primary" confirmFirst confirmDisabled={requestWithdrawal.isPending} confirmLabel={requestWithdrawal.isPending ? '처리 중…' : '회원탈퇴'} confirmVariant="secondary" isOpen={withdrawalConfirmOpen} onClose={() => { if (!requestWithdrawal.isPending) setWithdrawalConfirmOpen(false) }} onConfirm={() => { if (!requestWithdrawal.isPending) requestWithdrawal.mutate() }} title="회원탈퇴를 진행하시겠습니까?"><p>회원탈퇴 시 계정 정보와 보유 중인 포인트·쿠폰이 모두 삭제되며 복구할 수 없습니다.<br/><br/>정말 회원탈퇴를 진행하시겠습니까?</p></Modal>
-  <Modal className="modal--wide" closeLabel="닫기" confirmDisabled={!verificationProof || confirmEmail.isPending} confirmLabel={confirmEmail.isPending ? '변경 중…' : '이메일 변경 완료'} isOpen={Boolean(requestId)} onClose={() => emailRequest.reset()} onConfirm={() => { if (verificationProof && !confirmEmail.isPending) confirmEmail.mutate() }} title="이메일 인증"><div className="popup-form popup-form--stacked"><p>변경할 이메일로 보낸 인증 링크를 열어 주세요.</p>{verificationProof ? <p role="status">이메일 인증을 완료했습니다. 이메일 변경 완료를 눌러 적용해 주세요.</p> : null}{confirmEmail.isError ? <p role="alert">이메일 변경을 완료하지 못했습니다.</p> : null}</div></Modal></>
+  <Modal className="modal--wide" closeLabel="닫기" confirmDisabled={!verificationProof || confirmEmail.isPending} confirmLabel={confirmEmail.isPending ? '변경 중…' : '이메일 변경 완료'} isOpen={Boolean(requestId)} onClose={resetEmailVerification} onConfirm={() => { if (verificationProof && !confirmEmail.isPending) confirmEmail.mutate() }} title="이메일 인증"><div className="popup-form popup-form--stacked"><p>변경할 이메일로 보낸 인증 링크를 열어 주세요.</p>{verificationProof ? <p role="status">이메일 인증을 완료했습니다. 이메일 변경 완료를 눌러 적용해 주세요.</p> : null}{confirmEmail.isError ? <p role="alert">이메일 변경을 완료하지 못했습니다.</p> : null}</div></Modal></>
 }
-export function HttpStoragePage({ api }: { api: MyAccountReadServices }) {
+export function StoragePageContent({ api }: { api: MyAccountReadServices }) {
   const [page, setPage] = useState(0)
   const result = useAccountRead(['storage', 'stored', page], (signal) => api.storage({ page, size: 20, status: 'stored' }, signal))
-  return <AppShell className="storage-shell purchase-selection-page"><main className={`storage-catalog storage-catalog--live content-container${result.data && result.data.items.length===0?' storage-catalog--empty':''}`}><h1>보관함</h1><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{result.data?<MixedStorageCheckout api={api}><StorageSelectionCheckout key={page} api={api} items={result.data.items}/><PartStorageOffers api={api}/><ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage}/></MixedStorageCheckout>:null}</main></AppShell>
+  return <AppShell className="storage-shell purchase-selection-page"><main className={`storage-catalog content-container${result.data && result.data.items.length===0?' storage-catalog--empty':''}`}><h1>보관함</h1><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{result.data?<MixedStorageCheckout api={api}><StorageSelectionCheckout key={page} api={api} items={result.data.items}/><PartStorageOffers api={api}/><ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage}/></MixedStorageCheckout>:null}</main></AppShell>
 }
 

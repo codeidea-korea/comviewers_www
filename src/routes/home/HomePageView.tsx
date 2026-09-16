@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AppShell } from '../../components/layout/AppShellView'
 import { Modal } from '../../components/ui/ModalControl'
-import { usePublishingPopupPreview } from '../../lib/usePublishingPopupPreview'
 import { useSession } from '../../app/session/SessionProvider'
 import { HomeHeroSection } from './-components/HomeHeroSection'
 import { HomeIntroSection } from './-components/HomeIntroSection'
@@ -23,9 +22,6 @@ export function HomePage() {
   const [loginReturnPath, setLoginReturnPath] = useState('/products')
   const [recommendedCategory, setRecommendedCategory] = useState('전체')
   const content = useHomeContent(recommendedCategory)
-  usePublishingPopupPreview({
-    '로그인이 필요합니다.': () => { setLoginRequiredMessage('상품을 구매하려면 로그인해 주세요.\n로그인 후 구매를 계속할 수 있습니다.'); setLoginReturnPath('/products'); setLoginRequiredOpen(true) },
-  })
   const writeCommunityPost = () => {
     if (session.status === 'authenticated') { void navigate('/community/posts/new'); return }
     setLoginRequiredMessage('게시글을 작성하려면 로그인해 주세요.\n로그인 후 커뮤니티 글쓰기를 계속할 수 있습니다.')

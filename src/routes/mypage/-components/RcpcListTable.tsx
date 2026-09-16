@@ -28,6 +28,7 @@ export function RcpcListTable({ canExtend = true, items, sort, sortConfig, onOpe
 }) {
   const [visiblePasswordIds, setVisiblePasswordIds] = useState<string[]>([])
   return (
+    <>
         <div className="rcpc-list rcpc-list--table">
           <div className="rcpc-list__header"><span><SortButton icon={sortIcon} label="RCPC" onSort={sort} sortConfig={sortConfig} sortKey="rcpc">RCPC</SortButton></span><span><SortButton icon={sortIcon} label="서버 위치" onSort={sort} sortConfig={sortConfig} sortKey="location">서버 위치</SortButton></span><span><SortButton icon={sortIcon} label="서버 상태" onSort={sort} sortConfig={sortConfig} sortKey="state">서버 상태</SortButton></span><span><SortButton icon={sortIcon} label="이용 기간" onSort={sort} sortConfig={sortConfig} sortKey="period">이용 기간</SortButton></span><span>접속 정보</span><span><SortButton icon={sortIcon} label="트래픽 사용량" onSort={sort} sortConfig={sortConfig} sortKey="traffic">트래픽<br />사용량</SortButton></span><span>빠른 실행</span></div>
           {items.map((item) => (
@@ -41,5 +42,32 @@ export function RcpcListTable({ canExtend = true, items, sort, sortConfig, onOpe
             </article>
           ))}
         </div>
+        <div className="mobile-rcpc-list" aria-label="RCPC 모바일 목록">
+          {items.map((item) => <LocalMobileRcpcCard canExtend={canExtend} item={item} key={`mobile:${item.id}`} onCopy={onCopy} onInquiry={onInquiry} onOpenRcpcPopup={onOpenRcpcPopup} onReboot={onReboot} />)}
+        </div>
+    </>
   )
+}
+
+function LocalMobileRcpcCard({ canExtend, item, onCopy, onInquiry, onOpenRcpcPopup, onReboot }: {
+  canExtend: boolean; item: RcpcListItem; onCopy: () => void; onInquiry: RcpcAction
+  onOpenRcpcPopup: (type: string, item: AccountRcpc, trigger: HTMLButtonElement) => void; onReboot: RcpcAction
+}) {
+  const [passwordVisible, setPasswordVisible] = useState(false)
+  const stateIcon = item.ended ? serverDisabledIcon : item.visualState === '확인 필요' ? serverOffIcon : item.visualState === '연장대기' ? serverWaitingIcon : serverOnIcon
+  return <article className={`mobile-rcpc-card${item.ended ? ' is-ended' : ''}`}>
+    <header>
+      <strong><img alt="" src={item.favorite ? starFilledIcon : starEmptyIcon} />{item.alias}</strong>
+      <button aria-label={`${item.rcpcId} RCPC 별명 설정`} onClick={(event) => onOpenRcpcPopup('alias', item, event.currentTarget)} type="button"><img alt="" src={editIcon} /></button>
+      <button className="mobile-rcpc-card__spec" onClick={(event) => onOpenRcpcPopup('spec', item, event.currentTarget)} type="button">{item.rcpcId} <u>사양보기</u></button>
+    </header>
+    <dl className="mobile-rcpc-card__facts">
+      <div><dt>서버실</dt><dd>{item.company} {item.center}</dd></div>
+      <div><dt>서버 상태</dt><dd className="mobile-rcpc-card__state"><img alt="" src={stateIcon} />{item.visualState}</dd></div>
+      <div><dt>이용 기간</dt><dd><strong>{item.ended ? '이용종료' : `${item.daysLeft}일 남음`}</strong><small>{item.endsAt} 까지</small></dd></div>
+      <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><RcpcConnectionInfo className="rcpc-list__connect" copyIcon={copyIcon} eyeIcon={eyeIcon} eyeOffIcon={eyeOffIcon} onCopy={onCopy} onTogglePassword={() => setPasswordVisible((current) => !current)} password={item.remotePassword} passwordDataAttribute={`data-rcpc-password-mobile-${item.id}`} passwordVisible={passwordVisible} remote={item.remote} remoteIcon={item.remote.startsWith('Team') ? teamviewerIcon : anydeskIcon} webIcon={webConnectIcon} /></dd></div>
+      <div><dt>트래픽사용량</dt><dd>{item.traffic}</dd></div>
+    </dl>
+    <footer><span><button disabled={item.ended} onClick={(event) => onReboot(item, event.currentTarget)} type="button">재부팅</button><button onClick={(event) => onInquiry(item, event.currentTarget)} type="button">문의</button></span>{canExtend ? item.ended ? <button disabled type="button">기간연장</button> : <button className="is-primary" onClick={(event) => onOpenRcpcPopup('extension', item, event.currentTarget)} type="button">기간연장</button> : null}</footer>
+  </article>
 }

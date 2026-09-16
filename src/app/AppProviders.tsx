@@ -1,7 +1,7 @@
-import { AuthProvider, type AccessMode, type AuthAdapter } from './session/AuthProvider'
+import { AuthProvider, type AuthAdapter } from './session/AuthProvider'
 import { useEffect, useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ServiceProvider, createMockServices, type Services } from './ServiceProvider'
+import { ServiceProvider, type Services } from './ServiceProvider'
 import { createSessionStore, type SessionState, type SessionStore } from './session/sessionStore'
 import { SessionProvider, useSession, useSessionStore } from './session/SessionProvider'
 
@@ -14,10 +14,9 @@ export type ServiceFactory = (scope: ServiceScope) => Services
 export interface AppProvidersProps {
   children: ReactNode
   session?: SessionStore
-  accessMode?: AccessMode
   authAdapter?: AuthAdapter
   /** Return new repository instances per scope; never reuse mutable services between sessions. */
-  createServices?: ServiceFactory
+  createServices: ServiceFactory
 }
 function ScopedProviders({ children, createServices, snapshot, store }: {
   children: ReactNode; createServices: ServiceFactory; snapshot: SessionState; store: SessionStore
@@ -46,8 +45,8 @@ function SessionScope({ children, createServices }: { children: ReactNode; creat
     {children}
   </ScopedProviders>
 }
-export function AppProviders({ children, session, accessMode = 'preview', authAdapter, createServices = createMockServices }: AppProvidersProps) {
+export function AppProviders({ children, session, authAdapter, createServices }: AppProvidersProps) {
   const [store] = useState(() => session ?? createSessionStore())
-  return <SessionProvider store={store}><AuthProvider adapter={authAdapter} accessMode={accessMode}><SessionScope createServices={createServices}>{children}</SessionScope></AuthProvider></SessionProvider>
+  return <SessionProvider store={store}><AuthProvider adapter={authAdapter}><SessionScope createServices={createServices}>{children}</SessionScope></AuthProvider></SessionProvider>
 }
 

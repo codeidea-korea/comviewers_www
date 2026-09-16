@@ -1,7 +1,7 @@
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import { SearchField } from '../ui/SearchFieldControl'
 import { NativeSelect } from '../ui/SelectControl'
-import { sortOptions as defaultSortOptions } from '../../mocks/selectOptions'
+import { sortOptions as defaultSortOptions } from '../../lib/formOptions'
 
 export interface BoardToolbarProps {
   className?: string

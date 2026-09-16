@@ -5,14 +5,13 @@
 @import './commerce.css';
 @import './mypage.css';
 @import './community-company.css';
-@import './visual-qa.css';
 @import './responsive.css';
 @import './mobile-shell.css';
 @import './mobile-products.css';
 @import './mobile-lists.css';
 @import './mobile-flows.css';
 
-/* Live dialogs are portalled to document.body. Let fixed positioning resolve
+/* Dialogs are portalled to document.body. Let fixed positioning resolve
    every edge from the real viewport instead of a dynamic viewport unit. */
 [data-ui='dialog-layer'] {
   height: auto !important;

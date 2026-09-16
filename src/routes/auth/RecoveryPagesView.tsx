@@ -6,7 +6,7 @@ import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import { Button } from '@/components/ui/ButtonControl'
 import { Modal } from '@/components/ui/ModalControl'
 import { TextField } from '@/components/ui/TextFieldControl'
-import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField, usePublishingState } from './AuthComponentsView'
+import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField } from './AuthComponentsView'
 import { LoginPage } from './LoginPageView'
 import { formatPasswordResetCountdown as countdown, passwordResetCountdownLabel, readPasswordResetRetryAt, resolvePasswordResetRateLimit, resolvePasswordResetRetryAt, writePasswordResetRetryAt } from './passwordResetCooldown'
 
@@ -72,11 +72,10 @@ function useEmailFields(filled = false) {
 }
 
 function FindIdPage() {
-  const filledPreview = usePublishingState('filled')
   const navigate = useNavigate()
   const api = getPublicAccountApi()
-  const [name, setName] = useState(filledPreview ? '김컴뷰' : '')
-  const email = useEmailFields(filledPreview)
+  const [name, setName] = useState('')
+  const email = useEmailFields()
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -90,7 +89,7 @@ function FindIdPage() {
     catch (cause) { setError(cause instanceof Error ? cause.message : '아이디 찾기를 요청하지 못했습니다.') }
     finally { setBusy(false) }
   }
-  return <AuthPage isolated={filledPreview} variant="find-id"><AuthPanel compact={filledPreview}>
+  return <AuthPage variant="find-id"><AuthPanel>
     <AuthHeading description="회원가입 시 등록한 이름과 이메일을 입력해 주세요." title="아이디 찾기" />
     <form className="auth-form" onSubmit={submit}>
       <TextField label="이름" onChange={(event) => setName(event.target.value)} placeholder="이름 입력" required value={name} />

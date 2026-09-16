@@ -1,8 +1,9 @@
 import { useServices } from '@/app/ServiceProvider'
-import { HttpCouponsPage } from './-components/http/HttpBenefitPages'
+import { CouponsPageContent } from './-components/http/HttpBenefitPages'
+import { MyPageLayout } from './MypageComponentsView'
 
 export function CouponsPage() {
   const { myAccount } = useServices()
-  if (!myAccount.readApi) throw new Error('쿠폰 조회 API가 연결되지 않았습니다.')
-  return <HttpCouponsPage api={myAccount.readApi} />
+  if (!myAccount.readApi) return <MyPageLayout title="쿠폰"><p role="alert">쿠폰을 불러오지 못했습니다.</p></MyPageLayout>
+  return <CouponsPageContent api={myAccount.readApi} />
 }

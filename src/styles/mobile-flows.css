@@ -50,7 +50,7 @@
   .favorites-page { padding-top: 24px; }
   .favorites-page .favorites-groups,
   .favorites-page .favorites-results > .pagination { display: none; }
-  .favorites-live-results > .mypage-home-rcpc.favorites-table { display: none; }
+  .favorites-results > .mypage-home-rcpc.favorites-table { display: none; }
   .favorites-table--mobile { display: grid; }
   .favorites-table > article:nth-of-type(n + 5) { display: none; }
   .favorites-mobile-group-control { display: flex; }

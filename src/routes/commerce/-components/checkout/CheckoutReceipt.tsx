@@ -2,7 +2,7 @@ import { NativeSelect } from '@/components/ui/SelectControl'
 import { Radio } from '@/components/ui/RadioControl'
 import radioOffIcon from '@/assets/figma/select-radio-off.svg'
 import radioOnIcon from '@/assets/figma/select-radio-on.svg'
-import { phonePrefixOptions } from '@/mocks/selectOptions'
+import { phonePrefixOptions } from '@/lib/formOptions'
 import type { CheckoutFormModel, ReceiptType } from './hooks/useCheckoutForm'
 import { CheckoutField, CheckoutSectionTitle } from './CheckoutFields'
 

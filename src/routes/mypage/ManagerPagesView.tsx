@@ -1,19 +1,15 @@
 import { isActiveManager } from '@/domain/myAccount/managerServices'
-import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useRef, useState } from 'react'
 import { Modal } from '@/components/ui/ModalControl'
 import { PopupLayer } from '@/components/ui/PopupLayerControl'
 import { DialogActions } from '@/components/ui/DialogActionsControl'
-import { usePublishingPopupPreview } from '@/lib/usePublishingPopupPreview'
 import { ManagerCatalog } from './-components/ManagerCatalog'
 import { ManagerEditorForm } from './-components/modals/ManagerEditorForm'
 import { useManagers } from './-components/hooks/useManagers'
 
 type ManagerDialog = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; id: string } | { kind: 'delete'; id: string } | { kind: 'assign' | 'unassign'; ids: string[] }
-function LocalManagersPage() {
+function ManagersContent() {
   const account = useManagers()
-  const location = useLocation()
-  const navigate = useNavigate()
   const [dialog, setDialog] = useState<ManagerDialog>({ kind: 'closed' })
   const [openMenuRow, setOpenMenuRow] = useState<string | null>(null)
   const [selectedManagerId, setSelectedManagerId] = useState('')
@@ -25,16 +21,6 @@ function LocalManagersPage() {
   const target = dialog.kind === 'edit' || dialog.kind === 'delete' ? managers.find((item) => item.id === dialog.id) : undefined
   const close = () => { if (!pending) { setDialog({ kind: 'closed' }); setError('') } }
   function open(next: ManagerDialog) { if (pending) return; setError(''); setSelectedManagerId(''); setOpenMenuRow(null); setDialog(next) }
-  useEffect(() => {
-    if (location.state?.publishingPopup !== 'manager-create') return
-    setDialog({ kind: 'create' })
-    void navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
-  }, [location.pathname, location.search, location.state, navigate])
-  usePublishingPopupPreview({
-    '담당자 등록': () => open({ kind: 'create' }),
-    '담당자 변경': () => open({ kind: 'assign', ids: account.data?.rcpcs.slice(0, 1).map((item) => item.id) ?? [] }),
-    '담당자를 삭제하시겠습니까?': () => managers[0] ? open({ kind: 'delete', id: managers[0].id }) : false,
-  })
   async function confirm() {
     if (pending || confirming.current) return
     confirming.current = true
@@ -65,5 +51,5 @@ function LocalManagersPage() {
 }
 
 export function ManagersPage() {
-  return <LocalManagersPage/>
+  return <ManagersContent/>
 }

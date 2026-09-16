@@ -80,8 +80,7 @@ export function SessionRouteGate({ children, roles, requireOrganization = false,
   children: ReactNode; roles?: readonly SessionRole[]; requireOrganization?: boolean; recoveryPath?: string
 }) {
   const session = useSession()
-  const { accessMode, restoring } = useAuthentication()
-  if (accessMode === 'preview') return children
+  const { restoring } = useAuthentication()
   if (restoring) return <main className="session-notice"><LoadingState label="로그인 상태를 확인하고 있습니다." /></main>
   if (session.status === 'password-change-required') return <SessionNotice recoveryPath={recoveryPath} />
   if (session.status === 'anonymous' || Date.now() >= session.expiresAt) return <LoginRequiredModal />
@@ -96,9 +95,9 @@ export function SessionRouteGate({ children, roles, requireOrganization = false,
 export function CustomerCapabilityGate({ children }: { children: ReactNode }) {
   const session = useSession()
   const store = useSessionStore()
-  const { accessMode, restoring } = useAuthentication()
+  const { restoring } = useAuthentication()
   const { pathname } = useLocation()
-  if (accessMode === 'preview' || session.status !== 'authenticated') return children
+  if (session.status !== 'authenticated') return children
   const communityWriteRoute = /^\/community\/posts\/(?:new|[^/]+\/edit)(?:\/|$)/.test(pathname)
   const protectedCustomerRoute = /^\/(cart|checkout)(?:\/|$)/.test(pathname) || /^\/mypage(?:\/|$)/.test(pathname) || communityWriteRoute
   if (!protectedCustomerRoute) return children

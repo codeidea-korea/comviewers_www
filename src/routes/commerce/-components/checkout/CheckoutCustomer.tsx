@@ -1,5 +1,5 @@
 import { NativeSelect } from '@/components/ui/SelectControl'
-import { emailDomainOptions, messengerOptionLabel, messengerOptions, phonePrefixOptions } from '@/mocks/selectOptions'
+import { emailDomainOptions, messengerOptionLabel, messengerOptions, phonePrefixOptions } from '@/lib/formOptions'
 import type { CheckoutFormModel } from './hooks/useCheckoutForm'
 import { CheckoutField, CheckoutSectionTitle } from './CheckoutFields'
 

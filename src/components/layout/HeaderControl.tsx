@@ -1,4 +1,3 @@
-import { useAuthentication } from '../../app/session/AuthProvider'
 import { SessionControls } from '../../app/session/SessionControls'
 import { useSession } from '../../app/session/SessionProvider'
 import { useEffect, useRef, useState } from 'react'
@@ -13,9 +12,8 @@ import { menuItems, utilityMenuItems } from '../../navigation/menuItems'
 export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: number; onCartClick?: () => void; state?: 'main' | 'sub' }) {
   const navigate = useNavigate()
   const session = useSession()
-  const { accessMode } = useAuthentication()
   const capability = session.status === 'authenticated' ? session.customerSession : null
-  const restricted = accessMode === 'enforced' && session.status === 'authenticated' && (!capability || capability.myPageOnly)
+  const restricted = session.status === 'authenticated' && (!capability || capability.myPageOnly)
   const visibleMenuItems = restricted ? [{ id: 'my-rcpc', label: '이용 RCPC', href: '/mypage/rcpc' }, { id: 'my-favorites', label: '즐겨찾기', href: '/mypage/favorites' }, { id: 'my-inquiries', label: '문의 관리', href: '/mypage/inquiries' }] : menuItems
   const visibleUtilityItems = utilityMenuItems.filter(item => item.id !== 'signup' || session.status === 'anonymous')
   const isMain = state === 'main'

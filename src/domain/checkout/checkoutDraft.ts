@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// Local input preview only. Order API agreements require real policy versions/hashes.
+// Client-side input validation only. Order API agreements require real policy versions/hashes.
 export const checkoutDraftSchema = z.object({
   contact: z.object({
     name: z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.'),

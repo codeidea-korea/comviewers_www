@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '@/components/layout/AppShellView'
-import { CheckoutCompletePage as CheckoutCompletePreview } from './CheckoutCompletePreview'
 import { CheckoutCompletePresentation } from './-components/CheckoutCompletePresentation'
 import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -11,12 +10,7 @@ import type { AccountOrderDetail, AccountOrderItem } from '@/api/myAccountOrders
 import { accountDate, accountMoney } from '../mypage/-components/http/AccountReadCommon'
 import { PageTitle } from './CommerceComponents'
 
-/** A publishing fixture is never evidence of an order or payment result. */
 export function CheckoutCompletePage() {
-  if (import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true') {
-    return <CheckoutCompletePreview />
-  }
-
   return <CheckoutPaymentResult />
 }
 

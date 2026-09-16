@@ -4,6 +4,7 @@ import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import closeIcon from '@/assets/figma/product-list-close.svg'
 import addIcon from '@/assets/figma/icon-add.svg'
 import removeIcon from '@/assets/figma/icon-remove.svg'
+import defaultPartProductImage from '@/assets/figma/cart-product-partner.png'
 import defaultProductImage from '@/assets/figma/windows-card-render.png'
 import { Checkbox } from '@/components/ui/CheckboxControl'
 import type { CartItem } from '@/domain/cart/schemas'
@@ -22,23 +23,26 @@ interface Props {
 
 export function CartProductRow({ item, selected, disabled, onToggle, onRemove, onQuantityChange }: Props) {
   const partner = item.type === 'part'
-  const waiting = item.source === 'mock' ? item.rowKind === 'waiting' : item.instantAvailable === false
+  const fallbackImage = partner ? defaultPartProductImage : defaultProductImage
+  const waiting = item.instantAvailable === false
   const units = getCartSelectionUnits(item)
   const quantityDisabled = disabled || !item.quantityEditable
   const kind = item.rowKind
   const increased = item.maximumQuantity !== null && units >= item.maximumQuantity
-  const statusCopy = item.source === 'api' ? (!item.available ? '현재 주문할 수 없습니다.' : item.instantAvailable === null ? '접속 상태 확인 필요' : item.instantAvailable ? '이용 가능' : '준비 중') : waiting
-    ? '대기 중인 서버로, 주문 완료 시 1~24시간 이내로 관리자가 확인 후 접속 가능합니다.'
-    : '구매 즉시 접속 가능합니다.'
+  const statusCopy = !item.available ? '현재 주문할 수 없습니다.' : item.instantAvailable === null ? '접속 상태 확인 필요' : item.instantAvailable ? '이용 가능' : '준비 중'
   return <article className={`purchase-row cart-item cart-item--${kind} purchase-row--${kind}`}>
     <header className="purchase-row__header cart-item__header">
       <label><Checkbox checked={selected} disabled={disabled} onChange={onToggle} />{partner ? <span className="cart-item__product-name">{item.label}</span> : <span className="cart-item__number"><span>품번</span><b>{item.productId}</b></span>}{!partner && <small>{item.location}</small>}</label>
       <button aria-label={`${item.label} 삭제`} disabled={disabled} onClick={onRemove} type="button"><img alt="" src={closeIcon} /></button>
     </header>
     <div className="purchase-row__body cart-item__body">
-      <div className="purchase-row__image cart-item__image">{(item.image || !partner) && <img alt={item.label} src={item.image ?? defaultProductImage} />}{!partner && <img alt="" src={windowsLogo} />}</div>
+      <div className="purchase-row__image cart-item__image"><img alt={item.label} onError={(event) => {
+        if (event.currentTarget.dataset.fallbackApplied === 'true') return
+        event.currentTarget.dataset.fallbackApplied = 'true'
+        event.currentTarget.src = fallbackImage
+      }} src={item.image ?? fallbackImage} />{!partner && <img alt="" src={windowsLogo} />}</div>
       <div className="purchase-row__details cart-item__details">
-        {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{(item.source !== 'api' || item.instantAvailable !== null) && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span>{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
+        {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{item.instantAvailable !== null && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span>{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><span>세팅비</span><span><CartMoney value={item.setupFee} /></span></p><p><span>{cartPriceLabel(item)}</span><span><CartMoney value={item.rentalFee} /></span></p></div>}
         {item.priceChanged && <p role="status">가격이 변경되었습니다. 현재 금액을 확인해 주세요.</p>}{item.issues.map((issue) => <p key={issue} role="status">{cartIssueMessage(issue)}</p>)}
         <div className="cart-item__bottom">

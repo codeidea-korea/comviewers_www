@@ -32,14 +32,12 @@ npm run dev
 
 | 변수 | 설명 |
 | --- | --- |
-| `VITE_API_BASE_URL` | ComViewers API 주소. 지정하지 않으면 로컬 preview repository를 사용한다. |
-| `VITE_ENABLE_PUBLISHING_PREVIEWS` | 퍼블리싱 확인용 preview route 활성화 여부. 일반 배포에서는 `false`를 사용한다. |
+| `VITE_API_BASE_URL` | ComViewers API 주소. 지정하지 않으면 현재 origin의 `/api/...`를 사용한다. |
 
 API 주소 예시:
 
 ```dotenv
 VITE_API_BASE_URL=http://127.0.0.1:8080
-VITE_ENABLE_PUBLISHING_PREVIEWS=false
 ```
 
 환경변수에는 비밀번호, JWT, API secret 등 서버 비밀값을 넣지 않는다. `VITE_` 변수는 브라우저 번들에 포함될 수 있다.

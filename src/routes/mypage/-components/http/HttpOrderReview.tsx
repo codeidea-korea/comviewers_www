@@ -5,6 +5,7 @@ import type { AccountOrderItem } from '@/api/myAccountOrders'
 import { reviewDraftSchema } from '@/domain/reviews/reviewRepository'
 import { ProductReviewDialog } from '@/components/commerce/ProductReviewDialogControl'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
+import { Button } from '@/components/ui/ButtonControl'
 
 export function HttpOrderReview({ item }: { item: AccountOrderItem }) {
   const { reviews } = useServices()
@@ -23,7 +24,7 @@ export function HttpOrderReview({ item }: { item: AccountOrderItem }) {
   } })
   if (item.reviewId || save.isSuccess) return <RelativeLink to={`/products/${encodeURIComponent(item.productNo)}#reviews`}>후기 보기</RelativeLink>
   return <>
-    <button type="button" onClick={() => setOpen(true)}>후기 작성</button>
+    <Button size="small" variant="secondary" onClick={() => setOpen(true)}>후기 작성</Button>
     <ProductReviewDialog
       eligibleRentals={sourceId && allowed ? [{ id: sourceId, label: `${item.title} · ${item.productNo}` }] : []}
       eligibilityPending={eligible.isPending}

@@ -5,8 +5,8 @@ import { Button } from '../../../components/ui/ButtonControl'
 import { NativeSelect } from '../../../components/ui/SelectControl'
 import { TextField } from '../../../components/ui/TextFieldControl'
 import { ProfileImagePicker } from '../../../components/ui/ProfileImagePickerControl'
-import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField, usePublishingState } from '../AuthComponentsView'
-import { messengerOptionLabel, messengerOptions, phonePrefixOptions } from '../../../mocks/selectOptions'
+import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField } from '../AuthComponentsView'
+import { messengerOptionLabel, messengerOptions, phonePrefixOptions } from '../../../lib/formOptions'
 import { useSearchParams } from 'react-router'
 import { SocialSignupProfileStep } from './SocialSignupProfileStep'
 
@@ -17,9 +17,8 @@ export function SignupProfileStep() {
 }
 
 function StandardSignupProfileStep() {
-  const filledPreview = usePublishingState('filled')
   const { profile, profilePreview, setProfilePreview, setProfileImage,
-    error, setError, notice, busy, complete, awaitingVerification, checkedUsername, checkUsername, setField, setFieldValue, submit } = useProfileForm(filledPreview)
+    error, setError, notice, busy, complete, awaitingVerification, checkedUsername, checkUsername, setField, setFieldValue, submit } = useProfileForm()
 
   if (awaitingVerification) {
     return <AuthPage variant="signup-complete"><AuthPanel result>
@@ -36,8 +35,8 @@ function StandardSignupProfileStep() {
   }
 
   return (
-    <AuthPage isolated={filledPreview} variant="profile">
-      <AuthPanel compact={filledPreview}>
+    <AuthPage variant="profile">
+      <AuthPanel>
         <AuthHeading current={2} title="회원가입" total={2} />
         <form className="auth-form profile-form" onSubmit={submit}>
           <h2>회원정보 입력</h2>

@@ -1,13 +1,11 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { z } from 'zod'
-import profileAuthFilled from '@/assets/figma/profile-auth-filled.png'
 import userProfileIcon from '@/assets/figma/user-profile.svg'
 import { getPublicAccountApi } from '@/api/publicAccount'
 import { loadSignupAgreements } from '../signupDraft'
 import { useSignupCoordinator } from '../SignupCoordinator'
 
 const emptyProfile = { loginId: '', password: '', passwordConfirm: '', name: '', nickname: '', emailId: '', emailDomain: '', phone1: '010', phone2: '', phone3: '', messenger: '', messengerId: '' }
-const filledProfile = { ...emptyProfile, loginId: 'user123', password: 'publishing', passwordConfirm: 'publishing', name: '김컴뷰', nickname: 'comview', emailId: 'user123', emailDomain: 'gmail.com', phone2: '1234', phone3: '5678', messenger: 'Nimbuzz 님버즈' }
 const profileInputSchema = z.object({
   loginId: z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.'),
   password: z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.'), passwordConfirm: z.string(),
@@ -23,11 +21,11 @@ const profileInputSchema = z.object({
   .refine((value) => Boolean(value.phone2) === Boolean(value.phone3), { message: '휴대폰 번호를 모두 입력해 주세요.', path: ['phone2'] })
   .refine((value) => Boolean(value.messenger.trim()) === Boolean(value.messengerId.trim()), { message: '메신저 종류와 아이디를 함께 입력해 주세요.', path: ['messenger'] })
 
-export function useProfileForm(filledPreview: boolean) {
+export function useProfileForm() {
   const api = getPublicAccountApi()
   const signupCoordinator = useSignupCoordinator()
-  const [profile, setProfile] = useState(filledPreview ? filledProfile : emptyProfile)
-  const [profilePreview, setProfilePreview] = useState(filledPreview ? profileAuthFilled : userProfileIcon)
+  const [profile, setProfile] = useState(emptyProfile)
+  const [profilePreview, setProfilePreview] = useState(userProfileIcon)
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -38,6 +36,7 @@ export function useProfileForm(filledPreview: boolean) {
 
   function setFieldValue(name: keyof typeof emptyProfile, value: string) {
     if (signupCoordinator.awaitingEmail) setNotice('회원정보가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
+    else if (name === 'loginId') setNotice('')
     signupCoordinator.cancel()
     setProfile((current) => ({ ...current, [name]: value }))
     if (name === 'loginId') setCheckedUsername('')

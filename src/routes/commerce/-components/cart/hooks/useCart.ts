@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { cartQueryKeys } from '@/domain/cart/cartRepository'
 import { cartSchema, type CartItem, type ChangeCartQuantity } from '@/domain/cart/schemas'
-import { calculateCartEstimate } from '@/domain/cart/cartEstimate'
 import { checkoutQueryKeys, checkoutQuoteSchema } from '@/domain/checkout/checkoutRepository'
 
 type CartChange = { type: 'remove'; ids: string[] } | { type: 'quantity'; input: ChangeCartQuantity }
@@ -42,26 +41,25 @@ export function useCart() {
   const selectedItems = items.filter((item) => !excludedIds.includes(item.id))
   const selectedIds = selectedItems.map((item) => item.id)
   const allSelected = items.length > 0 && selectedItems.length === items.length
-  const apiSelection = items.some((item) => item.source === 'api')
   const quote = useQuery({
     queryKey: checkoutQueryKeys.quote(selectedIds),
     queryFn: async ({ signal }) => checkoutQuoteSchema.parse(await checkout.quote(selectedIds, signal)),
-    enabled: apiSelection && selectedIds.length > 0 && selectedIds.length <= 100,
+    enabled: selectedIds.length > 0 && selectedIds.length <= 100,
     staleTime: 0, retry: false,
   })
   const allIds = items.map(item => item.id)
   const allQuote = useQuery({
     queryKey: checkoutQueryKeys.quote(allIds),
     queryFn: async ({ signal }) => checkoutQuoteSchema.parse(await checkout.quote(allIds, signal)),
-    enabled: apiSelection && allIds.length > 0 && allIds.length <= 100,
+    enabled: allIds.length > 0 && allIds.length <= 100,
     staleTime: 0, retry: false,
   })
   const estimate = selectedIds.length === 0 ? {
     rentalTotal: 0, rentalSetupTotal: 0, rentalMonthlyTotal: 0, partTotal: 0, pointTotal: 0, expectedTotal: 0,
-  } : apiSelection ? (!quote.isFetching && !quote.isError ? quote.data?.estimate : undefined) ?? {
+  } : (!quote.isFetching && !quote.isError ? quote.data?.estimate : undefined) ?? {
     rentalTotal: null, rentalSetupTotal: null, rentalMonthlyTotal: null, partTotal: null, pointTotal: null, expectedTotal: null,
-  } : calculateCartEstimate(selectedItems)
-  const checkoutBlocked = selectedIds.length === 0 || (apiSelection && (quote.isFetching || !quote.data?.checkoutEligible || quote.isError))
+  }
+  const checkoutBlocked = selectedIds.length === 0 || quote.isFetching || !quote.data?.checkoutEligible || quote.isError
   const quotedItems = items.map((item) => (!allQuote.isFetching && !allQuote.isError ? allQuote.data?.items : undefined)?.find((row) => row.id === item.id) ?? item)
 
   async function change(input: CartChange) {
@@ -81,8 +79,8 @@ export function useCart() {
   }
 
   return {
-    ...result, items: apiSelection ? quotedItems : items, selectedIds, allSelected, notice,
-    estimate, checkoutBlocked, quoteError: apiSelection && (quote.isError || allQuote.isError),
+    ...result, items: quotedItems, selectedIds, allSelected, notice,
+    estimate, checkoutBlocked, quoteError: quote.isError || allQuote.isError,
     retryQuote: () => Promise.all([...(selectedIds.length ? [quote.refetch()] : []), allQuote.refetch()]),
     isChanging,
     toggle: (id: string) => { if (!changing.current) setExcludedIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]) },

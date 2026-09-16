@@ -40,12 +40,12 @@ export function hasRequiredColocationEvidenceTypes(fileTypes: readonly Colocatio
     && fileTypes.filter(type => type === 'bankbook').length === 1
 }
 
-export function colocationSubmissionErrorMessage(error: unknown, live: boolean): string {
+export function colocationSubmissionErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message === '동일 사업자번호로 신청·검토 중이거나 승인된 입점 내역이 있습니다.') {
     return '검토 중인 입점 신청 내역이 있습니다.'
   }
   if (error instanceof Error) return error.message
-  return live ? '입점 신청을 제출하지 못했습니다.' : '초안을 저장하지 못했습니다. 다시 시도해 주세요.'
+  return '입점 신청을 제출하지 못했습니다.'
 }
 
 export function validateColocation(form: HTMLFormElement, emailDomain: string, files: string[]) {

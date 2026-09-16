@@ -12,7 +12,7 @@ export interface ButtonOwnProps {
   icon?: ButtonIcon
   leadingIcon?: ButtonIcon
   trailingIcon?: ButtonIcon
-  size?: 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large'
   variant?: 'primary' | 'secondary' | 'outline' | 'outline-dark'
   type?: ButtonHTMLAttributes<HTMLButtonElement>['type']
 }

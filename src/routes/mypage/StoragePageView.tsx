@@ -1,8 +1,9 @@
 import { useServices } from '@/app/ServiceProvider'
-import { HttpStoragePage } from './-components/http/HttpAccountPages'
+import { StoragePageContent } from './-components/http/HttpAccountPages'
+import { MyPageLayout } from './MypageComponentsView'
 
 export function StoragePage() {
   const { myAccount } = useServices()
-  if (!myAccount.readApi) throw new Error('보관함 API가 설정되지 않았습니다.')
-  return <HttpStoragePage api={myAccount.readApi} />
+  if (!myAccount.readApi) return <MyPageLayout title="보관함"><p role="alert">보관함을 불러오지 못했습니다.</p></MyPageLayout>
+  return <StoragePageContent api={myAccount.readApi} />
 }

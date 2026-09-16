@@ -29,7 +29,23 @@ function couponBenefit(item: { discountType: string; discountValue: number }) {
   return `${item.discountType} ${item.discountValue}`
 }
 
-export function HttpPointsPage({ api }: { api: MyAccountReadServices }) {
+const pointReasonLabels: Readonly<Record<string, string>> = {
+  purchase_confirmation: '구매확정 적립',
+  qa_usage: '포인트 사용',
+  order_payment: '주문 결제 사용',
+  refund_restore: '환불 포인트 복원',
+  expiration: '포인트 소멸',
+  signup: '회원가입 적립',
+  admin_adjustment: '포인트 조정',
+}
+
+function pointReasonLabel(reason: string | null, amount: number) {
+  if (!reason) return amount >= 0 ? '포인트 적립' : '포인트 사용'
+  if (pointReasonLabels[reason]) return pointReasonLabels[reason]
+  return /^[a-z0-9_]+$/i.test(reason) ? (amount >= 0 ? '포인트 적립' : '포인트 사용') : reason
+}
+
+export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
   const [page, setPage] = useState(0)
   const [carouselPage, setCarouselPage] = useState(0)
   const [periodOpen, setPeriodOpen] = useState(false)
@@ -117,7 +133,7 @@ export function HttpPointsPage({ api }: { api: MyAccountReadServices }) {
                 ]}
                 rows={result.data.items.map((item) => [
                   accountDate(item.occurredAt).slice(0, 10),
-                  item.reason ?? '-',
+                  pointReasonLabel(item.reason, item.amount),
                   item.amount >= 0 ? '적립' : '사용',
                   `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P`,
                 ])}
@@ -141,7 +157,7 @@ export function HttpPointsPage({ api }: { api: MyAccountReadServices }) {
   )
 }
 
-export function HttpCouponsPage({ api }: { api: MyAccountReadServices }) {
+export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
   const { products } = useServices()
   const downloadKeys = useRef<Record<string, string>>({})
   const client = useQueryClient()
@@ -154,7 +170,7 @@ export function HttpCouponsPage({ api }: { api: MyAccountReadServices }) {
   const result = useAccountRead(
     ['coupons', status, page, from, to],
     (signal) => status === 'held'
-      ? api.coupons({ page, size: 20, status: 'available' }, signal)
+      ? api.coupons({ page, size: 20, status: 'held' }, signal)
       : api.coupons({
         page,
         size: 20,

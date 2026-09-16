@@ -1,5 +1,4 @@
 import { useState, type ReactNode, type ChangeEvent, type ComponentProps } from 'react'
-import { useSearchParams } from 'react-router'
 import { RelativeLink as Link } from '../../components/navigation/RelativeLinkView'
 import { AppShell } from '../../components/layout/AppShellView'
 import { TextField } from '../../components/ui/TextFieldControl'
@@ -8,14 +7,9 @@ import { NativeSelect } from '../../components/ui/SelectControl'
 import googleIcon from '../../assets/figma/social-google.svg'
 import naverIcon from '../../assets/figma/social-naver.svg'
 import kakaoIcon from '../../assets/figma/social-kakao.png'
-import { emailDomainOptions } from '../../mocks/selectOptions'
+import { emailDomainOptions } from '../../lib/formOptions'
 import type { SocialAuthProvider } from '../../app/session/AuthProvider'
 import './auth-publishing.css'
-
-export function usePublishingState(expected: string) {
-  const [searchParams] = useSearchParams()
-  return import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' && searchParams.get('publishingState') === expected
-}
 
 export function AuthPage({ children, isolated = false, variant }: { children: ReactNode; isolated?: boolean; variant?: string }) {
   const variantClass = variant ? ` auth-page--${variant}` : ''

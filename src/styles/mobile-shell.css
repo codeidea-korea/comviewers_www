@@ -474,6 +474,8 @@
     padding: 12px;
   }
   .mypage-shell .mypage-home-rcpc article.is-disabled { background: var(--color-gray-50); }
+  .mypage-shell .mypage-home-rcpc.is-selectable { height: auto; min-height: 420px; }
+  .mypage-shell .mypage-home-rcpc.is-selectable article { height: auto; min-height: 420px; }
   .mypage-shell .mypage-home-rcpc article > div {
     padding: 0;
     text-align: left;

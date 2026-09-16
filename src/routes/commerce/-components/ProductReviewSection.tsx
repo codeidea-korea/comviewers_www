@@ -13,21 +13,21 @@ function ReviewStars({ rating }: { rating: number }) {
   )
 }
 
-export function ProductReviewSection({ preview }: { preview: ProductReviewController }) {
+export function ProductReviewSection({ reviews }: { reviews: ProductReviewController }) {
   const {
     visibleReviews, reviewPageCount, reviewsEmpty, reviewSectionClass, reviewMenuIndex, setReviewMenuIndex,
     reviewCreateTriggerRef, reviewPage, openCreate, openEdit, openDelete,
     changePage, registerMenuButton,
-  } = preview
+  } = reviews
 
   return (
     <section className={reviewSectionClass.trim() || undefined} id="reviews">
       <div className="product-detail-heading">
         <h2>후기</h2>
-        <button className="commerce-outline-button" title={!preview.eligibleRentals.length ? '구매확정 상품에 대해 후기를 작성할 수 있습니다.' : undefined} disabled={preview.query.isPending || preview.query.isError || preview.eligibilityQuery.isPending || preview.eligibilityQuery.isError || !preview.eligibleRentals.length} onClick={openCreate} ref={reviewCreateTriggerRef} type="button">후기 작성</button>
+        <button className="commerce-outline-button" title={!reviews.eligibleRentals.length ? '구매확정 상품에 대해 후기를 작성할 수 있습니다.' : undefined} disabled={reviews.query.isPending || reviews.query.isError || reviews.eligibilityQuery.isPending || reviews.eligibilityQuery.isError || !reviews.eligibleRentals.length} onClick={openCreate} ref={reviewCreateTriggerRef} type="button">후기 작성</button>
       </div>
-      {preview.eligibilityQuery.isError ? <p role="alert">후기 작성 가능 여부를 확인하지 못했습니다. <button onClick={() => void preview.eligibilityQuery.refetch()} type="button">다시 시도</button></p> : null}
-      {preview.query.isPending ? <LoadingState className="route-loading--compact" label="후기를 불러오는 중입니다." /> : preview.query.isError ? <p role="alert">후기를 불러오지 못했습니다. <button onClick={() => void preview.query.refetch()} type="button">다시 시도</button></p> : reviewsEmpty ? <p className="product-empty-message">등록된 후기가 없습니다.</p> : (
+      {reviews.eligibilityQuery.isError ? <p role="alert">후기 작성 가능 여부를 확인하지 못했습니다. <button onClick={() => void reviews.eligibilityQuery.refetch()} type="button">다시 시도</button></p> : null}
+      {reviews.query.isPending ? <LoadingState className="route-loading--compact" label="후기를 불러오는 중입니다." /> : reviews.query.isError ? <p role="alert">후기를 불러오지 못했습니다. <button onClick={() => void reviews.query.refetch()} type="button">다시 시도</button></p> : reviewsEmpty ? <p className="product-empty-message">등록된 후기가 없습니다.</p> : (
         <>
           {visibleReviews.map(({ id, author, avatar, authorAvatarUrl, avatarClassName, body, rating, date, isMine }) => {
             const index = id

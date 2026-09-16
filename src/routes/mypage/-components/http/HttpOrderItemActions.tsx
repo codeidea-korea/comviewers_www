@@ -12,8 +12,10 @@ import { RcpcExtensionCheckout } from '../RcpcExtensionCheckout'
 import { PartPurchaseActions } from './PartPurchaseActions'
 import { InquiryRefundApplication } from '../InquiryRefundApplication'
 import { InquiryCreateDialog } from '../InquiryCreateDialog'
+import { Button } from '@/components/ui/ButtonControl'
+import tollIcon from '@/assets/figma/icon-toll.svg'
 
-export function HttpOrderItemActions({ api, item, paymentStatus, orderStatus, variant = 'default' }: { api: MyAccountReadServices; item: AccountOrderItem; paymentStatus: string; orderStatus: string; variant?: 'default' | 'purchase-summary' }) {
+export function HttpOrderItemActions({ api, item, paymentStatus, orderStatus, variant = 'default' }: { api: MyAccountReadServices; item: AccountOrderItem; paymentStatus: string; orderStatus: string; variant?: 'default' | 'purchase-summary' | 'dashboard' }) {
   const { myAccount } = useServices()
   const [open, setOpen] = useState(false)
   const [key] = useState(() => crypto.randomUUID())
@@ -40,8 +42,12 @@ export function HttpOrderItemActions({ api, item, paymentStatus, orderStatus, va
   const now = Date.now()
   const canConfirm = active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
+  if (variant === 'dashboard') return <>
+    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>포인트 받기</span> : null}</Button> : null}
+    <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? '처리 중…' : '구매확정하기'} confirmDisabled={confirmation.isPending} error={confirmation.isError ? '구매확정을 처리하지 못했습니다. 최신 주문 상태를 확인한 뒤 다시 시도해 주세요.' : undefined} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
+  </>
   if (variant === 'purchase-summary') return <>
-    {canConfirm ? <button type="button" disabled={confirmation.isPending} onClick={() => setOpen(true)}>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</button> : null}
+    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</Button> : null}
     {item.expectedPoints !== null ? <b>포인트 {item.expectedPoints.toLocaleString('ko-KR')}P 받기</b> : null}
     <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? '처리 중…' : '구매확정하기'} confirmDisabled={confirmation.isPending} error={confirmation.isError ? '구매확정을 처리하지 못했습니다. 최신 주문 상태를 확인한 뒤 다시 시도해 주세요.' : undefined} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   </>
@@ -51,16 +57,16 @@ export function HttpOrderItemActions({ api, item, paymentStatus, orderStatus, va
     <div className="order-item__service-actions">
       {item.rentalId && !terminal && (canExtend && myAccount.rcpcApi
         ? <RcpcExtensionCheckout api={myAccount.rcpcApi} rentalIds={[Number(item.rentalId)]} displayTargets={[{ rcpcId: item.productNo, cpu: item.title }]} triggerLabel="기간 연장"/>
-        : <button type="button" disabled>기간 연장</button>)}
+        : <Button size="small" variant="secondary" disabled>기간 연장</Button>)}
       {confirmedAt && paid && !item.refundPending && <HttpOrderReview item={item} />}
-      {reviewDisabled && <button type="button" disabled>후기 작성</button>}
+      {reviewDisabled && <Button size="small" variant="secondary" disabled>후기 작성</Button>}
     </div>
     <div className="order-item__confirmation-actions">
       {confirmedAt && <p>구매확정일 {accountDate(confirmedAt).slice(0, 10)}</p>}
       {confirmedAt ? <p>적립 포인트 {(confirmation.data?.accruedPoints ?? item.accruedPoints ?? 0).toLocaleString('ko-KR')}P</p> : item.expectedPoints !== null && <p>구매확정 예상 적립 {item.expectedPoints.toLocaleString('ko-KR')}P</p>}
       {!terminal && item.automaticConfirmationAt && <p>자동 구매확정일 {accountDate(item.automaticConfirmationAt).slice(0, 10)}</p>}
-      {!terminal && !item.refundPending && !confirmedAt && <button type="button" disabled={!canConfirm || confirmation.isPending} onClick={() => setOpen(true)}>구매확정하고 포인트 받기</button>}
-      {confirmedAt && paid && <button type="button" disabled>구매확정 완료</button>}
+      {!terminal && !item.refundPending && !confirmedAt && <Button size="small" variant="secondary" disabled={!canConfirm || confirmation.isPending} onClick={() => setOpen(true)}>구매확정하고 포인트 받기</Button>}
+      {confirmedAt && paid && <Button size="small" variant="secondary" disabled>구매확정 완료</Button>}
     </div>
     {confirmation.data && <p className="order-item__confirmation-message" role="status">구매확정되었습니다. {confirmation.data.accruedPoints.toLocaleString('ko-KR')}포인트가 적립되었습니다.</p>}
     <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? '처리 중…' : '구매확정하기'} confirmDisabled={confirmation.isPending} error={confirmation.isError ? '구매확정을 처리하지 못했습니다. 최신 주문 상태를 확인한 뒤 다시 시도해 주세요.' : undefined} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
@@ -79,8 +85,8 @@ export function HttpOrderItemSupportActions({ item, paymentStatus, orderStatus }
   if (!item.rentalId) return null
   return <div className="order-catalog-item__actions order-item__support-actions">
     {myAccount.inquiryApi && myAccount.rcpcApi
-      ? <button type="button" onClick={() => setInquiryOpen(true)}>문의</button>
-      : <RelativeLink to={`/mypage/inquiries?productNo=${encodeURIComponent(item.productNo)}`}>문의</RelativeLink>}
+      ? <Button size="small" variant="secondary" onClick={() => setInquiryOpen(true)}>문의</Button>
+      : <Button as={RelativeLink} size="small" variant="secondary" to={`/mypage/inquiries?productNo=${encodeURIComponent(item.productNo)}`}>문의</Button>}
     {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={active} triggerLabel="해지신청" /> : null}
     {inquiryOpen && myAccount.inquiryApi && myAccount.rcpcApi ? <InquiryCreateDialog api={myAccount.inquiryApi} rcpcApi={myAccount.rcpcApi} initialIds={item.pcAssetId ? [Number(item.pcAssetId)] : []} initialProductNo={item.pcAssetId ? '' : item.productNo} onClose={() => setInquiryOpen(false)} onCreated={async id => { setInquiryOpen(false); await client.invalidateQueries({ queryKey: ['operation-requests', myAccount.inquiryApi?.organizationId] }); navigate(`/mypage/inquiries/${id}`) }} /> : null}
   </div>

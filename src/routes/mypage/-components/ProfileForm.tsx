@@ -1,7 +1,7 @@
 import type { AccountProfile } from '@/domain/myAccount/services'
 import type { FormEvent,MouseEvent } from 'react'
 import { useRef, useState } from 'react'
-import { useLocation,useNavigate,useSearchParams } from 'react-router'
+import { useLocation,useNavigate } from 'react-router'
 import { profileDraftSchema, type ProfileDraft } from '@/domain/myAccount/draftServices'
 import { useProfileDraft } from './hooks/useAccountDrafts'
 import eyeIcon from '../../../assets/figma/eye.svg'
@@ -11,8 +11,7 @@ import { Modal } from '../../../components/ui/ModalControl'
 import { ProfileImagePicker } from '../../../components/ui/ProfileImagePickerControl'
 import { NativeSelect } from '../../../components/ui/SelectControl'
 import { TextField } from '../../../components/ui/TextFieldControl'
-import { usePublishingPopupPreview } from '../../../lib/usePublishingPopupPreview'
-import { emailDomainOptions,messengerOptionLabel,messengerOptions,phonePrefixOptions } from '../../../mocks/selectOptions'
+import { emailDomainOptions,messengerOptionLabel,messengerOptions,phonePrefixOptions } from '../../../lib/formOptions'
 import { MyPageLayout } from '../MypageComponentsView'
 
 export function ProfileForm({ profile, draft }: { profile: AccountProfile; draft?: ProfileDraft | null }) {
@@ -21,15 +20,13 @@ export function ProfileForm({ profile, draft }: { profile: AccountProfile; draft
   const busy = useRef(false)
   const navigate = useNavigate()
   const { state: navigationState } = useLocation()
-  const [params] = useSearchParams()
-  const filledPreview = import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' && params.get('publishingState') === 'filled'
   const [notice, setNotice] = useState('')
   const [marketing, setMarketing] = useState(true)
   const [profilePopup, setProfilePopup] = useState<string | null>(() => navigationState?.openProfilePasswordGate ? 'password-confirm-empty' : null)
-  const [confirmedPassword, setConfirmedPassword] = useState(filledPreview ? 'incorrect' : '')
-  const [passwordError, setPasswordError] = useState(filledPreview)
-  const [newPassword, setNewPassword] = useState(filledPreview ? 'Pass1!23' : '')
-  const [newPasswordConfirm, setNewPasswordConfirm] = useState(filledPreview ? 'Pass1!23' : '')
+  const [confirmedPassword, setConfirmedPassword] = useState('')
+  const [passwordError, setPasswordError] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('')
   const [showConfirmedPassword, setShowConfirmedPassword] = useState(false)
   const [showProfilePassword, setShowProfilePassword] = useState(false)
   const [showProfilePasswordConfirm, setShowProfilePasswordConfirm] = useState(false)
@@ -40,15 +37,6 @@ export function ProfileForm({ profile, draft }: { profile: AccountProfile; draft
   const [messenger, setMessenger] = useState(draft?.messenger ?? 'Nimbuzz 님버즈')
   const [profilePreview, setProfilePreview] = useState(draft?.imagePreview ?? profileImage)
   const [profileImageResetKey, setProfileImageResetKey] = useState(0)
-
-  usePublishingPopupPreview({
-    '회원탈퇴를 진행할 수 없습니다.': () => setProfilePopup('withdrawal-unavailable'),
-    '회원탈퇴를 진행하시겠습니까?': () => setProfilePopup('withdrawal-confirm'),
-    '비밀번호 확인': () => setProfilePopup(filledPreview ? 'password-confirm-filled' : 'password-confirm-empty'),
-    '비밀번호 재설정': () => setProfilePopup(filledPreview ? 'password-reset-filled' : 'password-reset-empty'),
-    '비밀번호가 변경되었습니다.': () => setProfilePopup('password-changed'),
-    '프로필 이미지 업로드 실패': () => setProfilePopup('image-upload-failed'),
-  })
 
   const closePopup = () => setProfilePopup(null)
   const resetProfileForm = (event: MouseEvent<HTMLButtonElement>) => {
@@ -86,7 +74,7 @@ export function ProfileForm({ profile, draft }: { profile: AccountProfile; draft
         <ProfileImagePicker alt="현재 프로필" inputClassName="sr-only" onError={() => setProfilePopup('image-upload-failed')} onSelect={(source: string, file: File) => { setProfilePreview(source); setNotice(`${file.name} 이미지를 선택했습니다.`) }} resetKey={profileImageResetKey} value={profilePreview} />
         <label className="profile-catalog__field"><span><b>*</b>아이디</span><input defaultValue={profile.userId} disabled /></label>
         <label className="profile-catalog__field"><span><b>*</b>비밀번호</span><div className="profile-catalog__password"><input disabled defaultValue="" type={showProfilePassword ? 'text' : 'password'} /><button aria-label={showProfilePassword ? '비밀번호 숨기기' : '비밀번호 보기'} aria-pressed={showProfilePassword} onClick={() => setShowProfilePassword((value) => !value)} type="button"><img alt="" src={eyeIcon} /></button></div><small>* 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %, )만 사용할 수 있습니다.</small></label>
-        <label className="profile-catalog__field"><span><b>*</b>비밀번호 확인</span><div className="profile-catalog__password"><input disabled defaultValue="" type={showProfilePasswordConfirm ? 'text' : 'password'} /><button aria-label={showProfilePasswordConfirm ? '비밀번호 확인 숨기기' : '비밀번호 확인 보기'} aria-pressed={showProfilePasswordConfirm} onClick={() => setShowProfilePasswordConfirm((value) => !value)} type="button"><img alt="" src={eyeIcon} /></button></div>{filledPreview ? <small className="is-error">* 비밀번호가 일치하지 않습니다.</small> : null}</label>
+        <label className="profile-catalog__field"><span><b>*</b>비밀번호 확인</span><div className="profile-catalog__password"><input disabled defaultValue="" type={showProfilePasswordConfirm ? 'text' : 'password'} /><button aria-label={showProfilePasswordConfirm ? '비밀번호 확인 숨기기' : '비밀번호 확인 보기'} aria-pressed={showProfilePasswordConfirm} onClick={() => setShowProfilePasswordConfirm((value) => !value)} type="button"><img alt="" src={eyeIcon} /></button></div></label>
         <label className="profile-catalog__field"><span><b>*</b>이름</span><input defaultValue={initialProfile.name} name="name" /><small>* 1~18자, 한글, 영문자, 하이픈(-), 아포스트로피(')</small></label>
         <label className="profile-catalog__field"><span><b>*</b>닉네임</span><input defaultValue={initialProfile.nickname} name="nickname" /><small>* 닉네임은 마지막 수정 후 30일 이후 변경할 수 있습니다.</small></label>
         <div className="profile-catalog__email"><span><b>*</b>E-mail</span><div><input aria-label="프로필 이메일 아이디" defaultValue={initialProfile.email.split('@')[0]} name="emailLocal" /><i>@</i><input aria-label="프로필 이메일 도메인" onChange={(event) => setEmailDomain(event.target.value)} value={emailDomain} /><NativeSelect aria-label="이메일 도메인 선택" onChange={(event) => setEmailDomain(event.target.value)} value={emailDomain}>{emailDomainOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect></div><small>* 이메일을 변경하시면 회원 인증을 다시 하셔야 합니다.</small><label className="profile-check"><Checkbox disabled checked={marketing} onChange={(event) => setMarketing(event.target.checked)} /><span>[선택] 광고성 정보 수신 동의(이메일)</span><small className="profile-check__date">동의일자: {profile.marketingAgreedAt}</small></label></div>
@@ -103,7 +91,7 @@ export function ProfileForm({ profile, draft }: { profile: AccountProfile; draft
       <Modal closeLabel="취소" closeVariant="primary" confirmFirst confirmLabel="회원탈퇴" confirmVariant="secondary" isOpen={profilePopup === 'withdrawal-confirm'} onClose={closePopup} onConfirm={() => { setNotice('현재 이용할 수 없습니다.'); closePopup() }} title="회원탈퇴를 진행하시겠습니까?">
         <p>회원탈퇴 시 계정 정보와 보유 중인 포인트·쿠폰이 모두 삭제되며 복구할 수 없습니다.<br /><br />정말 회원탈퇴를 진행하시겠습니까?</p>
       </Modal>
-      <Modal className={`modal--password-confirm${filledPreview ? ' is-filled' : ''}`} closeLabel="닫기" confirmDisabled={!confirmedPassword} confirmLabel="확인" isOpen={Boolean(profilePopup?.startsWith('password-confirm'))} onClose={closePopup} onConfirm={confirmCurrentPassword} title="비밀번호 확인">
+      <Modal className="modal--password-confirm" closeLabel="닫기" confirmDisabled={!confirmedPassword} confirmLabel="확인" isOpen={Boolean(profilePopup?.startsWith('password-confirm'))} onClose={closePopup} onConfirm={confirmCurrentPassword} title="비밀번호 확인">
         <div className="popup-form"><p>회원님의 정보를 안전하게 보호하기 위해 비밀번호를 한번 더 확인합니다.</p><TextField autoComplete="current-password" error={passwordError ? '비밀번호가 일치하지 않습니다.' : ''} label="비밀번호 확인" onChange={(event) => { setConfirmedPassword(event.target.value); setPasswordError(false) }} onTrailingIconClick={() => setShowConfirmedPassword((value) => !value)} trailingActionLabel={showConfirmedPassword ? '비밀번호 숨기기' : '비밀번호 보기'} trailingActionPressed={showConfirmedPassword} trailingIcon="eye" type={showConfirmedPassword ? 'text' : 'password'} value={confirmedPassword} /></div>
       </Modal>
       <Modal className="modal--wide modal--password-reset" confirmDisabled={!validNewPassword} confirmLabel="확인" isOpen={Boolean(profilePopup?.startsWith('password-reset'))} onClose={closePopup} onConfirm={confirmCurrentPassword} showClose={false} title="비밀번호 재설정">

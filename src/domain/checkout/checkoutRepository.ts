@@ -35,7 +35,7 @@ export const checkoutQueryKeys = {
   quote: (ids: readonly string[]) => ['checkout', 'quote', ids] as const,
 }
 
-export function checkoutPreviewUrl(ids: readonly string[]): string {
+export function checkoutUrl(ids: readonly string[]): string {
   const params = new URLSearchParams()
   checkoutSelectionSchema.parse(ids).forEach((id) => params.append('cartItemId', id))
   return `/checkout?${params.toString()}`

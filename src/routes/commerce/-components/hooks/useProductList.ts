@@ -90,7 +90,7 @@ export function useProductList() {
   }
   const selectorSelections: Selectors = { line: query.line, ip: query.ip, purpose: query.purpose }
   return {
-    liveFilters: Boolean(products.filterMetadata), filterMetadata: metadata.data,
+    filterMetadata: metadata.data,
     filterMetadataPending: metadata.isPending, filterMetadataError: metadata.isError, refetchFilterMetadata: metadata.refetch,
     catalogSelections: query,
     setCatalogSelections: (changes: Partial<ProductListQuery>) => updateQuery(changes),

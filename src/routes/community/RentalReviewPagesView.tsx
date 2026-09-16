@@ -6,7 +6,6 @@ import { Pagination } from '../../components/ui/PaginationControl'
 import { Checkbox } from '../../components/ui/CheckboxControl'
 import { useReviews, useReviewProduct } from '@/routes/community/-components/hooks/useContent'
 import { BoardToolbar, CommunityShell, CommunityTabs, Stars } from './CommunityComponentsView'
-import { usePublishingPopupPreview } from '../../lib/usePublishingPopupPreview'
 import { useSession } from '@/app/session/SessionProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
@@ -33,7 +32,7 @@ function RentalReviewListContent() {
       <BoardToolbar count={reviews.length} onSearchChange={(value) => { setSearch(value); setCurrentPage(1) }} onSortChange={(value) => { setSort(value); setCurrentPage(1) }} search={search} sort={sort} />
       <div className="rental-review-list">{result.isPending ? <LoadingState className="route-loading--compact" label="후기를 불러오는 중입니다." /> : result.isError ? <p role="alert">후기를 불러오지 못했습니다. <button type="button" onClick={() => void result.refetch()}>다시 시도</button></p> : !reviews.length ? <div className="board-empty">검색 결과가 없습니다.</div> : null}
         {displayedReviews.map((review) => (
-          <Link key={review.id} state={{ publishingPopup: 'rental-review', reviewId: review.reviewId }} to="/community/reviews">
+          <Link key={review.id} state={{ reviewId: review.reviewId }} to="/community/reviews">
             <span className="rental-review-list__top"><span><i>{review.reviewId}</i>{review.isMine ? <em>내 후기</em> : null}<Stars tone="mono" value={review.rating} /></span><span className="rental-review-list__meta">{review.author}<i />{review.date}</span></span>
             <span className="rental-review-list__body"><span><span className="rental-review-list__product-id"><span>품번</span><b>{review.productId}</b></span><small>{review.center}</small></span><p>{review.content}</p></span>
           </Link>
@@ -50,13 +49,9 @@ export function RentalReviewListPage() {
   const navigate = useNavigate()
   const result = useReviews()
   const [reviewId, setReviewId] = useState<string | null>(null)
-  const previewActions = useMemo(() => ({
-    '렌탈 후기': () => setReviewId(result.data?.[0]?.reviewId ?? null),
-  }), [result.data])
-  usePublishingPopupPreview(previewActions)
   useEffect(() => {
     const state: unknown = location.state
-    if (!state || typeof state !== 'object' || !('publishingPopup' in state) || state.publishingPopup !== 'rental-review' || !('reviewId' in state) || typeof state.reviewId !== 'string') return
+    if (!state || typeof state !== 'object' || !('reviewId' in state) || typeof state.reviewId !== 'string') return
     setReviewId(state.reviewId)
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
   }, [location.pathname, location.search, location.state, navigate])

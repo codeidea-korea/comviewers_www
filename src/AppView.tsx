@@ -40,8 +40,6 @@ const SupportListPage = lazy(() => import('./routes/support/SupportPagesView').t
 
 const CommunityPostCreatePage = lazy(() => import('./routes/community/CommunityPostCreatePageView')
   .then((module) => ({ default: module.CommunityPostCreatePage })))
-const VisualQaTargetPage = lazy(() => import('./routes/VisualQaTargetPage')
-  .then((module) => ({ default: module.VisualQaTargetPage })))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -104,7 +102,6 @@ export function App() {
       <Route path="colocation/apply" element={<ColocationApplyPage />} />
       <Route path="terms" element={<LegalPage />} />
       <Route path="privacy" element={<LegalPage privacy />} />
-      {import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' && <Route path="__visual-qa/:targetId" element={<VisualQaTargetPage />} />}
       <Route path="*" element={<NotReadyPage title="페이지를 찾을 수 없습니다" />} />
       </Routes></CustomerCapabilityGate></RouteErrorBoundary>
     </Suspense>

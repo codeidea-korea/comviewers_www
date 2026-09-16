@@ -9,7 +9,7 @@ export class UnsupportedProductFilterError extends Error {
   constructor() { super('이전 검색 조건을 현재 상품 필터로 다시 선택해 주세요.') }
 }
 
-// Opt-in adapter only: ServiceProvider continues to construct the mock repository.
+// API-backed product adapter used by the service runtime.
 export function createHttpProductRepository(client: ApiClient): ProductRepository {
   const api = createCatalogApi(client)
   return {

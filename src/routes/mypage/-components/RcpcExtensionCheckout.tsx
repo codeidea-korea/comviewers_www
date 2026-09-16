@@ -8,6 +8,7 @@ import { ApiClientError } from '@/api/httpClient'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { HttpOrderPaymentContinuation } from './http/HttpOrderPaymentContinuation'
 import { extensionResultText } from './rcpcExtensionPresentation'
+import { Button } from '@/components/ui/ButtonControl'
 
 export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialDays = 30, offerIds, pageMode = false, initialSelection, triggerLabel }: { api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; offerIds?: number[]; pageMode?: boolean; initialSelection?: ExtensionSelection; triggerLabel?: string }) {
   const session = useSession()
@@ -99,7 +100,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       </div>}
     </>
   return pageMode ? <section aria-label="연장 주문서">{content}<Link to={offerIds?.length ? '/mypage/storage' : '/mypage/rcpc'}>목록으로</Link></section> : <section aria-label="RCPC 기간 연장">
-    <button type="button" onClick={() => setOpen(true)}>{triggerLabel ?? `선택 ${rentalIds.length}대 기간 연장`}</button>
+    <Button size="small" onClick={() => setOpen(true)}>{triggerLabel ?? `선택 ${rentalIds.length}대 기간 연장`}</Button>
     {open ? <RcpcExtensionSurface action={!quote.isFetching && !quote.error && current?.eligible && selection.success ? <Link to="/mypage/extension-checkout" state={{ selection: selection.data, offerIds }}>연장 결제하기</Link> : <button disabled type="button">연장 결제하기</button>}
       busy={quote.isFetching} dateValue={date} error={quote.error?.message} extensionMode={mode === 'days' ? 'period' : 'date'} itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
       onModeChange={(value) => setMode(value === 'date' ? 'date' : 'days')} onPeriodChange={setDays} periodValue={days}

@@ -34,6 +34,7 @@ export function useInquiryFlow() {
   }, [drafts.data])
   const sendMessage = async () => {
     if (busy.current || typeIndex === null) return
+    setNotice('')
     const ids = rcpcs.map((pc) => String(pc.rcpcId)).sort()
     const parsed = inquiryDraftSchema.safeParse({ key: `new:${typeIndex}:${ids.join(',')}`, inquiryId: null, type: inquiryTypes[typeIndex], rcpcIds: ids, message })
     if (!parsed.success) { setNotice(parsed.error.issues[0]?.message ?? '입력 내용을 확인해 주세요.'); return }
@@ -51,7 +52,7 @@ export function useInquiryFlow() {
       onTypeChange: setTypeIndex,
       onNext: () => { if (typeIndex !== null && inquiryTypes[typeIndex]) setStep('write') },
       onBack: () => { if (!busy.current) setStep('select-type') },
-      composer: { message, sentMessages, notice, pending: drafts.save.isPending, onMessageChange: setMessage, onSend: sendMessage },
+      composer: { message, sentMessages, notice, pending: drafts.save.isPending, onMessageChange: (value: string) => { setMessage(value); setNotice('') }, onSend: sendMessage },
     },
   }
 }

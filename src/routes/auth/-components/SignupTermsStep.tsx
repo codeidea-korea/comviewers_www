@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { getPublicAccountApi } from '@/api/publicAccount'
 import { Button } from '@/components/ui/ButtonControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
-import { AuthHeading, AuthPage, AuthPanel, Checkbox, usePublishingState } from '../AuthComponentsView'
+import { AuthHeading, AuthPage, AuthPanel, Checkbox } from '../AuthComponentsView'
 import { saveSignupAgreements } from './signupDraft'
 
 const termHeadingPattern = /^(제 ?\d+ ?장|제 ?\d+ ?조|제\d+조|부칙$)/
@@ -31,7 +31,6 @@ function TermsCopy({ content }: { content: string }) {
 }
 
 export function SignupTermsStep() {
-  const checkedPreview = usePublishingState('checked')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const socialSignup = searchParams.get('mode') === 'social'
@@ -41,7 +40,7 @@ export function SignupTermsStep() {
     queryFn: ({ signal }) => api!.signupTerms(signal),
     enabled: Boolean(api),
   })
-  const [ageAccepted, setAgeAccepted] = useState(checkedPreview)
+  const [ageAccepted, setAgeAccepted] = useState(false)
   const [accepted, setAccepted] = useState<Record<number, boolean>>({})
   const [error, setError] = useState('')
   const section = useRef<HTMLElement>(null)
@@ -74,7 +73,7 @@ export function SignupTermsStep() {
   }
 
   return (
-    <AuthPage isolated={checkedPreview} variant="terms"><AuthPanel compact={checkedPreview}>
+    <AuthPage variant="terms"><AuthPanel>
       <AuthHeading current={1} title="회원가입" total={2} />
       <section className="terms-section" ref={section}>
         <h2>약관동의</h2>

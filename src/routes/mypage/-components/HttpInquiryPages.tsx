@@ -18,6 +18,7 @@ import { InquiryProductConversations } from './InquiryProductConversations'
 import { inquiryTypes, inquiryTypeLabel } from './InquiryPresentation'
 import { InquiryTargetAddition } from './InquiryTargetAddition'
 import { InquiryAttachments, InquiryAttachmentDownload, type InquiryDraftAttachment } from './InquiryAttachments'
+import { Button } from '@/components/ui/ButtonControl'
 import { RefundDetail } from './InquiryRefundRequests'
 
 const statuses = [
@@ -40,7 +41,7 @@ function activityLabel(value: string | null): string {
   return `${Math.floor(elapsed / 86_400_000)}일 전`
 }
 
-export function HttpInquiryList({ api, rcpcApi }: { api: InquiryReadServices; rcpcApi: MyRcpcReadServices }) {
+export function InquiryListContent({ api, rcpcApi }: { api: InquiryReadServices; rcpcApi: MyRcpcReadServices }) {
   const client = useQueryClient()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -50,7 +51,7 @@ export function HttpInquiryList({ api, rcpcApi }: { api: InquiryReadServices; rc
   const initialProductNo = (params.get('productNo') ?? '').slice(0, 50)
   const [createOpen, setCreateOpen] = useState(initialIds.length > 0 || !!initialProductNo)
   const rows = useQuery({ queryKey: ['operation-requests', api.organizationId, query], queryFn: ({ signal }) => api.list(query, signal) })
-  return <MyPageLayout title="문의 관리"><section className="inquiry-catalog inquiry-catalog--live">
+  return <MyPageLayout title="문의 관리"><section className="inquiry-catalog">
     {createOpen && <InquiryCreateDialog api={api} rcpcApi={rcpcApi} initialIds={initialIds} initialProductNo={initialProductNo} onClose={() => setCreateOpen(false)} onCreated={async id => {
       setCreateOpen(false); await client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] }); navigate(`/mypage/inquiries/${id}`)
     }}/>} 
@@ -75,12 +76,12 @@ export function HttpInquiryList({ api, rcpcApi }: { api: InquiryReadServices; rc
     </article>)}{!rows.data.items.length ? <p className="mypage-empty">{query.requestType || query.customerVisibleStatus || query.productNo ? '검색 조건에 해당하는 문의가 없습니다.' : '등록된 문의 내역이 없습니다.'}</p> : null}</div>{Math.ceil(rows.data.total / rows.data.size) > 1 ? <Pagination currentPage={rows.data.page + 1} totalPages={Math.ceil(rows.data.total / rows.data.size)} onPageChange={page => setQuery(previous => ({ ...previous, page: page - 1 }))}/> : null}</> : null}
   </section></MyPageLayout>
 }
-export function HttpInquiryDetail({ api, rcpcApi }: { api: InquiryReadServices; rcpcApi: MyRcpcReadServices }) {
+export function InquiryDetailContent({ api, rcpcApi }: { api: InquiryReadServices; rcpcApi: MyRcpcReadServices }) {
   const { inquiryId } = useParams()
   const id = Number(inquiryId)
   const valid = /^[1-9]\d*$/.test(inquiryId ?? '') && Number.isSafeInteger(id)
   if (!valid) return <MyPageLayout title="문의 상세"><p>올바른 문의 주소가 아닙니다.</p></MyPageLayout>
-  return <><HttpInquiryList api={api} rcpcApi={rcpcApi}/><InquiryChat key={`${api.organizationId}:${id}`} api={api} id={id}/></>
+  return <><InquiryListContent api={api} rcpcApi={rcpcApi}/><InquiryChat key={`${api.organizationId}:${id}`} api={api} id={id}/></>
 }
 
 function InquiryChat({ api, id }: { api: InquiryReadServices; id: number }) {
@@ -131,7 +132,7 @@ function InquiryChat({ api, id }: { api: InquiryReadServices; id: number }) {
   const close = () => { void navigate('/mypage/inquiries') }
   const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : '문의'
   return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title="문의 상세">
-    <section aria-modal="true" className={`inquiry-preview-dialog inquiry-chat inquiry-chat--actual${closed ? ' inquiry-chat--complete' : ''}`} role="dialog" tabIndex={-1}>
+    <section aria-modal="true" className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role="dialog" tabIndex={-1}>
       <header>
         {chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap((target) => target.pcAssetId === null ? [] : [target.pcAssetId])} total={chat.data.operationRequest.targets.length} closed={closed}/> : <span/>}
         <h2>[{chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] {type}</h2>
@@ -160,7 +161,7 @@ function InquiryChat({ api, id }: { api: InquiryReadServices; id: number }) {
         <div className="inquiry-chat__attachments"><InquiryAttachments api={api} requestId={id} files={files} disabled={send.isPending} onBusy={setAttachmentBusy} onChange={(next) => { setFiles(next); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }}/></div>
         <p className="inquiry-chat__attachment-guidance">첨부파일 ({files.length}/5) · 파일당 최대 10MB</p>
         <label><span className="sr-only">새 메시지</span><textarea aria-label="새 메시지" disabled={send.isPending || attachmentBusy} maxLength={4000} placeholder="메시지를 입력해 주세요." value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
-        <button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? '전송 중…' : send.isError ? '재전송' : '전송'}</button>
+        <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? '전송 중…' : send.isError ? '재전송' : '전송'}</Button>
         {send.isError ? <p role="alert">메시지를 전송하지 못했습니다.</p> : null}
       </form>) : null}
     </section>

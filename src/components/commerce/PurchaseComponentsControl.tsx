@@ -41,7 +41,7 @@ import serverOffIcon from '../../assets/figma/icon-server-off.svg'
 import closeIcon from '../../assets/figma/product-list-close.svg'
 import addIcon from '../../assets/figma/icon-add.svg'
 import removeIcon from '../../assets/figma/icon-remove.svg'
-import { formatWon } from '../../mocks/commerce'
+import { formatWon } from '../../lib/currency'
 import { Checkbox } from '../ui/CheckboxControl'
 import { getEarnedPoints, getItemAmount, isPartProduct, MAX_RENTAL_MONTHS } from '../../lib/commerceCalculations'
 

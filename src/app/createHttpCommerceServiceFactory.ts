@@ -11,7 +11,7 @@ import type { Services } from './ServiceProvider'
 
 interface CommerceFactoryOptions {
   readonly baseUrl: string
-  // Other domains must be chosen explicitly. Never silently mix live writes and mock data.
+  // Other domains are injected explicitly into the API-backed runtime graph.
   readonly createOtherServices: (scope: ServiceScope) => Pick<Services, 'myAccount' | 'storefront' | 'reviews' | 'colocationDraft' | 'legal'>
 }
 
@@ -22,7 +22,7 @@ function unavailableCommerce(message: string): Pick<Services, 'cart' | 'checkout
   return { cart, checkout }
 }
 
-/** Explicit opt-in; MainView continues to use the default mock service factory. */
+/** Creates the API-backed service graph used by the application runtime. */
 export function createHttpCommerceServiceFactory(options: CommerceFactoryOptions): ServiceFactory {
   return (scope) => {
     const client = createApiClient({ baseUrl: options.baseUrl, getAccessToken: scope.getAccessToken, onAuthenticationFailure: scope.logout })

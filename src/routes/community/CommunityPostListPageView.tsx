@@ -14,10 +14,9 @@ import { communityListReturnTo } from './communityNavigation'
 
 export function CommunityPostListPage() {
   const [params, setParams] = useSearchParams()
-  const empty = import.meta.env.VITE_ENABLE_PUBLISHING_PREVIEWS === 'true' && params.get('publishingState') === 'empty'
   const initialSort = ['latest', 'views', 'comments'].includes(params.get('sort') ?? '') ? params.get('sort')! : 'latest'
   const [search, setSearch] = useState(params.get('keyword') ?? '')
-  const [mineOnly, setMineOnly] = useState(params.get('mineOnly') === 'true' || empty)
+  const [mineOnly, setMineOnly] = useState(params.get('mineOnly') === 'true')
   const [sort, setSort] = useState(initialSort)
   const [currentPage, setCurrentPage] = useState(Math.max(1, Number(params.get('page')) || 1))
   const [loginRequired, setLoginRequired] = useState(false)
@@ -37,7 +36,7 @@ export function CommunityPostListPage() {
   const detailSuffix = detailReturnTo === '/community/posts' ? '' : detailReturnTo.slice('/community/posts'.length)
   const writePath = `/community/posts/new${preservedSearch ? `?${preservedSearch}` : ''}`
   const posts = useMemo(() => {
-    const filtered = (empty ? [] : catalogPosts).filter((post) => (!mineOnly || post.isMine) && `${post.title} ${post.content.join(' ')}`.toLowerCase().includes(search.trim().toLowerCase()))
+    const filtered = catalogPosts.filter((post) => (!mineOnly || post.isMine) && `${post.title} ${post.content.join(' ')}`.toLowerCase().includes(search.trim().toLowerCase()))
     return filtered
   }, [empty, mineOnly, search, catalogPosts])
   const totalPages = Math.ceil(posts.length / 10)

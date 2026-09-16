@@ -8,7 +8,7 @@ import { TextField } from '../../components/ui/TextFieldControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
 import { restoreRememberedLoginId } from '../../domain/auth/loginCredentials'
 import type { FormEvent } from 'react'
-import { AuthHeading, AuthLinks, AuthPage, AuthPanel, Checkbox, PasswordField, SocialLoginButtons, usePublishingState } from './AuthComponentsView'
+import { AuthHeading, AuthLinks, AuthPage, AuthPanel, Checkbox, PasswordField, SocialLoginButtons } from './AuthComponentsView'
 
 const rememberedIdKey = 'comviewers.login.remembered-id'
 function readRememberedId() {
@@ -27,12 +27,11 @@ export function LoginPage() {
   const [params] = useSearchParams()
   const returnPath = safeReturnPath(params.get('returnTo'))
   const [pending, setPending] = useState(false)
-  const isFilledPreview = usePublishingState('filled')
   const [savedId] = useState(readRememberedId)
-  const [loginId, setLoginId] = useState(isFilledPreview ? 'id' : savedId)
-  const [password, setPassword] = useState(isFilledPreview ? 'password' : '')
-  const [autoLogin, setAutoLogin] = useState(isFilledPreview)
-  const [rememberId, setRememberId] = useState(isFilledPreview || Boolean(savedId))
+  const [loginId, setLoginId] = useState(savedId)
+  const [password, setPassword] = useState('')
+  const [autoLogin, setAutoLogin] = useState(false)
+  const [rememberId, setRememberId] = useState(Boolean(savedId))
   const [loginError, setLoginError] = useState('')
   const [socialError, setSocialError] = useState('')
 
@@ -59,8 +58,8 @@ export function LoginPage() {
   if (session.status === 'authenticated' && Date.now() < session.expiresAt) return <Navigate to={returnPath} replace />
 
   return (
-    <AuthPage isolated={isFilledPreview}>
-      <AuthPanel compact={isFilledPreview}>
+    <AuthPage>
+      <AuthPanel>
         <AuthHeading title="로그인" /><SessionNotice />
         <form className="auth-form auth-form--login" noValidate onSubmit={submit}>
           <TextField
@@ -74,7 +73,7 @@ export function LoginPage() {
           <PasswordField
             autoComplete="current-password"
             label="비밀번호"
-            displayAsText={isFilledPreview}
+            displayAsText={false}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="비밀번호를 입력해 주세요."
             required

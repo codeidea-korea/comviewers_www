@@ -99,8 +99,8 @@ def login_and_open_extension(page):
     page.get_by_label("비밀번호", exact=True).fill("Password1!")
     page.get_by_role("button", name="로그인", exact=True).click()
     page.wait_for_url("**/mypage/rcpc")
-    page.get_by_text("QA-EXTENSION-01", exact=True).wait_for(state="visible")
-    page.locator(".rcpc-live-actions").get_by_role("button", name="기간연장", exact=True).click()
+    page.locator(".mypage-home-rcpc").get_by_text("연장 검수", exact=True).wait_for(state="visible")
+    page.locator(".mypage-home-rcpc__actions").get_by_role("button", name="기간연장", exact=True).click()
     return page.get_by_role("dialog", name="기간 연장")
 
 

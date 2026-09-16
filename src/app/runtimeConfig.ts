@@ -15,7 +15,7 @@ import { createLiveMyAccountReader } from '@/domain/myAccount/liveSnapshot'
 import { createCustomerWithdrawalApi } from '@/api/customerWithdrawal'
 import type { MyAccountServices } from '@/domain/myAccount/services'
 
-type RuntimeConfiguration = Pick<AppProvidersProps, 'accessMode' | 'authAdapter' | 'createServices'>
+type RuntimeConfiguration = Pick<AppProvidersProps, 'authAdapter' | 'createServices'>
 
 function createUnavailableMyAccountServices(): MyAccountServices {
   const unavailable = async (): Promise<never> => { throw new Error('이 기능은 실제 API 연결과 이용 권한 확인이 필요합니다.') }
@@ -36,19 +36,18 @@ function createUnavailableMyAccountServices(): MyAccountServices {
   }
 }
 
-/** A missing URL preserves the local preview. Supplying a URL explicitly enables live commerce and login. */
+/** The service runtime is API-only. An omitted URL uses the current origin. */
 export function createRuntimeConfiguration(baseUrl: string | undefined): RuntimeConfiguration {
-  if (baseUrl === undefined || baseUrl === '') return { accessMode: 'preview' }
+  const apiBaseUrl = baseUrl === undefined || baseUrl === '' ? '/' : baseUrl
   return {
-    accessMode: 'enforced',
-    authAdapter: createAuthAdapter(baseUrl),
+    authAdapter: createAuthAdapter(apiBaseUrl),
     createServices: createHttpCommerceServiceFactory({
-      baseUrl,
+      baseUrl: apiBaseUrl,
       createOtherServices: (scope) => {
         const unavailableAccount = createUnavailableMyAccountServices()
         const session = scope.session
         const organizationId = session.status === 'authenticated' ? session.organizationId : null
-        const client = createApiClient({ baseUrl, getAccessToken: scope.getAccessToken, onAuthenticationFailure: scope.logout })
+        const client = createApiClient({ baseUrl: apiBaseUrl, getAccessToken: scope.getAccessToken, onAuthenticationFailure: scope.logout })
         const myAccount = organizationId && session.status === 'authenticated' && session.capabilityStatus === 'ready'
           ? (() => {
             const readApi = createHttpMyAccountServices(client, organizationId)
@@ -81,7 +80,7 @@ export function createRuntimeConfiguration(baseUrl: string | undefined): Runtime
           && session.customerSession?.commerceAvailable === true
         const reviews = createHttpReviewRepository(client, { authenticated,
           customerOrganizationId: commerceAvailable ? organizationId : null, writeAvailable: commerceAvailable })
-        return { myAccount, storefront: createHttpStorefrontServices(client, authenticated, baseUrl), reviews,
+        return { myAccount, storefront: createHttpStorefrontServices(client, authenticated, apiBaseUrl), reviews,
           colocationDraft: createHttpColocationDraftRepository(client, authenticated), legal: createHttpLegalRepository(client) }
       },
     }),

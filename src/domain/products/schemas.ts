@@ -36,7 +36,7 @@ export const productSchema = z.object({
   country: z.string().nullable(), ip: z.string().nullable(), serverRoom: z.string(), serverRoomProvider: z.string().nullable().default(null),
   setupFee: z.number().nonnegative(), monthlyPrice: z.number().nonnegative().nullable(),
   unitPrice: z.number().int().nonnegative().safe().nullable().default(null),
-  // available means instant access in existing mock UI, not API sale availability.
+  // available is the instant-access state; saleAvailability is the orderable catalog state.
   available: z.boolean().nullable(), saleAvailability: z.enum(['AVAILABLE', 'SOLD_OUT']).nullable().default(null),
   billingUnit: z.string().nullable().default(null),
   pricingType: z.enum(['rental', 'one_time']).nullable().default(null),

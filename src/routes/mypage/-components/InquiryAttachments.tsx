@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
+import { Button } from '@/components/ui/ButtonControl'
 
 export interface InquiryDraftAttachment { attachmentId: number; fileName: string; fileSize: number }
 
@@ -45,9 +46,12 @@ export function InquiryAttachments({ api, requestId, files, onChange, disabled, 
   }
   return <fieldset disabled={disabled || busy}><legend>첨부파일 ({files.length}/5)</legend>
     <label>파일 선택<input type="file" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt" onChange={(event) => { void upload(event.target.files); event.target.value = '' }}/></label>
-    <p>PNG·JPG·WEBP·PDF·TXT, 파일당 최대 10MB. 안전 검사를 통과한 파일만 전송됩니다.</p>
-    {files.map((file) => <p key={file.attachmentId}>{file.fileName} ({file.fileSize.toLocaleString('ko-KR')} bytes) <button type="button" onClick={() => void remove(file.attachmentId)}>삭제</button></p>)}
-    {busy ? <p role="status">첨부파일 처리 중…</p> : null}{error ? <p role="alert">{error}</p> : null}
+    <p className="inquiry-chat__attachment-help">PNG·JPG·WEBP·PDF·TXT, 파일당 최대 10MB. 안전 검사를 통과한 파일만 전송됩니다.</p>
+    {files.length || busy || error ? <div className="inquiry-chat__attachment-list">
+      {files.map((file) => <p className="inquiry-chat__attachment-file" key={file.attachmentId}>{file.fileName} ({file.fileSize.toLocaleString('ko-KR')} bytes) <Button size="small" variant="secondary" onClick={() => void remove(file.attachmentId)}>삭제</Button></p>)}
+      {busy ? <p role="status">첨부파일 처리 중…</p> : null}
+      {error ? <p role="alert">{error}</p> : null}
+    </div> : null}
   </fieldset>
 }
 
@@ -67,6 +71,6 @@ export function InquiryAttachmentDownload({ api, requestId, attachment }: {
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch { setError(true) } finally { setBusy(false) }
   }
-  return <p><button type="button" disabled={busy} onClick={() => void download()}>{attachment.fileName} ({attachment.fileSize.toLocaleString('ko-KR')} bytes){busy ? ' · 내려받는 중…' : ''}</button>
+  return <p><Button size="small" variant="secondary" disabled={busy} onClick={() => void download()}>{attachment.fileName} ({attachment.fileSize.toLocaleString('ko-KR')} bytes){busy ? ' · 내려받는 중…' : ''}</Button>
     {error ? <span role="alert"> 파일을 내려받지 못했습니다. 다시 시도해 주세요.</span> : null}</p>
 }

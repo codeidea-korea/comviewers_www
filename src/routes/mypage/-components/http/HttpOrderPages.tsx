@@ -63,7 +63,7 @@ const rowStatus = (item: AccountOrderItem, orderStatus: string, paymentStatus: s
   return accountStatus(orderStatus)
 }
 
-export function HttpOrdersPage({ api }: { api: MyAccountReadServices }) {
+export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const { myAccount } = useServices()
   const navigate = useNavigate()
   const client = useQueryClient()
@@ -117,7 +117,7 @@ export function HttpOrdersPage({ api }: { api: MyAccountReadServices }) {
 
   return (
     <MyPageLayout title="주문내역">
-      <div className="orders-catalog-list orders-catalog--live">
+      <div className="orders-catalog-list">
         <nav aria-label="주문 상태" className="mypage-tabs mypage-tabs--buttons">
           {orderTabs.map((tab) => {
             const count = !result.data
@@ -184,7 +184,7 @@ export function HttpOrdersPage({ api }: { api: MyAccountReadServices }) {
                     : <button disabled type="button">해지신청</button>}
                 </span>
               </div>
-            {visibleGroups.map(([date, rows]) => <section className="orders-by-date orders-by-date--live" key={date}>
+            {visibleGroups.map(([date, rows]) => <section className="orders-by-date" key={date}>
               <h2>{date}</h2>
               {rows.map(({ item, order }) => {
                 const selectedId = item.pcAssetId
@@ -193,7 +193,7 @@ export function HttpOrdersPage({ api }: { api: MyAccountReadServices }) {
                 const status = rowStatus(item, order.orderStatus, order.paymentStatus)
                 const terminal = status === '환불완료' || status === '취소완료'
                 return (
-                  <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}`} key={item.orderItemId}>
+                  <article className={`order-catalog-item order-item--pdf${terminal ? ' order-catalog-item--compact' : ''}`} key={item.orderItemId}>
                     <header>
                       <label>
                         {selectedId ? (
@@ -251,7 +251,7 @@ export function HttpOrdersPage({ api }: { api: MyAccountReadServices }) {
                 )
               })}
             </section>)}
-            {visibleItems.length === 0 ? <section className="orders-by-date orders-by-date--live"><p className="mypage-empty">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 상태의 RCPC가 없습니다.'}</p></section> : null}
+            {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 상태의 RCPC가 없습니다.'}</p></section> : null}
             <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} />
           </>
         ) : null}
@@ -283,7 +283,7 @@ export function HttpOrdersPage({ api }: { api: MyAccountReadServices }) {
   )
 }
 
-export function HttpOrderDetailPage({ api }: { api: MyAccountReadServices }) {
+export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) {
   const { orderId, id } = useParams()
   const number = orderId ?? id ?? ''
   const result = useAccountRead(['order', number], (signal) => api.order(number, signal))
