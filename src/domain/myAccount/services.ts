@@ -12,6 +12,7 @@ import type { CustomerWithdrawalApi } from '@/api/customerWithdrawal'
 export const accountRcpcSchema = z.object({
   id: z.string(), rcpcId: z.string(), alias: z.string(), company: z.string(), center: z.string(),
   status: z.string(), daysLeft: z.number(), startedAt: z.string(), endsAt: z.string(),
+  assignable: z.boolean().default(true),
   wanIp: z.string(), remote: z.string(), remotePassword: z.string(), disk: z.string(),
   traffic: z.string(), state: z.string(), favorite: z.boolean().default(false), groupId: z.string().default('unclassified'),
 })

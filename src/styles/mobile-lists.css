@@ -94,6 +94,8 @@
   .mobile-rcpc-card > footer .is-primary,
   .mobile-rcpc-card > footer > button:last-child,
   .mobile-rcpc-card > footer > .rcpc-extension-entry { background: var(--color-black); color: white; width: 100%; }
+  .mobile-rcpc-card > footer > section { width: 100%; }
+  .mobile-rcpc-card > footer > section > .button { background: var(--color-black); border-color: var(--color-black); box-sizing: border-box; color: var(--color-white); width: 100%; }
   .mobile-rcpc-card > footer button:disabled { background: var(--color-gray-100); color: var(--color-gray-500); }
 
   .inquiry-catalog { height: auto; position: relative; }

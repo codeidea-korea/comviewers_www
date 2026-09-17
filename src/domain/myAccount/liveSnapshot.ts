@@ -35,6 +35,7 @@ export function createLiveMyAccountReader({ readApi, rcpcApi, inquiryApi, manage
         marketingAgreedAt: profile.marketingEmailAgreed ? date(profile.marketingEmailConsentChangedAt) : '' },
       pointBalance: Math.max(0, benefits.pointBalance),
       rcpcs: rcpcs.items.map(item => { const managerRcpc = managerRcpcByRentalId.get(item.rentalId); return ({ id: String(item.rentalId), rcpcId: managerRcpc?.assetNo ?? item.productNo,
+        assignable: managerApi ? managerRcpcByRentalId.has(item.rentalId) : true,
         alias: item.preference.alias ?? managerRcpc?.deviceAlias ?? item.productNo,
         company: item.serverRoomName ?? '-', center: item.serverRoomName ?? '-', status: rcpcStatus(item.rentalStatus), daysLeft: item.serviceEndExclusiveDate ? Math.ceil((Date.parse(`${item.serviceEndExclusiveDate}T00:00:00Z`) - Date.now()) / 86_400_000) : 0,
         startedAt: date(managerRcpc?.serviceStartedAt), endsAt: date(managerRcpc?.serviceEndsAt) === '-' ? item.serviceEndExclusiveDate ?? '-' : date(managerRcpc?.serviceEndsAt), wanIp: '-', remote: '-', remotePassword: '-', disk: '-',

@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { Modal } from '@/components/ui/ModalControl'
 import { PopupLayer } from '@/components/ui/PopupLayerControl'
 import { DialogActions } from '@/components/ui/DialogActionsControl'
+import { ApiClientError } from '@/api/httpClient'
 import { ManagerCatalog } from './-components/ManagerCatalog'
 import { ManagerEditorForm } from './-components/modals/ManagerEditorForm'
 import { useManagers } from './-components/hooks/useManagers'
@@ -19,10 +20,22 @@ function ManagersContent() {
   const pending = account.save.isPending || account.assign.isPending || account.remove.isPending
   const managers = (account.data?.managers ?? []).filter(isActiveManager)
   const target = dialog.kind === 'edit' || dialog.kind === 'delete' ? managers.find((item) => item.id === dialog.id) : undefined
+  const assignmentUnavailable = (ids: readonly string[]) => ids.some((id) => account.data?.rcpcs.find((item) => item.id === id)?.assignable === false)
+  const assignmentUnavailableMessage = '이용 기간이 끝났거나 배정할 수 없는 RCPC가 포함되어 있습니다.'
   const close = () => { if (!pending) { setDialog({ kind: 'closed' }); setError('') } }
-  function open(next: ManagerDialog) { if (pending) return; setError(''); setSelectedManagerId(''); setOpenMenuRow(null); setDialog(next) }
+  function open(next: ManagerDialog) {
+    if (pending) return
+    setError((next.kind === 'assign' || next.kind === 'unassign') && assignmentUnavailable(next.ids) ? assignmentUnavailableMessage : '')
+    setSelectedManagerId('')
+    setOpenMenuRow(null)
+    setDialog(next)
+  }
   async function confirm() {
     if (pending || confirming.current) return
+    if ((dialog.kind === 'assign' || dialog.kind === 'unassign') && assignmentUnavailable(dialog.ids)) {
+      setError(assignmentUnavailableMessage)
+      return
+    }
     confirming.current = true
     try {
       if (dialog.kind === 'delete') await account.remove.mutateAsync(dialog.id)
@@ -30,7 +43,10 @@ function ManagersContent() {
       else return
       setNotice(dialog.kind === 'delete' ? '담당자를 삭제했습니다.' : dialog.kind === 'assign' ? '담당자를 배정했습니다.' : '선택한 RCPC의 담당자 배정을 해제했습니다.')
       setDialog({ kind: 'closed' })
-    } catch (cause) { setError(cause instanceof Error ? cause.message : '변경하지 못했습니다.') } finally { confirming.current = false }
+    } catch (cause) {
+      setError(cause instanceof ApiClientError && cause.code === 'C001' && (dialog.kind === 'assign' || dialog.kind === 'unassign')
+        ? assignmentUnavailableMessage : cause instanceof Error ? cause.message : '변경하지 못했습니다.')
+    } finally { confirming.current = false }
   }
   const assignmentTitle = dialog.kind === 'assign' && dialog.ids.some(id => {
     const rcpc = account.data?.rcpcs.find(item => item.id === id)
@@ -43,10 +59,10 @@ function ManagersContent() {
     </PopupLayer>}
     {dialog.kind === 'assign' && <PopupLayer isOpen className="manager-preview manager-preview--edit" dialogClassName="manager-modal manager-modal--change" onClose={close} title={assignmentTitle} showTitle={false}>
       <h2>{assignmentTitle}</h2><strong>담당자 목록</strong><div>{managers.map((item) => <label className={selectedManagerId === item.id ? 'is-selected' : ''} key={item.id}><input type="radio" name="assignment-manager" value={item.id} checked={selectedManagerId === item.id} disabled={pending} onChange={() => setSelectedManagerId(item.id)} /><span><b>{item.assignedRcpcIds.length} {item.name}</b><small>{item.loginId}</small></span></label>)}</div>
-      {!managers.length && <p>등록된 담당자가 없습니다.</p>}{error && <p role="alert">{error}</p>}<DialogActions><button type="button" disabled={pending} onClick={close}>취소</button><button type="button" disabled={pending || !selectedManagerId || !dialog.ids.length} onClick={() => void confirm()}>완료</button></DialogActions>
+      {!managers.length && <p>등록된 담당자가 없습니다.</p>}{error && <p className="manager-modal__action-error" role="alert">{error}</p>}<DialogActions><button type="button" disabled={pending} onClick={close}>취소</button><button type="button" disabled={pending || !selectedManagerId || !dialog.ids.length || assignmentUnavailable(dialog.ids)} onClick={() => void confirm()}>완료</button></DialogActions>
     </PopupLayer>}
-    <Modal isOpen={dialog.kind === 'unassign'} title="담당자 지정을 해제하시겠습니까?" closeLabel="취소" confirmLabel="해제하기" confirmDisabled={pending} onClose={close} onConfirm={() => void confirm()}>{error && <p role="alert">{error}</p>}</Modal>
-    <Modal isOpen={dialog.kind === 'delete'} title="담당자를 삭제하시겠습니까?" closeLabel="취소" confirmLabel="삭제하기" confirmDisabled={pending || !target} onClose={close} onConfirm={() => void confirm()}>{error && <p role="alert">{error}</p>}</Modal>
+    <Modal isOpen={dialog.kind === 'unassign'} className="manager-confirm-modal" title="담당자 지정을 해제하시겠습니까?" closeLabel="취소" confirmLabel="해제하기" confirmDisabled={pending || (dialog.kind === 'unassign' && assignmentUnavailable(dialog.ids))} onClose={close} onConfirm={() => void confirm()}>{error && <p role="alert">{error}</p>}</Modal>
+    <Modal isOpen={dialog.kind === 'delete'} className="manager-confirm-modal" title="담당자를 삭제하시겠습니까?" closeLabel="취소" confirmLabel="삭제하기" confirmDisabled={pending || !target} onClose={close} onConfirm={() => void confirm()}>{error && <p role="alert">{error}</p>}</Modal>
   </>
 }
 

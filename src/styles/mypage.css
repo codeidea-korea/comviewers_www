@@ -158,6 +158,8 @@
 .rcpc-list__connect { display: flex; flex-direction: column; gap: 4px; }.rcpc-list__connect p { align-items: center; display: grid; gap: 8px; grid-template-columns: 80px 1fr; margin: 0; text-align: left; }.rcpc-list__connect b { align-items: center; display: flex; font-weight: 400; gap: 4px; white-space: nowrap; }.rcpc-list__connect b img { height: 20px; width: 20px; }.rcpc-list__connect small { margin: 0 !important; white-space: nowrap; }.rcpc-list__connect small img { display: inline-block; height: 16px; vertical-align: middle; width: 16px; }.rcpc-list__connect small .rcpc-list__copy { height: 14px; object-fit: contain; width: 12px; }.rcpc-list__password-actions { align-items: center; display: inline-flex; gap: 4px; margin-left: 4px; vertical-align: middle; }.rcpc-list__password-toggle,.rcpc-list__copy-button { align-items: center; background: transparent; border: 0; cursor: pointer; display: inline-flex; height: 16px; justify-content: center; padding: 0; vertical-align: middle; width: 16px; }.rcpc-list__copy-button { margin-left: 4px; }.rcpc-list__password-actions .rcpc-list__copy-button { margin-left: 0; }.rcpc-list__password-toggle img { display: block; height: 16px; width: 16px; }
 .rcpc-list--table .rcpc-list__actions { display: block; padding: 8px; }.rcpc-list--table .rcpc-list__actions span { display: grid; gap: 4px; grid-template-columns: 1fr 1fr; }.rcpc-list--table .rcpc-list__actions button,.rcpc-list--table .rcpc-list__actions a { align-items: center; display: flex; font-size: 14px; height: 32px; justify-content: center; letter-spacing: -.42px; padding: 0; }.rcpc-list--table .rcpc-list__actions > button,.rcpc-list--table .rcpc-list__actions > a { width: 100%; }.rcpc-list--table .rcpc-list__actions button,.rcpc-list--table .rcpc-list__actions span a { font-weight: 500; }.rcpc-list--table .rcpc-list__actions .is-dark { font-weight: 700; margin-top: 4px; }.rcpc-list--table .rcpc-list__actions button:disabled,.rcpc-list--table .rcpc-list__actions .is-disabled { background: var(--color-gray-100); border-color: var(--color-gray-200); color: var(--color-gray-500); cursor: default; font-weight: 500; }.rcpc-list--table .rcpc-list__actions .is-disabled { margin-top: 4px; }
 .rcpc-list__actions .rcpc-list__inquiry-action { color: inherit; }
+.rcpc-list--table .rcpc-list__actions > section { margin-top: 4px; width: 100%; }
+.rcpc-list--table .rcpc-list__actions > section > .button { background: var(--color-black); border-color: var(--color-black); box-sizing: border-box; color: var(--color-white); width: 100%; }
 .rcpc-list--table > article.is-ended { color: var(--color-gray-400); background: #fdfdfd; }.rcpc-list--table > article.is-ended > div:not(:last-child) { opacity: .55; }
 .rcpc-list-page .rcpc-list + .pagination { height: 24px; margin-top: 60px; }
 .mypage-tabs--buttons button { align-items: center; background: white; border: 0; border-bottom: 3px solid transparent; display: flex; font-family: inherit; font-size: 14px; justify-content: center; min-width: 132px; padding: 0 24px; }
@@ -435,6 +437,10 @@
 .manager-catalog-shell:has(+ .manager-preview) .manager-catalog__menu { left: 1224px; top: 302px; }
 .manager-modal--register { height: 739px; top: 141px; }.manager-modal--register form { margin-top: 30px; }.manager-modal--register:first-child { left: 465px; }.manager-modal--register:nth-child(2) { left: 995px; }
 .manager-preview .manager-modal { left: 50%; top: 50%; transform: translate(-50%,-50%); }
+/* Each live dialog is the sole child of its viewport backdrop; old preview offsets must not position it. */
+.manager-preview > .manager-modal:only-child { box-sizing: border-box; left: 50%; max-width: calc(100vw - 32px); top: 50%; transform: translate(-50%, -50%); }
+.manager-modal__action-error { bottom: 92px; color: var(--color-system-error); font-size: 14px; left: 30px; line-height: 20px; margin: 0; position: absolute; right: 30px; text-align: center; }
+.manager-confirm-modal .modal__content [role="alert"] { color: var(--color-system-error); font-size: 14px; margin: 0; text-align: center; }
 .manager-modal--login { height: 433px; left: 710px; top: 294px; }.manager-modal--login form { margin-top: 30px; }
 .manager-modal--login .manager-modal__field { margin-bottom: 20px; position: relative; }
 .manager-modal--login .manager-modal__field > span { font-size: 16px; line-height: 24px; }
@@ -539,6 +545,10 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
     position: static;
     right: auto;
   }
+  .manager-preview .manager-modal--register .manager-modal__action-error {
+    margin: 12px 0 0;
+    position: static;
+  }
 }
 .inquiry-product-choice__row > small i { background: var(--color-gray-300); height: 8px; width: 1px; }
 .inquiry-product-choice__row { grid-template-columns: 18px minmax(0,1fr) auto; grid-template-rows: auto 46px 24px; min-height: 164px; }
@@ -591,6 +601,7 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .inquiry-chat__attachments fieldset > p:not(:first-of-type) { background: white; font-size: 11px; margin: 4px 0; position: absolute; right: 0; top: 48px; width: 440px; z-index: 2; }
 .inquiry-chat__attachment-guidance { color: var(--color-gray-500); font-size: 11px; grid-column: 1 / -1; line-height: 16px; margin: 0; }
 .inquiry-chat__closed { align-items: center; background: var(--color-gray-100); border-radius: 4px; color: var(--color-gray-500); display: flex; font-size: 13px; height: 44px; justify-content: center; margin-top: 20px; }
+.inquiry-chat > footer.inquiry-chat__closed { box-sizing: border-box; display: flex; height: auto; line-height: 1.4; min-height: 44px; padding: 10px 12px; text-align: center; }
 
 /* Link-based and label-based actions use the same rectangular control token. */
 .manager-catalog__tools span button,.manager-catalog__tools span a,.profile-catalog__image label { border-radius: 4px; }
@@ -611,6 +622,7 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .manager-modal__delete { background: white; border: 1px solid var(--color-gray-200); border-radius: 4px; bottom: 30px; height: 50px; left: 30px; position: absolute; width: 120px; }
 .manager-modal:has(.manager-modal__delete) footer { left: auto; width: 288px; }
 @media (max-width: 600px) {
+  .manager-modal:has(.manager-modal__delete) .manager-modal__action-error { bottom: 154px; }
   .manager-modal:has(.manager-modal__delete) .manager-modal__delete {
     bottom: 92px;
     width: calc(100% - 60px);

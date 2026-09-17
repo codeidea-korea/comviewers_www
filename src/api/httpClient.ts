@@ -277,7 +277,8 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
           return
         }
         if (!response.ok) {
-          notifyAuthenticationFailure(response, undefined, onAuthenticationFailure)
+          // A failed optional event stream must not log out a session whose REST requests still work.
+          // Regular API calls remain responsible for reporting an invalid or expired bearer token.
           disconnect(new ApiClientError('http', response.status, { retryAfter: retryAfterHeader(response) }))
           return
         }

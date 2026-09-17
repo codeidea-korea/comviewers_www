@@ -1,9 +1,11 @@
 import { useHomeContent } from './-components/hooks/useHomeContent'
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AppShell } from '../../components/layout/AppShellView'
 import { Modal } from '../../components/ui/ModalControl'
 import { useSession } from '../../app/session/SessionProvider'
+import { useServices } from '../../app/ServiceProvider'
 import { HomeHeroSection } from './-components/HomeHeroSection'
 import { HomeIntroSection } from './-components/HomeIntroSection'
 import { HomeRecommendedSection } from './-components/HomeRecommendedSection'
@@ -12,11 +14,18 @@ import { HomeUsageSection } from './-components/HomeUsageSection'
 import { HomeSecuritySection } from './-components/HomeSecuritySection'
 import { HomeCallToAction } from './-components/HomeCallToAction'
 import { HomeBannerSection } from './-components/HomeBannerSection'
+import { HomeStorePopup } from './-components/HomeStorePopup'
 import './home-publishing.css'
 
 export function HomePage() {
   const navigate = useNavigate()
   const session = useSession()
+  const { storefront } = useServices()
+  const [dismissedPopupIds, setDismissedPopupIds] = useState<number[]>([])
+  const popupQuery = useQuery({ queryKey: ['storefront', 'active-popups', session.status], queryFn: ({ signal }) => storefront.listActivePopups(signal), retry: false })
+  const popupAudience = session.status === 'authenticated' ? 'customer' : 'guest'
+  const activePopup = popupQuery.data?.find((popup) => !dismissedPopupIds.includes(popup.id)
+    && popup.targets.some((target) => target.targetType === 'all' || target.targetType === popupAudience))
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
   const [loginRequiredMessage, setLoginRequiredMessage] = useState('상품을 구매하려면 로그인해 주세요.\n로그인 후 구매를 계속할 수 있습니다.')
   const [loginReturnPath, setLoginReturnPath] = useState('/products')
@@ -38,6 +47,7 @@ export function HomePage() {
       <HomeUsageSection articleId={content.usageGuides.data?.[0]?.articleId} />
       <HomeSecuritySection />
       <HomeCallToAction />
+      {activePopup && <HomeStorePopup key={activePopup.id} popup={activePopup} onClose={() => setDismissedPopupIds((ids) => [...ids, activePopup.id])} />}
       <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginRequiredOpen} onClose={() => setLoginRequiredOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(loginReturnPath)}`)} title="로그인이 필요합니다."><p>{loginRequiredMessage.split('\n').map((line, index) => <span key={`${line}-${index}`}>{index > 0 ? <br /> : null}{line}</span>)}</p></Modal>
     </AppShell>
   )

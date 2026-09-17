@@ -23,7 +23,7 @@ function attachmentSize(value: number | null | undefined) {
     : `${Math.ceil(value / 1024)}KB`
 }
 
-function attachmentUrl(value: string | null | undefined, baseUrl: string) {
+export function publicApiResourceUrl(value: string | null | undefined, baseUrl: string) {
   if (!value?.startsWith('/api/') || /[\\?#\s\u0000-\u001f\u007f]/.test(value)) return undefined
   const normalizedBase = baseUrl.replace(/\/$/, '')
   if (!normalizedBase) return value
@@ -43,7 +43,7 @@ export function toPublicAttachment(file: PublicAttachmentMetadata, baseUrl: stri
     name: file.fileName,
     size: attachmentSize(file.fileSize ?? file.fileSizeBytes),
     type: file.mimeType ?? file.contentType ?? '',
-    href: attachmentUrl(file.downloadUrl, baseUrl),
+    href: publicApiResourceUrl(file.downloadUrl, baseUrl),
   }
 }
 

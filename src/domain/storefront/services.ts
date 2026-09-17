@@ -18,7 +18,17 @@ export type Article = z.infer<typeof articleSchema>
 export type RentalReview = z.infer<typeof reviewSchema>
 export type Comment = z.infer<typeof commentSchema>
 export type PostDraft = z.infer<typeof draftSchema>
+export interface StorefrontPopup {
+  id: number
+  title: string
+  content: string | null
+  imageUrl: string | null
+  linkUrl: string | null
+  displayPosition: 'left' | 'center' | 'right'
+  targets: { targetType: string; targetId: number }[]
+}
 export interface StorefrontServices {
+  listActivePopups(signal?: AbortSignal): Promise<StorefrontPopup[]>
   listPosts(input?: { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<Post[]>
   getPost(id: string): Promise<Post | null>
   savePost(draft: PostDraft, id?: string): Promise<Post>

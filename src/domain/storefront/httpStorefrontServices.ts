@@ -1,9 +1,10 @@
 import type { ApiClient } from '@/api/httpClient'
 import { createCommunityApi, type CommunityDetailDto, type CommunityPostDto } from '@/api/community'
 import { createProductReviewsApi, type ProductReviewResponse } from '@/api/productReviews'
+import { createStorePopupsApi } from '@/api/storePopups'
 import type { Article, Comment, Post, StorefrontServices } from './services'
 import { contentDateTime } from './contentDateTime'
-import { toPublicAttachment } from './publicAttachment'
+import { publicApiResourceUrl, toPublicAttachment } from './publicAttachment'
 
 const date = (value: string) => value.slice(0, 10).replaceAll('-', '.')
 const htmlToText = (value: string) => value
@@ -41,7 +42,11 @@ async function collect<T>(first: { totalPages: number; items: T[] }, next: (page
 export function createHttpStorefrontServices(client: ApiClient, authenticated: boolean, baseUrl = ''): StorefrontServices {
   const api = createCommunityApi(client, authenticated)
   const reviewApi = createProductReviewsApi(client)
+  const popupApi = createStorePopupsApi(client)
   return {
+    async listActivePopups(signal) {
+      return (await popupApi.active(signal)).map((popup) => ({ ...popup, imageUrl: publicApiResourceUrl(popup.imageUrl, baseUrl) ?? null }))
+    },
     async listPosts(input) { const first = await api.posts(0, input); return (await collect(first, (page) => api.posts(page, input))).map((row) => toPost(row, baseUrl)) },
     async getPost(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.post(id); return row ? toPost(row, baseUrl) : null },
     async savePost(draft, value) {

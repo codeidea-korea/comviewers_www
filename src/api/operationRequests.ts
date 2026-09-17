@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { productNoResponseSchema, productNoSearchSchema } from './productNo'
-import type { ApiClient, ApiClientError, ApiServerSentEvent } from './httpClient'
+import { ApiClientError, type ApiClient, type ApiServerSentEvent } from './httpClient'
 
 const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
@@ -90,6 +90,16 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
         if (reconnectTimer !== undefined) clearTimeout(reconnectTimer)
         closeStream?.()
       }
+      const drop = () => {
+        stop()
+        if (chatSubscriptions.get(parsedRequestId) === subscription) chatSubscriptions.delete(parsedRequestId)
+      }
+      const scheduleReconnect = () => {
+        if (stopped) return
+        closeStream = undefined
+        const delay = Math.min(30_000, 1_000 * 2 ** Math.min(attempt++, 5))
+        reconnectTimer = setTimeout(connect, delay)
+      }
       const connect = () => {
         if (stopped) return
         closeStream = client.eventStream(`/api/v1/operation-requests/${parsedRequestId}/chat/events`, {
@@ -101,14 +111,21 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
           },
           onDisconnect: (error) => {
             if (stopped) return
-            if (!shouldReconnectChatStream(error)) {
-              stopped = true
-              if (chatSubscriptions.get(parsedRequestId) === subscription) chatSubscriptions.delete(parsedRequestId)
+            if (error?.kind === 'http' && error.status === 401) {
+              // An SSE-only async-dispatch failure must not invalidate a working REST session.
+              // A real bearer failure on this request still invokes the API client's logout hook.
+              void client.request(`/api/v1/operation-requests/${parsedRequestId}/chat`, operationRequestChatSchema,
+                { ...context, query: { limit: 1 } }).then(scheduleReconnect, (failure: unknown) => {
+                if (failure instanceof ApiClientError && shouldReconnectChatStream(failure)) scheduleReconnect()
+                else drop()
+              })
               return
             }
-            closeStream = undefined
-            const delay = Math.min(30_000, 1_000 * 2 ** Math.min(attempt++, 5))
-            reconnectTimer = setTimeout(connect, delay)
+            if (!shouldReconnectChatStream(error)) {
+              drop()
+              return
+            }
+            scheduleReconnect()
           },
         })
       }
