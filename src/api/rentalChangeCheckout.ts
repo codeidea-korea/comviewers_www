@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoResponseSchema } from './productNo'
 import type { ApiClient } from './httpClient'
 import { createOrdersPaymentsApi } from './ordersPayments'
 
@@ -53,8 +54,8 @@ export const rentalChangeCaseSchema = z.object({
   changeType: z.string(),
   status: z.string(),
   reason: z.string().nullable(),
-  sourceProductNo: z.string().nullable(),
-  targetProductNo: z.string().nullable(),
+  sourceProductNo: productNoResponseSchema.nullable(),
+  targetProductNo: productNoResponseSchema.nullable(),
   targetProductTitle: z.string().nullable(),
   targetServerRoomName: z.string().nullable(),
   serviceEndsAtSnapshot: optionalTime,

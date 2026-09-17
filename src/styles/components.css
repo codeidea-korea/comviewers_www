@@ -150,7 +150,10 @@
 .modal__actions { display: flex; gap: 12px; justify-content: flex-end; }
 .modal__actions .button { flex: 1; }
 .modal--wide { max-width: 720px; }
-.modal--order-purchase { height: 281px; }.modal--order-state,.modal--manager-delete { height: 257px; }.modal--withdrawal-unavailable { height: 355px; }.modal--password-confirm { height: 371px; }.modal--password-confirm.is-filled { height: 399px; }.modal--password-reset { height: 415px; }.modal--colocation-complete { height: 265px; }
+.modal--order-purchase { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
+.modal--order-purchase > .modal__content { min-height: 0; overflow-y: auto; overflow-wrap: break-word; word-break: keep-all; }
+.modal--order-purchase > .modal__actions { flex: 0 0 auto; }
+.modal--order-state,.modal--manager-delete { height: 257px; }.modal--withdrawal-unavailable { height: 355px; }.modal--password-confirm { height: 371px; }.modal--password-confirm.is-filled { height: 399px; }.modal--password-reset { height: 415px; }.modal--colocation-complete { height: 265px; }
 .popup-copy { display: flex; flex-direction: column; gap: 8px; }.popup-copy > strong { font-weight: 600; }.popup-copy > small { color: var(--color-system-error); font-size: 16px; letter-spacing: -.32px; }.popup-copy__box { background: var(--color-gray-50); border-radius: var(--radius-md); color: var(--color-gray-600); font-size: 14px; line-height: 17px; padding: 12px; }
 .popup-copy > .popup-copy__muted { color: var(--color-gray-700); }
 .popup-form > p { margin-bottom: 34px; }.popup-form--stacked { display: flex; flex-direction: column; gap: 20px; }.popup-form .text-field__message { font-size: 14px; }.popup-form .text-field__control { margin-top: 2px; }

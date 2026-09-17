@@ -29,6 +29,6 @@ export function SocialLoginCallbackPage() {
   return <AuthPage><AuthPanel result>
     <AuthHeading title="간편 로그인" />
     {waiting ? <LoadingState className="route-loading--compact" label="로그인 상태를 확인하고 있습니다." /> : <p role="alert">간편 로그인을 완료하지 못했습니다. 다시 시도해 주세요.</p>}
-    {!waiting ? <Link to="/login">로그인 화면으로 돌아가기</Link> : null}
+    {!waiting ? <Link className="button button--large button--primary" to="/login">로그인 화면으로 돌아가기</Link> : null}
   </AuthPanel></AuthPage>
 }

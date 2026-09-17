@@ -28,7 +28,7 @@ const mobileSortItems = Object.values(mobileSortLabels)
 export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; mutations?: RcpcMutations }) {
   const session = useSession()
   const [searchParams] = useSearchParams()
-  const initialProductNo = (searchParams.get('productNo') ?? '').slice(0, 50)
+  const initialProductNo = (searchParams.get('productNo') ?? '').replace(/\D/g, '').slice(0, 16)
   const parsedStatus = myRcpcQuerySchema.safeParse({ status: searchParams.get('status') ?? undefined })
   const parsedUsage = myRcpcQuerySchema.safeParse({ usageStatus: searchParams.get('usageStatus') ?? undefined })
   const initialStatus = parsedStatus.success ? parsedStatus.data.status : undefined

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoPathSchema, productNoResponseSchema } from './productNo'
 import type { ApiClient } from './httpClient'
 
 const id = z.number().int().positive().safe()
@@ -10,7 +11,7 @@ const localDateTime = z.iso.datetime({ local: true })
 
 // Wire DTOs deliberately preserve item IDs, prices and duration separately from UI models.
 export const cartItemDtoSchema = z.object({
-  id, productNo: z.string().min(1), title: z.string(), quantity: positiveInt,
+  id, productNo: productNoResponseSchema, title: z.string(), quantity: positiveInt,
   billingUnit, currentBillingUnit: billingUnit.nullable(), durationUnits: positiveInt.nullable(),
   snapshotUnitPrice: amount, snapshotSetupFee: amount,
   currentUnitPrice: amount.nullable(), currentSetupFee: amount.nullable(),
@@ -24,7 +25,7 @@ export const orderQuoteDtoSchema = z.object({
   currency: z.literal('KRW'), checkoutEligible: z.boolean(),
   subtotalAmount: amount, setupFeeAmount: amount, totalAmount: amount, expectedPoints: amount.nullable(),
   items: z.array(z.object({
-    cartItemId: id, productNo: z.string().min(1), title: z.string(), quantity: positiveInt,
+    cartItemId: id, productNo: productNoResponseSchema, title: z.string(), quantity: positiveInt,
     billingUnit, currentBillingUnit: billingUnit.nullable(), durationUnits: positiveInt.nullable(),
     snapshotUnitPrice: amount, currentUnitPrice: amount.nullable(), priceChanged: z.boolean(),
     amount, expectedPoints: amount.nullable(), issues: z.array(z.string()),
@@ -45,7 +46,7 @@ export function createCartApi(client: ApiClient, customerOrganizationId: string)
       return client.request('/api/v1/cart', cartDtoSchema, { ...context, signal })
     },
     putItem(productNo: string, input: CartItemInput, signal?: AbortSignal) {
-      const number = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/).parse(productNo)
+      const number = productNoPathSchema.parse(productNo)
       return client.request(`/api/v1/cart/items/${encodeURIComponent(number)}`, cartItemDtoSchema, {
         ...context, method: 'PUT', body: cartItemInputSchema.parse(input), signal,
       })

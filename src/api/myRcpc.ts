@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoResponseSchema, productNoSearchSchema } from './productNo'
 import type { ApiClient } from './httpClient'
 import { createExtensionCheckoutApi } from './extensionCheckout'
 import { createRentalChangeCheckoutApi } from './rentalChangeCheckout'
@@ -23,7 +24,7 @@ const pcSpec = z.object({
   gpuBrand: text, gpuModel: text, gpuVramGb: count.nullable(), collectedAt: instant,
 }).nullable()
 export const myRcpcItemSchema = z.object({
-  rentalId: id, pcAssetId: id, productNo: z.string(), managementNo: text, serverRoomId: id.nullable(), serverRoomName: text,
+  rentalId: id, pcAssetId: id, productNo: productNoResponseSchema, managementNo: text, serverRoomId: id.nullable(), serverRoomName: text,
   productTitle: text, orderedAt: instant, serviceStartedAt: instant,
   serverRoomRegion: text, serverStatus: z.enum(['needs_attention', 'format_waiting', 'extension_waiting', 'running', 'ended']),
   usageStatus: z.enum(['using', 'extension_waiting', 'ended', 'other']), rentalStatus: status, serviceEndExclusiveDate: z.iso.date().nullable(), connectionStatus: z.string(),
@@ -50,7 +51,7 @@ export const myRcpcDetailSchema = myRcpcItemSchema.extend({
 })
 export const myRcpcQuerySchema = z.object({
   usageStatus: z.enum(['using', 'extension_waiting', 'ended', 'other']).optional(),
-  productNo: z.string().trim().max(50).optional(), serverRoomId: id.optional(), region: z.string().trim().max(100).optional(), status: status.optional(),
+  productNo: productNoSearchSchema.optional(), serverRoomId: id.optional(), region: z.string().trim().max(100).optional(), status: status.optional(),
   favorite: z.boolean().optional(), groupId: count.optional(), ungrouped: z.boolean().optional(), sort: z.enum(['recent', 'expiring', 'productNo', 'serverRoom', 'serverStatus', 'servicePeriod', 'traffic', 'favoriteEdited']).default('recent'),
   page: z.number().int().nonnegative().max(2147483647).default(0), size: z.number().int().min(1).max(100).default(20),
 }).refine(({ page, size }) => page * size <= 2147483647)

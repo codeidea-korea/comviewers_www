@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoPathSchema } from '@/api/productNo'
 
 const amount = z.number().int().nonnegative().safe()
 export const cartItemSchema = z.object({
@@ -44,7 +45,7 @@ export const changeCartQuantitySchema = z.object({
   id: z.string().min(1), quantity: z.number().int().positive().safe(),
 })
 export const addCartItemSchema = z.object({
-  productNo: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/, '상품 번호를 확인해 주세요.'),
+  productNo: productNoPathSchema,
   rentalPeriods: z.number().int().positive().max(2147483647),
 })
 export type AddCartItem = z.infer<typeof addCartItemSchema>

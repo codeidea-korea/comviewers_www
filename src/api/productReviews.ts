@@ -1,11 +1,12 @@
 import { z } from 'zod'
 import type { ApiClient } from './httpClient'
 import { catalogProductNoSchema } from './catalog'
+import { productNoResponseSchema } from './productNo'
 
 const safeId = z.union([z.string().regex(/^[1-9]\d{0,18}$/), z.number().int().positive().safe().transform(String)])
 export const productReviewResponseSchema = z.object({
   id: safeId,
-  productNo: catalogProductNoSchema,
+  productNo: productNoResponseSchema,
   productTitle: z.string(),
   serverRoomName: z.string(),
   author: z.string(),
@@ -29,7 +30,7 @@ export const productReviewPageResponseSchema = z.object({
 export const eligibleReviewRentalResponseSchema = z.object({
   rentalId: z.string().regex(/^[1-9]\d{0,18}$/).nullable(),
   orderItemId: safeId,
-  productNo: catalogProductNoSchema,
+  productNo: productNoResponseSchema,
   productTitle: z.string(),
   serverRoomName: z.string().nullable(),
 })

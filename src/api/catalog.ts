@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { ApiClient } from './httpClient'
+import { productNoPathSchema, productNoResponseSchema } from './productNo'
 
 // ProductCatalogController + domain/product/dto. This is a wire DTO contract,
 // deliberately separate from domain/products' publishing-oriented view model.
@@ -9,7 +10,7 @@ const amount = int.nonnegative()
 const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
 const nullableText = z.string().nullable()
-export const catalogProductNoSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/)
+export const catalogProductNoSchema = productNoPathSchema
 export const catalogSortSchema = z.enum(['newest', 'priceAsc', 'priceDesc'])
 const inputStatus = z.enum(['connected', 'disconnected', 'unknown'])
 const categoryCode = z.string().trim().toLowerCase().transform((value) => value || undefined)
@@ -62,7 +63,7 @@ const inputDeviceStatus = z.object({
   keyboardConnectionStatus: inputStatus.nullable(), mouseConnectionStatus: inputStatus.nullable(),
 })
 const productFields = {
-  productNo: catalogProductNoSchema, title: z.string(), category: categorySummary,
+  productNo: productNoResponseSchema, title: z.string(), category: categorySummary,
   serverRoom, pricing: catalogPricingSchema, availability: z.enum(['AVAILABLE', 'SOLD_OUT']),
   spec: catalogSpecSchema.nullable(), inputDeviceStatus,
 }

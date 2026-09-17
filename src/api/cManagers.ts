@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import type { ApiClient } from './httpClient'
+import { productNoResponseSchema } from './productNo'
 
 const id = z.number().int().positive().safe()
 const time = z.iso.datetime({ local: true }).nullable()
-const rcpc = z.object({ rentalId: id, pcAssetId: id.nullable(), assetNo: z.string().nullable(), deviceAlias: z.string().nullable(),
+const rcpc = z.object({ rentalId: id, pcAssetId: id.nullable(), assetNo: productNoResponseSchema.nullable(), deviceAlias: z.string().nullable(),
   rentalStatus: z.string().nullable(), assetStatus: z.string().nullable(), deviceRentalStatus: z.string().nullable(), lastHeartbeatAt: time, assignedAt: time,
   serviceStartedAt: time, serviceEndsAt: time })
 const summary = z.object({ memberId: id, userId: id, username: z.string(), name: z.string().nullable(), managementMemo: z.string().nullable(),

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoResponseSchema } from './productNo'
 
 const integer = z.number().int().min(-2147483648).max(2147483647)
 const count = z.number().int().nonnegative().safe()
@@ -17,7 +18,7 @@ export const pointPageSchema = z.object({ ...accountPageFields, balance: integer
 export const couponItemSchema = z.object({ userCouponId: accountId, couponId: accountId, name: z.string(), discountType: z.string(), discountValue: integer.nonnegative(), minOrderAmount: integer.nonnegative(), serverRoomId: accountId.nullable(), serverRoomName: text, status: z.string(), downloadedAt: time, expiresAt: time, startsAt: time, endsAt: time, usedAt: time, usedOrderNo: text, usedDiscountAmount: count.nullable() })
 export const couponPageSchema = z.object({ ...accountPageFields, items: z.array(couponItemSchema), availableCount: count, usedCount: count, expiredCount: count })
 export const downloadableCouponSchema = z.object({ serverRoomName: text, couponId: accountId, name: z.string(), discountType: z.string(), discountValue: integer.nonnegative(), minOrderAmount: integer.nonnegative(), serverRoomId: accountId.nullable(), validDaysAfterDownload: integer.positive().nullable(), startsAt: time, endsAt: time })
-export const storageItemResponseSchema = z.object({ id: accountId, status: z.string(), reservationFulfillmentId: accountId.nullable(), productId: accountId.nullable(), productNo: text, productTitle: text, serverRoomName: text, specSummary: text, imageUrl: text, instantAvailable: z.boolean(), pricingType: text, billingUnit: text, unitPrice: integer.nonnegative().nullable(), setupFee: integer.nonnegative().nullable(), minUnits: integer.positive().nullable(), maxUnits: integer.nonnegative().nullable(), pcAssetId: accountId.nullable(), managementNo: text, cartItemId: accountId.nullable(), orderItemId: accountId.nullable(), paymentDueAt: time, storedAt: time, removedAt: time })
+export const storageItemResponseSchema = z.object({ id: accountId, status: z.string(), reservationFulfillmentId: accountId.nullable(), productId: accountId.nullable(), productNo: productNoResponseSchema.nullable(), productTitle: text, serverRoomName: text, specSummary: text, imageUrl: text, instantAvailable: z.boolean(), pricingType: text, billingUnit: text, unitPrice: integer.nonnegative().nullable(), setupFee: integer.nonnegative().nullable(), minUnits: integer.positive().nullable(), maxUnits: integer.nonnegative().nullable(), pcAssetId: accountId.nullable(), managementNo: text, cartItemId: accountId.nullable(), orderItemId: accountId.nullable(), paymentDueAt: time, storedAt: time, removedAt: time })
 export const storagePageSchema = z.object({ ...accountPageFields, items: z.array(storageItemResponseSchema) })
 export const storageSummarySchema = z.object({ rentalCount: count, partCount: count, totalCount: count })
 export type AccountProfileRead = z.infer<typeof profileResponseSchema>

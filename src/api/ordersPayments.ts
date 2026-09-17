@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoResponseSchema } from './productNo'
 import type { ApiClient } from './httpClient'
 
 const id = z.number().int().positive().safe()
@@ -7,7 +8,7 @@ const time = z.iso.datetime({ local: true }).nullable()
 const term = z.object({ termsPolicyVersionId: id, policyKey: z.string(), agreementType: z.string(), title: z.string(), content: z.string(), contentHash: z.string(), effectiveFrom: z.iso.datetime({ local: true }) })
 const order = z.object({ orderId: id, orderNo: z.string(), orderStatus: z.string(), paymentStatus: z.string(), currency: z.string(),
   subtotalAmount: count, setupFeeAmount: count, finalAmount: count, reservationExpiresAt: time,
-  items: z.array(z.object({ orderItemId: id, productNo: z.string(), title: z.string(), quantity: z.number().int().positive(), billingUnit: z.string(), durationUnits: z.number().int().positive().nullable(), unitPrice: count, setupFee: count, amount: count })) })
+  items: z.array(z.object({ orderItemId: id, productNo: productNoResponseSchema, title: z.string(), quantity: z.number().int().positive(), billingUnit: z.string(), durationUnits: z.number().int().positive().nullable(), unitPrice: count, setupFee: count, amount: count })) })
 const checkoutAction = z.object({ type: z.string(), sdkUrl: z.string().nullable(), operation: z.string().nullable(), clientPayload: z.string().nullable() })
 const prepared = z.object({ paymentId: id, orderNo: z.string(), paymentMethod: z.string(), amount: count, currency: z.string(), paymentStatus: z.string(),
   provider: z.string(), providerPreparationStatus: z.string(), providerOrderId: z.string().nullable(), redirectUrl: z.string().nullable(), checkoutAction,

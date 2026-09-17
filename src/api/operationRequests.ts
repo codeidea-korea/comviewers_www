@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { productNoResponseSchema, productNoSearchSchema } from './productNo'
 import type { ApiClient, ApiClientError, ApiServerSentEvent } from './httpClient'
 
 const id = z.number().int().positive().safe()
@@ -15,7 +16,7 @@ export const operationRequestPageSchema = z.object({ items: z.array(operationReq
 export const operationRequestSummarySchema = z.object({ total: count, statusCounts: z.array(z.object({ status, count })) })
 export const operationRequestChatSchema = z.object({
   operationRequest: z.object({ id, requestNo: z.string(), status: z.string(), customerVisibleStatus: status,
-    targets: z.array(z.object({ targetType: z.string().optional(), pcAssetId: id.nullable(), productId: id.nullable().optional(), productNo: z.string().nullable(), managementNo: z.string().nullable(), serverRoomId: id.nullable(), serverRoomName: z.string().nullable(), alias: z.string().nullable().optional() })),
+    targets: z.array(z.object({ targetType: z.string().optional(), pcAssetId: id.nullable(), productId: id.nullable().optional(), productNo: productNoResponseSchema.nullable(), managementNo: z.string().nullable(), serverRoomId: id.nullable(), serverRoomName: z.string().nullable(), alias: z.string().nullable().optional() })),
   }),
   messages: z.array(z.object({
     id, clientMessageId: z.string().nullable(), sourceChannel: z.string(), authorType: z.string(), authorUserId: id.nullable(),
@@ -25,7 +26,7 @@ export const operationRequestChatSchema = z.object({
 })
 export const operationRequestQuerySchema = z.object({
   requestType: requestType.optional(), customerVisibleStatus: status.optional(),
-  productNo: z.string().trim().max(50).optional(), exactProductNo: z.boolean().optional(), openOnly: z.boolean().optional(), requestId: id.optional(),
+  productNo: productNoSearchSchema.optional(), exactProductNo: z.boolean().optional(), openOnly: z.boolean().optional(), requestId: id.optional(),
   page: z.number().int().nonnegative().max(2147483647).default(0), size: z.number().int().min(1).max(100).default(20),
 }).refine(({ page, size }) => page * size <= 2147483647)
 export type OperationRequestQuery = z.input<typeof operationRequestQuerySchema>
@@ -36,12 +37,12 @@ const refundSummary = z.object({ id, operationRequestId: id.nullable(), operatio
 const refundDetail = z.object({ request: refundSummary, decisions: z.array(z.object({ id, revisionNo: count, decisionType: z.string(), cashAmount: count, pointAmount: count, reason: z.string(), decidedAt: z.iso.datetime({ local: true }) })),
   payouts: z.array(z.object({ id, payoutNo: count, payoutMethod: z.string(), status: z.string(), amount: count, currency: z.string(), requestedAt: z.iso.datetime({ local: true }) })) })
 const refundPage = z.object({ items: z.array(refundSummary), page: count, size: count, totalElements: count, totalPages: count })
-const refundTarget = z.object({ operationRequestTargetId: id, orderItemId: id, orderNo: z.string(), rentalId: id, productNo: z.string(), title: z.string(),
+const refundTarget = z.object({ operationRequestTargetId: id, orderItemId: id, orderNo: z.string(), rentalId: id, productNo: productNoResponseSchema, title: z.string(),
   serverRoomName: z.string().nullable(), billingUnit: z.string(), serviceStartedAt: z.string().nullable(), serviceEndsAt: z.string().nullable(), paymentApprovedAt: z.string().nullable(), paymentMethod: z.string(),
   alias: z.string().nullable(), spec: z.string().nullable(), orderedAt: z.string(), contactPhone: z.string().nullable() })
 const refundQuoteRequest = z.object({ operationRequestId: id, selections: z.array(z.object({ operationRequestTargetId: id, orderItemId: id })).min(1).max(20), method: z.enum(['point', 'original']) })
 const refundDirectQuoteRequest = z.object({ selections: z.array(z.object({ orderItemId: id, rentalId: id })).min(1).max(20), method: z.enum(['point', 'original']) })
-const refundQuote = z.object({ items: z.array(z.object({ operationRequestTargetId: id, orderItemId: id, orderNo: z.string(), productNo: z.string(), title: z.string(), rentalId: id,
+const refundQuote = z.object({ items: z.array(z.object({ operationRequestTargetId: id, orderItemId: id, orderNo: z.string(), productNo: productNoResponseSchema, title: z.string(), rentalId: id,
   policyVersionId: id, cashAmount: count, pointAmount: count, couponDeduction: count, usedDays: count, remainingDays: count, bankRequired: z.boolean(), refundMethod: z.string(),
     dailyQuantity: count, usedDaysRateBasisPoints: count, dailyQuantityRateBasisPoints: count, remainingSettlement: z.number().nonnegative(),
     usedDaysDeduction: z.number().nonnegative(), dailyQuantityDeduction: z.number().nonnegative(), setupFee: count, formatFee: count,
