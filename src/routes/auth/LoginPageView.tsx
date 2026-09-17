@@ -84,7 +84,7 @@ export function LoginPage() {
             <Checkbox disabled={pending} checked={rememberId} name="remember-id" onChange={(event) => setRememberId(event.target.checked)}>아이디 저장</Checkbox>
           </div>
           <Button disabled={pending || !loginId || !password} size="large" type="submit">로그인</Button>
-          {loginError ? <p aria-live="polite" className="auth-notice">{loginError}</p> : null}
+          {loginError ? <p aria-live="polite" className="auth-notice auth-notice--error">{loginError}</p> : null}
           <AuthLinks />
         </form>
         <SocialLoginButtons onSelect={(provider) => {

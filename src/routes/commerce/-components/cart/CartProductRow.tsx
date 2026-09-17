@@ -16,17 +16,18 @@ interface Props {
   item: CartItem
   selected: boolean
   disabled: boolean
+  quantityUpdating: boolean
   onToggle: () => void
   onRemove: () => void
   onQuantityChange: (quantity: number) => void
 }
 
-export function CartProductRow({ item, selected, disabled, onToggle, onRemove, onQuantityChange }: Props) {
+export function CartProductRow({ item, selected, disabled, quantityUpdating, onToggle, onRemove, onQuantityChange }: Props) {
   const partner = item.type === 'part'
   const fallbackImage = partner ? defaultPartProductImage : defaultProductImage
   const waiting = item.instantAvailable === false
   const units = getCartSelectionUnits(item)
-  const quantityDisabled = disabled || !item.quantityEditable
+  const quantityDisabled = quantityUpdating || !item.quantityEditable
   const kind = item.rowKind
   const increased = item.maximumQuantity !== null && units >= item.maximumQuantity
   const statusCopy = !item.available ? '현재 주문할 수 없습니다.' : item.instantAvailable === null ? '접속 상태 확인 필요' : item.instantAvailable ? '이용 가능' : '준비 중'
@@ -46,7 +47,7 @@ export function CartProductRow({ item, selected, disabled, onToggle, onRemove, o
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><span>세팅비</span><span><CartMoney value={item.setupFee} /></span></p><p><span>{cartPriceLabel(item)}</span><span><CartMoney value={item.rentalFee} /></span></p></div>}
         {item.priceChanged && <p role="status">가격이 변경되었습니다. 현재 금액을 확인해 주세요.</p>}{item.issues.map((issue) => <p key={issue} role="status">{cartIssueMessage(issue)}</p>)}
         <div className="cart-item__bottom">
-          <div className="purchase-row__quantity cart-quantity"><div><button aria-label="수량 감소" disabled={quantityDisabled || units <= item.minimumQuantity} onClick={() => onQuantityChange(Math.min(item.maximumQuantity ?? Number.MAX_SAFE_INTEGER, units - 1))} type="button"><img alt="" src={removeIcon} /></button><b>{units}</b><button aria-label="수량 증가" disabled={quantityDisabled || increased} onClick={() => onQuantityChange(Math.max(item.minimumQuantity, units + 1))} type="button"><img alt="" src={addIcon} /></button></div><span>{cartUnitLabel(item)}</span></div>
+          <div aria-busy={quantityUpdating} className="purchase-row__quantity cart-quantity"><div><button aria-label="수량 감소" disabled={quantityDisabled || units <= item.minimumQuantity} onClick={() => onQuantityChange(Math.min(item.maximumQuantity ?? Number.MAX_SAFE_INTEGER, units - 1))} type="button"><img alt="" src={removeIcon} /></button><b>{units}</b><button aria-label="수량 증가" disabled={quantityDisabled || increased} onClick={() => onQuantityChange(Math.max(item.minimumQuantity, units + 1))} type="button"><img alt="" src={addIcon} /></button></div><span>{quantityUpdating ? '갱신 중' : cartUnitLabel(item)}</span></div>
           <div className="purchase-row__amount cart-item__amount">{!partner && <span className="cart-item__points"><span>포인트 적립</span><span className="cart-item__point-value"><b>{getCartItemPoints(item) ?? '-'}</b>{getCartItemPoints(item) !== null && <span>점</span>}</span></span>}<CartMoney className={`cart-money--item${!partner && increased ? ' cart-money--item--expanded' : ''}`} value={getCartItemAmount(item)} /></div>
         </div>
       </div>

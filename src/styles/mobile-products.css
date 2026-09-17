@@ -6,17 +6,15 @@
 .product-selector-field .product-mobile-selector-backdrop { display: none; }
 .product-filter-trigger.product-filter-trigger--mobile { pointer-events: none; }
 .product-mobile-server-sheet { display: contents; }
-.products-hero__title { display: none; }
 
 @media (max-width: 767px) {
   .commerce-shell main { overflow: clip; }
   .products-hero {
     align-items: center;
-    background-position: center;
-    background-size: auto 190px;
     display: flex;
     height: 190px;
   }
+  .products-hero::before { background-size: auto 190px; }
   .products-hero__title {
     color: var(--color-white);
     display: block;
@@ -26,7 +24,7 @@
     letter-spacing: -.54px;
     line-height: 20px;
     margin: 0 auto;
-    width: 360px;
+    width: min(360px, calc(100% - 24px));
   }
   .products-body,
   .products-layout,

@@ -151,6 +151,7 @@
 .social-button--naver .social-button__icon { background: #03c75a; }
 .social-button--kakao .social-button__icon { background: #fee500; }
 .auth-notice { color: var(--color-blue-500); font-size: 14px; line-height: 20px; margin-top: 16px; text-align: center; }
+.auth-notice--error { color: var(--color-system-error); }
 .terms-section { display: flex; flex-direction: column; gap: 20px; }
 .terms-section h2, .profile-form h2 { font-size: 18px; font-weight: 500; letter-spacing: -.36px; line-height: 24px; }
 .terms-section h2 { transform: translateY(-1px); }

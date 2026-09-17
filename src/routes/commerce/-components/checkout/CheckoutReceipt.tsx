@@ -17,7 +17,7 @@ export function CheckoutReceipt({ form }: { form: CheckoutFormModel }) {
     <CheckoutSectionTitle>현금영수증 발급 신청</CheckoutSectionTitle>
     
     <fieldset className="receipt-types"><legend className="sr-only">현금영수증 유형</legend>{receiptOptions.map(({ value, label }) => <Radio checked={receiptType === value} className={receiptType === value ? 'is-selected' : ''} iconClassName="receipt-radio-icon" key={value} name="receipt" offIcon={radioOffIcon} onChange={() => changeReceiptType(value)} onIcon={radioOnIcon} value={value}>{label}</Radio>)}</fieldset>
-    {receiptType !== 'not_requested' && <CheckoutField label={receiptType === 'business_expense' ? '사업자등록번호' : '핸드폰'}>
+    {receiptType !== 'not_requested' && <CheckoutField error={form.fieldError('receiptIdentifier')} label={receiptType === 'business_expense' ? '사업자등록번호' : '핸드폰'}>
       {receiptType === 'business_expense' ? <input aria-label="현금영수증 사업자등록번호" inputMode="numeric" maxLength={10} onChange={(event) => setReceiptNumber(event.target.value.replace(/\D/g, ''))} placeholder="10자리 숫자만 사용할 수 있습니다." value={receiptNumber} /> : <div className="phone-fields">
         <NativeSelect aria-label="현금영수증 핸드폰 번호 앞자리" onChange={(event) => setReceiptPhone({ ...receiptPhone, prefix: event.target.value })} value={receiptPhone.prefix}>{phonePrefixOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect>
         <input aria-label="현금영수증 핸드폰 번호 가운데 자리" inputMode="numeric" maxLength={4} onChange={(event) => setReceiptPhone({ ...receiptPhone, middle: event.target.value.replace(/\D/g, '') })} value={receiptPhone.middle} />

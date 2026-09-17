@@ -169,8 +169,8 @@
 .support-toolbar select { width: 100%; }
 .support-toolbar input { width: 230px; }
 .support-toolbar button { background: white; border: 0; height: 50px; width: 50px; }
-.support-list > a { column-gap: 8px; display: grid; grid-template-columns: 24px minmax(0,1fr) 100px; }
-.support-list > a > span { font-size: 14px; text-align: right; }
+.support-list > a { column-gap: 0; display: grid; grid-template-columns: 36px minmax(0,1fr) 100px; }
+.support-list > a > span { font-size: 14px; text-align: left; }
 .support-list > a > strong { align-items: center; display: flex; font-size: 16px; font-weight: 400; gap: 6px; letter-spacing: -.32px; min-width: 0; }
 .support-list > a > strong > img { height: 13.333px; width: 10.667px; }
 .support-list time { color: var(--color-gray-600); font-size: 14px; text-align: right; }

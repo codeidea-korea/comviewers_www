@@ -20,9 +20,12 @@ function readDetails(raw: string | null): DetailSelections {
 }
 
 function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductListQuery {
+  const requestedCategory = params.get('categoryCode') ?? params.get('category')
+  const categoryCode = requestedCategory === 'rcpc-room' ? 'rcpc_room'
+    : requestedCategory === 'zen-server' ? 'zen_server' : requestedCategory ?? undefined
   const candidate = {
     page: Number(params.get('page') ?? 1), pageSize: 12,
-    categoryCode: params.get('categoryCode') ?? params.get('category') ?? undefined,
+    categoryCode,
     instantOnly: params.has('instantOnly') ? params.get('instantOnly') !== 'false' : defaultInstantOnly, rooms: params.getAll('room'),
     line: params.get('line') ?? '전체', ip: params.get('ip') ?? '전체', purpose: params.get('purpose') ?? '전체',
     details: readDetails(params.get('details')),
@@ -47,7 +50,7 @@ export function useProductList() {
   const metadata = useQuery({ queryKey: ['product-filter-metadata', storedQuery.categoryCode], enabled: Boolean(products.filterMetadata), queryFn: ({ signal }) => products.filterMetadata!(storedQuery.categoryCode, signal) })
   const defaultPriceBasis = metadata.data?.priceBuckets.some(bucket => bucket.priceBasis === 'unit')
     && !metadata.data.priceBuckets.some(bucket => bucket.priceBasis === 'monthly') ? 'unit' : 'monthly'
-  const query: ProductListQuery = { ...storedQuery, priceBasis: storedQuery.priceBasis ?? defaultPriceBasis }
+  const query: ProductListQuery = { ...storedQuery, priceBasis: storedQuery.categoryCode === 'parts' ? 'unit' : storedQuery.priceBasis ?? defaultPriceBasis }
   const result = useQuery({
     queryKey: productQueryKeys.list(query),
     queryFn: async ({ signal }) => productPageSchema.parse(await products.list(query, signal)),

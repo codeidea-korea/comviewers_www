@@ -8,6 +8,7 @@ import { BenefitTable } from '../../BenefitTableView'
 import { MyPageLayout, PeriodFilter } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import { accountDateRange } from '../shared/AccountDatePresets'
+import { MyPagePeriodDialog } from '../shared/MyPagePeriodDialog'
 import { ReadPages, accountDate, accountMoney, useAccountRead } from '../shared/AccountReadCommon'
 import { OrderItemActions } from '../orders/OrderItemActions'
 import { pendingOrders } from '../shared/pendingConfirmationOrders'
@@ -114,12 +115,13 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
           </nav>
           <div className="points-history__toolbar">
             <span>사용 가능 포인트 <strong>{result.data?.balance.toLocaleString('ko-KR') ?? 0}</strong>점</span>
-            <button aria-expanded={periodOpen} onClick={() => setPeriodOpen((current) => !current)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button>
+            <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button>
           </div>
-          <div hidden={!periodOpen}><PeriodFilter open={periodOpen} onApply={(from, to) => {
-            setDates({ from, to })
+          {periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
+            setDates(nextDates)
             setPage(0)
-          }} /></div>
+            setPeriodOpen(false)
+          }} onClose={() => setPeriodOpen(false)} /> : null}
           <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
           {result.data ? (
             <>

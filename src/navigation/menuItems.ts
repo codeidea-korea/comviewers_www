@@ -2,8 +2,8 @@ export interface MenuItem { id: string; label: string; href: string; disabled?: 
 export interface MyPageMenuGroup { id: string; label: string; href?: string; opensPasswordGate?: boolean; disabled?: boolean; items: MenuItem[] }
 export const menuItems: readonly MenuItem[] = [
   { id: 'rcpc-products', label: 'RCPC상품', href: '/products' },
-  { id: 'rcpc-room', label: 'RCPC방', href: '/products?category=rcpc-room' },
-  { id: 'zen-server', label: '젠서버', href: '/products?category=zen-server' },
+  { id: 'rcpc-room', label: 'RCPC방', href: '/products?category=rcpc_room' },
+  { id: 'zen-server', label: '젠서버', href: '/products?category=zen_server' },
   { id: 'parts', label: '파트상품', href: '/products?category=parts' },
   { id: 'community', label: '커뮤니티', href: '/community/posts' },
 ]

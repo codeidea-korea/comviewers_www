@@ -36,7 +36,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
       <section className="content-container product-detail-hero">
         <div className="product-detail-visual"><img alt={product.image ? (product.title ?? `${product.os ?? ''} RCPC`) : part ? '기본 파트 상품 이미지' : '기본 RCPC 상품 이미지'} src={product.image ?? (part ? defaultPartProductImage : defaultProductImage)} />{!part && product.os?.includes("Windows") ? <img alt="Windows" src={windowsLogo} /> : null}</div>
         <div className="product-detail-buy">
-          <h1><span>품번 <b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
+          <h1><span><span>품번</span><b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
           {part && <h2>{product.title ?? product.productId}</h2>}
           {part ? <p>{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : '수량형 일회성 상품입니다.'}</p> : <p className={`product-detail-availability${product.available ? '' : ' is-waiting'}`}>{product.serverState !== null ? <i className="product-detail-availability__icon"><img alt="" src={product.serverState === 'online' ? serverLinkIcon : serverOffIcon} /></i> : null}{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : product.available === null ? '즉시 이용 가능 여부가 제공되지 않았습니다.' : product.available ? '구매 즉시 접속 가능합니다.' : '준비 중'}</p>}
           {part ? <p style={{ whiteSpace: 'pre-wrap' }}>{product.description || '등록된 상품 설명이 없습니다.'}</p> : <dl className="product-detail-specs">
@@ -44,8 +44,8 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
             <div>
               <dt>주변기기</dt>
               <dd className="product-detail-peripherals">
-                <i>{product.mouseIncluded === null ? "마우스 정보 없음" : <img alt={product.mouseIncluded ? '마우스 제공' : '마우스 미제공'} src={product.mouseIncluded ? mouseActiveIcon : mouseIcon} />}</i>
-                <i>{product.keyboardIncluded === null ? "키보드 정보 없음" : <img alt={product.keyboardIncluded ? '키보드 제공' : '키보드 미제공'} src={product.keyboardIncluded ? keyboardActiveIcon : keyboardIcon} />}</i>
+                {product.mouseIncluded === null ? <span className="product-detail-peripherals__unknown">마우스 정보 없음</span> : <i><img alt={product.mouseIncluded ? '마우스 제공' : '마우스 미제공'} src={product.mouseIncluded ? mouseActiveIcon : mouseIcon} /></i>}
+                {product.keyboardIncluded === null ? <span className="product-detail-peripherals__unknown">키보드 정보 없음</span> : <i><img alt={product.keyboardIncluded ? '키보드 제공' : '키보드 미제공'} src={product.keyboardIncluded ? keyboardActiveIcon : keyboardIcon} /></i>}
               </dd>
             </div>
           </dl>}
@@ -65,7 +65,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
           <div className="product-detail-total"><span>총 금액</span><strong><b>{safeTotalAmount === null ? '계산 불가' : safeTotalAmount.toLocaleString('ko-KR')}</b><small>원</small></strong></div>
           <div className="product-detail-actions">
             <button aria-label="장바구니 담기" className="product-detail-favorite" disabled={cartPending || !canSelectPeriod || safeTotalAmount === null} onClick={() => { if (quantity !== null && safeTotalAmount !== null) onCart(quantity) }} type="button"><img alt="" src={shoppingBag} /></button>
-            <Button className="commerce-primary-button" disabled={buyPending || !canSelectPeriod || safeTotalAmount === null || product.saleAvailability === "SOLD_OUT" || (!part && product.available !== true)} fullWidth onClick={() => { if (quantity !== null) onBuy(quantity) }} size="large">바로구매</Button>
+            <Button className="commerce-primary-button" disabled={buyPending || !canSelectPeriod || safeTotalAmount === null || product.saleAvailability === 'SOLD_OUT'} fullWidth onClick={() => { if (quantity !== null) onBuy(quantity) }} size="large">바로구매</Button>
           </div>
           <p aria-live="polite" className="product-detail-message">{message}</p>
         </div>

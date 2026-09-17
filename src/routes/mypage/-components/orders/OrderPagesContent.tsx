@@ -5,9 +5,8 @@ import type { AccountOrderItem, AccountOrderPage, AccountOrderQuery } from '@/ap
 import { useServices } from '@/app/ServiceProvider'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
-import { MyPageLayout, PeriodFilter } from '../../MypageComponentsView'
+import { MyPageLayout } from '../../MypageComponentsView'
 import { AppShell } from '@/components/layout/AppShellView'
-import { PopupLayer } from '@/components/ui/PopupLayerControl'
 import { AccountQueryState } from '../AccountQueryState'
 import { InquiryCreateDialog } from '../InquiryCreateDialog'
 import { InquiryRefundApplication } from '../InquiryRefundApplication'
@@ -16,6 +15,7 @@ import { AccountInfo, ReadPages, accountDate, accountMoney, accountStatus, useAc
 import { OrderItemActions } from './OrderItemActions'
 import { OrderProductDescription } from './OrderProductDescription'
 import { OrderRefundSummary } from './OrderRefundSummary'
+import { MyPagePeriodDialog } from '../shared/MyPagePeriodDialog'
 import windowsCard from '@/assets/figma/cart-product-waiting.png'
 import windowsLogo from '@/assets/figma/windows-logo.svg'
 import serverWaitingIcon from '@/assets/figma/icon-server-waiting.svg'
@@ -286,7 +286,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 )
               })}
             </section>)}
-            {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 상태의 RCPC가 없습니다.'}</p></section> : null}
+            {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty" role="status">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 조건의 주문 내역이 없습니다.'}</p></section> : null}
             <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} />
           </>
         ) : null}
@@ -305,14 +305,12 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
             rcpcApi={myAccount.rcpcApi}
           />
         ) : null}
-        <PopupLayer className="order-period-layer" dialogClassName="order-period-dialog" initialFocus="dialog" isOpen={periodOpen} onClose={() => setPeriodOpen(false)} title="기간 선택">
-          <PeriodFilter open onApply={(from, to) => {
-            setDates({ from, to })
-            setPage(0)
-            setSelected([])
-            setPeriodOpen(false)
-          }} />
-        </PopupLayer>
+        {periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
+          setDates(nextDates)
+          setPage(0)
+          setSelected([])
+          setPeriodOpen(false)
+        }} onClose={() => setPeriodOpen(false)} /> : null}
       </div>
     </MyPageLayout>
   )

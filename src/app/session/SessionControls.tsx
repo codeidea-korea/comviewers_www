@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useSession, useSessionStore } from './SessionProvider'
 import { useAuthentication } from './AuthProvider'
@@ -35,12 +35,31 @@ export function SessionControls({ loginLabel = '로그인' }: { loginLabel?: str
   const session = useSession()
   const auth = useAuthentication()
   const [error, setError] = useState('')
+  const menuRef = useRef<HTMLDetailsElement>(null)
+  useEffect(() => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const menu = menuRef.current
+      if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      const menu = menuRef.current
+      if (!menu?.open || event.key !== 'Escape') return
+      menu.open = false
+      menu.querySelector('summary')?.focus()
+    }
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [])
   if (auth.restoring) return <span className="session-controls" role="status"><span aria-hidden="true" className="route-loading__indicator" /><span className="sr-only">로그인 상태를 확인하고 있습니다.</span></span>
   if (session.status === 'anonymous') return <span className="session-controls"><Link to="/login">{loginLabel}</Link>{auth.logoutNotice && <span role="status">{auth.logoutNotice}</span>}</span>
   if (session.status === 'password-change-required') return <span className="session-controls"><span>비밀번호 변경 필요</span><button type="button" onClick={() => { void auth.logout().catch(() => setError('로그아웃 상태를 다시 확인해 주세요.')) }}>로그아웃</button>{error && <span role="alert">{error}</span>}</span>
   const displayName = session.customerSession?.displayName?.trim() || '회원'
   return <span className="session-controls">
-    <details className="session-user-menu">
+    <details className="session-user-menu" ref={menuRef}>
       <summary><img alt="" aria-hidden="true" src={userIcon} /><span>{displayName}</span></summary>
       <div>
         <OrganizationSelector />

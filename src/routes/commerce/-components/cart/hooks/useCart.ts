@@ -11,8 +11,10 @@ const emptyItems: CartItem[] = []
 export function useCart() {
   const { cart, checkout } = useServices()
   const queryClient = useQueryClient()
-  const changing = useRef(false)
+  const changing = useRef(0)
+  const pendingQuantityIds = useRef(new Set<string>())
   const [isChanging, setIsChanging] = useState(false)
+  const [updatingQuantityIds, setUpdatingQuantityIds] = useState<Set<string>>(() => new Set())
   const [excludedIds, setExcludedIds] = useState<string[]>([])
   const [notice, setNotice] = useState('')
   const result = useQuery({
@@ -20,6 +22,7 @@ export function useCart() {
     queryFn: async ({ signal }) => cartSchema.parse(await cart.list(signal)),
   })
   const mutation = useMutation({
+    scope: { id: 'cart-changes' },
     mutationFn: async (change: CartChange) => cartSchema.parse(await (change.type === 'remove'
       ? cart.remove(change.ids) : cart.changeQuantity(change.input))),
     onSuccess: async (items, change) => {
@@ -58,15 +61,22 @@ export function useCart() {
   const displayedQuote = sameSelection ? quote : allQuote
   const estimate = selectedIds.length === 0 ? {
     rentalTotal: 0, rentalSetupTotal: 0, rentalMonthlyTotal: 0, partTotal: 0, pointTotal: 0, expectedTotal: 0,
-  } : (!quote.isFetching && !quote.isError ? quote.data?.estimate : undefined) ?? {
+  } : (!quote.isError ? quote.data?.estimate : undefined) ?? {
     rentalTotal: null, rentalSetupTotal: null, rentalMonthlyTotal: null, partTotal: null, pointTotal: null, expectedTotal: null,
   }
   const checkoutBlocked = selectedIds.length === 0 || quote.isFetching || !quote.data?.checkoutEligible || quote.isError
   const quotedItems = items.map((item) => (!displayedQuote.isFetching && !displayedQuote.isError ? displayedQuote.data?.items : undefined)?.find((row) => row.id === item.id) ?? item)
 
   async function change(input: CartChange) {
-    if (changing.current || result.isPending || result.isError) return
-    changing.current = true
+    if (result.isPending || result.isError) return
+    if (input.type === 'remove' && changing.current > 0) return
+    const quantityId = input.type === 'quantity' ? input.input.id : null
+    if (quantityId && pendingQuantityIds.current.has(quantityId)) return
+    if (quantityId) {
+      pendingQuantityIds.current.add(quantityId)
+      setUpdatingQuantityIds(new Set(pendingQuantityIds.current))
+    }
+    changing.current += 1
     setIsChanging(true)
     setNotice('')
     try {
@@ -75,8 +85,12 @@ export function useCart() {
     } catch {
       setNotice('일부 변경을 처리하지 못했습니다. 장바구니를 다시 확인해 주세요.')
     } finally {
-      changing.current = false
-      setIsChanging(false)
+      changing.current -= 1
+      if (quantityId) {
+        pendingQuantityIds.current.delete(quantityId)
+        setUpdatingQuantityIds(new Set(pendingQuantityIds.current))
+      }
+      setIsChanging(changing.current > 0)
     }
   }
 
@@ -84,9 +98,9 @@ export function useCart() {
     ...result, items: quotedItems, selectedIds, allSelected, notice,
     estimate, checkoutBlocked, quoteError: quote.isError || displayedQuote.isError,
     retryQuote: () => Promise.all([...(selectedIds.length ? [quote.refetch()] : []), ...(!sameSelection && allIds.length ? [allQuote.refetch()] : [])]),
-    isChanging,
-    toggle: (id: string) => { if (!changing.current) setExcludedIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]) },
-    toggleAll: () => { if (!changing.current) setExcludedIds(allSelected ? items.map((item) => item.id) : []) },
+    isChanging, updatingQuantityIds,
+    toggle: (id: string) => { if (changing.current === 0) setExcludedIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]) },
+    toggleAll: () => { if (changing.current === 0) setExcludedIds(allSelected ? items.map((item) => item.id) : []) },
     remove: (ids: string[]) => { if (ids.length) void change({ type: 'remove', ids: [...ids] }) },
     changeQuantity: (id: string, quantity: number) => { void change({ type: 'quantity', input: { id, quantity } }) },
   }

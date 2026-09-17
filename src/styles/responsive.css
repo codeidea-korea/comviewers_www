@@ -177,7 +177,8 @@
   .site-footer__bottom { align-items: flex-start; flex-direction: column; gap: 10px; height: auto; padding: 20px 0 28px; white-space: normal; }
 
   .product-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .products-hero { background-size: auto 100%; height: 220px; }
+  .products-hero { height: 220px; }
+  .products-hero::before { background-size: auto 100%; }
   .products-hero__content h1 { font-size: 32px; }
   .product-selectors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .selected-filters--open-list { height: auto; }
@@ -936,6 +937,17 @@
 .checkout-page--service .order-summary__box > .order-summary__rule { height: 1px; flex-shrink: 0; }
 .checkout-page--service .order-summary__amounts > div.sub { padding-left: 12px; }
 .checkout-page--service .order-summary__agreement span { min-width: 0; }
+.checkout-page--service .checkout-main > .checkout-discounts,
+.checkout-page--service .checkout-main > .checkout-customer,
+.checkout-page--service .checkout-main > .checkout-receipt,
+.checkout-page--service .checkout-customer .commerce-field,
+.checkout-page--service .checkout-receipt .commerce-field { height: auto; }
+.checkout-page--service .checkout-customer .commerce-field { min-height: 74px; }
+.checkout-page--service .order-summary__box { min-height: 0; }
+.checkout-page--service .order-summary__agreements { margin: 0; }
+.checkout-page--service .payment-methods__options { height: auto; }
+.checkout-page--service .commerce-product-row__heading > span { min-width: 0; overflow-wrap: anywhere; }
+.checkout-page--service .checkout-products .commerce-product-row__meta { min-height: 51px; }
 
 @media (max-width: 600px) {
   /* The seven RCPC columns contain access and device controls.  Shrinking the

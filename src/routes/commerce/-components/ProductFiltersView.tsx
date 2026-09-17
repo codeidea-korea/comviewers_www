@@ -5,7 +5,8 @@ import type { useProductList } from './hooks/useProductList'
 type FilterId = keyof DetailSelections
 type FilterMenuDefinition = { id: FilterId; label: string; count?: number } & ({ type: 'range'; options: string[] } | { type?: undefined; options: [string, number][] })
 type SelectionProps = { selectedValues: string[]; onSelectionChange: (values: string[]) => void }
-import { useId, useState } from 'react'
+type PriceRangeProps = SelectionProps & { priceBasis?: 'monthly' | 'unit'; unitBounds?: { min: number; max: number } }
+import { useEffect, useId, useState } from 'react'
 import { Checkbox } from '../../../components/ui/CheckboxControl'
 import { LoadingState } from '../../../components/ui/LoadingStateControl'
 import filterChevronUpIcon from '../../../assets/figma/filter-chevron-up.svg'
@@ -79,43 +80,60 @@ function priceFromRangePercent(percent: number) {
   return Math.round(amount / 10000) * 10000
 }
 
-export function MonthlyPriceRange({ selectedValues, onSelectionChange }: SelectionProps) {
+function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'monthly', unitBounds }: PriceRangeProps) {
   const inputId = useId()
   const selectedAmount = Number(selectedValues[0])
-  const percent = selectedAmount > 0
-    ? Math.max(0, Math.min(100, selectedAmount <= 100000 ? (selectedAmount - 30000) / 70000 * 60 : 60 + (selectedAmount - 100000) / 400000 * 40))
-    : PRICE_RANGE_INITIAL_PERCENT
-  const amount = priceFromRangePercent(percent)
+  const unitMin = unitBounds?.min ?? 0
+  const unitMax = Math.max(unitMin + 1, unitBounds?.max ?? 500000)
+  const unitStep = unitMax - unitMin < 1000 ? 1 : 1000
+  const selectedPercent = priceBasis === 'unit'
+    ? selectedValues.length ? Math.max(0, Math.min(100, (selectedAmount - unitMin) / (unitMax - unitMin) * 100)) : 100
+    : selectedAmount > 0
+      ? Math.max(0, Math.min(100, selectedAmount <= 100000 ? (selectedAmount - 30000) / 70000 * 60 : 60 + (selectedAmount - 100000) / 400000 * 40))
+      : PRICE_RANGE_INITIAL_PERCENT
+  const [draftPercent, setDraftPercent] = useState<number | null>(null)
+  useEffect(() => { setDraftPercent(null) }, [selectedAmount, priceBasis])
+  const percent = draftPercent ?? selectedPercent
+  const amountFromPercent = (value: number) => priceBasis === 'unit'
+    ? Math.min(unitMax, Math.max(unitMin, Math.round((unitMin + (unitMax - unitMin) * value / 100) / unitStep) * unitStep))
+    : priceFromRangePercent(value)
+  const amount = amountFromPercent(percent)
   const formattedAmount = amount.toLocaleString('ko-KR')
   const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && priceFromRangePercent(preset.percent) === selectedAmount)?.label ?? '전체'
+  const commitAmount = (nextPercent: number) => {
+    const nextAmount = amountFromPercent(nextPercent)
+    if (nextAmount !== selectedAmount || selectedValues.length === 0) onSelectionChange([String(nextAmount)])
+    else setDraftPercent(null)
+  }
 
   return (
     <>
-      <div className="product-filter-price"><span>30,000원</span><span>500,000원</span></div>
+      <div className="product-filter-price"><span>{priceBasis === 'unit' ? unitMin.toLocaleString('ko-KR') : '30,000'}원</span><span>{priceBasis === 'unit' ? unitMax.toLocaleString('ko-KR') : '500,000'}원</span></div>
       <div className="product-filter-range" style={{ '--range-percent': `${percent}%` } as CSSProperties}>
         <input
-          aria-label="월 렌탈료 범위"
+          aria-label={priceBasis === 'unit' ? '상품 금액 범위' : '월 렌탈료 범위'}
           aria-valuetext={`${formattedAmount}원`}
           id={inputId}
           max="100"
           min="0"
-          onChange={(event) => {
-            const nextPercent = Number(event.target.value)
-            onSelectionChange([String(priceFromRangePercent(nextPercent))])
-          }}
+          onChange={(event) => setDraftPercent(Number(event.target.value))}
+          onPointerUp={(event) => { if (draftPercent !== null) commitAmount(Number(event.currentTarget.value)) }}
+          onKeyUp={(event) => { if (draftPercent !== null) commitAmount(Number(event.currentTarget.value)) }}
+          onBlur={(event) => { if (draftPercent !== null) commitAmount(Number(event.currentTarget.value)) }}
           type="range"
           value={percent}
         />
         <span aria-hidden="true" className="product-filter-range__track"><i className="is-min" /><i className="is-active" /><i className="is-selected" /><i className="is-inactive" /></span>
         <output htmlFor={inputId}>{formattedAmount}</output>
       </div>
-      <div aria-label="월 렌탈료 사양 선택" className="product-filter-pills" role="group">
+      {priceBasis === 'monthly' ? <div aria-label="월 렌탈료 사양 선택" className="product-filter-pills" role="group">
         {PRICE_RANGE_PRESETS.map((preset) => (
           <button
             aria-pressed={activePreset === preset.label}
             className={activePreset === preset.label ? 'is-active' : ''}
             key={preset.label}
             onClick={() => {
+              setDraftPercent(null)
               onSelectionChange(preset.label === '전체' ? [] : [String(priceFromRangePercent(preset.percent))])
             }}
             type="button"
@@ -123,7 +141,7 @@ export function MonthlyPriceRange({ selectedValues, onSelectionChange }: Selecti
             {preset.label}
           </button>
         ))}
-      </div>
+      </div> : null}
     </>
   )
 }
@@ -169,7 +187,7 @@ function FilterMenu({ menu, isOpen, onToggle, selectedValues, onSelectionChange,
   return (
     <ProductFilterMenuFrame count={menu.count} id={menu.id} isOpen={isOpen} label={menu.label} onSelectAll={(checked) => onSelectionChange(checked ? (isRange ? ['100000'] : optionLabels) : [])} onToggle={onToggle} selected={selected}>
       {menu.type === 'range' ? (
-        <MonthlyPriceRange onSelectionChange={onSelectionChange} selectedValues={selectedValues} />
+        <ProductPriceRange onSelectionChange={onSelectionChange} selectedValues={selectedValues} />
       ) : (
         <div className="product-filter-options">
           {menu.options.map(([label, count]) => <label key={label}><Checkbox checked={selectedValues.includes(label)} onChange={(event) => toggleValue(label, event.target.checked)} /><span>{label}</span><small>{facetCounts === null ? '—' : facetCounts ? (facetCounts[label] ?? 0) : count}</small></label>)}
@@ -183,6 +201,11 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
   const { filterMetadata: metadata, catalogSelections: selected, setCatalogSelections: update } = controls
   const priceBasis = selected.priceBasis ?? 'monthly'
   const priceLabel = priceBasis === 'unit' ? '상품 금액' : '월 렌탈료'
+  const unitBuckets = metadata?.priceBuckets.filter(bucket => bucket.priceBasis === 'unit') ?? []
+  const unitBounds = unitBuckets.length ? {
+    min: Math.min(...unitBuckets.map(bucket => bucket.minPrice)),
+    max: Math.max(...unitBuckets.map(bucket => bucket.maxPrice)),
+  } : undefined
   const [notice, setNotice] = useState('')
   const [collapsedMenus, setCollapsedMenus] = useState<Set<string>>(() => new Set())
   const ids = selected.filterOptionIds ?? []
@@ -230,9 +253,9 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
     {controls.filterMetadataError ? <p role="alert">검색 조건을 불러오지 못했습니다. <button className="product-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}>다시 시도</button></p> : null}
     <section className="product-filter__section"><h2>이용 조건</h2>
       <ProductFilterMenuFrame count={1} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
-        onSelectAll={(checked) => update({ priceBasis, minPrice: undefined, maxPrice: checked ? 100000 : undefined })}
+        onSelectAll={(checked) => update({ priceBasis, minPrice: undefined, maxPrice: checked ? (priceBasis === 'unit' ? unitBounds?.max ?? 500000 : 100000) : undefined })}
         onToggle={() => toggleMenu(priceMenuId)} selected={selected.minPrice !== undefined || selected.maxPrice !== undefined}>
-        <MonthlyPriceRange selectedValues={selected.maxPrice === undefined ? [] : [String(selected.maxPrice)]}
+        <ProductPriceRange priceBasis={priceBasis} unitBounds={unitBounds} selectedValues={selected.maxPrice === undefined ? [] : [String(selected.maxPrice)]}
           onSelectionChange={(values) => update({ priceBasis, minPrice: undefined, maxPrice: values[0] ? Number(values[0]) : undefined })} />
       </ProductFilterMenuFrame>
     </section>
@@ -241,17 +264,17 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
     {renderCategory('ram', 'RAM')}
     {renderCategory('disk', 'DISK')}
     {renderCategory('gpu', 'GPU')}
-    <section className="product-filter__section"><h2>이용 환경</h2>
-      <ProductFilterMenuFrame id={deviceMenuId} isOpen={isMenuOpen(deviceMenuId)} label="주변 기기"
+    {selected.categoryCode !== 'parts' || gameGroups.length > 0 ? <section className="product-filter__section"><h2>이용 환경</h2>
+      {selected.categoryCode !== 'parts' ? <ProductFilterMenuFrame id={deviceMenuId} isOpen={isMenuOpen(deviceMenuId)} label="주변 기기"
         onSelectAll={(checked) => update({ keyboardConnectionStatus: checked ? 'connected' : undefined, mouseConnectionStatus: checked ? 'connected' : undefined })}
         onToggle={() => toggleMenu(deviceMenuId)} selected={deviceSelected}>
         <div className="product-filter-options">
           <label><Checkbox checked={selected.keyboardConnectionStatus === 'connected'} onChange={(event) => update({ keyboardConnectionStatus: event.target.checked ? 'connected' : undefined })} /><span>키보드</span></label>
           <label><Checkbox checked={selected.mouseConnectionStatus === 'connected'} onChange={(event) => update({ mouseConnectionStatus: event.target.checked ? 'connected' : undefined })} /><span>마우스</span></label>
         </div>
-      </ProductFilterMenuFrame>
+      </ProductFilterMenuFrame> : null}
       {gameGroups.map(renderGroup)}
-    </section>
+    </section> : null}
     {notice ? <p role="alert">{notice}</p> : null}
   </>
 }

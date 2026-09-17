@@ -24,6 +24,7 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
     options: metadata!.rooms.filter(room => (room.groupName || '서버실') === label).map(room => ({ value: String(room.id), label: room.name })),
   }))
   const selectedRoomLabels = selected.rooms.map(id => metadata?.rooms.find(room => String(room.id) === id)?.name ?? `서버실 ${id}`)
+  const priceLabel = selected.priceBasis === 'unit' ? '상품 금액' : '월 렌탈료'
   const selectedOptions = selected.filterOptionIds ?? []
   const groupsByCategory = (categoryCode: string) => metadata?.groups.filter(group => group.categoryCode === categoryCode) ?? []
   const categoryOptionIds = (categoryCode: string) => groupsByCategory(categoryCode).flatMap(group => group.options.map(option => option.id))
@@ -45,10 +46,10 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
         selectedValues: new Set(options.map(option => String(option.id))), groups: categoryGroups(categoryCode),
         value: options.length ? `${options[0].label}${options.length > 1 ? ` 외 ${options.length - 1}개` : ''}` : '전체' }
     }),
-  ]
+  ].filter(selector => selector.selectedValues.size > 0 || selector.groups.some(group => group.options.length > 0))
   const tags = metadata?.groups.flatMap(group => {
     const options = group.options.filter(option => selectedOptions.includes(option.id))
-    if (!options.length || options.length === group.options.length) return []
+    if (!options.length) return []
     return [{ id: String(group.id), label: `${group.categoryName ?? '분류 미지정'} / ${group.name} ${options.slice(0, 2).map(option => option.label).join(', ')}${options.length > 2 ? ` +${options.length - 2}개` : ''}`,
       remove: () => update({ filterOptionIds: selectedOptions.filter(id => !group.options.some(option => option.id === id)) }) }]
   }) ?? []
@@ -80,7 +81,7 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
     <div className={`selected-filters${hasSelectedFilters ? '' : ' is-empty'}`}><div className="selected-filters__title"><img alt="" src={filterTuneIcon} /><span>필터</span></div><div className="selected-filters__body"><div className="selected-filters__tags">
       {selectedRoomLabels.length ? <button aria-label={`서버실 ${selectedRoomLabels[0]}${selectedRoomLabels.length > 1 ? ` 외 ${selectedRoomLabels.length - 1}개` : ''} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ rooms: [] })}>서버실 {selectedRoomLabels[0]}{selectedRoomLabels.length > 1 ? ` 외 ${selectedRoomLabels.length - 1}개` : ''}<img alt="" src={productListCloseIcon} /></button> : null}
       {tags.map(tag => <button aria-label={`${tag.label} 필터 해제`} key={tag.id} className="selected-filters__tag" type="button" onClick={tag.remove}>{tag.label}<img alt="" src={productListCloseIcon} /></button>)}
-      {selected.minPrice !== undefined || selected.maxPrice !== undefined ? <button aria-label="월 렌탈료 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ minPrice: undefined, maxPrice: undefined })}>월 렌탈료 {selected.minPrice?.toLocaleString('ko-KR') ?? '0'} ~ {selected.maxPrice?.toLocaleString('ko-KR') ?? '제한 없음'}원<img alt="" src={productListCloseIcon} /></button> : null}
+      {selected.minPrice !== undefined || selected.maxPrice !== undefined ? <button aria-label={`${priceLabel} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ minPrice: undefined, maxPrice: undefined })}>{priceLabel} {selected.minPrice?.toLocaleString('ko-KR') ?? '0'} ~ {selected.maxPrice?.toLocaleString('ko-KR') ?? '제한 없음'}원<img alt="" src={productListCloseIcon} /></button> : null}
       {selected.keyboardConnectionStatus ? <button aria-label="키보드 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ keyboardConnectionStatus: undefined })}>키보드 조건<img alt="" src={productListCloseIcon} /></button> : null}
       {selected.mouseConnectionStatus ? <button aria-label="마우스 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ mouseConnectionStatus: undefined })}>마우스 조건<img alt="" src={productListCloseIcon} /></button> : null}
     </div><button className="selected-filters__reset" type="button" onClick={controls.resetFilters}>초기화 <img alt="" src={restartAltIcon} /></button></div></div>
