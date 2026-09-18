@@ -20,12 +20,15 @@ test('91일 이상 연장 행은 PDF 경고 문구로 표시한다', () => {
 })
 
 test('모바일 RCPC 별명 수정 버튼은 긴 별명 클리핑 영역 밖에 유지되고 퍼블리싱 문구를 따른다', () => {
-  const table = source('src/routes/mypage/-components/RcpcListTable.tsx')
-  const mobileCard = table.slice(table.indexOf('function LocalMobileRcpcCard'))
+  const table = source('src/routes/mypage/-components/RcpcListSurface.tsx')
+  const mobileCard = table.slice(table.indexOf('function MobileRcpcCard'), table.indexOf('function ', table.indexOf('function MobileRcpcCard') + 1))
+  const tools = source('src/routes/mypage/-components/RcpcItemTools.tsx')
+  const styles = source('src/styles/mobile-lists.css')
 
-  assert.match(mobileCard, /<strong><img[^>]+\/>\{item\.alias\}<\/strong>\s*<button aria-label=\{`\$\{item\.rcpcId\} RCPC 별명 설정`\}/)
-  assert.match(mobileCard, />\{item\.rcpcId\} <u>사양보기<\/u><\/button>/)
-  assert.match(mobileCard, /<dt>서버실<\/dt><dd>\{item\.company\} \{item\.center\}<\/dd>/)
-  assert.match(mobileCard, /<small>\{item\.endsAt\} 까지<\/small>/)
-  assert.match(mobileCard, /<dt>트래픽사용량<\/dt><dd>\{item\.traffic\}<\/dd>/)
+  assert.match(mobileCard, /<strong>[^\n]*<span>\{item\.preference\.alias \|\| item\.productNo\}<\/span><\/strong>\s*\{canEditAlias && mutations \? <RcpcAliasButton/)
+  assert.match(tools, /aria-label=\{`\$\{item\.productNo\} RCPC \$\{label\}`\}/)
+  assert.match(styles, /\.mobile-rcpc-card > header strong \{[^}]*overflow: hidden;[^}]*text-overflow: ellipsis/)
+  assert.match(mobileCard, /<span className="mobile-rcpc-card__spec"><span>\{item\.productNo\} <\/span><RcpcSpecButton/)
+  assert.match(mobileCard, /<dt>서버실<\/dt><dd>\{item\.serverRoomRegion \?\? '-'\} \/ \{item\.serverRoomName \?\? '-'\}<\/dd>/)
+  assert.match(mobileCard, /<dt>트래픽 사용량<\/dt><dd>\{totalTraffic\(/)
 })

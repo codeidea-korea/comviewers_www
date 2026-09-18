@@ -1,6 +1,6 @@
 import defaultAvatar from '@/assets/figma/review-avatar-blue.png'
 import type { ApiClient } from '@/api/httpClient'
-import { createProductReviewsApi, productReviewResponseSchema } from '@/api/productReviews'
+import { createProductReviewsApi, type ProductReviewResponse } from '@/api/productReviews'
 import { createProductReviewMutations } from '@/api/productReviewMutations'
 import {
   eligibleRentalSchema,
@@ -24,8 +24,7 @@ function dateLabel(value: string): string {
   }).format(date).replace(/\. /g, '.').replace(/\.$/, '')
 }
 
-function toReview(input: unknown): ProductReview {
-  const review = productReviewResponseSchema.parse(input)
+function toReview(review: ProductReviewResponse): ProductReview {
   return productReviewSchema.parse({
     id: review.id,
     productId: review.productNo,

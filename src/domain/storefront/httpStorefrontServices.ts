@@ -25,6 +25,7 @@ const toPost = (row: CommunityPostDto | CommunityDetailDto, baseUrl: string): Po
   content: paragraphs(row.content), richContent: richContent(row.richContent), attachments: 'attachments' in row ? row.attachments.map((file) => toPublicAttachment(file, baseUrl)) : [] })
 const toArticle = (row: CommunityPostDto | CommunityDetailDto, baseUrl: string): Article => ({
   id: String(row.id), articleId: String(row.id), number: row.pinned ? '공지' : row.id, title: row.title, date: date(row.createdAt), dateTime: contentDateTime(row.createdAt), pinned: row.pinned,
+  attachmentCount: 'attachmentCount' in row ? row.attachmentCount : row.attachments.length,
   content: paragraphs(row.content), richContent: richContent(row.richContent), attachments: 'attachments' in row ? row.attachments.map((file) => toPublicAttachment(file, baseUrl)) : [],
 })
 const toComment = (row: CommunityDetailDto['comments'][number]): Comment => ({ id: String(row.id), author: row.author, authorProfileImageUrl: row.authorProfileImageUrl ?? null,

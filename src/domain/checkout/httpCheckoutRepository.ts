@@ -54,11 +54,8 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
       })
     },
     async start(input) {
-      const terms = input.terms
-      if (!terms.length || terms.length > 2) throw new Error('현재 주문 약관을 확인할 수 없습니다.')
       const created = await orders.order({ cartItemIds: input.cartItemIds.map(value => Number(apiCartItemIdSchema.parse(value))), contact: input.contact,
-        userCouponId: input.userCouponId, pointAmount: input.pointAmount, expectedFinalAmount: input.expectedFinalAmount,
-        agreements: terms.map(item => ({ agreementType: item.agreementType, termsPolicyVersionId: item.termsPolicyVersionId })) }, input.idempotencyKey)
+        userCouponId: input.userCouponId, pointAmount: input.pointAmount, expectedFinalAmount: input.expectedFinalAmount }, input.idempotencyKey)
       if (created.finalAmount === 0) return orders.settleInternal(created.orderNo, input.idempotencyKey)
       const payment = await orders.prepare({ orderNo: created.orderNo, paymentMethod: input.payment,
         cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',
@@ -66,7 +63,6 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
       return payment
     },
     payment: orders.payment,
-    terms: orders.terms,
     resume: orders.resume,
     refresh: orders.refresh,
     benefitQuote: (ids, userCouponId, pointAmount, signal) => orders.benefitQuote({ cartItemIds: ids.map(value => Number(apiCartItemIdSchema.parse(value))), userCouponId, pointAmount }, signal),

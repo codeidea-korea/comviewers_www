@@ -51,7 +51,7 @@ test('실제 라우트는 인증·권한 상태와 PDF 대시보드 CTA·반응�
   const server = await createServer({
     root: projectRoot,
     logLevel: 'error',
-    server: { host: '127.0.0.1', port: 0, strictPort: false },
+    server: { host: '127.0.0.1', port: 0, strictPort: false, hmr: false },
   })
   try {
     await server.listen()

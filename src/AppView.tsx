@@ -27,6 +27,7 @@ const MypageHomePage = lazy(() => import('./routes/mypage/MypageHomePageView').t
 const OrderDetailPage = lazy(() => import('./routes/mypage/OrderDetailPageView').then(module => ({ default: module.OrderDetailPage })))
 const OrdersPage = lazy(() => import('./routes/mypage/OrderPagesView').then(module => ({ default: module.OrdersPage })))
 const ProfilePage = lazy(() => import('./routes/mypage/ProfilePageView').then(module => ({ default: module.ProfilePage })))
+const LoginMethodsPage = lazy(() => import('./routes/mypage/LoginMethodsPageView').then(module => ({ default: module.LoginMethodsPage })))
 const RcpcDetailPage = lazy(() => import('./routes/mypage/RcpcPagesView').then(module => ({ default: module.RcpcDetailPage })))
 const RcpcListPage = lazy(() => import('./routes/mypage/RcpcPagesView').then(module => ({ default: module.RcpcListPage })))
 const ExtensionCheckoutPage = lazy(() => import('./routes/mypage/ExtensionCheckoutPage').then(module => ({ default: module.ExtensionCheckoutPage })))
@@ -108,6 +109,7 @@ export function App() {
       <Route path="mypage/inquiries/:inquiryId" element={<SessionRouteGate requireOrganization><InquiryDetailPage /></SessionRouteGate>} />
       <Route path="mypage/managers" element={<SessionRouteGate requireOrganization><ManagersPage /></SessionRouteGate>} />
       <Route path="mypage/profile" element={<SessionRouteGate requireOrganization><ProfilePage /></SessionRouteGate>} />
+      <Route path="mypage/login-methods" element={<SessionRouteGate requireOrganization><LoginMethodsPage /></SessionRouteGate>} />
       <Route path="company" element={<CompanyAboutPage />} />
       <Route path="colocation/apply" element={<ColocationApplyPage />} />
       <Route path="terms" element={<LegalPage />} />

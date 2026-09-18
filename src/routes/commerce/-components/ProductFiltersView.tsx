@@ -65,10 +65,10 @@ type CatalogFilterGroup = CatalogFilterMetadata['groups'][number]
 
 const PRICE_RANGE_INITIAL_PERCENT = 60
 const PRICE_RANGE_PRESETS = [
-  { label: '전체', percent: 60 },
-  { label: '일반 사양', percent: 34.2857142857 },
-  { label: '고사양', percent: 65 },
-  { label: '전문가용', percent: 100 },
+  { label: '전체', percent: PRICE_RANGE_INITIAL_PERCENT },
+  { label: '일반 사양', min: 30000, max: 70000, percent: 34.2857142857 },
+  { label: '고사양', min: 80000, max: 150000, percent: 65 },
+  { label: '전문가용', min: 160000, max: 500000, percent: 100 },
 ]
 
 function priceFromRangePercent(percent: number) {
@@ -80,29 +80,36 @@ function priceFromRangePercent(percent: number) {
   return Math.round(amount / 10000) * 10000
 }
 
+function priceSelectionValue(value?: string) {
+  if (!value) return undefined
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : undefined
+}
+
 function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'monthly', unitBounds }: PriceRangeProps) {
   const inputId = useId()
-  const selectedAmount = Number(selectedValues[0])
+  const selectedMinAmount = selectedValues.length > 1 ? priceSelectionValue(selectedValues[0]) : undefined
+  const selectedAmount = selectedValues.length > 1 ? priceSelectionValue(selectedValues[1]) : priceSelectionValue(selectedValues[0])
   const unitMin = unitBounds?.min ?? 0
   const unitMax = Math.max(unitMin + 1, unitBounds?.max ?? 500000)
   const unitStep = unitMax - unitMin < 1000 ? 1 : 1000
   const selectedPercent = priceBasis === 'unit'
-    ? selectedValues.length ? Math.max(0, Math.min(100, (selectedAmount - unitMin) / (unitMax - unitMin) * 100)) : 100
-    : selectedAmount > 0
+    ? selectedAmount !== undefined ? Math.max(0, Math.min(100, (selectedAmount - unitMin) / (unitMax - unitMin) * 100)) : 100
+    : selectedAmount !== undefined && selectedAmount > 0
       ? Math.max(0, Math.min(100, selectedAmount <= 100000 ? (selectedAmount - 30000) / 70000 * 60 : 60 + (selectedAmount - 100000) / 400000 * 40))
       : PRICE_RANGE_INITIAL_PERCENT
   const [draftPercent, setDraftPercent] = useState<number | null>(null)
-  useEffect(() => { setDraftPercent(null) }, [selectedAmount, priceBasis])
+  useEffect(() => { setDraftPercent(null) }, [selectedAmount, selectedMinAmount, priceBasis])
   const percent = draftPercent ?? selectedPercent
   const amountFromPercent = (value: number) => priceBasis === 'unit'
     ? Math.min(unitMax, Math.max(unitMin, Math.round((unitMin + (unitMax - unitMin) * value / 100) / unitStep) * unitStep))
     : priceFromRangePercent(value)
   const amount = amountFromPercent(percent)
   const formattedAmount = amount.toLocaleString('ko-KR')
-  const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && priceFromRangePercent(preset.percent) === selectedAmount)?.label ?? '전체'
+  const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && preset.min === selectedMinAmount && preset.max === selectedAmount)?.label ?? '전체'
   const commitAmount = (nextPercent: number) => {
     const nextAmount = amountFromPercent(nextPercent)
-    if (nextAmount !== selectedAmount || selectedValues.length === 0) onSelectionChange([String(nextAmount)])
+    if (nextAmount !== selectedAmount || selectedValues.length === 0 || selectedMinAmount !== undefined) onSelectionChange([String(nextAmount)])
     else setDraftPercent(null)
   }
 
@@ -134,7 +141,7 @@ function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'mo
             key={preset.label}
             onClick={() => {
               setDraftPercent(null)
-              onSelectionChange(preset.label === '전체' ? [] : [String(priceFromRangePercent(preset.percent))])
+              onSelectionChange(preset.min === undefined || preset.max === undefined ? [] : [String(preset.min), String(preset.max)])
             }}
             type="button"
           >
@@ -255,8 +262,8 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
       <ProductFilterMenuFrame count={1} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
         onSelectAll={(checked) => update({ priceBasis, minPrice: undefined, maxPrice: checked ? (priceBasis === 'unit' ? unitBounds?.max ?? 500000 : 100000) : undefined })}
         onToggle={() => toggleMenu(priceMenuId)} selected={selected.minPrice !== undefined || selected.maxPrice !== undefined}>
-        <ProductPriceRange priceBasis={priceBasis} unitBounds={unitBounds} selectedValues={selected.maxPrice === undefined ? [] : [String(selected.maxPrice)]}
-          onSelectionChange={(values) => update({ priceBasis, minPrice: undefined, maxPrice: values[0] ? Number(values[0]) : undefined })} />
+        <ProductPriceRange priceBasis={priceBasis} unitBounds={unitBounds} selectedValues={selected.minPrice === undefined && selected.maxPrice === undefined ? [] : [selected.minPrice === undefined ? '' : String(selected.minPrice), selected.maxPrice === undefined ? '' : String(selected.maxPrice)]}
+          onSelectionChange={(values) => update({ priceBasis, minPrice: values.length > 1 ? priceSelectionValue(values[0]) : undefined, maxPrice: values.length > 1 ? priceSelectionValue(values[1]) : priceSelectionValue(values[0]) })} />
       </ProductFilterMenuFrame>
     </section>
     {renderCategory('os', 'OS')}

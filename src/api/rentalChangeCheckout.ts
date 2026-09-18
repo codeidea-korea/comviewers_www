@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { productNoResponseSchema } from './productNo'
 import type { ApiClient } from './httpClient'
-import { createOrdersPaymentsApi } from './ordersPayments'
 
 const id = z.number().int().positive().safe()
 const money = z.number().int().safe()
@@ -100,7 +99,6 @@ const checkout = z.object({
     messengerType: z.string().max(50).nullable(),
     messengerId: z.string().max(100).nullable(),
   }),
-  agreements: z.object({ agreementType: z.string(), termsPolicyVersionId: id }).array().length(2),
 })
 export type RentalChangeCheckoutInput = z.infer<typeof checkout>
 export type RentalChangeCase = z.infer<typeof rentalChangeCaseSchema>
@@ -110,7 +108,6 @@ export type RentalChangeCheckoutQuote = z.infer<typeof checkoutQuote>
 export function createRentalChangeCheckoutApi(client: ApiClient, organizationId: string) {
   const scoped = { authenticated: true, customerOrganizationId: organizationId } as const
   return {
-    terms: createOrdersPaymentsApi(client, organizationId).terms,
     list: (rentalId: number, signal?: AbortSignal) => client.request(`/api/v1/my/rentals/${id.parse(rentalId)}/changes`, rentalChangeCaseSchema.array(), { ...scoped, signal }),
     detail: (caseId: number, signal?: AbortSignal) => client.request(`/api/v1/my/rental-changes/${id.parse(caseId)}`, detail, { ...scoped, signal }),
     quote: (caseId: number, value: RentalChangeSelection) => client.request(`/api/v1/my/rental-changes/${id.parse(caseId)}/quote`, checkoutQuote, {

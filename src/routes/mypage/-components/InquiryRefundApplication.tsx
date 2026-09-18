@@ -210,7 +210,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
         <label className="refund-application__agreement"><input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span><strong>[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.</strong><RelativeLink to="/terms?section=refund">환불 정책을 확인해주세요.</RelativeLink></span></label>
       </> : null}
       {submit.isError ? <p role="alert">{ambiguousFailure ? '접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요.' : submit.error instanceof Error ? submit.error.message : '신청을 접수하지 못했습니다.'}</p> : null}
-        <footer><button type="button" disabled={locked} onClick={close}>취소</button><button type="button" disabled={locked} onClick={() => { attempt.current = null; submit.reset(); setAgreed(false); setStep(1) }}>이전</button><button type="submit" disabled={!quoteCurrent || !agreed || !contactPhone.trim() || submit.isPending}>{submit.isPending ? '접수 중…' : ambiguousFailure ? '같은 요청으로 다시 접수' : '환불 신청하기'}</button></footer>
+        <footer><button type="button" disabled={locked} onClick={close}>취소</button><button type="button" disabled={locked} onClick={(event) => { event.preventDefault(); attempt.current = null; submit.reset(); setAgreed(false); setStep(1) }}>이전</button><button type="submit" disabled={!quoteCurrent || !agreed || !contactPhone.trim() || submit.isPending}>{submit.isPending ? '접수 중…' : ambiguousFailure ? '같은 요청으로 다시 접수' : '환불 신청하기'}</button></footer>
     </form>}
   </Modal>
 }

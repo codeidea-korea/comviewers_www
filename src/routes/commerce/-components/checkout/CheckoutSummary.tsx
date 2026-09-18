@@ -1,11 +1,9 @@
-import { useState } from 'react'
 import { cartIssueMessage } from '@/domain/cart/cartIssues'
 import { Radio } from '@/components/ui/RadioControl'
 import { Checkbox } from '@/components/ui/CheckboxControl'
 import { Button } from '@/components/ui/ButtonControl'
-import { Modal } from '@/components/ui/ModalControl'
 import type { CheckoutQuote } from '@/domain/checkout/checkoutRepository'
-import type { OrderBenefitQuote, OrderTerm } from '@/api/ordersPayments'
+import type { OrderBenefitQuote } from '@/api/ordersPayments'
 import radioOffIcon from '@/assets/figma/select-radio-off.svg'
 import radioOnIcon from '@/assets/figma/select-radio-on.svg'
 import mastercardIcon from '@/assets/figma/payment-mastercard.svg'
@@ -19,12 +17,9 @@ const paymentOptions: readonly { value: PaymentMethod; label: string; cardLogos?
   { value: 'virtual-account', label: '가상계좌' }, { value: 'card', label: '카드결제' },
   { value: 'payco', label: '페이코' }, { value: 'global-card', label: '', cardLogos: true },
 ]
-export function CheckoutSummary({ quote, benefits, form, refreshing, submissionBlocked, submitting, submitError, terms, onSubmit }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; refreshing: boolean; submissionBlocked: boolean; submitting: boolean; submitError: boolean; terms: readonly OrderTerm[]; onSubmit: () => void }) {
+export function CheckoutSummary({ quote, benefits, form, refreshing, submitting, submitError, onSubmit }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; refreshing: boolean; submitting: boolean; submitError: boolean; onSubmit: () => void }) {
   const amount = quote.estimate
-  const [activeTerm, setActiveTerm] = useState<OrderTerm | null>(null)
-  const orderTerm = terms.find(term => term.agreementType === 'order_content')
-  const paymentTerm = terms.find(term => term.agreementType === 'payment_gateway_terms')
-  return <><aside className="order-summary">
+  return <aside className="order-summary">
     <div className="order-summary__box">
       <h2>결제 금액</h2>
       <dl className="order-summary__amounts">
@@ -43,14 +38,13 @@ export function CheckoutSummary({ quote, benefits, form, refreshing, submissionB
       
       <div aria-hidden="true" className="order-summary__rule" />
       <div className="order-summary__agreements">
-        <div className="order-summary__agreement"><label><Checkbox checked={form.orderAgreed} onChange={(event) => form.setOrderAgreed(event.target.checked)} /> <span>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</span></label><button aria-label="주문 내용 약관 보기" disabled={!orderTerm} onClick={() => orderTerm && setActiveTerm(orderTerm)} type="button">›</button></div>
-        <div className="order-summary__agreement"><label><Checkbox checked={form.providerAgreed} onChange={(event) => form.setProviderAgreed(event.target.checked)} /> <span>[필수] 결제대행서비스 약관 동의</span></label><button aria-label="결제대행서비스 약관 보기" disabled={!paymentTerm} onClick={() => paymentTerm && setActiveTerm(paymentTerm)} type="button">›</button></div>
+        <div className="order-summary__agreement"><label><Checkbox checked={form.orderAgreed} onChange={(event) => form.setOrderAgreed(event.target.checked)} /> <span>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</span></label></div>
       </div>
       
     </div>
     {!quote.checkoutEligible && <div role="alert"><p>현재 주문할 수 없습니다.</p>{quote.issues.map((issue) => <p key={issue}>{cartIssueMessage(issue)}</p>)}</div>}
-    {form.errors.some(error => error.path === 'orderAgreed' || error.path === 'providerAgreed') && <div className="checkout-agreement-errors" role="alert">{form.errors.filter(error => error.path === 'orderAgreed' || error.path === 'providerAgreed').map(error => <p key={error.path}>{error.message}</p>)}</div>}
+    {form.fieldError('orderAgreed') && <div className="checkout-agreement-errors" role="alert"><p>{form.fieldError('orderAgreed')}</p></div>}
     {submitError ? <p role="alert">주문 또는 결제 준비를 완료하지 못했습니다. 같은 정보로 다시 시도하거나 주문내역을 확인해 주세요.</p> : null}
-    <Button className="commerce-primary-button" disabled={refreshing || submissionBlocked || submitting || !quote.checkoutEligible} fullWidth onClick={onSubmit} size="large">주문하기</Button>
-  </aside><Modal className="checkout-terms-modal" isOpen={Boolean(activeTerm)} onClose={() => setActiveTerm(null)} title={activeTerm?.title ?? '약관 보기'}><div className="checkout-terms-modal__document">{activeTerm?.content}</div></Modal></>
+    <Button className="commerce-primary-button" disabled={refreshing || submitting || !quote.checkoutEligible} fullWidth onClick={onSubmit} size="large">주문하기</Button>
+  </aside>
 }

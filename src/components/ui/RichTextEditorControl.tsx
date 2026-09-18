@@ -10,7 +10,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TextAlign from '@tiptap/extension-text-align'
-import { TextStyle } from '@tiptap/extension-text-style'
+import { FontSize, LineHeight, TextStyle } from '@tiptap/extension-text-style'
 import Underline from '@tiptap/extension-underline'
 import { NativeSelect } from './SelectControl'
 import iconLink from '../../assets/figma/icon-link.svg'
@@ -145,14 +145,14 @@ function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggl
 
   const changeFontSize = (event: ChangeEvent<HTMLSelectElement>) => {
     const { value } = event.target
-    if (value) editor.chain().focus().setMark('textStyle', { fontSize: value }).run()
-    else editor.chain().focus().removeEmptyTextStyle().run()
+    if (value) editor.chain().focus().setFontSize(value).run()
+    else editor.chain().focus().unsetFontSize().run()
   }
 
   const changeLineHeight = (event: ChangeEvent<HTMLSelectElement>) => {
     const { value } = event.target
-    if (value) editor.chain().focus().setMark('textStyle', { lineHeight: value }).run()
-    else editor.chain().focus().removeEmptyTextStyle().run()
+    if (value) editor.chain().focus().setLineHeight(value).run()
+    else editor.chain().focus().unsetLineHeight().run()
   }
 
   const setTextColor = (event: ChangeEvent<HTMLInputElement>) => editor.chain().focus().setColor(event.target.value).run()
@@ -208,6 +208,8 @@ export function RichTextEditor({ ariaLabel = '내용', ariaLabelledby, onChange,
       TextStyle,
       Color,
       FontFamily,
+      FontSize,
+      LineHeight,
       Highlight.configure({ multicolor: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Image,

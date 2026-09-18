@@ -90,7 +90,6 @@ export function OrderSummary({ buttonLabel = '주문하기', items = [], onPayme
         <div aria-hidden="true" className="order-summary__rule" />
         <div className="order-summary__agreements">
           <label className="order-summary__agreement"><Checkbox /> <span>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두<br />확인했습니다.</span></label>
-          <label className="order-summary__agreement"><Checkbox /> <span>[필수] 결제대행서비스 약관 동의</span></label>
         </div>
       </div>
       <Button className="commerce-primary-button" fullWidth onClick={onSubmit} size="large">{buttonLabel}</Button>

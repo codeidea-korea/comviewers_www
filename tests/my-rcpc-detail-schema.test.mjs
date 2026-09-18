@@ -7,13 +7,13 @@ import { createServer } from 'vite'
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 test('RCPC 상세 응답은 목록 전용 productTitle과 orderedAt 없이 파싱된다', async () => {
-  const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true } })
+  const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true, hmr: false } })
   try {
     const { myRcpcDetailSchema } = await server.ssrLoadModule('/src/api/myRcpc.ts')
     const detail = myRcpcDetailSchema.parse({
       rentalId: 1,
       pcAssetId: 2,
-      productNo: 'QA-U28-SPEC',
+      productNo: 28001,
       managementNo: 'QA-MGMT-1',
       serverRoomId: 3,
       serverRoomName: 'QA 서버실',
@@ -37,7 +37,7 @@ test('RCPC 상세 응답은 목록 전용 productTitle과 orderedAt 없이 파�
       usageStatus: 'using',
     })
 
-    assert.equal(detail.productNo, 'QA-U28-SPEC')
+    assert.equal(detail.productNo, '28001')
     assert.equal(detail.productTitle, null)
     assert.equal(detail.orderedAt, null)
   } finally {

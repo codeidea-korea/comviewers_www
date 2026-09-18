@@ -9,6 +9,7 @@ import { LoadingState } from '../../components/ui/LoadingStateControl'
 import { restoreRememberedLoginId } from '../../domain/auth/loginCredentials'
 import type { FormEvent } from 'react'
 import { AuthHeading, AuthLinks, AuthPage, AuthPanel, Checkbox, PasswordField, SocialLoginButtons } from './AuthComponentsView'
+import { pendingSocialLink } from './socialLinkIntent'
 
 const rememberedIdKey = 'comviewers.login.remembered-id'
 function readRememberedId() {
@@ -34,6 +35,8 @@ export function LoginPage() {
   const [rememberId, setRememberId] = useState(Boolean(savedId))
   const [loginError, setLoginError] = useState('')
   const [socialError, setSocialError] = useState('')
+  const pendingProvider = pendingSocialLink()
+  const providerLabel = pendingProvider === 'kakao' ? '카카오' : pendingProvider === 'naver' ? '네이버' : 'Google'
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -61,6 +64,7 @@ export function LoginPage() {
     <AuthPage>
       <AuthPanel>
         <AuthHeading title="로그인" /><SessionNotice />
+        {pendingProvider ? <p className="auth-notice" role="status">{providerLabel} 계정을 연결하려면 기존에 사용하던 로그인 수단으로 먼저 로그인해 주세요.</p> : null}
         <form className="auth-form auth-form--login" noValidate onSubmit={submit}>
           <TextField
             autoComplete="username"
@@ -87,7 +91,7 @@ export function LoginPage() {
           {loginError ? <p aria-live="polite" className="auth-notice auth-notice--error">{loginError}</p> : null}
           <AuthLinks />
         </form>
-        <SocialLoginButtons onSelect={(provider) => {
+        <SocialLoginButtons disabledProvider={pendingProvider} onSelect={(provider) => {
           setLoginError('')
           setSocialError('')
           try { auth.startSocialLogin(provider) }

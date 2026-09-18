@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { productNoResponseSchema } from './productNo'
 import type { ApiClient } from './httpClient'
-import { createOrdersPaymentsApi } from './ordersPayments'
 
 const id = z.number().int().positive().safe()
 const time = z.iso.datetime({ local: true })
@@ -21,7 +20,6 @@ const quote = z.object({ items: row.array(), totalAmount: z.number().int().nonne
 const create = z.object({ selection: extensionSelectionSchema, quoteHash: z.string().regex(/^[a-f0-9]{64}$/),
   contact: z.object({ name: z.string().trim().min(1).max(100), email: z.email().max(255), phone: z.string().trim().min(1).max(30),
     messengerType: z.string().max(50).nullable(), messengerId: z.string().max(100).nullable() }),
-  agreements: z.object({ agreementType: z.string(), termsPolicyVersionId: id }).array().length(2),
   offerIds: id.array().max(100).optional(),
 })
 export type ExtensionCheckoutInput = z.infer<typeof create>
@@ -31,7 +29,6 @@ export function createExtensionCheckoutApi(client: ApiClient, organizationId: st
     offers: () => client.request('/api/v1/my/rentals/extension-offers', z.object({ id, rentalId: id, productNo: productNoResponseSchema, title: z.string(),
       serverRoomName: z.string().nullable(), previousEnd: time, targetEnd: time, addedDays: z.number().int().min(1).max(90), quotedAmount: z.number().int().positive().safe(), createdAt: time }).array(), scoped),
     cancelOffer: (offerId: number) => client.request(`/api/v1/my/rentals/extension-offers/${id.parse(offerId)}`, z.unknown(), { ...scoped, method: 'DELETE' }),
-    terms: createOrdersPaymentsApi(client, organizationId).terms,
     quote: (selection: ExtensionSelection) => client.request('/api/v1/my/rentals/extension-checkout/quote', quote, {
       ...scoped, method: 'POST', body: extensionSelectionSchema.parse(selection),
     }),

@@ -108,7 +108,10 @@ function ProductDetailContent() {
         if (session.status !== 'authenticated') { setLoginRequiredOpen(true); return }
         cartAddition.add(String(product.productId), rentalPeriods)
       }} onBuy={(rentalPeriods) => {
-        if (session.status !== 'authenticated') { setLoginRequiredOpen(true); return }
+        if (session.status !== 'authenticated') {
+          void navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)
+          return
+        }
         directPurchase.mutate(rentalPeriods)
       }} />
       <section className="content-container product-detail-content">

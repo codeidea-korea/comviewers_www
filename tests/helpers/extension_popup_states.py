@@ -25,7 +25,7 @@ def rcpc_item():
     return {
         "rentalId": 901,
         "pcAssetId": 902,
-        "productNo": "QA-EXTENSION-01",
+        "productNo": 901001,
         "managementNo": "EXT-01",
         "serverRoomId": 71,
         "serverRoomName": "QA 서버실",
@@ -85,6 +85,9 @@ def common_response(route: Route):
         reply(route, {"cartId": None, "items": []})
     elif path == "/backend/api/v1/my/rcpcs":
         reply(route, {"items": [rcpc_item()], "page": 0, "size": 100 if "size=100" in route.request.url else 20, "totalElements": 1, "totalPages": 1})
+    elif path == "/backend/api/v1/my/rcpcs/filter-options":
+        reply(route, {"regions": ["서울"], "serverRooms": [{"id": 71, "name": "QA 서버실", "region": "서울"}],
+                      "total": 1, "usageCounts": {"using": 1}, "unclassifiedFavoriteCount": 0})
     elif path == "/backend/api/v1/my/rcpcs/901/reboot" and route.request.method == "GET":
         reply(route, {"status": "idle", "pending": False, "available": True})
     elif path == "/backend/api/v1/orders/terms":
@@ -99,8 +102,8 @@ def login_and_open_extension(page):
     page.get_by_label("비밀번호", exact=True).fill("Password1!")
     page.get_by_role("button", name="로그인", exact=True).click()
     page.wait_for_url("**/mypage/rcpc")
-    page.locator(".mypage-home-rcpc").get_by_text("연장 검수", exact=True).wait_for(state="visible")
-    page.locator(".mypage-home-rcpc__actions").get_by_role("button", name="기간연장", exact=True).click()
+    page.locator(".rcpc-list--table").get_by_text("연장 검수", exact=True).wait_for(state="visible")
+    page.locator(".rcpc-list__actions").get_by_role("button", name="기간연장", exact=True).click()
     return page.get_by_role("dialog", name="기간 연장")
 
 

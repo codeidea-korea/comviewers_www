@@ -221,10 +221,10 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
       ))}
     </nav>
     {status === 'used' ? <div className="coupons-history__filter"><button aria-expanded={periodOpen} onClick={() => setPeriodOpen((current) => !current)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button></div> : null}
-    {status === 'used' ? <div hidden={!periodOpen}><PeriodFilter open={periodOpen} onApply={(from, to) => {
+    {status === 'used' && periodOpen ? <PeriodFilter dates={dates} open onApply={(from, to) => {
       setDates({ from, to })
       setPage(0)
-    }} /></div> : null}
+    }} /> : null}
     <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
     {result.data ? <>
       <BenefitTable

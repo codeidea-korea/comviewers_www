@@ -58,11 +58,10 @@ export function RcpcReplacementCheckout({ api }: { api: MyRcpcReadServices }) {
   const [phone, setPhone] = useState('')
   const [coupon, setCoupon] = useState('')
   const [points, setPoints] = useState('0')
-  const [agreed, setAgreed] = useState<readonly number[]>([])
+  const [orderConfirmed, setOrderConfirmed] = useState(false)
   const draft = useRef<{ body: RentalChangeCheckoutInput; key: string } | null>(null)
   const authorized = session.status === 'authenticated' && !!session.customerSession?.commerceAvailable
   const detail = useQuery({ queryKey: ['rental-change', api.organizationId, changeId], enabled: valid && authorized, queryFn: ({ signal }) => api.changeCheckout.detail(id, signal) })
-  const terms = useQuery({ queryKey: ['rental-change-terms', api.organizationId], enabled: valid && authorized, queryFn: () => api.changeCheckout.terms() })
   const selection = { userCouponId: coupon ? Number(coupon) : null, pointAmount: Number(points) }
   const fingerprint = JSON.stringify(selection)
   const quote = useMutation({ mutationFn: async () => {
@@ -73,14 +72,13 @@ export function RcpcReplacementCheckout({ api }: { api: MyRcpcReadServices }) {
   const create = useMutation({ mutationFn: () => {
     if (!valid) throw new Error('올바른 교체 결제 주소가 아닙니다.')
     if (!draft.current) {
-      if (!current || !terms.data?.length || terms.data.some(term => !agreed.includes(term.termsPolicyVersionId))) {
-        throw new Error('교체 견적과 필수 약관을 확인해 주세요.')
+      if (!current || !orderConfirmed) {
+        throw new Error('교체 주문 내용을 확인해 주세요.')
       }
       draft.current = { key: crypto.randomUUID(), body: {
         selection,
         quoteHash: current.quoteHash,
         contact: { name: name.trim(), email: email.trim(), phone: phone.trim(), messengerType: null, messengerId: null },
-        agreements: terms.data.map(term => ({ agreementType: term.agreementType, termsPolicyVersionId: term.termsPolicyVersionId })),
       } }
     }
     return api.changeCheckout.create(id, draft.current.body, draft.current.key)
@@ -122,11 +120,10 @@ export function RcpcReplacementCheckout({ api }: { api: MyRcpcReadServices }) {
           <label>이름<input required maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)} /></label>
           <label>이메일<input required type="email" maxLength={255} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} /></label>
           <label>연락처<input required type="tel" maxLength={30} autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)} /></label>
-          {terms.data?.map(term => <div key={term.termsPolicyVersionId}><label><input type="checkbox" checked={agreed.includes(term.termsPolicyVersionId)} onChange={event => setAgreed(previous => event.target.checked ? [...previous, term.termsPolicyVersionId] : previous.filter(value => value !== term.termsPolicyVersionId))} />{term.title} (필수)</label><details><summary>약관 보기</summary><p style={{ whiteSpace: 'pre-wrap' }}>{term.content}</p></details></div>)}
+          <label><input type="checkbox" checked={orderConfirmed} onChange={event => setOrderConfirmed(event.target.checked)}/>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</label>
         </fieldset>
-        {terms.isError ? <p role="alert">주문 약관을 불러오지 못했습니다. <button type="button" onClick={() => void terms.refetch()}>다시 시도</button></p> : null}
         <p>결제 완료 후 관리자가 실제 장비 인계를 완료하면 RCPC 자산과 원격 접속 정보가 교체됩니다.</p>
-        <button type="submit" disabled={create.isPending || create.isSuccess || !terms.data?.length || terms.data.some(term => !agreed.includes(term.termsPolicyVersionId))}>{create.isError ? '같은 주문 다시 확인' : create.isPending ? '주문 생성 중…' : '교체 주문 생성'}</button>
+        <button type="submit" disabled={create.isPending || create.isSuccess || !orderConfirmed}>{create.isError ? '같은 주문 다시 확인' : create.isPending ? '주문 생성 중…' : '교체 주문 생성'}</button>
       </form> : null}</>}
       {detail.data?.events.length ? <details><summary>교체 처리 이력</summary>{detail.data.events.map(event => <p key={event.id}>{date(event.createdAt)} · {event.eventType} · {event.reason ?? ''}</p>)}</details> : null}</> : null}
     {create.error ? <p role="alert">{create.error.message} <Link to="/mypage/orders">주문 내역 확인</Link></p> : null}

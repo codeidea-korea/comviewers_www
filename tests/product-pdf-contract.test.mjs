@@ -5,23 +5,24 @@ import { test } from 'node:test'
 test('U15/U16 실제 상품 필터는 PDF 문구와 선택 태그 규칙을 따른다', async () => {
   const [list, filters, fallback, fallbackDetail] = await Promise.all([
     readFile(new URL('../src/routes/commerce/ProductListView.tsx', import.meta.url), 'utf8'),
-    readFile(new URL('../src/routes/commerce/-components/LiveProductFilters.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/routes/commerce/-components/ProductCatalogFilterControls.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/routes/commerce/-components/ProductListFilterControls.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/routes/commerce/-components/ProductFiltersView.tsx', import.meta.url), 'utf8'),
   ])
 
   assert.match(list, />새로운 상품이 등록될 예정입니다\.<\/div>/)
   assert.doesNotMatch(list, /조건에 맞는 상품이 없습니다\./)
-  assert.match(filters, /categoryCode === 'network' \? '인터넷'/)
-  assert.match(filters, /options\.length === group\.options\.length/)
+  assert.match(filters, /categoryCode === 'network' \? '회선'/)
+  assert.match(filters, /group\.options\.filter\(option => selectedOptions\.includes\(option\.id\)\)/)
+  assert.match(filters, /selectedOptions\.filter\(id => !group\.options\.some\(option => option\.id === id\)\)/)
   assert.match(fallback, /강림3서버실/)
   assert.doesNotMatch(fallback, /강림2서버실/)
   assert.match(fallback, /KT일반\/공용회선/)
   assert.match(fallback, /VPN\/와이어가드/)
   assert.match(fallback, /purpose', label: '게임'/)
   assert.match(fallbackDetail, /id: 'os', label: 'Windows'/)
-  assert.match(fallbackDetail, /label: '일반 사양', percent: 34\.2857142857/)
-  assert.match(fallbackDetail, /label: '고사양', percent: 65/)
+  assert.match(fallbackDetail, /label: '일반 사양', min: 30000, max: 70000, percent: 34\.2857142857/)
+  assert.match(fallbackDetail, /label: '고사양', min: 80000, max: 150000, percent: 65/)
 })
 
 test('U17 장바구니 확인 팝업은 저장 완료 후 PDF 구성으로 열린다', async () => {

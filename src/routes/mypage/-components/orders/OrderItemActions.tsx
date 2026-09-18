@@ -95,10 +95,11 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
 
   if (item.billingUnit === 'unit' && !item.rentalId) return null
   return <div className="order-catalog-item__action-support">
+    {item.rentalId && myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={!terminal && active} triggerLabel="해지신청" /> : null}
     {terminal ? null : item.refundPending && orderNo && orderDetail && myAccount.inquiryApi
       ? <RefundWithdrawalAction order={orderDetail} itemId={item.orderItemId} />
       : item.rentalId && myAccount.inquiryApi && active
-        ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerLabel="해지신청" />
+        ? null
         : <Button size="small" variant="secondary" disabled>해지신청</Button>}
     {!item.rentalId ? <Button size="small" variant="secondary" disabled>문의</Button>
       : myAccount.inquiryApi && myAccount.rcpcApi

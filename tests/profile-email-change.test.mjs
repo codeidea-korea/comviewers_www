@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { profileEmailChange } from '../src/routes/mypage/-components/http/profileEmailChange.ts'
+import { profileEmailChange } from '../src/routes/mypage/-components/profile/profileEmailChange.ts'
 
 test('blank optional email does not block unrelated profile changes', () => {
   assert.deepEqual(profileEmailChange(null, '', ''), {

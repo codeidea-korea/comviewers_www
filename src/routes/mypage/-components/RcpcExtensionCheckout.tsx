@@ -21,9 +21,8 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   const [phone, setPhone] = useState('')
   const [coupon, setCoupon] = useState(initialSelection?.userCouponId ? String(initialSelection.userCouponId) : '')
   const [points, setPoints] = useState(String(initialSelection?.pointAmount ?? 0))
-  const [agreed, setAgreed] = useState<readonly number[]>([])
+  const [orderConfirmed, setOrderConfirmed] = useState(false)
   const draft = useRef<{ body: ExtensionCheckoutInput; key: string } | null>(null)
-  const terms = useQuery({ queryKey: ['extension-terms', api.organizationId], queryFn: () => api.extensionCheckout.terms(), enabled: open })
   const selection = extensionSelectionSchema.safeParse({ rentalIds: [...rentalIds].sort((a, b) => a - b),
     userCouponId: coupon ? Number(coupon) : null, pointAmount: Number(points),
     ...(mode === 'days' ? { addedDays: Number(days) } : { targetEndDate: date }) })
@@ -41,12 +40,11 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   const current = quote.data
   const create = useMutation({ mutationFn: () => {
     if (!draft.current) {
-      if (!selection.success || !current?.eligible || !terms.data?.length || terms.data.some(term => !agreed.includes(term.termsPolicyVersionId))) {
-        throw new Error('연장 견적과 필수 약관을 확인해 주세요.')
+      if (!selection.success || !current?.eligible || !orderConfirmed) {
+        throw new Error('연장 주문 내용을 확인해 주세요.')
       }
       draft.current = { key: crypto.randomUUID(), body: { selection: selection.data, quoteHash: current.quoteHash, offerIds,
-        contact: { name: name.trim(), email: email.trim(), phone: phone.trim(), messengerType: null, messengerId: null },
-        agreements: terms.data.map(term => ({ agreementType: term.agreementType, termsPolicyVersionId: term.termsPolicyVersionId })) } }
+        contact: { name: name.trim(), email: email.trim(), phone: phone.trim(), messengerType: null, messengerId: null } } }
     }
     return api.extensionCheckout.create(draft.current.body, draft.current.key)
   } })
@@ -86,11 +84,10 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
           <label>이름<input required maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)}/></label>
           <label>이메일<input required type="email" maxLength={255} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)}/></label>
           <label>연락처<input required type="tel" maxLength={30} autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)}/></label>
-          {terms.data?.map(term => <div key={term.termsPolicyVersionId}><label><input type="checkbox" checked={agreed.includes(term.termsPolicyVersionId)} onChange={event => setAgreed(previous => event.target.checked ? [...previous, term.termsPolicyVersionId] : previous.filter(id => id !== term.termsPolicyVersionId))}/>{term.title} (필수)</label><details><summary>약관 보기</summary><p style={{ whiteSpace: 'pre-wrap' }}>{term.content}</p></details></div>)}
+          <label><input type="checkbox" checked={orderConfirmed} onChange={event => setOrderConfirmed(event.target.checked)}/>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</label>
         </fieldset>
-        {terms.isError && <p role="alert">주문 약관을 불러오지 못했습니다. <button type="button" onClick={() => void terms.refetch()}>다시 시도</button></p>}
         <p>확인한 금액으로 연장 주문을 만든 뒤 결제를 진행합니다. 결제 완료 후 기간이 반영됩니다.</p>
-        <button type="submit" disabled={create.isPending || create.isSuccess || !current.eligible || !terms.data?.length || terms.data.some(term => !agreed.includes(term.termsPolicyVersionId))}>{create.isError ? '같은 주문 다시 확인' : create.isPending ? '주문 생성 중…' : '연장 주문 생성'}</button>
+        <button type="submit" disabled={create.isPending || create.isSuccess || !current.eligible || !orderConfirmed}>{create.isError ? '같은 주문 다시 확인' : create.isPending ? '주문 생성 중…' : '연장 주문 생성'}</button>
       </form> : null}</>}
       {create.error && <p role="alert">{create.error.message} <Link to="/mypage/orders">주문 내역 확인</Link></p>}
       {canRevise && <button type="button" onClick={() => { draft.current = null; create.reset(); void quote.refetch() }}>입력 수정 후 견적 다시 확인</button>}

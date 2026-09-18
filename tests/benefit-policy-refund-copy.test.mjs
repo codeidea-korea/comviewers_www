@@ -7,7 +7,7 @@ const projectRoot = fileURLToPath(new URL('../', import.meta.url))
 
 test('포인트·쿠폰 정책 링크는 독립 포인트 정책 문서로 이동한다', () => {
   const benefit = readFileSync(
-    `${projectRoot}src/routes/mypage/-components/http/HttpBenefitPages.tsx`,
+    `${projectRoot}src/routes/mypage/-components/benefits/BenefitPagesContent.tsx`,
     'utf8',
   )
   const legal = readFileSync(`${projectRoot}src/routes/legal/LegalPage.tsx`, 'utf8')
@@ -50,11 +50,11 @@ test('신청 성공으로 행 상태가 바뀌어도 완료 팝업은 닫기 전
     'utf8',
   )
   const actions = readFileSync(
-    `${projectRoot}src/routes/mypage/-components/http/HttpOrderItemActions.tsx`,
+    `${projectRoot}src/routes/mypage/-components/orders/OrderItemActions.tsx`,
     'utf8',
   )
 
   assert.match(refund, /triggerEnabled = true/)
   assert.match(refund, /!triggerEnabled && !open/)
-  assert.match(actions, /triggerEnabled=\{active\}/)
+  assert.match(actions, /triggerEnabled=\{!terminal && active\}/)
 })

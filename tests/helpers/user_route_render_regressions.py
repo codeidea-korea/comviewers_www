@@ -110,7 +110,7 @@ def rcpc_item():
     return {
         "rentalId": 901,
         "pcAssetId": 902,
-        "productNo": "QA-CM-RCPC-01",
+        "productNo": 901001,
         "managementNo": "CM-01",
         "serverRoomId": 71,
         "serverRoomName": "QA 서버실",
@@ -174,6 +174,9 @@ def verify_c_manager_favorites_capabilities(browser):
             if "favorite=true" in route.request.url:
                 item = {**item, "preference": {**item["preference"], "favorite": True, "groupId": 81}}
             reply(route, {"items": [item], "page": 0, "size": 100 if "size=100" in route.request.url else 20, "totalElements": 1, "totalPages": 1})
+        elif path == "/backend/api/v1/my/rcpcs/filter-options":
+            reply(route, {"regions": ["서울"], "serverRooms": [{"id": 71, "name": "QA 서버실", "region": "서울"}],
+                          "total": 1, "usageCounts": {"using": 1}, "unclassifiedFavoriteCount": 0})
         elif path == "/backend/api/v1/my/rcpc-groups" and route.request.method == "GET":
             reply(route, [{"id": 81, "name": "QA 그룹", "parentGroupId": None, "groupLevel": 1, "displayOrder": 0, "rcpcCount": 1, "children": []}])
         elif path == "/backend/api/v1/my/rcpcs/901/reboot" and route.request.method == "GET":
@@ -189,7 +192,7 @@ def verify_c_manager_favorites_capabilities(browser):
     page.get_by_label("비밀번호", exact=True).fill("Password1!")
     page.get_by_role("button", name="로그인", exact=True).click()
     page.wait_for_url("**/mypage/rcpc")
-    page.locator(".mypage-home-rcpc").get_by_text("담당 RCPC", exact=True).wait_for(state="visible")
+    page.locator(".rcpc-list--table").get_by_text("담당 RCPC", exact=True).wait_for(state="visible")
 
     assert page.get_by_role("button", name="기간연장", exact=True).count() == 0
     assert page.get_by_role("link", name="기간연장", exact=True).count() == 0
@@ -200,11 +203,11 @@ def verify_c_manager_favorites_capabilities(browser):
 
     page.get_by_role("link", name="즐겨찾기", exact=True).click()
     page.wait_for_url("**/mypage/favorites")
-    page.locator(".favorites-live-results").wait_for(state="visible")
+    page.locator(".favorites-results").wait_for(state="visible")
     page.locator(".mypage-home-rcpc").get_by_text("담당 RCPC", exact=True).wait_for(state="visible")
     assert page.get_by_role("link", name="문의", exact=True).count() >= 1
-    assert page.locator('.favorites-live-groups a:has-text("편집")').count() == 1
-    assert page.locator('.favorites-live-groups button:has-text("추가")').count() == 1
+    assert page.locator('.favorites-groups a:has-text("편집")').count() == 1
+    assert page.locator('.favorites-groups button:has-text("추가")').count() == 1
     assert page.locator('button[form="favorite-groups-editor"]').count() == 0
     assert page.locator("#favorite-groups-editor").count() == 0
     assert page.get_by_role("button", name="그룹 변경", exact=True).count() == 1
@@ -226,6 +229,11 @@ def account_order():
         "orderNo": "QA-ORDER-801",
         "orderStatus": "paid",
         "paymentStatus": "approved",
+        "paymentMethod": None,
+        "paymentRecordStatus": None,
+        "virtualAccountStatus": None,
+        "virtualAccountDepositDueAt": None,
+        "paymentTerminationReason": None,
         "currency": "KRW",
         "subtotalAmount": 50000,
         "setupFeeAmount": 0,
@@ -236,7 +244,7 @@ def account_order():
         "reservationExpiresAt": None,
         "items": [{
             "orderItemId": 802,
-            "productNo": "QA-OWNER-RCPC-01",
+            "productNo": 901002,
             "title": "PDF 대시보드 검수 RCPC",
             "serverRoomName": "QA 서버실",
             "categoryCode": "RCPC",
@@ -330,9 +338,12 @@ def verify_dashboard_pdf_cta_and_responsive_product_search(browser):
             elif path == "/backend/api/v1/my/rcpcs":
                 if "productNo=" in parsed.query:
                     searched_queries.append(parsed.query)
-                item = {**rcpc_item(), "productNo": "QA-OWNER-RCPC-01"}
+                item = {**rcpc_item(), "productNo": 901002}
                 size = 10 if "size=10" in parsed.query else (5 if "size=5" in parsed.query else 20)
                 reply(route, {"items": [item], "page": 0, "size": size, "totalElements": 1, "totalPages": 1})
+            elif path == "/backend/api/v1/my/rcpcs/filter-options":
+                reply(route, {"regions": ["서울"], "serverRooms": [{"id": 71, "name": "QA 서버실", "region": "서울"}],
+                              "total": 1, "usageCounts": {"using": 1}, "unclassifiedFavoriteCount": 0})
             elif path == "/backend/api/v1/my/rcpcs/901/reboot":
                 reply(route, {"status": "idle", "pending": False, "available": True})
             elif path == "/backend/api/v1/my/orders":
@@ -340,6 +351,8 @@ def verify_dashboard_pdf_cta_and_responsive_product_search(browser):
                               "totalPages": 1, "allCount": 1, "completedCount": 1, "cancelledOrRefundedCount": 0})
             elif path == "/backend/api/v1/my/storage":
                 reply(route, {"items": [], "page": 0, "size": 1, "totalElements": 0, "totalPages": 0})
+            elif path == "/backend/api/v1/my/storage/summary":
+                reply(route, {"rentalCount": 0, "partCount": 0, "totalCount": 0})
             elif path == "/backend/api/v1/operation-requests":
                 reply(route, {"items": [], "page": 0, "size": 5, "total": 0})
             elif path == "/backend/api/v1/community/posts":
@@ -377,9 +390,9 @@ def verify_dashboard_pdf_cta_and_responsive_product_search(browser):
         assert search_box["x"] >= 0 and search_box["x"] + search_box["width"] <= width
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
-        search.fill("QA-OWNER-RCPC-01")
+        search.fill("901002")
         if width >= 768:
-            result = page.get_by_role("button", name="QA-OWNER-RCPC-01", exact=True)
+            result = page.get_by_role("button", name="901002", exact=True)
             result.wait_for(state="visible")
             result_box = result.bounding_box()
             assert result_box is not None
@@ -387,7 +400,7 @@ def verify_dashboard_pdf_cta_and_responsive_product_search(browser):
             result.click()
         else:
             page.get_by_role("button", name="조회", exact=True).click()
-        page.wait_for_url("**/mypage/rcpc?productNo=QA-OWNER-RCPC-01")
+        page.wait_for_url("**/mypage/rcpc?productNo=901002")
         if width >= 768:
             assert searched_queries, f"{width}px에서 품번 검색 API가 호출되지 않았습니다."
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")

@@ -25,7 +25,6 @@ export function useCheckoutForm() {
   const [receiptPhone, setReceiptPhoneState] = useState({ prefix: '010', middle: '', last: '' })
   const [errors, setErrors] = useState<CheckoutValidationError[]>([])
   const [orderAgreed, setOrderAgreedState] = useState(false)
-  const [providerAgreed, setProviderAgreedState] = useState(false)
   function clearError(path: string) {
     setErrors(current => current.filter(error => error.path !== path))
   }
@@ -51,18 +50,17 @@ export function useCheckoutForm() {
   }
   function setPayment(next: PaymentMethod) { setPaymentState(next); clearError('payment') }
   function setOrderAgreed(next: boolean) { setOrderAgreedState(next); clearError('orderAgreed') }
-  function setProviderAgreed(next: boolean) { setProviderAgreedState(next); clearError('providerAgreed') }
   function setReceiptNumber(next: string) { setReceiptNumberState(next); clearError('receiptIdentifier') }
   function setReceiptPhone(next: typeof receiptPhone) { setReceiptPhoneState(next); clearError('receiptIdentifier') }
   function validate(): CheckoutValidatedDraft | null {
     const result = checkoutDraftSchema.safeParse({
       contact: { name: contact.name, email: `${contact.emailId}@${contact.emailDomain}`, phone: contact.phoneMiddle || contact.phoneLast ? `${contact.phonePrefix}-${contact.phoneMiddle}-${contact.phoneLast}` : '', messengerType: contact.messenger, messengerId: contact.messengerId },
       payment, receiptType, receiptIdentifier: receiptType === 'business_expense' ? receiptNumber : `${receiptPhone.prefix}${receiptPhone.middle}${receiptPhone.last}`,
-      orderAgreed, providerAgreed,
+      orderAgreed,
     })
     setErrors(result.success ? [] : result.error.issues.map(issue => ({ path: issue.path.join('.'), message: issue.message })))
     return result.success ? result.data : null
   }
-  return { contact, changeContact, fillProfile, payment, setPayment, receiptType, changeReceiptType, receiptNumber, setReceiptNumber, receiptPhone, setReceiptPhone, orderAgreed, setOrderAgreed, providerAgreed, setProviderAgreed, errors, fieldError, validate }
+  return { contact, changeContact, fillProfile, payment, setPayment, receiptType, changeReceiptType, receiptNumber, setReceiptNumber, receiptPhone, setReceiptPhone, orderAgreed, setOrderAgreed, errors, fieldError, validate }
 }
 export type CheckoutFormModel = ReturnType<typeof useCheckoutForm>

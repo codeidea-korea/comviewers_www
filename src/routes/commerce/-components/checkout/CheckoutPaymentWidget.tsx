@@ -94,7 +94,7 @@ export function CheckoutPaymentWidget({ payment }: { payment: PreparedPayment })
     } catch { setError('결제가 완료되지 않았습니다. 결제수단을 확인하고 다시 시도해 주세요.') }
     finally { setBusy(false) }
   }
-  return <section className="checkout-payment-widget"><h2>결제 진행</h2><p>주문번호 {payment.orderNo} · {payment.amount.toLocaleString('ko-KR')}원</p><p>아래 결제창에서 최종 결제수단을 확인해 주세요.</p>
+  return <section className="checkout-payment-widget"><h2>결제 진행</h2><p>주문번호 {payment.orderNo} · {payment.amount.toLocaleString('ko-KR')}원</p><p>아래에서 결제수단과 결제대행서비스 약관을 확인해 주세요.</p>
     <div id={`payment-methods-${identifier}`} /><div id={`payment-agreement-${identifier}`} />
     {error && <p role="alert">{error}</p>}{!ready && error && <button type="button" onClick={() => { setError(''); setAttempt(value => value + 1) }}>결제창 다시 불러오기</button>}
     <button type="button" disabled={!ready || busy} onClick={() => void pay()}>{busy ? '결제 진행 중…' : '결제하기'}</button>

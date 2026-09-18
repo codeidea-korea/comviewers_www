@@ -7,19 +7,16 @@ const source = (path) => readFileSync(resolve(import.meta.dirname, '..', path), 
 
 test('상품 drawer는 overlay에서 본문을 밀지 않고 모바일 header로 닫는다', () => {
   const page = source('src/routes/commerce/ProductListView.tsx')
-  const legacyFilter = source('src/routes/commerce/-components/ProductFiltersView.tsx')
-  const liveFilter = source('src/routes/commerce/-components/LiveProductFilters.tsx')
+  const filter = source('src/routes/commerce/-components/ProductFiltersView.tsx')
   const mobileStyles = source('src/styles/mobile-products.css')
   const commerceStyles = source('src/styles/commerce.css')
 
   assert.match(page, /products-body\$\{filterOpen && !filterDrawer/)
   assert.match(page, /products-layout\$\{filterOpen && !filterDrawer/)
-  assert.match(page, /drawer filterRef=\{filterRef\} mobile=\{mobileViewport\}/)
-  assert.match(commerceStyles, /product-filter--drawer \{[\s\S]*box-sizing: border-box/)
-  for (const component of [legacyFilter, liveFilter]) {
-    assert.match(component, /product-filter-mobile-header/)
-    assert.match(component, /aria-label="상세 필터 닫기"/)
-  }
+  assert.match(page, /<DialogLayer[\s\S]*<ProductFilter[^>]*drawer facets=\{facets\} filterRef=\{filterRef\} mobile=\{mobileViewport\}/)
+  assert.match(commerceStyles, /\.product-filter-drawer-layer \.product-filter--drawer \{[\s\S]*?box-sizing: border-box/)
+  assert.match(filter, /product-filter-mobile-header/)
+  assert.match(filter, /aria-label="상세 필터 닫기"/)
   assert.match(mobileStyles, /product-filter--drawer > \.product-filter__caption,[\s\S]*product-filter--drawer > \.product-filter__close \{ display: none; \}/)
 })
 
@@ -29,8 +26,10 @@ test('상품 hero와 추천 상품 실패 상태는 단일 배경과 공통 상�
   const responsiveStyles = source('src/styles/responsive.css')
   const homeSection = source('src/routes/home/-components/HomeRecommendedSection.tsx')
 
-  assert.match(commerceStyles, /products-hero \{ background: #1d2143 url\('\.\.\/assets\/figma\/products-hero\.png'\)/)
-  assert.match(responsiveStyles, /products-hero \{ background-size: auto 100%; height: 220px; \}/)
+  assert.match(commerceStyles, /\.products-hero \{[^}]*background: #1d2143;[^}]*overflow: hidden;[^}]*position: relative;/)
+  assert.match(commerceStyles, /\.products-hero::before \{[^}]*background: url\('\.\.\/assets\/figma\/products-hero\.png'\)[^}]*position: absolute;/)
+  assert.match(responsiveStyles, /\.products-hero \{ height: 220px; \}/)
+  assert.match(responsiveStyles, /\.products-hero::before \{ background-size: auto 100%; \}/)
   assert.match(homeSection, /home-product-grid__state--error/)
   assert.match(pagesStyles, /home-product-grid__state--error button:focus-visible \{ outline: 2px solid var\(--color-primary-500\)/)
   assert.match(commerceStyles, /product-results-state__retry:focus-visible \{ outline: 2px solid var\(--color-primary-500\)/)

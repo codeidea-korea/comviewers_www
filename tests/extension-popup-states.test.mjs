@@ -51,7 +51,7 @@ test('실제 API 연장 팝업은 견적 로딩과 실패 상태를 노출하고
   const server = await createServer({
     root: projectRoot,
     logLevel: 'error',
-    server: { host: '127.0.0.1', port: 0, strictPort: false },
+    server: { host: '127.0.0.1', port: 0, strictPort: false, hmr: false },
   })
   try {
     await server.listen()

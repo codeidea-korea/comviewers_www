@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { customerProfilePatchSchema, type createCustomerProfileMutations } from '@/api/customerProfileMutations'
 import type { AccountProfileRead } from '@/api/myAccountSchemas'
 import { accountDate } from '../shared/AccountReadCommon'
@@ -17,12 +17,14 @@ import { emailDomainOptions, messengerOptionLabel, messengerOptions, phonePrefix
 import { listenForEmailVerification } from '@/routes/auth/-components/emailVerificationChannel'
 import { profileEmailChange } from './profileEmailChange'
 import { getChangedProfileFields, getProfileFieldErrors } from './profileEditorModel'
+import { profileCancelPath } from './profileCancelPath'
 import { Button } from '@/components/ui/ButtonControl'
 type ProfileMutations = ReturnType<typeof createCustomerProfileMutations>
 
 export function ProfileEditor({ mutations, profile, withdrawal, currentPassword }: { mutations: ProfileMutations; profile: AccountProfileRead; withdrawal?: CustomerWithdrawalApi; currentPassword: string }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const location = useLocation()
   const auth = useAuthentication()
   const [name, setName] = useState(profile.name ?? '')
   const [nickname, setNickname] = useState(profile.nickname ?? '')
@@ -116,7 +118,7 @@ export function ProfileEditor({ mutations, profile, withdrawal, currentPassword 
   const currentDomainOptions = emailDomain && !emailDomainOptions.includes(emailDomain) ? [emailDomain, ...emailDomainOptions] : emailDomainOptions
   return <><form className="profile-form profile-catalog" onSubmit={submit}>
     <ProfileImagePicker alt="프로필 이미지" disabled={save.isPending} inputClassName="sr-only" value={removeImage ? userProfileIcon : imagePreview || currentImage || userProfileIcon}
-      onError={setValidation} onSelect={(source, file) => { setImageFile(file); setImagePreview(source); setRemoveImage(false); setValidation('') }}/>
+      onSelect={(source, file) => { setImageFile(file); setImagePreview(source); setRemoveImage(false); setValidation('') }}/>
     <label className="profile-catalog__field"><span><b>*</b> 아이디</span><input disabled value={profile.username}/></label>
     <label className="profile-catalog__field"><span><b>*</b> 비밀번호</span><div className="profile-catalog__password"><input autoComplete="new-password" maxLength={16} onChange={event => { setTouched(current => ({ ...current, password: true })); setNewPassword(event.target.value) }} type={showPassword ? 'text' : 'password'} value={newPassword}/><button aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)} type="button"><img alt="" src={eyeIcon}/></button></div>{touched.password && fieldErrors.password ? <small className="is-error" role="alert">* {fieldErrors.password}</small> : null}</label>
     <label className="profile-catalog__field"><span><b>*</b> 비밀번호 확인</span><div className="profile-catalog__password"><input autoComplete="new-password" maxLength={16} onChange={event => { setTouched(current => ({ ...current, passwordConfirm: true })); setNewPasswordConfirm(event.target.value) }} type={showPasswordConfirm ? 'text' : 'password'} value={newPasswordConfirm}/><button aria-label={showPasswordConfirm ? '비밀번호 확인 숨기기' : '비밀번호 확인 보기'} aria-pressed={showPasswordConfirm} onClick={() => setShowPasswordConfirm(value => !value)} type="button"><img alt="" src={eyeIcon}/></button></div>{touched.passwordConfirm && fieldErrors.passwordConfirm ? <small className="is-error" role="alert">* {fieldErrors.passwordConfirm}</small> : null}</label>
@@ -125,7 +127,7 @@ export function ProfileEditor({ mutations, profile, withdrawal, currentPassword 
     <div className="profile-catalog__email"><span><b>*</b> E-mail</span><div><input aria-label="프로필 이메일 아이디" autoComplete="email" maxLength={100} onChange={event => { setTouched(current => ({ ...current, email: true })); setEmailLocal(event.target.value) }} value={emailLocal}/><i>@</i><input aria-label="프로필 이메일 도메인" list="profile-email-domains" maxLength={100} onChange={event => { setTouched(current => ({ ...current, email: true })); setEmailDomain(event.target.value) }} value={emailDomain}/><datalist id="profile-email-domains">{currentDomainOptions.map(option => <option key={option} value={option}/>)}</datalist></div>{touched.email && fieldErrors.email ? <small className="is-error" role="alert">* {fieldErrors.email}</small> : <small>* 이메일을 변경하시면 회원 인증을 다시 하셔야 합니다.</small>}<label className="profile-check"><Checkbox checked={marketingEmailAgreed} onChange={event => setMarketingEmailAgreed(event.target.checked)}/><span>[선택] 광고성 정보 수신 동의(이메일)</span><small className="profile-check__date">{marketingEmailAgreed ? `동의일자: ${accountDate(profile.marketingEmailConsentChangedAt)}` : '미동의'}</small></label></div>
     <div className="profile-catalog__phone"><span>핸드폰</span><div><NativeSelect aria-label="핸드폰 번호 앞자리" onChange={event => setPhonePrefix(event.target.value)} value={phonePrefix}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="핸드폰 번호 가운데 자리" inputMode="numeric" maxLength={4} onChange={event => { setTouched(current => ({ ...current, phone: true })); setPhoneMiddle(event.target.value.replace(/\D/g, '')) }} value={phoneMiddle}/><input aria-label="핸드폰 번호 끝자리" inputMode="numeric" maxLength={4} onChange={event => { setTouched(current => ({ ...current, phone: true })); setPhoneLast(event.target.value.replace(/\D/g, '')) }} value={phoneLast}/></div>{touched.phone && fieldErrors.phone ? <small className="is-error" role="alert">* {fieldErrors.phone}</small> : null}</div>
     <div className="profile-catalog__messenger"><span>메신저 ID</span><div><NativeSelect aria-label="메신저 선택" onChange={event => { setTouched(current => ({ ...current, messenger: true })); setMessengerType(event.target.value) }} value={messengerType}><option value="">선택 안 함</option>{messengerType && !messengerOptions.includes(messengerType) ? <option value={messengerType}>{messengerType}</option> : null}{messengerOptions.map(option => <option key={option} value={option}>{messengerOptionLabel(option)}</option>)}</NativeSelect><input aria-label="프로필 메신저 아이디" maxLength={100} onChange={event => { setTouched(current => ({ ...current, messenger: true })); setMessengerId(event.target.value) }} placeholder="메신저 ID 입력" value={messengerId}/></div>{touched.messenger && fieldErrors.messenger ? <small className="is-error" role="alert">* {fieldErrors.messenger}</small> : null}</div>
-    <div className="profile-catalog__actions"><Button disabled={pending} size="large" variant="secondary" type="submit">{pending ? '처리 중…' : '정보 수정'}</Button><Button disabled={pending} size="large" onClick={() => void navigate('/mypage')}>취소</Button></div>
+    <div className="profile-catalog__actions"><Button disabled={pending} size="large" variant="secondary" type="submit">{pending ? '처리 중…' : '정보 수정'}</Button><Button disabled={pending} size="large" onClick={() => void navigate(profileCancelPath(location.state), { replace: true })}>취소</Button></div>
     {validation ? <p className="mypage-notice" role="alert">{validation}</p> : null}
     {save.isError ? <p className="mypage-notice" role="alert">{save.error.message || '내 정보를 저장하지 못했습니다.'}</p> : null}
     {passwordChange.isError ? <p className="mypage-notice" role="alert">비밀번호를 변경하지 못했습니다.</p> : null}

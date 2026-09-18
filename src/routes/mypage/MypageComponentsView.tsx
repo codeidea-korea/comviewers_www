@@ -77,7 +77,8 @@ export function MyPageMobileHeader({ menuOpen = false, onBack, onMenuToggle, onS
 }
 
 export function MyPageLayout({ children, title }: { children: ReactNode; title?: string }) {
-  const { pathname } = useLocation()
+  const { pathname, search, hash, state } = useLocation()
+  const profileEntryState = pathname === '/mypage/profile' ? state : { openProfilePasswordGate: true, returnTo: `${pathname}${search}${hash}` }
   const navigate = useNavigate()
   const session = useSession()
   const auth = useAuthentication()
@@ -133,7 +134,7 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
       {mobileMenuOpen ? <nav aria-label="모바일 마이페이지 메뉴" className="mypage-mobile-menu" id="mypage-mobile-menu">
         {menu.map((group) => (
           <section className={group.items.length ? 'has-children' : ''} key={group.id}>
-            <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? { openProfilePasswordGate: true } : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
+            <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
             {group.items.map((item) => (
               item.disabled
                 ? <span className="mypage-mobile-menu__disabled" key={item.id}>{item.label}</span>
@@ -149,7 +150,7 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
           <nav aria-label="마이페이지 메뉴">
             {menu.map((group) => (
               <section key={group.id}>
-                <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? { openProfilePasswordGate: true } : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
+                <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
                 {group.items.map((item) => (
                   item.disabled ? <span className="mypage-sidebar__disabled" key={item.id}>{item.label}</span> : <Link
                     className={pathname === item.href ? 'is-active' : undefined}
@@ -206,10 +207,11 @@ export function StatusBadge({ children, tone = 'green' }: { children: ReactNode;
   return <span className={`mypage-status mypage-status--${tone}`}>{children}</span>
 }
 
-export function PeriodFilter({ open = false, onApply }: { open?: boolean; onApply?: (start: string, end: string) => void }) {
-  const [quickPeriod, setQuickPeriod] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+export function PeriodFilter({ dates, open = false, onApply }: { dates: { from: string; to: string }; open?: boolean; onApply?: (start: string, end: string) => void }) {
+  const [quickPeriod, setQuickPeriod] = useState(() =>
+    Object.entries(quickAccountDates()).find(([, [from, to]]) => from === dates.from && to === dates.to)?.[0] ?? '')
+  const [startDate, setStartDate] = useState(dates.from)
+  const [endDate, setEndDate] = useState(dates.to)
   const today = currentKstDate()
   const [selectedDay, setSelectedDay] = useState(Number(today.slice(8)))
   const [error, setError] = useState('')

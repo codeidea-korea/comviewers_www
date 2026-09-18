@@ -53,7 +53,8 @@ test('입점 신청 화면은 U58 PDF 문구를 유지하고 추론 UI를 노출
   assert.match(view, /placeholder="000-00-00000"/)
   assert.match(view, /파일당 최대 10MB/)
   assert.doesNotMatch(view, /증빙 종류|기타 증빙|시행일/)
-  assert.match(view, /\{live \? terms \? terms\.content/)
+  assert.match(view, /\{terms\?\.content \?\? '현재 확인할 수 있는 입점 약관이 없습니다\.'/)
+  assert.match(view, /disabled=\{pending \|\| !terms\}/)
   assert.match(
     readFileSync(`${projectRoot}src/routes/company/-components/colocationInput.ts`, 'utf8'),
     /사업자등록번호를 입력해 주세요\.[\s\S]*이메일을 입력해 주세요\.[\s\S]*상담 메신저 정보를 입력해 주세요\./,

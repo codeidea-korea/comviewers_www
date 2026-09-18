@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import test from 'node:test'
+import test, { after } from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { createServer } from 'vite'
 
 import { ApiClientError, createApiClient } from '../src/api/httpClient.ts'
-import { createOperationRequestsApi } from '../src/api/operationRequests.ts'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
+const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true, hmr: false } })
+after(() => server.close())
+const { createOperationRequestsApi } = await server.ssrLoadModule('/src/api/operationRequests.ts')
 
 test('U46 authenticated SSE sends bearer and organization headers and parses wake-up metadata', async () => {
   let request
@@ -92,7 +95,7 @@ test('U46 does not reconnect an unauthorized or forbidden stream', async () => {
 })
 
 test('U46 keeps REST as the query source of truth with bounded fallback and stream invalidation', () => {
-  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/HttpInquiryPages.tsx`, 'utf8')
+  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/inquiries/InquiryPagesContent.tsx`, 'utf8')
 
   assert.match(view, /api\.subscribeChatEvents\(id/)
   assert.match(view, /invalidateQueries\(\{ queryKey: chatKey \}\)/)

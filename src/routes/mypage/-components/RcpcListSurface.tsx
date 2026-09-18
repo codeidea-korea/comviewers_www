@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'

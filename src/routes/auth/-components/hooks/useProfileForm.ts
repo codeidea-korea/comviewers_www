@@ -98,7 +98,7 @@ export function useProfileForm() {
   const [usernameFeedback, setUsernameFeedback] = useState<UsernameFeedback>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const email = `${profile.emailId}@${profile.emailDomain}`
-  const complete = Boolean(profile.loginId && checkedUsername === profile.loginId && profile.password && profile.password === profile.passwordConfirm && profile.name && profile.nickname && profile.emailId && profile.emailDomain)
+  const complete = Boolean(profile.loginId && profile.password && profile.password === profile.passwordConfirm && profile.name && profile.nickname && profile.emailId && profile.emailDomain)
     && !Object.values(fieldErrors).some(Boolean)
 
   function setFieldValue(name: keyof typeof emptyProfile, value: string) {

@@ -221,9 +221,8 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 </label>
                 <span>
                   <button disabled={selected.length === 0} onClick={() => setInquiryOpen(true)} type="button">문의</button>
-                  {selectedRefundRentalIds.length > 0 && myAccount.inquiryApi
-                    ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerLabel="해지신청" />
-                    : <button disabled type="button">해지신청</button>}
+                  {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel="해지신청" /> : null}
+                  {selectedRefundRentalIds.length === 0 || !myAccount.inquiryApi ? <button disabled type="button">해지신청</button> : null}
                 </span>
               </div>
             {visibleGroups.map(([date, rows]) => <section className="orders-by-date" key={date}>
@@ -342,12 +341,15 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2>환불정보</h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)
       const refundProduct = refundedItem ? [refundedItem.productNo, refundedItem.serverRoomName].filter(Boolean).join(' · ') : '주문 전체'
-      const refundAmount = refund.approvedAmount ?? refund.requestedAmount
+      const pointRefund = refund.method === 'point'
+      const refundAmount = pointRefund
+        ? refund.approvedPointAmount ?? refund.requestedPointAmount
+        : refund.approvedAmount ?? refund.requestedAmount
       return <AccountInfo key={refund.requestId} rows={[
         ['환불상품', refundProduct],
         ['환불신청일자', accountDate(refund.requestedAt).slice(0, 19)],
         ['환불방식', refund.method === 'point' ? '포인트' : refund.method === 'cash' ? '원결제 수단 환불' : refund.method],
-        ['예상 환불금액', accountMoney(refundAmount)],
+        ['예상 환불금액', pointRefund ? `${refundAmount.toLocaleString('ko-KR')}점` : accountMoney(refundAmount)],
         ['환불상태', refundStatusLabels[refund.status] ?? refund.status],
         ['적립금 복원금액', `${(refund.restoredPoints ?? 0).toLocaleString('ko-KR')}점`],
       ]}/>

@@ -16,6 +16,7 @@ const loginResponseSchema = z.object({
 const organizationsSchema = z.array(z.object({ id: stringIdSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']), organizationNo: z.string().optional() }))
   .refine((values) => new Set(values.map((value) => value.id)).size === values.length)
 const socialSignupContextSchema = z.object({ provider: z.enum(['google', 'naver', 'kakao']), email: z.email().max(100), name: z.string().max(100).nullable() })
+const socialProviderSchema = z.enum(['google', 'naver', 'kakao'])
 const socialSignupInputSchema = z.object({
   name: z.string().trim().min(1).max(18),
   nickname: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/).or(z.literal('')),
@@ -104,6 +105,23 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
       const parsed = socialSignupInputSchema.safeParse(input)
       if (!parsed.success) throw new ApiClientError('request')
       return establishResult(await post('/api/auth/social/signup', parsed.data), false)
+    },
+    async linkedSocialProviders(accessToken) {
+      const result = await request('GET', '/api/v1/my/social-identities', undefined, accessToken)
+      const parsed = z.array(socialProviderSchema).safeParse(result.data)
+      if (!parsed.success) throw new ApiClientError('contract')
+      return parsed.data
+    },
+    async startSocialLink(provider, accessToken) {
+      const parsed = socialProviderSchema.parse(provider)
+      const result = await post(`/api/auth/social/link/${parsed}/authorization`, { confirmed: true }, accessToken)
+      const data = z.object({ authorizationUrl: z.url() }).safeParse(result.data)
+      if (!data.success) throw new ApiClientError('contract')
+      const destination = new URL(data.data.authorizationUrl)
+      if (destination.protocol !== 'https:' || !['accounts.google.com', 'kauth.kakao.com', 'nid.naver.com'].includes(destination.hostname)) {
+        throw new ApiClientError('contract')
+      }
+      return destination.href
     },
     async logout({ accessToken }) {
       // Let an in-flight rotation settle before clearing its cookie.

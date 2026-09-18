@@ -5,7 +5,6 @@ import type { ApiClient } from './httpClient'
 const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
 const time = z.iso.datetime({ local: true }).nullable()
-const term = z.object({ termsPolicyVersionId: id, policyKey: z.string(), agreementType: z.string(), title: z.string(), content: z.string(), contentHash: z.string(), effectiveFrom: z.iso.datetime({ local: true }) })
 const order = z.object({ orderId: id, orderNo: z.string(), orderStatus: z.string(), paymentStatus: z.string(), currency: z.string(),
   subtotalAmount: count, setupFeeAmount: count, finalAmount: count, reservationExpiresAt: time,
   items: z.array(z.object({ orderItemId: id, productNo: productNoResponseSchema, title: z.string(), quantity: z.number().int().positive(), billingUnit: z.string(), durationUnits: z.number().int().positive().nullable(), unitPrice: count, setupFee: count, amount: count })) })
@@ -16,7 +15,6 @@ const prepared = z.object({ paymentId: id, orderNo: z.string(), paymentMethod: z
 const detail = z.object({ paymentId: id, orderNo: z.string(), paymentMethod: z.string(), provider: z.string(), amount: count, currency: z.string(),
   status: z.string(), approvedAt: time, createdAt: time, transactions: z.array(z.unknown()) })
 export type PaymentDetail = z.infer<typeof detail>
-export type OrderTerm = z.infer<typeof term>
 export type PreparedPayment = z.infer<typeof prepared>
 const benefitQuote = z.object({ subtotalAmount: count, setupFeeAmount: count, couponDiscountAmount: count, pointUsedAmount: count,
   finalAmount: count, availablePoints: count, userCouponId: id.nullable(),
@@ -30,7 +28,6 @@ export type PaymentConfirmationRequest = z.infer<typeof confirmationRequest>
 export function createOrdersPaymentsApi(client: ApiClient, organizationId: string) {
   const scoped = { authenticated: true, customerOrganizationId: organizationId } as const
   return {
-    terms: () => client.request('/api/v1/orders/terms', term.array(), { authenticated: true }),
     resume: (orderNo: string, key: string) => client.request('/api/v1/payments/resume', prepared, { ...scoped, method: 'POST', body: { orderNo, paymentMethod: 'card', cashReceiptType: 'not_requested', cashReceiptIdentifier: null }, idempotencyKey: z.uuidv4().parse(key) }),
     benefitQuote: (body: { cartItemIds: number[]; userCouponId: number | null; pointAmount: number }, signal?: AbortSignal) => client.request('/api/v1/orders/quote', benefitQuote, { ...scoped, method: 'POST', body, signal }),
     order: (body: unknown, key: string) => client.request('/api/v1/orders', order, { ...scoped, method: 'POST', body, idempotencyKey: `order:${z.uuid().parse(key)}` }),

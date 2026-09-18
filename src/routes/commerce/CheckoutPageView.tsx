@@ -31,7 +31,6 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     enabled: Boolean(checkout.benefitQuote && result.data?.checkoutEligible && !prepared), retry: false })
   const benefitReady = !checkout.benefitQuote || Boolean(benefits.data && !benefits.isFetching && !benefits.isError)
   const form = useCheckoutForm()
-  const terms = useQuery({ queryKey: ['checkout', 'terms'], enabled: Boolean(checkout.terms), queryFn: () => checkout.terms!(), staleTime: Infinity, retry: false })
   const profile = useMutation({ mutationFn: async (force: boolean) => ({ value: await myAccount.readApi!.profile(), force }), onSuccess: ({ value, force }) => form.fillProfile(value, force) })
   const profileLoaded = useRef(false)
   useEffect(() => {
@@ -41,9 +40,8 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const submit = useMutation({ mutationFn: async (draft: CheckoutValidatedDraft) => {
     if (!checkout.start) throw new Error('현재 주문을 진행할 수 없습니다.')
     const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'global-card': 'card' } as const)[draft.payment]
-    if (!terms.data?.length) throw new Error('현재 주문 약관을 확인해 주세요.')
     if (!benefits.data || !benefitReady) throw new Error('할인 금액을 다시 확인해 주세요.')
-    const input = { cartItemIds: ids, contact: draft.contact, payment, cashReceiptType: draft.receiptType, cashReceiptIdentifier: draft.receiptIdentifier, terms: terms.data,
+    const input = { cartItemIds: ids, contact: draft.contact, payment, cashReceiptType: draft.receiptType, cashReceiptIdentifier: draft.receiptIdentifier,
       userCouponId: couponId, pointAmount: Number(points), expectedFinalAmount: benefits.data.finalAmount }
     const signature = JSON.stringify(input)
     if (submissionKey.current?.signature !== signature) submissionKey.current = { signature, key: crypto.randomUUID() }
@@ -63,8 +61,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
               <CheckoutProducts items={result.data.items} /><CheckoutDiscounts quote={benefits.data} couponId={couponId} points={points} disabled={!checkout.benefitQuote || submit.isPending} pending={benefits.isFetching} error={benefits.isError} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={() => void benefits.refetch()} />
               {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
               <CheckoutCustomer form={form} pending={profile.isPending} />{showReceipt && <CheckoutReceipt form={form} />}
-              {checkout.terms && terms.isError ? <p role="alert">주문 약관을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : null}
-            </div><CheckoutSummary quote={result.data} benefits={benefits.data} form={form} refreshing={result.isFetching || !benefitReady} submissionBlocked={terms.isPending || !terms.data?.length} submitting={submit.isPending} submitError={submit.isError} terms={terms.data ?? []} onSubmit={submitOrder} /></div> : null}
+            </div><CheckoutSummary quote={result.data} benefits={benefits.data} form={form} refreshing={result.isFetching || !benefitReady} submitting={submit.isPending} submitError={submit.isError} onSubmit={submitOrder} /></div> : null}
     </div>
   </AppShell>
 }

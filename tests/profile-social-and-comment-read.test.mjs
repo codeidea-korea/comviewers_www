@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import test from 'node:test'
+import test, { after } from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { createServer } from 'vite'
 
 import { createCommunityApi } from '../src/api/community.ts'
 import { createApiClient } from '../src/api/httpClient.ts'
 import { customerProfilePatchSchema } from '../src/api/customerProfileMutations.ts'
-import { profileResponseSchema } from '../src/api/myAccountSchemas.ts'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
+const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true, hmr: false } })
+after(() => server.close())
+const { profileResponseSchema } = await server.ssrLoadModule('/src/api/myAccountSchemas.ts')
+const { getProfileFieldErrors } = await server.ssrLoadModule('/src/routes/mypage/-components/profile/profileEditorModel.ts')
 
 test('U49 social-only profile response selects the password-reset notice branch', () => {
   const profile = profileResponseSchema.parse({
@@ -27,7 +31,7 @@ test('U49 social-only profile response selects the password-reset notice branch'
     updatedAt: null,
     profileImageAttachmentId: null,
   })
-  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/http/HttpAccountPages.tsx`, 'utf8')
+  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/profile/ProfilePageContent.tsx`, 'utf8')
 
   assert.equal(profile.socialLoginOnly, true)
   assert.match(view, /profile\.socialLoginOnly/)
@@ -73,7 +77,15 @@ test('U50 profile phone and messenger boundaries match the signup rules', () => 
   assert.equal(customerProfilePatchSchema.safeParse({ phone: '010-1234-5678' }).success, true)
   assert.equal(customerProfilePatchSchema.safeParse({ phone: '010-1234-' }).success, false)
 
-  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/http/HttpAccountPages.tsx`, 'utf8')
-  assert.match(view, /Boolean\(phoneMiddle\) !== Boolean\(phoneLast\)/)
-  assert.match(view, /메신저 종류와 아이디를 함께 입력해 주세요\./)
+  const fields = {
+    name: '테스트', nickname: '테스트', emailLocal: 'owner', emailDomain: 'example.com',
+    phonePrefix: '010', phoneMiddle: '1234', phoneLast: '', messengerType: 'kakao', messengerId: '',
+    marketingEmailAgreed: false, newPassword: '', newPasswordConfirm: '',
+  }
+  const errors = getProfileFieldErrors(fields, '')
+  assert.equal(errors.phone, '휴대폰 번호를 모두 입력해 주세요.')
+  assert.equal(errors.messenger, '메신저 종류와 아이디를 함께 입력해 주세요.')
+  const complete = getProfileFieldErrors({ ...fields, phoneLast: '5678', messengerId: 'owner' }, '')
+  assert.equal(complete.phone, '')
+  assert.equal(complete.messenger, '')
 })
