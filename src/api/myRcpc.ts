@@ -32,6 +32,7 @@ export const myRcpcItemSchema = z.object({
   trafficDownloadTotalBytes: count.nullable(), trafficUploadTotalBytes: count.nullable(), trafficObservedAt: instant, preference,
   pcSpec,
   remoteSupport,
+  wanIpConfigured: z.boolean().optional(),
 })
 export const myRcpcPageSchema = z.object({ items: z.array(myRcpcItemSchema), page: count, size: z.number().int().min(1).max(100), totalElements: count, totalPages: count })
 export const myRcpcSummarySchema = z.object({ total: count, usageCounts: z.object({ using: count, extension_waiting: count, ended: count, other: count }), statusCounts: z.object({

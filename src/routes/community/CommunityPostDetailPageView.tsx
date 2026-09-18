@@ -6,6 +6,7 @@ import { Modal } from '../../components/ui/ModalControl'
 import { AttachmentList } from '../../components/ui/AttachmentListControl'
 import { RichContentRenderer } from '../../components/ui/RichContentRendererControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
+import { Toast } from '../../components/ui/ToastControl'
 import downloadIcon from '../../assets/figma/community-company/support-download.svg'
 import windowIcon from '../../assets/figma/icon-window.png'
 import { usePost } from '@/routes/community/-components/hooks/useContent'
@@ -29,7 +30,7 @@ function PostDetail({ post }: { post: Post }) {
   const [params] = useSearchParams()
   const listUrl = communityListReturnTo(params)
   const detail = usePostDetail(post, listUrl)
-  const { postId, navigate, compact, menuOpen, setMenuOpen, setDeleteOpen, attachments, displayTitle, postContent, deletePost, notice, actions, deleteOpen, commentDeleteId, setCommentDeleteId, deleteComment } = detail
+  const { postId, navigate, compact, menuOpen, setMenuOpen, setDeleteOpen, attachments, displayTitle, postContent, deletePost, notice, toastKey, actions, deleteOpen, commentDeleteId, setCommentDeleteId, deleteComment } = detail
   return (
     <CommunityShell isolated={compact}>
       <article className={`post-detail content-container${compact ? ' post-detail--compact' : ''}`}>
@@ -39,7 +40,7 @@ function PostDetail({ post }: { post: Post }) {
         <AttachmentList attachments={attachments} downloadIcon={downloadIcon} />
         <PostCommentSection {...detail} />
         <Link className="board-list-button" to={listUrl}>게시글 목록</Link>
-        {notice ? <p aria-live="polite" className="community-notice">{notice}</p> : null}
+        <Toast message={notice} toastKey={toastKey}/>
       </article>
       <Modal closeLabel="취소" confirmLabel="삭제" confirmDisabled={actions.remove.isPending} isOpen={deleteOpen} onClose={() => setDeleteOpen(false)} onConfirm={() => void deletePost()} title="게시글을 삭제하시겠습니까?"><p>삭제한 게시글은 복구할 수 없습니다.</p></Modal>
       <Modal closeLabel="취소" confirmLabel="삭제" confirmDisabled={detail.commentQuery.remove.isPending} isOpen={commentDeleteId !== null} onClose={() => setCommentDeleteId(null)} onConfirm={() => { if (commentDeleteId) void deleteComment(commentDeleteId) }} title="댓글을 삭제하시겠습니까?"><p>삭제한 댓글은 복구할 수 없습니다.</p></Modal>

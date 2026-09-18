@@ -40,6 +40,7 @@
   }
   .products-layout--filter-open .products-content { width: 100%; }
   .commerce-shell .products-layout { padding: 24px 12px 96px; }
+  .commerce-shell .products-content { padding-bottom: 0; }
   .product-filter-trigger--desktop { display: none; }
   .product-mobile-controls {
     align-items: center;

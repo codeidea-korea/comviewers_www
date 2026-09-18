@@ -23,3 +23,24 @@ export function calculateCartEstimate(items: readonly CartItem[]) {
   }
 }
 export type CartEstimate = ReturnType<typeof calculateCartEstimate>
+
+// Display only server-quoted amounts. Order eligibility is checked separately.
+export function summarizeQuotedCartItems(items: readonly CartItem[]): { [K in keyof CartEstimate]: number | null } {
+  const sum = (values: readonly (number | null)[]) => values.some(value => value === null)
+    ? null : values.reduce<number>((total, value) => total + (value ?? 0), 0)
+  const excludedFromQuote = (item: CartItem) => item.quotedAmount === 0
+    && item.issues.some(issue => ['SOLD_OUT', 'STOCK_RESERVED', 'UNAVAILABLE', 'PRICING_MODEL_CHANGED'].includes(issue))
+  const rentals = items.filter(item => item.type === 'rental')
+  const rentalTotal = sum(rentals.map(item => item.quotedAmount))
+  const rentalSetupTotal = sum(rentals.map(item => excludedFromQuote(item) ? 0
+    : item.quotedAmount === null || item.setupFee === null ? null : item.setupFee * item.quantity))
+  return {
+    rentalTotal,
+    rentalSetupTotal,
+    rentalMonthlyTotal: rentalTotal === null || rentalSetupTotal === null || rentalTotal < rentalSetupTotal
+      ? null : rentalTotal - rentalSetupTotal,
+    partTotal: sum(items.filter(item => item.type === 'part').map(item => item.quotedAmount)),
+    expectedTotal: sum(items.map(item => item.quotedAmount)),
+    pointTotal: sum(items.map(item => excludedFromQuote(item) ? 0 : item.expectedPoints)),
+  }
+}

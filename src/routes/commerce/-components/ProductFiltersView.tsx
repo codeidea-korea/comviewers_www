@@ -308,9 +308,7 @@ export function ProductFilter({ controls, detailSelections = {}, drawer = false,
     else next.add(id)
     return next
   })
-  return (
-    <aside aria-label="상세 상품 필터" aria-modal={drawer || undefined} className={`product-filter${drawer ? ' product-filter--drawer' : ''}`} ref={filterRef} role={drawer ? 'dialog' : undefined} tabIndex={drawer ? -1 : undefined}>
-      {mobile ? <header className="product-filter-mobile-header"><button aria-label="상세 필터 닫기" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /></button><strong>상세 필터</strong></header> : null}
+  const filterContent = <>
       <p className="product-filter__caption">상세 필터</p>
       {controls ? <CatalogFilterSections controls={controls} /> : sections.map((section) => (
         <section className="product-filter__section" key={section.title}>
@@ -318,6 +316,11 @@ export function ProductFilter({ controls, detailSelections = {}, drawer = false,
           {section.menus.map((menu) => <FilterMenu facetCounts={facets === null ? null : facets ? (facets[menu.id] ?? {}) : undefined} isOpen={expandedMenus.has(menu.id)} key={menu.id} menu={menu} onSelectionChange={(values) => onDetailSelectionChange(menu.id, values)} onToggle={() => toggleMenu(menu.id)} selectedValues={detailSelections[menu.id] ?? []} />)}
         </section>
       ))}
+    </>
+  return (
+    <aside aria-label="상세 상품 필터" aria-modal={drawer || undefined} className={`product-filter${drawer ? ' product-filter--drawer' : ''}`} ref={filterRef} role={drawer ? 'dialog' : undefined} tabIndex={drawer ? -1 : undefined}>
+      {mobile ? <header className="product-filter-mobile-header"><button aria-label="상세 필터 닫기" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /></button><strong>상세 필터</strong></header> : null}
+      {!drawer && variant === 'product' ? <div aria-label="상세 필터 항목" className="product-filter__scroll" role="region" tabIndex={0}>{filterContent}</div> : filterContent}
       <button className="product-filter__close" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /><span className="sr-only">필터 닫기</span></button>
     </aside>
   )

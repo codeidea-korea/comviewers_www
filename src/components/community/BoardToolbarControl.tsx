@@ -3,6 +3,8 @@ import { SearchField } from '../ui/SearchFieldControl'
 import { NativeSelect } from '../ui/SelectControl'
 import { sortOptions as defaultSortOptions } from '../../lib/formOptions'
 
+export const BOARD_SEARCH_MAX_LENGTH = 200
+
 export interface BoardToolbarProps {
   className?: string
   count: number
@@ -24,7 +26,7 @@ export function BoardToolbar({ className = 'board-toolbar', count, onSearchChang
     {className === 'support-toolbar' ? <span>총 {count}개</span> : <span>총 <span><b>{count}</b>개</span></span>}
     <div className={`${className}__controls`}>
       <label className={`${className}__sort${className === 'support-toolbar' ? ' support-sort' : ''}`}><span className="sr-only">정렬</span><NativeSelect aria-label="정렬" onChange={(event) => onSortChange?.(event.target.value)} value={sort}>{sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</NativeSelect><img alt="" aria-hidden="true" src={sortIcon} /></label>
-      <SearchField className={`${className}__search`} icon={searchIcon} label="제목 또는 내용 검색" onChange={(event) => onSearchChange?.(event.target.value)} placeholder="제목 또는 내용 검색" submitLabel="검색" value={search} />
+      <SearchField className={`${className}__search`} icon={searchIcon} label="제목 또는 내용 검색" maxLength={BOARD_SEARCH_MAX_LENGTH} onChange={(event) => onSearchChange?.(event.target.value.slice(0, BOARD_SEARCH_MAX_LENGTH))} placeholder="제목 또는 내용 검색" submitLabel="검색" value={search} />
       {showWrite ? onWrite ? <button className="board-write-button" onClick={onWrite} type="button">{writeLabel}</button> : <Link className="board-write-button" to={writeTo}>{writeLabel}</Link> : null}
     </div>
   </div>

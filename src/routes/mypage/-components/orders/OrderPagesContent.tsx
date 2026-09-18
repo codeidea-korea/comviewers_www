@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useQueries, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router'
+import { useQueries } from '@tanstack/react-query'
+import { useParams } from 'react-router'
 import type { AccountOrderItem, AccountOrderPage, AccountOrderQuery } from '@/api/myAccountOrders'
 import { useServices } from '@/app/ServiceProvider'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
@@ -8,7 +8,8 @@ import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import { MyPageLayout } from '../../MypageComponentsView'
 import { AppShell } from '@/components/layout/AppShellView'
 import { AccountQueryState } from '../AccountQueryState'
-import { InquiryCreateDialog } from '../InquiryCreateDialog'
+import { InquiryDialog } from '../inquiries/InquiryDialog'
+
 import { InquiryRefundApplication } from '../InquiryRefundApplication'
 import { accountDateRange } from '../shared/AccountDatePresets'
 import { AccountInfo, ReadPages, accountDate, accountMoney, accountStatus, useAccountRead } from '../shared/AccountReadCommon'
@@ -97,8 +98,7 @@ const displayOrderDate = (value: string | null) => {
 
 export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const { myAccount } = useServices()
-  const navigate = useNavigate()
-  const client = useQueryClient()
+
   const [initialDates] = useState(() => accountDateRange('month'))
   const [page, setPage] = useState(0)
   const [selected, setSelected] = useState<readonly string[]>([])
@@ -107,6 +107,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const [periodOpen, setPeriodOpen] = useState(false)
   const [rentalStatus, setRentalStatus] = useState<AccountOrderQuery['rentalStatus']>()
   const [inquiryOpen, setInquiryOpen] = useState(false)
+
   const result = useAccountRead(
     ['orders', category ?? 'all', page, rentalStatus ?? '', dates.from, dates.to],
     (signal) => api.orders({
@@ -219,11 +220,11 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                   />
                   모두선택
                 </label>
-                <span>
+                <div className="orders-select-all__actions">
                   <button disabled={selected.length === 0} onClick={() => setInquiryOpen(true)} type="button">문의</button>
                   {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel="해지신청" /> : null}
                   {selectedRefundRentalIds.length === 0 || !myAccount.inquiryApi ? <button disabled type="button">해지신청</button> : null}
-                </span>
+                </div>
               </div>
             {visibleGroups.map(([date, rows]) => <section className="orders-by-date" key={date}>
               <h2>{date}</h2>
@@ -268,6 +269,9 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                           <span><i aria-hidden="true" />할인금액 <b>{accountMoney(discountAmount)}</b></span>
                           <span><i aria-hidden="true" />포인트 적립 <b>{(item.accruedPoints ?? 0).toLocaleString('ko-KR')}점</b></span>
                         </p> : null}
+                        {terminal && orderDetail
+                          ? <OrderRefundSummary result={orderDetail} itemId={item.orderItemId} originalAmount={finalItemAmount} />
+                          : null}
                       </div>
                     </div>
                     <OrderItemActions
@@ -278,9 +282,6 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       paymentStatus={order.paymentStatus}
                       orderStatus={order.orderStatus}
                     />
-                    {terminal && orderDetail
-                      ? <OrderRefundSummary result={orderDetail} itemId={item.orderItemId} originalAmount={finalItemAmount} />
-                      : null}
                   </article>
                 )
               })}
@@ -290,17 +291,12 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
           </>
         ) : null}
         {inquiryOpen && myAccount.inquiryApi && myAccount.rcpcApi ? (
-          <InquiryCreateDialog
+          <InquiryDialog
             api={myAccount.inquiryApi}
             initialIds={selectedInquiryIds}
             initialProductNo=""
             onClose={() => setInquiryOpen(false)}
-            onCreated={async (id) => {
-              setInquiryOpen(false)
-              setSelected([])
-              await client.invalidateQueries({ queryKey: ['operation-requests', myAccount.inquiryApi?.organizationId] })
-              navigate(`/mypage/inquiries/${id}`)
-            }}
+            onCreated={() => setSelected([])}
             rcpcApi={myAccount.rcpcApi}
           />
         ) : null}

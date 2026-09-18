@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { checkoutQueryKeys, checkoutQuoteSchema, checkoutSelectionSchema } from '@/domain/checkout/checkoutRepository'
 
-export function useCheckoutQuote(ids: readonly string[]) {
+export function useCheckoutQuote(ids: readonly string[], enabled = true) {
   const { checkout } = useServices()
   const selection = checkoutSelectionSchema.safeParse(ids)
   const result = useQuery({
@@ -14,7 +14,7 @@ export function useCheckoutQuote(ids: readonly string[]) {
       }
       return quote
     },
-    enabled: selection.success,
+    enabled: selection.success && enabled,
     retry: false,
     staleTime: 0,
   })

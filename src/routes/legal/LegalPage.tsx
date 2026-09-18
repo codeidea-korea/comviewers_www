@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
 import { AppShell } from '@/components/layout/AppShellView'
 import { legalDocumentSchema, type LegalKind } from '@/domain/legal/legalRepository'
-import { ProductRefundSection } from '@/components/common/ProductRefundSection'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
@@ -43,7 +42,7 @@ export function LegalPage({ privacy = false }: { privacy?: boolean }) {
         <Link to="/terms?section=refund" aria-current={section === 'refund' ? 'page' : undefined}>취소·환불·포인트 정책</Link>
       </nav>}
       <div className="legal-page__content">
-        {section === 'refund' ? <ProductRefundSection /> : <DocumentBody key={section} kind={section} />}
+        <DocumentBody key={section} kind={section} />
       </div>
     </div>
   </section></AppShell>

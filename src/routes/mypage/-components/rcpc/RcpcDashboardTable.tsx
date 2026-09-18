@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
+import { InquiryAction } from '../inquiries/InquiryAction'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
@@ -12,7 +12,6 @@ import { RcpcRemoteAccess } from '../RcpcRemoteAccess'
 import { extensionBlocked, totalTraffic } from '../rcpcPresentation'
 import { RcpcStatusContents } from './RcpcStatusContents'
 import { RcpcExtensionAction } from './RcpcExtensionAction'
-import { Button } from '@/components/ui/ButtonControl'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -74,9 +73,9 @@ function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, selec
     <div className="mypage-home-rcpc__server" role="cell"><span>{item.serverRoomRegion ?? '-'}<br />{item.serverRoomName ?? '-'}</span></div>
     <div className="mypage-home-rcpc__state" role="cell"><RcpcStatusContents item={item}/></div>
     <div className="mypage-home-rcpc__period" role="cell"><span><strong><RcpcPeriodLabel item={item}/></strong></span></div>
-    <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact primaryOnly autoRevealId={connectionVisible}/></div>
+    <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div>
     <div className="mypage-home-rcpc__traffic" role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
-    <div className="mypage-home-rcpc__actions" role="cell"><span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
+    <div className="mypage-home-rcpc__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
   </article>
 }
 
@@ -99,7 +98,7 @@ function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations
       <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
       <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
-    <footer><span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></footer>
+    <footer><span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></footer>
   </article>
 }
 
@@ -125,6 +124,6 @@ function MobileFavoriteCard({ api, canEditAlias, canExtend, index, item, mutatio
     <div data-mobile-label="이용 기간" role="cell"><strong><RcpcPeriodLabel item={item}/></strong></div>
     <div className="rcpc-list__connect" data-mobile-label="접속 정보" role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>
     <div data-mobile-label="트래픽 사용량" role="cell"><span className="mobile-scrap-card__traffic-value">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</span></div>
-    <div className="rcpc-list__actions" role="cell"><span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
+    <div className="rcpc-list__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
   </article>
 }

@@ -1,3 +1,4 @@
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { isActiveManager } from '@/domain/myAccount/managerServices'
 import { useSession } from '@/app/session/SessionProvider'
 import { useEffect, useMemo, useState } from 'react'
@@ -28,7 +29,7 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
   const [managerFilter, setManagerFilter] = useState<string | 'unassigned' | null>(null)
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [copied, setCopied] = useState(false)
+  const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
   const [copyError, setCopyError] = useState(false)
   const [mobileGroupsOpen, setMobileGroupsOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
@@ -53,15 +54,10 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
       if (!organization?.organizationNo) throw new Error('Organization code unavailable')
       if (!navigator.clipboard) throw new Error('Clipboard unavailable')
       await navigator.clipboard.writeText(`${window.location.origin}/manager/${encodeURIComponent(organization.organizationNo)}/mypage`)
-      setCopied(true)
+      setCopyMessage('복사되었습니다.')
       setCopyError(false)
-    } catch { setCopied(false); setCopyError(true) }
+    } catch { setCopyMessage(''); setCopyError(true) }
   }
-  useEffect(() => {
-    if (!copied) return
-    const timeout = window.setTimeout(() => setCopied(false), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [copied])
   useEffect(() => {
     if (managerFilter && managerFilter !== 'unassigned' && !managers.some(manager => manager.id === managerFilter)) {
       setManagerFilter(null)
@@ -86,7 +82,7 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
       <button aria-expanded={mobileSearchOpen} aria-label="담당자 검색 열기" className="manager-catalog__mobile-search-button" type="button" onClick={() => setMobileSearchOpen((open) => !open)}><img alt="" src={searchIcon}/></button>
       {mobileSearchOpen ? <label className="manager-catalog__mobile-search"><span className="sr-only">담당자 검색</span><input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명" value={search}/></label> : null}
     </div>
-    {copied ? <p className="manager-catalog__copy-toast" role="status">복사되었습니다.</p> : null}
+    <Toast message={copyMessage} toastKey={toastKey}/>
     {copyError ? <p role="alert">접속 링크를 복사하지 못했습니다. 다시 시도해 주세요.</p> : null}
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
       {managers.map((manager) => <button className={managerFilter === manager.id ? 'is-active' : ''} key={manager.id} onClick={() => { setManagerFilter(manager.id); setCurrentPage(1) }} type="button"><b>{manager.name}<em>{manager.assignedRcpcIds.length}</em></b></button>)}

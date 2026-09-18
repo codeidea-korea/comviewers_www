@@ -7,6 +7,7 @@ import communityBubble from '../../assets/figma/community-bubble.svg'
 import attachmentIcon from '../../assets/figma/community-company/support-attachment.svg'
 import { usePosts } from '@/routes/community/-components/hooks/useContent'
 import { BoardToolbar, CommunityShell, CommunityTabs } from './CommunityComponentsView'
+import { BOARD_SEARCH_MAX_LENGTH } from '../../components/community/BoardToolbarControl'
 import { useSession } from '@/app/session/SessionProvider'
 import { Modal } from '@/components/ui/ModalControl'
 import { AsyncContentState, resolveAsyncContentStatus } from '@/components/common/AsyncContentState'
@@ -15,7 +16,7 @@ import { communityListReturnTo } from './communityNavigation'
 export function CommunityPostListPage() {
   const [params, setParams] = useSearchParams()
   const initialSort = ['latest', 'views', 'comments'].includes(params.get('sort') ?? '') ? params.get('sort')! : 'latest'
-  const [search, setSearch] = useState(params.get('keyword') ?? '')
+  const [search, setSearch] = useState((params.get('keyword') ?? '').slice(0, BOARD_SEARCH_MAX_LENGTH))
   const [mineOnly, setMineOnly] = useState(params.get('mineOnly') === 'true')
   const [sort, setSort] = useState(initialSort)
   const [currentPage, setCurrentPage] = useState(Math.max(1, Number(params.get('page')) || 1))

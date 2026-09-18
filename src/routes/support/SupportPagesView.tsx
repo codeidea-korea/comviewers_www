@@ -9,7 +9,7 @@ import searchIcon from '../../assets/figma/community-company/support-search.svg'
 import downloadIcon from '../../assets/figma/community-company/support-download.svg'
 import { AppShell } from '../../components/layout/AppShellView'
 import { Pagination } from '../../components/ui/PaginationControl'
-import { BoardToolbar } from '../../components/community/BoardToolbarControl'
+import { BOARD_SEARCH_MAX_LENGTH, BoardToolbar } from '../../components/community/BoardToolbarControl'
 import { AttachmentList } from '../../components/ui/AttachmentListControl'
 import { RichContentRenderer } from '../../components/ui/RichContentRendererControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
@@ -35,7 +35,7 @@ function SupportHero() {
 export function SupportListPage() {
   const [params, setParams] = useSearchParams()
   const sort = supportSort(params.get('sort'))
-  const search = params.get('keyword') ?? ''
+  const search = (params.get('keyword') ?? '').slice(0, BOARD_SEARCH_MAX_LENGTH)
   const currentPage = Math.max(1, Number(params.get('page') ?? 1) || 1)
   const pageRef = useRef<HTMLElement>(null)
   const result = useArticles({ keyword: search || undefined, sort })
@@ -49,7 +49,12 @@ export function SupportListPage() {
     Object.entries(values).forEach(([key, value]) => { if (value) next.set(key, value); else next.delete(key) })
     return next
   })
-  const listPath = `/support${params.toString() ? `?${params.toString()}` : ''}`
+  const listParams = new URLSearchParams()
+  if (search) listParams.set('keyword', search)
+  if (sort !== 'latest') listParams.set('sort', sort)
+  if (currentPage > 1) listParams.set('page', String(currentPage))
+  const listQuery = listParams.toString()
+  const listPath = `/support${listQuery ? `?${listQuery}` : ''}`
   return (
     <AppShell className="support-shell">
       <SupportHero />

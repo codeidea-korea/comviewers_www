@@ -34,7 +34,11 @@ export function useCheckoutForm() {
   function changeContact(field: keyof CheckoutContact, value: string) {
     contactEdited.current = true
     setContact((current) => ({ ...current, [field]: value }))
-    clearError(field === 'name' ? 'contact.name' : field.startsWith('email') ? 'contact.email' : field.startsWith('phone') ? 'contact.phone' : field === 'messengerId' ? 'contact.messengerId' : 'contact.messengerType')
+    if (field === 'messenger' || field === 'messengerId') {
+      setErrors(current => current.filter(error => error.path !== 'contact.messengerType' && error.path !== 'contact.messengerId'))
+    } else {
+      clearError(field === 'name' ? 'contact.name' : field.startsWith('email') ? 'contact.email' : 'contact.phone')
+    }
   }
   function fillProfile(profile: { name: string | null; email: string | null; phone: string | null; messengerType: string | null; messengerId: string | null }, force = false) {
     if (contactEdited.current && !force) return

@@ -281,13 +281,14 @@
 .post-detail .comment-section > h2 { height: 24px; line-height: 24px; }
 .post-detail .comment-section > label { border: 2px solid var(--color-gray-200); border-radius: 8px; height: 140px; margin-top: 12px; padding: 16px; position: relative; }
 .post-detail .comment-section textarea { height: 76px; outline: 0; }
+.post-detail .comment-section > label.comment-editor--editing { border-color: var(--color-black); }
+.comment-editing-label { color: var(--color-gray-600); font-size: 13px; font-weight: 400; margin-left: 12px; }
 .post-detail .comment-section > label button,
 .post-detail .comment-section > label button:disabled { background: transparent; bottom: 16px; font-size: 16px; line-height: 24px; margin: 0; padding: 0; position: absolute; right: 16px; }
 .post-detail .comment-section > label button { color: var(--color-black); font-weight: 600; }
 .post-detail .comment-section > label button:disabled { color: var(--color-gray-500); font-weight: 400; }
 .post-detail .comment-section > div { margin-top: 20px; }
-.post-detail .comment-section > div > article { height: 130px; padding: 24px 0; }
-.post-detail .comment-section > div > article:nth-child(n+3) { height: 202px; }
+.post-detail .comment-section > div > article { height: auto; padding: 24px 0; }
 .post-detail > header .post-detail__menu-anchor { bottom: 10px; position: absolute; right: 0; top: auto; }
 .post-detail > header .post-detail__menu-anchor > button { background: transparent; border: 0; font-size: 24px; height: 20px; line-height: 16px; padding: 0; width: 20px; }
 .post-detail > header .post-detail__menu { box-shadow: none; display: flex; flex-direction: column; gap: 8px; left: -4px; padding: 8px; right: auto; top: 34px; width: 186px; }
@@ -305,7 +306,6 @@
 .post-detail .comment-menu-anchor { height: 20px; justify-self: end; position: relative; width: 20px; }
 .post-detail .comment-menu-anchor > button { background: transparent; border: 0; font-size: 20px; height: 20px; line-height: 16px; padding: 0; width: 20px; }
 .post-detail .comment-section > div > article:last-child { border-bottom: 0; }
-.post-detail .comment-section > div > article:nth-child(3) .comment-author strong { color: var(--color-gray-500); }
 .post-detail .comment-menu { background: white; border: 1px solid var(--color-gray-200); border-radius: 4px; display: flex; flex-direction: column; gap: 8px; left: 0; padding: 8px; position: absolute; top: 41px; width: 186px; z-index: 3; }
 .post-detail .comment-menu button { background: white; border: 0; font-size: 14px; height: 24px; padding: 0; text-align: left; }
 .post-detail .board-list-button { align-items: center; background: var(--color-black); color: white; display: flex; height: 50px; justify-content: center; margin: 20px auto 0; padding: 0 16px; }

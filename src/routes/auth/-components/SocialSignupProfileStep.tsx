@@ -21,8 +21,8 @@ const formSchema = z.object({
   name: z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.'),
   nickname: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 문자와 숫자만 사용할 수 있습니다.'),
   phone1: z.string().regex(/^\d{2,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone2: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone3: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
+  phone2: z.string().regex(/^(?:\d{4})?$/, '휴대폰 번호의 가운데 자리는 4자리로 입력해 주세요.'),
+  phone3: z.string().regex(/^(?:\d{4})?$/, '휴대폰 번호의 끝자리는 4자리로 입력해 주세요.'),
   messengerType: z.string().max(50), messengerId: z.string().max(100),
 }).refine(value => Boolean(value.messengerType.trim()) === Boolean(value.messengerId.trim()), {
   message: '메신저 종류와 ID를 함께 입력해 주세요.',

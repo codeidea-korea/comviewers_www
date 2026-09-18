@@ -27,8 +27,8 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       <td><span className="tag tag--red">{product.gpu ?? '정보 없음'}</span></td>
       <td>
         <span className="product-table-peripherals">
-          <i className="is-mouse">{product.mouseIncluded === null ? "정보 없음" : <img alt={mouseActive ? '마우스 사용 가능' : '마우스 사용 불가'} src={mouseActive ? mouseActiveIcon : mouseIcon} />}</i>
-          <i className="is-keyboard">{product.keyboardIncluded === null ? "정보 없음" : <img alt={keyboardActive ? '키보드 사용 가능' : '키보드 사용 불가'} src={keyboardActive ? keyboardActiveIcon : keyboardIcon} />}</i>
+          <i className={`is-mouse${product.mouseIncluded === null ? ' is-unknown' : ''}`} title={product.mouseIncluded === null ? '마우스 정보 없음' : undefined}>{product.mouseIncluded === null ? "정보 없음" : <img alt={mouseActive ? '마우스 사용 가능' : '마우스 사용 불가'} src={mouseActive ? mouseActiveIcon : mouseIcon} />}</i>
+          <i className={`is-keyboard${product.keyboardIncluded === null ? ' is-unknown' : ''}`} title={product.keyboardIncluded === null ? '키보드 정보 없음' : undefined}>{product.keyboardIncluded === null ? "정보 없음" : <img alt={keyboardActive ? '키보드 사용 가능' : '키보드 사용 불가'} src={keyboardActive ? keyboardActiveIcon : keyboardIcon} />}</i>
         </span>
       </td>
       <td>
@@ -54,17 +54,17 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
                 <caption className="sr-only">RCPC 상품 목록</caption>
                 <colgroup>
                   <col style={{ width: '52px' }} />
-                  <col style={{ width: '130px' }} />
+                  <col style={{ width: '108px' }} />
+                  <col style={{ width: '132px' }} />
+                  <col style={{ width: '90px' }} />
+                  <col style={{ width: '90px' }} />
                   <col style={{ width: '170px' }} />
-                  <col style={{ width: '91px' }} />
-                  <col style={{ width: '91px' }} />
-                  <col style={{ width: '190px' }} />
-                  <col style={{ width: '72.5px' }} />
-                  <col style={{ width: '105px' }} />
-                  <col style={{ width: '50px' }} />
+                  <col style={{ width: '140px' }} />
+                  <col style={{ width: '104px' }} />
+                  <col style={{ width: '70px' }} />
                   <col style={{ width: '88px' }} />
                   <col style={{ width: '88px' }} />
-                  <col style={{ width: '73px' }} />
+                  <col style={{ width: '68px' }} />
                 </colgroup>
                 <thead><tr>{['품번', 'OS', 'CPU', 'RAM', 'DISK', 'GPU', '주변기기', 'IP', '서버상태', partOnly ? '추가 비용' : '세팅비', partOnly ? '상품 금액' : '월 렌탈료', '담기'].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead>
                 <tbody>{products.map((product) => <ProductListRow key={product.id} onAddToCart={onAddToCart} product={product} />)}</tbody>

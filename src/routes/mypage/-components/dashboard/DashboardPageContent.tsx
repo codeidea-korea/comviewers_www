@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { InquiryAction } from '../inquiries/InquiryAction'
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
@@ -120,7 +121,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
           {owner ? <section className="mypage-home-storage">{heading('보관함', '/mypage/storage')}<AccountQueryState pending={storage.isPending} error={storage.error} retry={storage.refetch}/><div className="mypage-home-storage__card"><span>결제 대기</span><strong>{storage.data?.totalCount ?? '—'}<small>건</small></strong></div></section> : null}
         </div>
         <div>
-          <section>{heading('문의/AS 내역', '/mypage/inquiries')}<AccountQueryState pending={recentInquiries.isPending} error={recentInquiries.error} retry={recentInquiries.refetch}/><div className="mypage-home-text-list">{recentInquiries.data?.items.length === 0 ? <p>등록된 문의 내역이 없습니다.</p> : recentInquiries.data?.items.map(item => <Link key={item.operationRequestId} to={`/mypage/inquiries/${item.operationRequestId}`}><span><small>{item.customerVisibleStatus}</small><span className="mypage-home-text-list__title">{item.title}</span></span><time>{accountDate(item.createdAt)}</time></Link>)}</div></section>
+          <section>{heading('문의/AS 내역', '/mypage/inquiries')}<AccountQueryState pending={recentInquiries.isPending} error={recentInquiries.error} retry={recentInquiries.refetch}/><div className="mypage-home-text-list">{recentInquiries.data?.items.length === 0 ? <p>등록된 문의 내역이 없습니다.</p> : recentInquiries.data?.items.map(item => <InquiryAction appearance="text" key={item.operationRequestId} requestId={item.operationRequestId}><span><small>{item.customerVisibleStatus}</small><span className="mypage-home-text-list__title">{item.title}</span></span><time>{accountDate(item.createdAt)}</time></InquiryAction>)}</div></section>
           {owner ? <section className="mypage-home-posts">{heading('내 게시글', '/community/posts?mineOnly=true')}<AccountQueryState pending={posts.isPending} error={posts.error} retry={posts.refetch}/><div className="mypage-home-text-list">{posts.data?.length === 0 ? <p>작성한 게시글이 없습니다.</p> : posts.data?.slice(0, 5).map(post => <Link key={post.id} to={`/community/posts/${encodeURIComponent(post.postId)}`}><span><small>{post.boardName}</small><span className="mypage-home-text-list__title">{post.title} ({post.comments})</span></span><time>{post.date}</time></Link>)}</div></section> : null}
         </div>
       </div>

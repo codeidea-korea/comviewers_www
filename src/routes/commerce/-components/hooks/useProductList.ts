@@ -20,9 +20,9 @@ function readDetails(raw: string | null): DetailSelections {
 }
 
 function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductListQuery {
-  const requestedCategory = params.get('categoryCode') ?? params.get('category')
+  const requestedCategory = params.get('categoryCode')?.trim() || params.get('category')?.trim() || 'rcpc'
   const categoryCode = requestedCategory === 'rcpc-room' ? 'rcpc_room'
-    : requestedCategory === 'zen-server' ? 'zen_server' : requestedCategory ?? undefined
+    : requestedCategory === 'zen-server' ? 'zen_server' : requestedCategory
   const candidate = {
     page: Number(params.get('page') ?? 1), pageSize: 12,
     categoryCode,

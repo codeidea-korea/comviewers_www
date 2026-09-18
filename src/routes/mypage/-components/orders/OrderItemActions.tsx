@@ -1,17 +1,17 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
 import { useMutation, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
 import type { AccountOrderDetail, AccountOrderItem } from '@/api/myAccountOrders'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import { OrderPurchaseConfirmDialog } from '@/components/mypage/OrderDialogsControl'
-import { RelativeLink } from '@/components/navigation/RelativeLinkView'
+
 import { accountDate } from '../shared/AccountReadCommon'
 import { OrderReview } from './OrderReview'
 import { useServices } from '@/app/ServiceProvider'
 import { RcpcExtensionCheckout } from '../RcpcExtensionCheckout'
 import { PartPurchaseActions } from './PartPurchaseActions'
 import { InquiryRefundApplication } from '../InquiryRefundApplication'
-import { InquiryCreateDialog } from '../InquiryCreateDialog'
+import { InquiryAction } from '../inquiries/InquiryAction'
+
 import { Button } from '@/components/ui/ButtonControl'
 import { RefundWithdrawalAction } from './RefundWithdrawalAction'
 import tollIcon from '@/assets/figma/icon-toll.svg'
@@ -83,9 +83,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
 
 export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentStatus, orderStatus }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; paymentStatus: string; orderStatus: string }) {
   const { myAccount } = useServices()
-  const navigate = useNavigate()
-  const client = useQueryClient()
-  const [inquiryOpen, setInquiryOpen] = useState(false)
+
   const paid = paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
   const active = paid && !item.purchaseConfirmedAt && !item.refundPending && ['using', 'replacement_using'].includes(item.customerRentalStatus)
     && ['active', 'expiring'].includes(item.rentalStatus ?? '') && ['paid', 'active', 'completed'].includes(item.itemStatus)
@@ -101,10 +99,6 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
       : item.rentalId && myAccount.inquiryApi && active
         ? null
         : <Button size="small" variant="secondary" disabled>해지신청</Button>}
-    {!item.rentalId ? <Button size="small" variant="secondary" disabled>문의</Button>
-      : myAccount.inquiryApi && myAccount.rcpcApi
-        ? <Button size="small" variant="secondary" onClick={() => setInquiryOpen(true)}>문의</Button>
-        : <Button as={RelativeLink} size="small" variant="secondary" to={`/mypage/inquiries?productNo=${encodeURIComponent(item.productNo)}`}>문의</Button>}
-    {inquiryOpen && myAccount.inquiryApi && myAccount.rcpcApi ? <InquiryCreateDialog api={myAccount.inquiryApi} rcpcApi={myAccount.rcpcApi} initialIds={item.pcAssetId ? [Number(item.pcAssetId)] : []} initialProductNo={item.pcAssetId ? '' : item.productNo} onClose={() => setInquiryOpen(false)} onCreated={async id => { setInquiryOpen(false); await client.invalidateQueries({ queryKey: ['operation-requests', myAccount.inquiryApi?.organizationId] }); navigate(`/mypage/inquiries/${id}`) }} /> : null}
+    <InquiryAction disabled={!item.rentalId} initialIds={item.pcAssetId ? [Number(item.pcAssetId)] : []} initialProductNo={item.pcAssetId ? '' : item.productNo} />
   </div>
 }

@@ -122,7 +122,7 @@ export function ProductListPage() {
           </DialogLayer>
         ) : null}
         <div className={`products-layout${filterOpen && !filterDrawer ? ' products-layout--filter-open' : ''}`}>
-          {filterOpen && !filterDrawer ? <ProductFilter controls={productList} detailSelections={detailSelections} facets={facets} filterRef={filterRef} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} /> : null}
+          {filterOpen && !filterDrawer ? <div className="product-filter-rail"><ProductFilter controls={productList} detailSelections={detailSelections} facets={facets} filterRef={filterRef} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} /></div> : null}
           <section className="products-content">
           {showCatalogControls ? <ProductCatalogFilterControls controls={productList} mobileFilterTrigger={!filterOpen && mobileViewport ? <button disabled={productList.filterMetadataPending} aria-label="모바일 상세 필터 열기" className="product-filter-trigger product-filter-trigger--mobile" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterTuneIcon} /></button> : null} /> : null}
           {showCatalogControls ? <div className="product-results-toolbar" ref={resultsToolbarRef}>

@@ -910,7 +910,7 @@
 .checkout-page--service .commerce-page,
 .checkout-page--service .checkout-layout,
 .checkout-page--service .checkout-main,
-.checkout-page--service .checkout-main > section,
+.checkout-page--service :is(.checkout-main, .checkout-input-fields) > section,
 .checkout-page--service .checkout-products .commerce-product-row,
 .checkout-page--service .checkout-products .commerce-product-row__content,
 .checkout-page--service .checkout-products .commerce-product-row__meta,
@@ -938,8 +938,8 @@
 .checkout-page--service .order-summary__amounts > div.sub { padding-left: 12px; }
 .checkout-page--service .order-summary__agreement span { min-width: 0; }
 .checkout-page--service .checkout-main > .checkout-discounts,
-.checkout-page--service .checkout-main > .checkout-customer,
-.checkout-page--service .checkout-main > .checkout-receipt,
+.checkout-page--service .checkout-main .checkout-customer,
+.checkout-page--service .checkout-main .checkout-receipt,
 .checkout-page--service .checkout-customer .commerce-field,
 .checkout-page--service .checkout-receipt .commerce-field { height: auto; }
 .checkout-page--service .checkout-customer .commerce-field { min-height: 74px; }

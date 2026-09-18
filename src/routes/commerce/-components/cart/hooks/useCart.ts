@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { cartQueryKeys } from '@/domain/cart/cartRepository'
+import { summarizeQuotedCartItems } from '@/domain/cart/cartEstimate'
 import { cartSchema, type CartItem, type ChangeCartQuantity } from '@/domain/cart/schemas'
 import { checkoutQueryKeys, checkoutQuoteSchema } from '@/domain/checkout/checkoutRepository'
 
@@ -55,17 +56,19 @@ export function useCart() {
   const allQuote = useQuery({
     queryKey: checkoutQueryKeys.quote(allIds),
     queryFn: async ({ signal }) => checkoutQuoteSchema.parse(await checkout.quote(allIds, signal)),
-    enabled: allIds.length > 0 && allIds.length <= 100 && !sameSelection,
+    enabled: allIds.length > 0 && allIds.length <= 100,
     staleTime: 0, retry: false,
   })
-  const displayedQuote = sameSelection ? quote : allQuote
-  const estimate = selectedIds.length === 0 ? {
-    rentalTotal: 0, rentalSetupTotal: 0, rentalMonthlyTotal: 0, partTotal: 0, pointTotal: 0, expectedTotal: 0,
-  } : (!quote.isError ? quote.data?.estimate : undefined) ?? {
-    rentalTotal: null, rentalSetupTotal: null, rentalMonthlyTotal: null, partTotal: null, pointTotal: null, expectedTotal: null,
-  }
+  // Keep quoted rows while refetching; selecting a checkbox must not erase prices.
+  const quotedItems = items.map(item => {
+    const selectedRow = quote.data?.items.find(row => row.id === item.id)
+    const allRow = allQuote.data?.items.find(row => row.id === item.id)
+    return (quote.dataUpdatedAt >= allQuote.dataUpdatedAt ? selectedRow ?? allRow : allRow ?? selectedRow) ?? item
+  })
+  const estimate = summarizeQuotedCartItems(quotedItems.filter(item => selectedIds.includes(item.id)))
   const checkoutBlocked = selectedIds.length === 0 || quote.isFetching || !quote.data?.checkoutEligible || quote.isError
-  const quotedItems = items.map((item) => (!displayedQuote.isFetching && !displayedQuote.isError ? displayedQuote.data?.items : undefined)?.find((row) => row.id === item.id) ?? item)
+  const checkoutChecking = selectedIds.length > 0 && (quote.isPending || quote.isFetching)
+  const unavailableItems = quote.isError ? [] : (quote.data?.items ?? []).filter(item => !item.checkoutEligible)
 
   async function change(input: CartChange) {
     if (result.isPending || result.isError) return
@@ -96,7 +99,7 @@ export function useCart() {
 
   return {
     ...result, items: quotedItems, selectedIds, allSelected, notice,
-    estimate, checkoutBlocked, quoteError: quote.isError || displayedQuote.isError,
+    estimate, checkoutBlocked, checkoutChecking, unavailableItems, quoteError: quote.isError || allQuote.isError,
     retryQuote: () => Promise.all([...(selectedIds.length ? [quote.refetch()] : []), ...(!sameSelection && allIds.length ? [allQuote.refetch()] : [])]),
     isChanging, updatingQuantityIds,
     toggle: (id: string) => { if (changing.current === 0) setExcludedIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]) },

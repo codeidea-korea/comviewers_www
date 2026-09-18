@@ -9,6 +9,7 @@ import closeIcon from '../../assets/figma/inquiry-modal-close.svg'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import { menuItems, utilityMenuItems } from '../../navigation/menuItems'
 import { useMobileOverlay } from '../ui/useMobileOverlay'
+import { GoogleTranslateTrial } from './GoogleTranslateTrial'
 
 export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: number; onCartClick?: () => void; state?: 'main' | 'sub' }) {
   const navigate = useNavigate()
@@ -34,10 +35,11 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
 
   return (
     <header className={`site-header site-header--${state}`}>
+      <GoogleTranslateTrial />
       <div className="site-header__utility">
         <div className="site-header__inner">
           <p>게임부터 작업까지, 원하는 PC 환경을 RCPC로 간편하게</p>
-          <nav aria-label="사용자 메뉴" className="utility-menu">
+          <nav aria-label="사용자 메뉴" className="utility-menu notranslate" translate="no">
             {visibleUtilityItems.map((item) => item.id === 'login'
               ? <SessionControls key={item.id} loginLabel="로그인" />
               : (
@@ -76,7 +78,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
         <div className="mobile-site-menu__main">
           {visibleMenuItems.map((item) => <Link key={item.id} onClick={closeMobileMenu} to={item.href}>{item.label}</Link>)}
         </div>
-        <div className="mobile-site-menu__auth"><SessionControls />
+        <div className="mobile-site-menu__auth notranslate" translate="no"><SessionControls />
           {visibleUtilityItems.filter(item => item.id !== 'cart' && item.id !== 'login').map((item) => (
             <Link key={item.id} onClick={(event) => { closeMobileMenu(); if (item.id === 'cart' && onCartClick) { event.preventDefault(); onCartClick() } }} to={item.href}>
               {item.label}{item.id === 'cart' && cartCount !== undefined ? <span className="cart-count">{cartCount}</span> : null}

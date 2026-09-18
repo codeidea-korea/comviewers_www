@@ -207,10 +207,6 @@
 .tag--red { background: var(--color-primary-200); color: var(--color-primary-500) !important; }
 .tag--green { background: var(--color-surface-success-soft); color: var(--color-system-success) !important; }
 .tag--disabled { background: var(--color-gray-100); color: var(--color-gray-500) !important; }
-.product-card--medium .tag--blue { min-width: 71px; }
-.product-card--medium .tag--gray { min-width: 75px; }
-.product-card--large .tag--blue { min-width: 71px; }
-.product-card--large .tag--gray { min-width: 75px; }
 .flag { display: inline-block; height: 20px; object-fit: cover; vertical-align: text-bottom; width: 20px; }
 .product-card__spec--ip dd { align-items: center; display: flex; gap: 4px; letter-spacing: -.42px; white-space: nowrap; }
 .product-card__spec--ip dd small { color: var(--color-gray-600); font-size: 12px; font-weight: 400; letter-spacing: -.36px; }

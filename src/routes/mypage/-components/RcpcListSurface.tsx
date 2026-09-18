@@ -1,8 +1,8 @@
-import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
+import { InquiryAction } from './inquiries/InquiryAction'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import { Button } from '@/components/ui/ButtonControl'
+
 import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton } from './RcpcItemTools'
@@ -94,7 +94,7 @@ function RcpcState({ item }: { item: MyRcpcItem }) {
 
 function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
   return <div className="rcpc-list__actions" role="cell">
-    <span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span>
+    <span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span>
     <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
   </div>
 }
@@ -121,7 +121,7 @@ function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations }: {
       <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
     <footer>
-      <span><RcpcReboot api={api} item={item}/><Button as={Link} size="small" variant="secondary" to={`/mypage/inquiries?pcAssetIds=${item.pcAssetId}`}>문의</Button></span>
+      <span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span>
       <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
     </footer>
   </article>
