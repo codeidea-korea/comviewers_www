@@ -145,6 +145,6 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
     <button aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId || !passwordConfigured} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}>{revealed ? '숨기기' : '보기'}</button>
     <button aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}>ID 복사</button>
     <button aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}>비밀번호 복사</button>
-    {message ? <p role="status">{message}</p> : null}
+    {message ? <Toast message={message} toastKey={toastKey}/> : null}
   </article>
 }

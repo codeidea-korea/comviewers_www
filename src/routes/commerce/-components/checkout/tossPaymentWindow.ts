@@ -3,24 +3,25 @@ import type { PreparedPayment } from '@/api/ordersPayments'
 
 const sdkUrl = 'https://js.tosspayments.com/v2/standard'
 const payloadSchema = z.object({
-  sdkUrl: z.literal(sdkUrl), clientKey: z.string().min(1), customerKey: z.string().min(1), variantKey: z.string().nullable(),
+  sdkUrl: z.literal(sdkUrl), clientKey: z.string().min(1), customerKey: z.string().min(1),
+  virtualAccountDueDate: z.string().nullable(),
+  cashReceiptType: z.enum(['not_requested', 'income_deduction', 'business_expense']),
   requestedPaymentMethod: z.enum(['card', 'virtual_account', 'payco']),
   amount: z.object({ value: z.number().int().positive().safe(), currency: z.literal('KRW') }),
   paymentRequest: z.object({ orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), orderName: z.string().min(1).max(100),
     customerEmail: z.string().nullable(), customerName: z.string().nullable(), customerMobilePhone: z.string().nullable(), successUrl: z.url(), failUrl: z.url() }),
 })
 type Request = z.infer<typeof payloadSchema>['paymentRequest']
+type PaymentOptions =
+  | { method: 'CARD'; card: { flowMode: 'DEFAULT' } | { flowMode: 'DIRECT'; easyPay: 'PAYCO' } }
+  | { method: 'VIRTUAL_ACCOUNT'; virtualAccount: { dueDate: string; cashReceipt: { type: '미발행' | '소득공제' | '지출증빙' } } }
 type PaymentWindow = {
-  on(event: 'paymentRequest', callback: (paymentMethod: { code: string }) => void): void
-  on(event: 'cancel', callback: () => void): void
-  destroy(): void | Promise<void>
+  requestPayment(request: Omit<Request, 'customerEmail' | 'customerName' | 'customerMobilePhone'> & PaymentOptions & {
+    amount: { value: number; currency: 'KRW' }; customerEmail?: string; customerName?: string; customerMobilePhone?: string
+  }): Promise<void>
+  destroy(): Promise<void>
 }
-type Widgets = {
-  setAmount(amount: { value: number; currency: 'KRW' }): Promise<void>
-  renderPaymentWindow(options?: { variantKey: { paymentMethod: string } }): Promise<PaymentWindow>
-  requestPayment(request: Omit<Request, 'customerEmail' | 'customerName' | 'customerMobilePhone'> & { customerEmail?: string; customerName?: string; customerMobilePhone?: string }): Promise<void>
-}
-type TossFactory = (key: string) => { widgets(options: { customerKey: string }): Widgets }
+type TossFactory = (key: string) => { payment(options: { customerKey: string }): PaymentWindow }
 let sdkLoad: Promise<TossFactory> | undefined
 let windowOpening = false
 
@@ -61,7 +62,7 @@ function loadSdk(): Promise<TossFactory> {
 
 function validatedPayload(payment: PreparedPayment) {
   if (payment.provider !== 'toss_payments' || payment.providerPreparationStatus !== 'ready'
-    || payment.checkoutAction.type !== 'sdk' || payment.checkoutAction.operation !== 'widgets.requestPayment'
+    || payment.checkoutAction.type !== 'sdk' || payment.checkoutAction.operation !== 'payment.requestPayment'
     || payment.checkoutAction.sdkUrl !== sdkUrl) {
     throw new Error('현재 결제창을 준비할 수 없습니다. 잠시 후 다시 시도하거나 주문내역을 확인해 주세요.')
   }
@@ -80,27 +81,47 @@ function validatedPayload(payment: PreparedPayment) {
   return payload
 }
 
-// The provider window owns its payment-method and agreement UI; no intermediate app page.
+function paymentOptions(payload: z.infer<typeof payloadSchema>): PaymentOptions {
+  switch (payload.requestedPaymentMethod) {
+    case 'card': return { method: 'CARD', card: { flowMode: 'DEFAULT' } }
+    case 'payco': return { method: 'CARD', card: { flowMode: 'DIRECT', easyPay: 'PAYCO' } }
+    case 'virtual_account': {
+      const dueDate = payload.virtualAccountDueDate
+      if (!dueDate || !Number.isFinite(Date.parse(dueDate)) || Date.parse(dueDate) <= Date.now()) {
+        throw new Error('결제 기한이 만료되었거나 확인되지 않습니다. 주문 상태를 확인해 주세요.')
+      }
+      const receiptTypes = { not_requested: '미발행', income_deduction: '소득공제', business_expense: '지출증빙' } as const
+      return { method: 'VIRTUAL_ACCOUNT', virtualAccount: { dueDate, cashReceipt: { type: receiptTypes[payload.cashReceiptType] } } }
+    }
+  }
+}
+
+function providerErrorCode(error: unknown): string | undefined {
+  return error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : undefined
+}
+
+// The order form selects the method; Toss owns authentication and provider agreements.
 export async function openTossPaymentWindow(payment: PreparedPayment, signal: AbortSignal): Promise<void> {
   if (windowOpening) throw new Error('이미 결제창이 열려 있습니다.')
   windowOpening = true
   let control: PaymentWindow | undefined
+  let requestPending = false
   let unlockBackground: (() => void) | undefined
   try {
     const payload = validatedPayload(payment)
+    if (!/^(test|live)_ck_/.test(payload.clientKey)) {
+      throw new Error('현재 결제창 설정이 올바르지 않습니다. 관리자에게 문의해 주세요.')
+    }
+    const options = paymentOptions(payload)
     const factory = await loadSdk()
     signal.throwIfAborted()
-    const widgets = factory(payload.clientKey).widgets({ customerKey: payload.customerKey })
-    await widgets.setAmount(payload.amount)
-    signal.throwIfAborted()
-    unlockBackground = lockPaymentBackground(signal)
-    control = await widgets.renderPaymentWindow(payload.variantKey ? { variantKey: { paymentMethod: payload.variantKey } } : undefined)
-    signal.throwIfAborted()
+    control = factory(payload.clientKey).payment({ customerKey: payload.customerKey })
     const paymentWindow = control
+    const { customerEmail, customerName, customerMobilePhone, ...required } = payload.paymentRequest
+    unlockBackground = lockPaymentBackground(signal)
     await new Promise<void>((resolve, reject) => {
       let settled = false
-      let requesting = false
-      const finish = (error?: Error) => {
+      const finish = (error?: unknown) => {
         if (settled) return
         settled = true
         signal.removeEventListener('abort', aborted)
@@ -108,26 +129,31 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
       }
       const aborted = () => finish(new Error('결제창을 닫았습니다.'))
       signal.addEventListener('abort', aborted, { once: true })
-      paymentWindow.on('cancel', () => finish(new Error('결제를 취소했습니다. 다시 시도할 수 있습니다.')))
-      paymentWindow.on('paymentRequest', method => {
-        if (settled || requesting) return
-        const allowed: Record<string, readonly string[]> = { card: ['CARD', '카드'], virtual_account: ['VIRTUAL_ACCOUNT', '가상계좌'], payco: ['PAYCO', '페이코'] }
-        if (!allowed[payment.paymentMethod]?.includes(method?.code)) {
-          finish(new Error('주문서에서 선택한 결제수단과 같은 수단을 선택해 주세요.'))
-          return
-        }
-        requesting = true
-        const { customerEmail, customerName, customerMobilePhone, ...required } = payload.paymentRequest
-        void Promise.resolve().then(() => {
-          if (settled || signal.aborted) return
-          return widgets.requestPayment({ ...required, ...(customerEmail ? { customerEmail } : {}), ...(customerName ? { customerName } : {}), ...(customerMobilePhone ? { customerMobilePhone } : {}) })
-        })
-          .then(() => finish())
-          .catch(() => finish(new Error('결제가 완료되지 않았습니다. 주문내역을 확인하거나 다시 시도해 주세요.')))
+      if (signal.aborted) { aborted(); return }
+      requestPending = true
+      void Promise.resolve().then(() => {
+        if (signal.aborted) return
+        return paymentWindow.requestPayment({ ...required, ...options, amount: payload.amount,
+          ...(customerEmail ? { customerEmail } : {}), ...(customerName ? { customerName } : {}),
+          ...(customerMobilePhone ? { customerMobilePhone } : {}) })
+      }).then(() => { requestPending = false; finish() }).catch(error => {
+        requestPending = false
+        const code = providerErrorCode(error)
+        if (code === 'PAY_PROCESS_CANCELED' || code === 'USER_CANCEL' || code === 'PAYMENT_REQUEST_ABORTED') {
+          finish(new Error('결제를 취소했습니다. 다시 시도할 수 있습니다.'))
+        } else finish(new Error('결제가 완료되지 않았습니다. 주문내역을 확인하거나 다시 시도해 주세요.'))
       })
     })
   } finally {
-    try { await control?.destroy() } finally {
+    try {
+      if (control && requestPending) {
+        try { await control.destroy() } catch (error) {
+          if (providerErrorCode(error) !== 'NO_ACTIVE_PAYMENT_REQUEST') {
+            throw new Error('결제창을 닫지 못했습니다. 페이지를 새로고침해 주세요.')
+          }
+        }
+      }
+    } finally {
       unlockBackground?.()
       windowOpening = false
     }

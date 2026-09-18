@@ -5,13 +5,16 @@ interface Props {
   estimate: { [K in keyof CartEstimate]: number | null } & { subtotalAmount?: number; setupFeeAmount?: number }
   selectedCount: number
   disabled: boolean
+  quoteError?: boolean
+  onRetryQuote?: () => void
   onPurchase: () => void
   onPrevious: () => void
 }
 
-export function CartEstimateSummary({ estimate, selectedCount, disabled, onPurchase, onPrevious }: Props) {
-  return <aside className="purchase-summary cart-summary">
+export function CartEstimateSummary({ estimate, selectedCount, disabled, quoteError = false, onRetryQuote, onPurchase, onPrevious }: Props) {
+  return <aside className={`purchase-summary cart-summary${quoteError ? ' cart-summary--error' : ''}`}>
     <h2>주문 예상 금액</h2>
+    {quoteError ? <p className="cart-summary__error" role="alert">주문 금액을 확인하지 못했습니다. <button onClick={onRetryQuote} type="button">다시 시도</button></p> : null}
     <div className="purchase-summary__box cart-summary__box">
       <dl>
         <div className="purchase-summary__products cart-summary__products">

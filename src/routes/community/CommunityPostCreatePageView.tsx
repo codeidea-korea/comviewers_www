@@ -31,6 +31,9 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
   const [content, setContent] = useState(editingPost ? toEditorHtml(editingPost.content || []) : '')
   const [richContent, setRichContent] = useState<JSONContent | null>((editingPost?.richContent as JSONContent | null | undefined) ?? null)
   const [notice, setNotice] = useState('')
+  const titleError = notice.startsWith('제목') ? notice : ''
+  const contentError = notice.startsWith('게시글 내용') ? notice : ''
+  const submitError = notice && !titleError && !contentError ? notice : ''
   const submitLabel = mode === 'edit' ? '수정 완료' : '등록'
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -57,11 +60,11 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
     <CommunityShell>
       <form className={`post-editor content-container${mode === 'edit' ? ' post-editor--edit' : ` post-editor--files-${files.length}`}`} onSubmit={submit}>
         <h1>{mode === 'edit' ? '게시글 수정' : '게시글 작성'}</h1>
-        <label><span>제목</span><input aria-label="제목" maxLength={100} onChange={(event) => { setTitle(event.target.value); setNotice('') }} placeholder="제목을 입력해 주세요." value={title} /></label>
-        <div className="post-editor__editor-field"><span id="post-editor-content-label">내용</span><RichTextEditor ariaLabelledby="post-editor-content-label" onChange={(value) => { setContent(value); setNotice('') }} onDocumentChange={(document) => setRichContent(document)} placeholder="" value={richContent ?? content} /></div>
+        <label><span>제목</span><input aria-label="제목" aria-invalid={Boolean(titleError)} maxLength={100} onChange={(event) => { setTitle(event.target.value); setNotice('') }} placeholder="제목을 입력해 주세요." value={title} />{titleError ? <small className="post-editor__field-error" role="alert">{titleError}</small> : null}</label>
+        <div className="post-editor__editor-field"><span id="post-editor-content-label">내용</span><RichTextEditor ariaLabelledby="post-editor-content-label" onChange={(value) => { setContent(value); setNotice('') }} onDocumentChange={(document) => setRichContent(document)} placeholder="" value={richContent ?? content} />{contentError ? <small className="post-editor__field-error" role="alert">{contentError}</small> : null}</div>
         <section className="post-files"><h2>첨부파일</h2><p>* 최대 3개까지 첨부 가능</p><label className="file-select">파일 선택<input className="sr-only" onChange={(event) => { const selected = Array.from(event.target.files ?? []).map((file) => ({ localId: crypto.randomUUID(), name: file.name, size: `${Math.ceil(file.size / 1024)}KB`, type: file.type, file })); setFiles((current) => [...current, ...selected].slice(0, 3)); event.currentTarget.value = '' }} type="file" multiple /></label>{files.map((file) => <div key={file.localId}><span>{file.name} <small>{file.size}</small></span><button aria-label={`${file.name} 삭제`} onClick={() => setFiles((current) => current.filter((item) => item.localId !== file.localId))} type="button"><img alt="" src={closeIcon} /></button></div>)}</section>
         <div className="post-editor__actions"><Link to={editingPost ? `/community/posts/${editingPost.postId}${params.toString() ? `?${params.toString()}` : ''}` : `/community/posts${params.toString() ? `?${params.toString()}` : ''}`}>취소</Link><button disabled={actions.save.isPending} type="submit">{submitLabel}</button></div>
-        {notice ? <p aria-live="polite" className="community-notice">{notice}</p> : null}
+        {submitError ? <p className="post-editor__submit-error" role="alert">{submitError}</p> : null}
       </form>
     </CommunityShell>
   )

@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import type { AccountOrderDetail, AccountOrderItem } from '@/api/myAccountOrders'
-import { accountDate, accountMoney } from '@/lib/accountFormat'
+import { accountDate, accountKstDate, accountMoney } from '@/lib/accountFormat'
 import { PageTitle } from './CommerceComponents'
 
 export function CheckoutCompletePage() {
@@ -42,16 +42,19 @@ function CheckoutPaymentResult() {
   const payment = order.data?.payments.find(item => item.paymentId === String(paymentId)) ?? order.data?.payments[0]
   return <AppShell className={`commerce-shell complete-page complete-page--api ${virtual ? 'complete-page--virtual' : 'complete-page--card'}`}>
     <div className="content-container commerce-page">
-      {!result.data ? <PageTitle>주문 결과</PageTitle> : null}
-      {returned.failed && <p role="alert">결제가 완료되지 않았습니다. 주문내역에서 최신 결제 상태를 확인해 주세요.</p>}
-      {confirm.isPending && <p aria-busy="true">결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.</p>}
-      {confirm.isError && <><p role="alert">결제 승인 결과를 확인하지 못했습니다.</p><button type="button" onClick={() => confirm.mutate()} disabled={confirm.isPending}>승인 결과 다시 확인</button></>}
-      {!valid && !callbackValid && !returned.failed && <p role="alert">결제 조회 정보를 확인할 수 없습니다.</p>}
-      {valid && result.isPending && <p aria-busy="true">결제 상태를 확인하고 있습니다.</p>}
-      {result.isError && <><p role="alert">결제 상태를 조회하지 못했습니다.</p><button onClick={() => void result.refetch()} type="button">다시 시도</button></>}
-      {result.data && order.isPending && <LoadingState className="route-loading--compact" label="주문 상세를 불러오는 중입니다." />}
-      {order.isError && <><p role="alert">주문 상세를 불러오지 못했습니다.</p><button type="button" onClick={() => void order.refetch()}>주문 상세 다시 불러오기</button></>}
-      {result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={confirm.data?.virtualAccount ?? null} /> : null}
+      {result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={confirm.data?.virtualAccount ?? null} /> : <>
+        <PageTitle>주문 결과</PageTitle>
+        <div className="complete-result-state">
+          {returned.failed && <p role="alert">결제가 완료되지 않았습니다. 주문내역에서 최신 결제 상태를 확인해 주세요.</p>}
+          {confirm.isPending && <p aria-busy="true">결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.</p>}
+          {confirm.isError && <><p role="alert">결제 승인 결과를 확인하지 못했습니다.</p><button type="button" onClick={() => confirm.mutate()} disabled={confirm.isPending}>승인 결과 다시 확인</button></>}
+          {!valid && !callbackValid && !returned.failed && <p role="alert">결제 조회 정보를 확인할 수 없습니다.</p>}
+          {valid && result.isPending && <p aria-busy="true">결제 상태를 확인하고 있습니다.</p>}
+          {result.isError && <><p role="alert">결제 상태를 조회하지 못했습니다.</p><button onClick={() => void result.refetch()} type="button">다시 시도</button></>}
+          {result.data && order.isPending && <LoadingState className="route-loading--compact" label="주문 상세를 불러오는 중입니다." />}
+          {order.isError && <><p role="alert">주문 상세를 불러오지 못했습니다.</p><button type="button" onClick={() => void order.refetch()}>주문 상세 다시 불러오기</button></>}
+        </div>
+      </>}
     </div>
   </AppShell>
 }
@@ -95,7 +98,7 @@ function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, pa
   const dueAt = virtualAccount?.dueDate ?? payment?.depositDueAt ?? null
   const depositRows: readonly (readonly [string, ReactNode])[] = waitingForDeposit ? [
     ['입금은행', bank], ['입금자명', <strong key="depositor">{depositor}</strong>], ['입금계좌', <strong key="account">{account}</strong>],
-    ['입금기한', <span className="complete-deadline" key="deadline"><strong>{accountDate(dueAt)}</strong><em>* 주문 후 30분 이내 미입금 시 자동 취소됩니다.</em></span>],
+    ['입금기한', <span className="complete-deadline" key="deadline"><strong>{accountKstDate(dueAt)}</strong><em>* 주문 후 30분 이내 미입금 시 자동 취소됩니다.</em></span>],
   ] : []
   const paymentRows: readonly (readonly [string, ReactNode])[] = [
     ['주문번호', order.orderNo], ['주문일시', accountDate(order.orderedAt)],

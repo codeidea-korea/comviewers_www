@@ -13,6 +13,7 @@ import { InquiryRefundApplication } from '../InquiryRefundApplication'
 import { InquiryAction } from '../inquiries/InquiryAction'
 
 import { Button } from '@/components/ui/ButtonControl'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { RefundWithdrawalAction } from './RefundWithdrawalAction'
 import tollIcon from '@/assets/figma/icon-toll.svg'
 
@@ -22,8 +23,10 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const [key] = useState(() => crypto.randomUUID())
   const busy = useRef(false)
   const client = useQueryClient()
-  const confirmation = useMutation({ mutationFn: () => api.confirmPurchase(item.orderItemId, key), onSuccess: async () => {
+  const { message: confirmationMessage, setMessage: setConfirmationMessage, toastKey } = useToastMessage()
+  const confirmation = useMutation({ mutationFn: () => api.confirmPurchase(item.orderItemId, key), onSuccess: async (result) => {
     setOpen(false)
+    setConfirmationMessage(`구매확정되었습니다. ${result.accruedPoints.toLocaleString('ko-KR')}포인트가 적립되었습니다.`)
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] })])
   }, onSettled: () => { busy.current = false } })
   const confirmedAt = confirmation.data?.confirmedAt ?? item.purchaseConfirmedAt
@@ -45,11 +48,13 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   if (variant === 'dashboard') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>포인트 받기</span> : null}</Button> : null}
     {confirmDialog}
+    <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (variant === 'purchase-summary') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</Button> : null}
     {item.expectedPoints !== null ? <b>포인트 {item.expectedPoints.toLocaleString('ko-KR')}P 받기</b> : null}
     {confirmDialog}
+    <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (item.billingUnit === 'unit' && item.durationUnits === null && item.pcAssetId === null && !item.rentalId)
     return paid ? <PartPurchaseActions api={api} item={item}/> : null
@@ -76,7 +81,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
       </div>
       <OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} />
     </div>
-    {confirmation.data && <p className="order-item__confirmation-message" role="status">구매확정되었습니다. {confirmation.data.accruedPoints.toLocaleString('ko-KR')}포인트가 적립되었습니다.</p>}
+    <Toast message={confirmationMessage} toastKey={toastKey} />
     {confirmDialog}
   </>
 }

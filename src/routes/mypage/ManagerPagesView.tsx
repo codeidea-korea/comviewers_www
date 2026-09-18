@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/ModalControl'
 import { PopupLayer } from '@/components/ui/PopupLayerControl'
 import { DialogActions } from '@/components/ui/DialogActionsControl'
 import { ApiClientError } from '@/api/httpClient'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { ManagerCatalog } from './-components/ManagerCatalog'
 import { ManagerEditorForm } from './-components/modals/ManagerEditorForm'
 import { useManagers } from './-components/hooks/useManagers'
@@ -14,7 +15,7 @@ function ManagersContent() {
   const [dialog, setDialog] = useState<ManagerDialog>({ kind: 'closed' })
   const [openMenuRow, setOpenMenuRow] = useState<string | null>(null)
   const [selectedManagerId, setSelectedManagerId] = useState('')
-  const [notice, setNotice] = useState('')
+  const { message: notice, setMessage: setNotice, toastKey } = useToastMessage()
   const [error, setError] = useState('')
   const confirming = useRef(false)
   const pending = account.save.isPending || account.assign.isPending || account.remove.isPending
@@ -53,7 +54,8 @@ function ManagersContent() {
     return managers.some(manager => manager.assignedRcpcIds.includes(id) || (rcpc ? manager.assignedRcpcIds.includes(rcpc.rcpcId) : false))
   }) ? '담당자 변경' : '담당자 설정'
   return <>
-    <ManagerCatalog notice={notice} onCreate={() => open({ kind: 'create' })} onEdit={(id) => open({ kind: 'edit', id })} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} />
+    <ManagerCatalog onCreate={() => open({ kind: 'create' })} onEdit={(id) => open({ kind: 'edit', id })} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} />
+    <Toast message={notice} toastKey={toastKey} />
     {(dialog.kind === 'create' || dialog.kind === 'edit') && <PopupLayer isOpen className="manager-preview manager-preview--create" dialogClassName="manager-modal manager-modal--register" onClose={close} showTitle={false} title={dialog.kind === 'create' ? '담당자 등록' : '담당자 수정'}>
       {dialog.kind === 'edit' && !target ? <p role="alert">담당자를 찾을 수 없습니다.</p> : <ManagerEditorForm key={target?.id ?? 'new'} manager={target} pending={pending} checkLogin={account.checkLogin} onClose={close} onDelete={target ? () => open({ kind: 'delete', id: target.id }) : undefined} onSave={async (draft) => { await account.save.mutateAsync({ id: target?.id, draft }); setNotice('담당자 정보를 저장했습니다.'); setDialog({ kind: 'closed' }) }} />}
     </PopupLayer>}

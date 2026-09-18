@@ -13,8 +13,8 @@ import { useMyAccount } from './hooks/useMyAccount'
 import { MyPageLayout } from '../MypageComponentsView'
 import { managerCatalogRowMatches } from './managerCatalogSearch'
 
-export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnassign, onToggleMenu, openMenuRow = null }: {
-  notice?: string; onCreate: () => void; onEdit: (id: string) => void;
+export function ManagerCatalog({ onCreate, onEdit, onAssign, onUnassign, onToggleMenu, openMenuRow = null }: {
+  onCreate: () => void; onEdit: (id: string) => void;
   onAssign: (ids: string[]) => void; onUnassign: (ids: string[]) => void;
   onToggleMenu: (id: string) => void; openMenuRow?: string | null;
 }) {
@@ -30,7 +30,6 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
-  const [copyError, setCopyError] = useState(false)
   const [mobileGroupsOpen, setMobileGroupsOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const filteredRows = managerRows.filter((row) => (managerFilter === null || (managerFilter === 'unassigned' ? !row.managerIds.length : row.managerIds.includes(managerFilter)))
@@ -55,8 +54,7 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
       if (!navigator.clipboard) throw new Error('Clipboard unavailable')
       await navigator.clipboard.writeText(`${window.location.origin}/manager/${encodeURIComponent(organization.organizationNo)}/mypage`)
       setCopyMessage('복사되었습니다.')
-      setCopyError(false)
-    } catch { setCopyMessage(''); setCopyError(true) }
+    } catch { setCopyMessage('접속 링크를 복사하지 못했습니다. 다시 시도해 주세요.') }
   }
   useEffect(() => {
     if (managerFilter && managerFilter !== 'unassigned' && !managers.some(manager => manager.id === managerFilter)) {
@@ -73,7 +71,6 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
   }
   return <MyPageLayout title="RCPC 담당자 관리"><section className="manager-catalog manager-catalog--mypage content-container">
     <h1 className="manager-catalog__mobile-title">RCPC 담당자 관리</h1>
-    {notice ? <p role="status" className="mypage-notice">{notice}</p> : null}
     <AccountQueryState pending={account.isPending} error={account.error} retry={account.refetch}/>
     <div className="manager-catalog__tools"><label><input aria-label="담당자 검색" onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명을 검색해 주세요." value={search} /><img alt="" src={searchIcon} /></label><span><button onClick={copyAccessLink} type="button">접속 링크복사 <img alt="" src={linkIcon} /></button><button onClick={onCreate} type="button">담당자 등록 <img alt="" src={addIcon} /></button></span></div>
     <div className="manager-catalog__mobile-tools">
@@ -83,7 +80,6 @@ export function ManagerCatalog({ notice = '', onCreate, onEdit, onAssign, onUnas
       {mobileSearchOpen ? <label className="manager-catalog__mobile-search"><span className="sr-only">담당자 검색</span><input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명" value={search}/></label> : null}
     </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
-    {copyError ? <p role="alert">접속 링크를 복사하지 못했습니다. 다시 시도해 주세요.</p> : null}
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
       {managers.map((manager) => <button className={managerFilter === manager.id ? 'is-active' : ''} key={manager.id} onClick={() => { setManagerFilter(manager.id); setCurrentPage(1) }} type="button"><b>{manager.name}<em>{manager.assignedRcpcIds.length}</em></b></button>)}
       {managers.length ? <button className={managerFilter === 'unassigned' ? 'is-active' : ''} onClick={() => { setManagerFilter('unassigned'); setCurrentPage(1) }} type="button"><b>미배정<em>{unassignedCount}</em></b></button> : <p>등록된 담당자가 없습니다.</p>}

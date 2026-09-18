@@ -5,6 +5,7 @@ import { cartQueryKeys } from '@/domain/cart/cartRepository'
 import { summarizeQuotedCartItems } from '@/domain/cart/cartEstimate'
 import { cartSchema, type CartItem, type ChangeCartQuantity } from '@/domain/cart/schemas'
 import { checkoutQueryKeys, checkoutQuoteSchema } from '@/domain/checkout/checkoutRepository'
+import { useToastMessage } from '@/components/ui/ToastControl'
 
 type CartChange = { type: 'remove'; ids: string[] } | { type: 'quantity'; input: ChangeCartQuantity }
 const emptyItems: CartItem[] = []
@@ -17,7 +18,7 @@ export function useCart() {
   const [isChanging, setIsChanging] = useState(false)
   const [updatingQuantityIds, setUpdatingQuantityIds] = useState<Set<string>>(() => new Set())
   const [excludedIds, setExcludedIds] = useState<string[]>([])
-  const [notice, setNotice] = useState('')
+  const { message: notice, setMessage: setNotice, toastKey } = useToastMessage()
   const result = useQuery({
     queryKey: cartQueryKeys.items,
     queryFn: async ({ signal }) => cartSchema.parse(await cart.list(signal)),
@@ -32,7 +33,6 @@ export function useCart() {
       setExcludedIds((ids) => ids.filter((id) => items.some((item) => item.id === id)))
       setNotice(change.type === 'remove' ? '선택한 상품을 삭제했습니다.' : '')
     },
-    onError: () => setNotice('일부 변경을 처리하지 못했습니다. 장바구니를 다시 확인해 주세요.'),
     onSettled: async () => {
       // PUT/DELETE may have succeeded before a network or partial-delete failure.
       await Promise.all([
@@ -98,7 +98,7 @@ export function useCart() {
   }
 
   return {
-    ...result, items: quotedItems, selectedIds, allSelected, notice,
+    ...result, items: quotedItems, selectedIds, allSelected, notice, toastKey,
     estimate, checkoutBlocked, checkoutChecking, unavailableItems, quoteError: quote.isError || allQuote.isError,
     retryQuote: () => Promise.all([...(selectedIds.length ? [quote.refetch()] : []), ...(!sameSelection && allIds.length ? [allQuote.refetch()] : [])]),
     isChanging, updatingQuantityIds,

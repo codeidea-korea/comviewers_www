@@ -812,7 +812,7 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-catalog > .pagination { margin-top: 30px; position: static; }
 
 /* API-backed order detail keeps the PDF layout without its fixed mockup height. */
-.order-full-detail { height: auto; min-height: 980px; padding-bottom: 94px; padding-top: 0; }
+.order-full-detail { height: auto; min-height: 980px; padding-bottom: 94px; }
 .order-full-detail .order-full-detail__body { height: auto; }
 .order-full-detail .order-full-products,
 .order-full-detail .order-full-section { height: auto; }

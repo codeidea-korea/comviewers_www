@@ -440,6 +440,9 @@
 .post-editor--edit .post-files .file-select { margin: 12px 0; position: static; top: auto; }
 .post-editor--edit .post-files > div,.post-editor--edit .post-files > div:nth-of-type(1),.post-editor--edit .post-files > div:nth-of-type(2),.post-editor--edit .post-files > div:nth-of-type(3) { height: 50px; left: auto; position: static; top: auto; width: 720px; }
 .post-editor--edit .post-editor__actions { height: auto; left: auto; margin: 54px 0 0; position: static; top: auto; width: 714px; }
+.post-editor__field-error { color: var(--color-system-error); display: block; font-size: 12px; left: 0; line-height: 18px; margin: 0; position: absolute; top: 100%; }
+.post-editor__submit-error { color: var(--color-system-error); font-size: 13px; left: 0; line-height: 20px; margin: 0; position: absolute; text-align: center; top: 1045px; width: 100%; }
+.post-editor--edit .post-editor__field-error,.post-editor--edit .post-editor__submit-error { margin-top: 6px; position: static; }
 
 /* Original Figma document asset: do not recreate its folded corner with CSS. */
 .post-list img.post-list__document { border: 0; border-radius: 0; display: block; flex: 0 0 auto; height: 13.3333px; margin-left: 8px; position: static; width: 10.6667px; }

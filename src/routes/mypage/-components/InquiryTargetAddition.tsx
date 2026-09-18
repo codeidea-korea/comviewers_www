@@ -4,6 +4,7 @@ import { useServices } from '@/app/ServiceProvider'
 import { ApiClientError } from '@/api/httpClient'
 import type { InquiryReadServices, MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { DialogLayer } from '@/components/ui/DialogLayerControl'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { AccountQueryState } from './AccountQueryState'
 import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { sortInquiryChoices } from './inquiryChoice'
@@ -21,7 +22,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
   const chatKey = ['operation-requests', api.organizationId, 'chat', requestId] as const
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<readonly number[]>([])
-  const [outcome, setOutcome] = useState('')
+  const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
   const pending = useRef(false)
   const attempt = useRef<{ ids: readonly number[]; key: string } | null>(null)
   const options = useQuery({ queryKey: ['my-rcpcs', rcpcApi.organizationId, 'inquiry-addition-options'],
@@ -57,7 +58,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
   }
   if (closed) return null
   return <section aria-label="문의 상품 추가">
-    {outcome ? <p role="status">{outcome}</p> : null}
+    <Toast message={outcome} toastKey={toastKey} />
     <button aria-label="문의 상품 추가" type="button" disabled={total >= 20 || save.isPending} onClick={() => setOpen((value) => !value)}>문의 상품 추가</button>
     {open && !closed ? <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }} showTitle={false} title="문의 상품 추가">
       <ProductChoiceContent
