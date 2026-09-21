@@ -23,7 +23,11 @@ const socialSignupInputSchema = z.object({
   phone: z.string().regex(/^[0-9-]{0,30}$/), messengerType: z.string().max(50), messengerId: z.string().max(100),
   termsAgreements: z.array(z.object({ termsPolicyVersionId: z.number().int().positive().safe(), agreed: z.boolean() })).min(1).max(20),
 })
-const envelopeSchema = z.object({ code: z.string(), data: z.unknown().optional() })
+const envelopeSchema = z.object({
+  code: z.string().regex(/^[A-Z][A-Z0-9_]{0,63}$/),
+  message: z.string().trim().min(1).max(1000).optional(),
+  data: z.unknown().optional(),
+})
 
 /** Auth endpoints carry the HttpOnly refresh cookie. Other API requests retain bearer-only transport. */
 export function createAuthAdapter(baseUrl: string): AuthAdapter {
@@ -41,9 +45,10 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
     let payload: unknown
     try { payload = await response.json() } catch { throw new ApiClientError('contract', response.status) }
     const envelope = envelopeSchema.safeParse(payload)
-    if (!response.ok) throw new ApiClientError('http', response.status)
+    const details = envelope.success ? { code: envelope.data.code, message: envelope.data.message } : {}
+    if (!response.ok) throw new ApiClientError('http', response.status, details)
     if (!envelope.success) throw new ApiClientError('contract', response.status)
-    if (envelope.data.code !== 'S000') throw new ApiClientError('api', response.status)
+    if (envelope.data.code !== 'S000') throw new ApiClientError('api', response.status, details)
     return { data: envelope.data.data, receivedAt }
   }
   const post = (path: string, body?: unknown, accessToken?: string | null) => request('POST', path, body, accessToken)

@@ -37,7 +37,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   sortConfig: SortConfig<SortKey>
 }) {
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label}</SortButton>
+    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' ? <span className="table-sort-button__multiline-label">트래픽<br/>사용량</span> : column.label}</SortButton>
     : column.label
 
   return <>

@@ -26,15 +26,15 @@ const sortHeaders: ReadonlyArray<{ label: string; sort?: SortKey }> = [
 ]
 
 /** API-backed rows use the same card/grid surface as the publishing original. */
-export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items, selected, onSelectedChange, sortConfig, onSort, emptyMessage, mutations, selectable = true, className = '', mobileVariant = 'none', showAccessValuesByDefault = false }: {
+export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items, selected, onSelectedChange, sortConfig, onSort, emptyMessage, mutations, selectable = true, className = '', mobileVariant = 'none', showAccessValuesByDefault = false, onAliasSaved }: {
   api: MyRcpcReadServices; canEditAlias?: boolean; canExtend: boolean; items: readonly MyRcpcItem[]
   selected: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void
-  sortConfig: SortConfig<SortKey>; onSort: (sort: SortConfig<SortKey>) => void; emptyMessage: string; mutations?: RcpcMutations; selectable?: boolean; className?: string; mobileVariant?: MobileVariant; showAccessValuesByDefault?: boolean
+  sortConfig: SortConfig<SortKey>; onSort: (sort: SortConfig<SortKey>) => void; emptyMessage: string; mutations?: RcpcMutations; selectable?: boolean; className?: string; mobileVariant?: MobileVariant; showAccessValuesByDefault?: boolean; onAliasSaved?: () => void | Promise<unknown>
 }) {
   const selectableItems = items.filter(item => !extensionBlocked(item))
   const allSelected = selectableItems.length > 0 && selectableItems.every(item => selected.has(item.rentalId))
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label}</SortButton>
+    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' ? <span className="table-sort-button__multiline-label">트래픽<br/>사용량</span> : column.label}</SortButton>
     : column.label
   return <>
   <div className={`mypage-home-rcpc${selectable ? ' is-selectable' : ''}${className ? ` ${className}` : ''}`} role="table" aria-label="RCPC 목록">
@@ -42,17 +42,17 @@ export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items
       {selectable ? <span role="columnheader"><input aria-label="현재 페이지 전체 선택" type="checkbox" checked={allSelected} disabled={selectableItems.length === 0} onChange={event => onSelectedChange(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/></span> : null}
       {sortHeaders.map(column => <span key={column.label} role="columnheader">{header(column)}</span>)}
     </div>
-    {items.map((item, index) => <RcpcDashboardRow api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={item.rentalId} mutations={mutations} selectable={selectable} selected={selected.has(item.rentalId)} selection={selected} onSelectedChange={onSelectedChange} showAccessValuesByDefault={showAccessValuesByDefault && index < 5}/>) }
+    {items.map((item, index) => <RcpcDashboardRow api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={item.rentalId} mutations={mutations} onAliasSaved={onAliasSaved} selectable={selectable} selected={selected.has(item.rentalId)} selection={selected} onSelectedChange={onSelectedChange} showAccessValuesByDefault={showAccessValuesByDefault && index < 5}/>) }
     {items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}
   </div>
-  {mobileVariant === 'rcpc' ? <div className="mobile-rcpc-list" aria-label="RCPC 모바일 목록">{items.map(item => <MobileRcpcDashboardCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
-  {mobileVariant === 'favorites' ? <div className="favorites-table favorites-table--mobile" role={items.length ? 'table' : undefined} aria-label="즐겨찾기 RCPC 모바일 목록">{items.map((item, index) => <MobileFavoriteCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} index={index} item={item} key={`favorite-mobile:${item.rentalId}`} mutations={mutations} selectable={selectable} selected={selected.has(item.rentalId)} selection={selected} onSelectedChange={onSelectedChange}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
+  {mobileVariant === 'rcpc' ? <div className="mobile-rcpc-list" aria-label="RCPC 모바일 목록">{items.map(item => <MobileRcpcDashboardCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations} onAliasSaved={onAliasSaved}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
+  {mobileVariant === 'favorites' ? <div className="favorites-table favorites-table--mobile" role={items.length ? 'table' : undefined} aria-label="즐겨찾기 RCPC 모바일 목록">{items.map((item, index) => <MobileFavoriteCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} index={index} item={item} key={`favorite-mobile:${item.rentalId}`} mutations={mutations} onAliasSaved={onAliasSaved} selectable={selectable} selected={selected.has(item.rentalId)} selection={selected} onSelectedChange={onSelectedChange}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
   </>
 }
 
-function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, selectable, selected, selection, onSelectedChange, showAccessValuesByDefault }: {
+function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, onAliasSaved, selectable, selected, selection, onSelectedChange, showAccessValuesByDefault }: {
   api: MyRcpcReadServices; canEditAlias: boolean; canExtend: boolean; item: MyRcpcItem; mutations?: RcpcMutations
-  selectable: boolean; selected: boolean; selection: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void; showAccessValuesByDefault: boolean
+  onAliasSaved?: () => void | Promise<unknown>; selectable: boolean; selected: boolean; selection: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void; showAccessValuesByDefault: boolean
 }) {
   const connectionRef = useRef<HTMLDivElement>(null)
   const [connectionVisible, setConnectionVisible] = useState(false)
@@ -71,7 +71,7 @@ function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, selec
   const unavailable = extensionBlocked(item)
   return <article className={unavailable ? 'is-disabled' : undefined} role="row">
     {selectable ? <div className="mypage-home-rcpc__select" role="cell"><input aria-label={`${item.productNo} 선택`} type="checkbox" checked={selected} disabled={unavailable} onChange={event => onSelectedChange(new Set(event.target.checked ? [...selection, item.rentalId] : [...selection].filter(id => id !== item.rentalId)))}/></div> : null}
-    <div className="mypage-home-rcpc__alias" role="cell"><strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{item.preference.alias || item.productNo}</span>{canEditAlias && mutations && item.preference.alias ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}</strong><span>{item.preference.alias && canEditAlias && mutations ? null : canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}<RcpcSpecButton api={api} item={item} compact/></span></div>
+    <div className="mypage-home-rcpc__alias" role="cell"><strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{item.preference.alias || item.productNo}</span>{canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}</strong><span><RcpcSpecButton api={api} item={item} compact/></span></div>
     <div className="mypage-home-rcpc__server" role="cell"><span>{item.serverRoomRegion ?? '-'}<br />{item.serverRoomName ?? '-'}</span></div>
     <div className="mypage-home-rcpc__state" role="cell"><RcpcStatusContents item={item}/></div>
     <div className="mypage-home-rcpc__period" role="cell"><span><strong><RcpcPeriodLabel item={item}/></strong></span></div>
@@ -85,12 +85,11 @@ function rcpcDisplayName(item: MyRcpcItem) {
   return item.preference.alias || item.productNo
 }
 
-function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations }: { api: MyRcpcReadServices; canEditAlias: boolean; canExtend: boolean; item: MyRcpcItem; mutations?: RcpcMutations }) {
+function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations, onAliasSaved }: { api: MyRcpcReadServices; canEditAlias: boolean; canExtend: boolean; item: MyRcpcItem; mutations?: RcpcMutations; onAliasSaved?: () => void | Promise<unknown> }) {
   const unavailable = extensionBlocked(item)
   return <article className={`mobile-rcpc-card${unavailable ? ' is-ended' : ''}`}>
     <header>
-      <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{rcpcDisplayName(item)}</span>{canEditAlias && mutations && item.preference.alias ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}</strong>
-      {canEditAlias && mutations && !item.preference.alias ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
+      <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{rcpcDisplayName(item)}</span>{canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}</strong>
       <span className="mobile-rcpc-card__spec"><RcpcSpecButton api={api} item={item} compact/></span>
     </header>
     <dl className="mobile-rcpc-card__facts">
@@ -104,9 +103,9 @@ function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations
   </article>
 }
 
-function MobileFavoriteCard({ api, canEditAlias, canExtend, index, item, mutations, selectable, selected, selection, onSelectedChange }: {
+function MobileFavoriteCard({ api, canEditAlias, canExtend, index, item, mutations, onAliasSaved, selectable, selected, selection, onSelectedChange }: {
   api: MyRcpcReadServices; canEditAlias: boolean; canExtend: boolean; index: number; item: MyRcpcItem; mutations?: RcpcMutations
-  selectable: boolean; selected: boolean; selection: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void
+  onAliasSaved?: () => void | Promise<unknown>; selectable: boolean; selected: boolean; selection: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void
 }) {
   const unavailable = extensionBlocked(item)
   return <article className={`mobile-scrap-card${unavailable ? ' is-ended' : ''}`} data-sort-row={index} role="row">
@@ -117,7 +116,7 @@ function MobileFavoriteCard({ api, canEditAlias, canExtend, index, item, mutatio
         <img alt="" className="mobile-scrap-card__star mobile-scrap-card__star--mobile" src={starFilledIcon}/>
         <span className="mobile-scrap-card__alias mobile-scrap-card__alias--desktop">{rcpcDisplayName(item)}</span>
         <span className="mobile-scrap-card__alias mobile-scrap-card__alias--mobile">{rcpcDisplayName(item)}</span>
-        {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
+        {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}
       </strong>
       <RcpcSpecButton api={api} item={item} compact/>
     </div>

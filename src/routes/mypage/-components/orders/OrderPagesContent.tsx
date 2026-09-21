@@ -265,7 +265,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                             type="checkbox"
                           />
                         ) : null}
-                        <strong className={`${import.meta.env.DEV ? 'notranslate' : ''}${/환불|취소/.test(status) ? ' is-red' : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}>{rowStatusKeys[status] ? t(rowStatusKeys[status]) : status}</strong>
+                        <strong className={`${import.meta.env.DEV ? 'notranslate' : ''}${status === '환불접수' ? ' is-red' : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}>{rowStatusKeys[status] ? t(rowStatusKeys[status]) : status}</strong>
                       </label>
                       <span>{order.orderNo}</span>
                       <RelativeLink className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined} to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>

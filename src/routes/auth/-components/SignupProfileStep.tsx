@@ -31,7 +31,7 @@ function StandardSignupProfileStep() {
         {notice ? <p aria-live="polite" className="auth-notice">{notice}</p> : null}
         {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
       </div>
-      <div className="result-actions">
+      <div className="result-actions signup-request-actions">
         {error ? <Button onClick={restartSignup} size="large" variant="secondary">다시 입력하기</Button> : null}
         <Button as={Link} size="large" to="/">메인으로</Button>
       </div>

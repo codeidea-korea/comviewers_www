@@ -154,6 +154,7 @@ export const translationOverrides = [
   {"key":"refund.history","source":"refund","ko":"환불 내역","vi":"Lịch sử hoàn tiền","ja":"返金履歴","en":"Refund history","zh-CN":"退款记录","zh-TW":"退款紀錄"},
   {"key":"refund.originalPayment","source":"refund","ko":"원결제금액","vi":"Số tiền thanh toán ban đầu","ja":"元の決済金額","en":"Original payment amount","zh-CN":"原支付金额","zh-TW":"原付款金額"},
   {"key":"refund.orderAmount","source":"refund","ko":"주문금액","vi":"Số tiền đơn hàng","ja":"注文金額","en":"Order amount","zh-CN":"订单金额","zh-TW":"訂單金額"},
+  {"key":"refund.amount","source":"refund","ko":"환불금액","vi":"Số tiền hoàn lại","ja":"返金額","en":"Refund amount","zh-CN":"退款金额","zh-TW":"退款金額"},
   {"key":"refund.deductionRate","source":"refund","ko":"공제율","vi":"Tỷ lệ khấu trừ","ja":"控除率","en":"Deduction rate","zh-CN":"扣除比例","zh-TW":"扣除比例"},
   {"key":"refund.finalAmount","source":"refund","ko":"최종 환불금액","vi":"Số tiền hoàn cuối cùng","ja":"最終返金額","en":"Final refund amount","zh-CN":"最终退款金额","zh-TW":"最終退款金額"},
   {"key":"refund.noHistory","source":"refund","ko":"환불 내역 없음","vi":"Không có lịch sử hoàn tiền","ja":"返金履歴なし","en":"No refund history","zh-CN":"暂无退款记录","zh-TW":"暫無退款紀錄"},

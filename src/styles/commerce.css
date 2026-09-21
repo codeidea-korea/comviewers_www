@@ -317,8 +317,7 @@
 :is(.cart-page,.purchase-selection-page) .cart-summary__actions button:last-child { background: var(--color-white); border: 1px solid var(--color-gray-200); color: var(--color-black); }
 .purchase-selection-page .cart-summary__actions { height: 50px; }
 .purchase-selection-page .cart-summary__actions button:last-child:first-child { background: var(--color-black); border: 0; color: var(--color-white); }
-.cart-page--empty { display: flex; flex-direction: column; min-height: 100vh; }
-.cart-page--empty > main { display: flex; flex: 1 0 auto; flex-direction: column; min-height: 620px; }
+.cart-page--empty > main { display: flex; flex-direction: column; min-height: 620px; }
 .cart-page--empty .commerce-page { flex: 1 0 auto; height: auto; max-width: var(--layout-content); min-height: 620px; padding: 60px 0; width: calc(100% - (var(--page-gutter) * 2)); }
 .cart-page--empty .commerce-title { font-size: 26px; font-weight: 400; height: 31px; letter-spacing: -.52px; line-height: 31px; }
 .cart-page--empty .cart-empty { border-top: 1px solid var(--color-gray-200); height: 141px; min-height: 0; padding-top: 19px; }

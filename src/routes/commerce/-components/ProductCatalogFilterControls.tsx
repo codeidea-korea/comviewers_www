@@ -55,7 +55,7 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
   ].filter(selector => selector.selectedValues.size > 0 || selector.groups.some(group => group.options.length > 0))
   const tags = metadata?.groups.flatMap(group => {
     const options = group.options.filter(option => selectedOptions.includes(option.id))
-    if (!options.length || options.length === group.options.length) return []
+    if (!options.length) return []
     return [{ id: String(group.id), label: `${group.categoryName ?? '분류 미지정'} / ${group.name} ${options.slice(0, 2).map(option => option.label).join(', ')}${options.length > 2 ? ` +${options.length - 2}개` : ''}`,
       remove: () => update({ filterOptionIds: selectedOptions.filter(id => !group.options.some(option => option.id === id)) }) }]
   }) ?? []

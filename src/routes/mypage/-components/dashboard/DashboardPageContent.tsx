@@ -14,7 +14,7 @@ import { AccountQueryState } from '../AccountQueryState'
 import type { MyRcpcQuery } from '@/api/myRcpc'
 import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
 import { OrderItemActions } from '../orders/OrderItemActions'
-import { accountDate } from '../shared/AccountReadCommon'
+import { accountKstDate } from '@/lib/accountFormat'
 import { ProfileAvatar } from './ProfileAvatar'
 import windowsBackground from '@/assets/figma/windows-card-render.png'
 import windowIcon from '@/assets/figma/icon-window.png'
@@ -106,7 +106,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
         {heading(favoriteHeading, detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc')}
         <div className="mypage-home-mobile-heading"><Link to={detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc'}>{favoriteHeading} <span aria-hidden="true">›</span></Link><button aria-expanded={mobileFavoriteSortOpen} aria-haspopup="dialog" className="mypage-mobile-filter-trigger" onClick={() => setMobileFavoriteSortOpen(true)} type="button">{mobileFavoriteSortLabels[favoriteSort.key] ?? '서버 상태'}<img alt="" src={sortIcon}/></button></div>
         <AccountQueryState pending={favoritePending} error={favoriteError} retry={refetchFavorites}/>
-        {favoriteItems ? <RcpcDashboardTable api={rcpcs} canEditAlias={owner} canExtend={commerce} emptyMessage={detailMode ? '선택한 RCPC를 찾을 수 없습니다.' : '즐겨찾기로 등록된 RCPC가 없습니다.'} items={favoriteItems} mutations={owner ? myAccount.rcpcMutations : undefined} onSelectedChange={setSelectedFavorites} onSort={setFavoriteSort} selectable={detailMode} selected={selectedFavorites} sortConfig={favoriteSort} mobileVariant="rcpc" showAccessValuesByDefault/> : null}
+        {favoriteItems ? <RcpcDashboardTable api={rcpcs} canEditAlias={owner} canExtend={commerce} emptyMessage={detailMode ? '선택한 RCPC를 찾을 수 없습니다.' : '즐겨찾기로 등록된 RCPC가 없습니다.'} items={favoriteItems} mutations={owner ? myAccount.rcpcMutations : undefined} onAliasSaved={refetchFavorites} onSelectedChange={setSelectedFavorites} onSort={setFavoriteSort} selectable={detailMode} selected={selectedFavorites} sortConfig={favoriteSort} mobileVariant="rcpc" showAccessValuesByDefault/> : null}
       </section>
 
       <div className={`mypage-home-columns${owner ? '' : ' is-manager'}`}>
@@ -122,7 +122,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
           {owner ? <section className="mypage-home-storage">{heading('보관함', '/mypage/storage')}<AccountQueryState pending={storage.isPending} error={storage.error} retry={storage.refetch}/><div className="mypage-home-storage__card"><span>결제 대기</span><strong>{storage.data?.totalCount ?? '—'}<small>건</small></strong></div></section> : null}
         </div>
         <div>
-          <section>{heading('문의/AS 내역', '/mypage/inquiries')}<AccountQueryState pending={recentInquiries.isPending} error={recentInquiries.error} retry={recentInquiries.refetch}/><div className="mypage-home-text-list">{recentInquiries.data?.items.length === 0 ? <p>등록된 문의 내역이 없습니다.</p> : recentInquiries.data?.items.map(item => <InquiryAction appearance="text" key={item.operationRequestId} requestId={item.operationRequestId}><span><small>{item.customerVisibleStatus}</small><span className="mypage-home-text-list__title">{item.title}</span></span><time>{accountDate(item.createdAt)}</time></InquiryAction>)}</div></section>
+          <section>{heading('문의/AS 내역', '/mypage/inquiries')}<AccountQueryState pending={recentInquiries.isPending} error={recentInquiries.error} retry={recentInquiries.refetch}/><div className="mypage-home-text-list">{recentInquiries.data?.items.length === 0 ? <p>등록된 문의 내역이 없습니다.</p> : recentInquiries.data?.items.map(item => <InquiryAction appearance="text" key={item.operationRequestId} requestId={item.operationRequestId}><span><small>{item.customerVisibleStatus}</small><span className="mypage-home-text-list__title">{item.title}</span></span><time dateTime={item.createdAt}>{accountKstDate(item.createdAt)}</time></InquiryAction>)}</div></section>
           {owner ? <section className="mypage-home-posts">{heading('내 게시글', '/community/posts?mineOnly=true')}<AccountQueryState pending={posts.isPending} error={posts.error} retry={posts.refetch}/><div className="mypage-home-text-list">{posts.data?.items.length === 0 ? <p>작성한 게시글이 없습니다.</p> : posts.data?.items.map(post => <Link key={post.id} to={`/community/posts/${encodeURIComponent(post.postId)}`}><span><small>{post.boardName}</small><span className="mypage-home-text-list__title">{post.title} ({post.comments})</span></span><time>{post.date}</time></Link>)}</div></section> : null}
         </div>
       </div>

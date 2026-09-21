@@ -10,6 +10,8 @@ import { NativeSelect } from '@/components/ui/SelectControl'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { MyPageLayout, MyPageMobileFilterSheet, MyPageTabs, MyPageToolbar } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
+import { isAccountReadDenied } from '../accountReadAccess'
+import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
 import { RcpcListSurface } from '../RcpcListSurface'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
@@ -37,8 +39,6 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
   const [query, setQuery] = useState<MyRcpcQuery>({
     page: 0,
     size: 20,
-    sort: 'serverStatus',
-    sortDirection: 'asc',
     productNo: initialProductNo || undefined,
     status: initialStatus,
     usageStatus: initialUsage,
@@ -58,14 +58,18 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     queryKey: ['my-rcpcs', api.organizationId, 'filter-options'],
     queryFn: ({ signal }) => api.filterOptions(signal),
   })
-  const regions = available.data?.regions ?? []
-  const rooms = (available.data?.serverRooms ?? [])
-    .filter(room => !query.region || room.region === query.region)
-    .map(room => [room.id, room.name ?? String(room.id)] as const)
   const rows = useQuery({
     queryKey: ['my-rcpcs', api.organizationId, query],
     queryFn: ({ signal }) => api.list(query, signal),
   })
+  const accessDenied = isAccountReadDenied(available.error) || isAccountReadDenied(rows.error)
+  // A forbidden response must also hide data retained from an earlier successful query.
+  const filterOptions = accessDenied ? undefined : available.data
+  const page = accessDenied ? undefined : rows.data
+  const regions = filterOptions?.regions ?? []
+  const rooms = (filterOptions?.serverRooms ?? [])
+    .filter(room => !query.region || room.region === query.region)
+    .map(room => [room.id, room.name ?? String(room.id)] as const)
   const capability = session.status === 'authenticated' ? session.customerSession : null
   const canExtend = capability?.memberRole === 'owner' && capability.commerceAvailable
   const canEditAlias = capability?.memberRole === 'owner'
@@ -77,9 +81,9 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       : currentUsage === 'ended'
         ? 'ended'
         : 'all'
-  const usageCounts = available.data?.usageCounts ?? {}
+  const usageCounts = filterOptions?.usageCounts ?? {}
   const tabs = [
-    { id: 'all', label: `전체 ${available.data?.total ?? 0}`, href: '/mypage/rcpc' },
+    { id: 'all', label: `전체 ${filterOptions?.total ?? 0}`, href: '/mypage/rcpc' },
     { id: 'using', label: `이용 중 ${usageCounts.using ?? 0}`, href: '/mypage/rcpc?usageStatus=using' },
     { id: 'waiting', label: `연장대기 ${usageCounts.extension_waiting ?? 0}`, href: '/mypage/rcpc?usageStatus=extension_waiting' },
     { id: 'ended', label: `이용 종료 ${usageCounts.ended ?? 0}`, href: '/mypage/rcpc?usageStatus=ended' },
@@ -90,32 +94,33 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     <div className="rcpc-list-page">
       <div className="mobile-list-page-heading mobile-list-page-heading--rcpc">
         <h1>이용 RCPC</h1>
-        <button aria-expanded={mobileSortOpen} aria-haspopup="dialog" onClick={() => setMobileSortOpen(true)} type="button">
-          {mobileSortLabels[query.sort ?? 'serverStatus'] ?? '서버 상태'} <span aria-hidden="true">↕</span>
+        <button aria-expanded={mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">
+          {query.sort ? mobileSortLabels[query.sort] ?? '정렬' : '정렬'} <span aria-hidden="true">↕</span>
         </button>
       </div>
       <MyPageTabs active={activeTab} items={tabs}/>
-      <MyPageToolbar count={rows.data?.totalElements ?? 0} label="총" suffix="개 상품">
-        <NativeSelect aria-label="서버 위치" onChange={event => {
+      <MyPageToolbar count={page?.totalElements ?? 0} label="총" suffix="개 상품">
+        <NativeSelect aria-label="서버 위치" disabled={accessDenied} onChange={event => {
           const region = event.target.value || undefined
-          const matchingRooms = available.data?.serverRooms.filter(room => room.region === region) ?? []
+          const matchingRooms = filterOptions?.serverRooms.filter(room => room.region === region) ?? []
           setQuery(previous => ({ ...previous, page: 0, region, serverRoomId: matchingRooms.length === 1 ? matchingRooms[0].id : undefined }))
-        }} value={query.region ?? ''}>
+        }} value={accessDenied ? '' : query.region ?? ''}>
           <option value="">서버 위치 전체</option>
           {regions.map(region => <option key={region} value={region}>{region}</option>)}
         </NativeSelect>
-        <NativeSelect aria-label="서버실" onChange={event => setQuery(previous => ({ ...previous, page: 0, serverRoomId: event.target.value ? Number(event.target.value) : undefined }))} value={query.serverRoomId ?? ''}>
+        <NativeSelect aria-label="서버실" disabled={accessDenied} onChange={event => setQuery(previous => ({ ...previous, page: 0, serverRoomId: event.target.value ? Number(event.target.value) : undefined }))} value={accessDenied ? '' : query.serverRoomId ?? ''}>
           <option value="">서버실 선택</option>
           {rooms.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
         </NativeSelect>
       </MyPageToolbar>
-      {available.error ? <p role="alert">서버실 목록을 불러오지 못했습니다. <button onClick={() => void available.refetch()} type="button">다시 시도</button></p> : null}
-      <AccountQueryState error={rows.error} pending={rows.isPending} retry={rows.refetch}/>
-      {rows.data ? <>
-        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={rows.data.items} mutations={mutations} onSort={sort => setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction }))} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
-        {rows.data.totalPages > 1 ? <Pagination currentPage={rows.data.page + 1} onPageChange={page => setQuery(previous => ({ ...previous, page: page - 1 }))} totalPages={rows.data.totalPages}/> : null}
+      {!accessDenied && available.error ? <p role="alert">서버실 목록을 불러오지 못했습니다. <button onClick={() => void available.refetch()} type="button">다시 시도</button></p> : null}
+      {!accessDenied ? <AccountQueryState error={rows.error} pending={rows.isPending} retry={rows.refetch}/> : null}
+      {accessDenied || page ? <>
+        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={page?.items ?? []} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} sortConfig={{ key: query.sort ?? 'recent', direction: query.sortDirection ?? 'desc' }}/>
+        {page && page.totalPages > 1 ? <Pagination currentPage={page.page + 1} onPageChange={nextPage => setQuery(previous => ({ ...previous, page: nextPage - 1 }))} totalPages={page.totalPages}/> : null}
       </> : null}
     </div>
-    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => setQuery(previous => ({ ...previous, page: 0, sort: mobileSortByLabel[label] ?? previous.sort, sortDirection: 'asc' }))} open={mobileSortOpen}/>
+    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => setQuery(previous => ({ ...previous, page: 0, sort: mobileSortByLabel[label] ?? previous.sort, sortDirection: 'asc' }))} open={!accessDenied && mobileSortOpen}/>
+    {accessDenied ? <AccountReadDeniedDialog key={api.organizationId} resource="RCPC"/> : null}
   </MyPageLayout>
 }

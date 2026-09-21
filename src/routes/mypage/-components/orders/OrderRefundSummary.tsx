@@ -14,9 +14,9 @@ export function OrderRefundSummary({ result, itemId, originalAmount }: { result:
   const finalAmount = approvedAmount ?? (paidAmount > 0 ? paidAmount : requestedAmount) ?? originalAmount
   return <section aria-label={t('refund.history')}><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>
     {result.data ? <div className="order-catalog-item__refund-totals">
-      <span><TranslatedText id={refund ? 'refund.originalPayment' : 'refund.orderAmount'} /> <strong>{t('money.krwAmount', { amount: originalAmount.toLocaleString('ko-KR') })}</strong></span>
+      {refund ? <span><TranslatedText id="refund.amount" /> <strong>{pointRefund ? t('money.pointAmount', { points: finalAmount.toLocaleString('ko-KR') }) : t('money.krwAmount', { amount: finalAmount.toLocaleString('ko-KR') })}</strong></span> : <TranslatedText id="refund.noHistory" />}
+      <span><TranslatedText id="refund.orderAmount" /> <strong>{t('money.krwAmount', { amount: originalAmount.toLocaleString('ko-KR') })}</strong></span>
       {refund?.usedDaysDeductionRateBasisPoints !== null && refund?.usedDaysDeductionRateBasisPoints !== undefined ? <span><TranslatedText id="refund.deductionRate" /> <strong>{refund.usedDaysDeductionRateBasisPoints / 100}%</strong></span> : null}
-      {refund ? <span><TranslatedText id="refund.finalAmount" /> <strong>{pointRefund ? t('money.pointAmount', { points: finalAmount.toLocaleString('ko-KR') }) : t('money.krwAmount', { amount: finalAmount.toLocaleString('ko-KR') })}</strong></span> : <TranslatedText id="refund.noHistory" />}
     </div> : null}
   </section>
 }

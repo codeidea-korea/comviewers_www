@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useAuthentication, type SocialAuthProvider } from '@/app/session/AuthProvider'
-import { MyPageLayout } from './MypageComponentsView'
-import { useSearchParams } from 'react-router'
+import { Navigate, useLocation, useSearchParams } from 'react-router'
 import { clearSocialLink, socialLinkProvider } from '@/routes/auth/socialLinkIntent'
 
 const methods: readonly { provider: SocialAuthProvider; label: string }[] = [
-  { provider: 'google', label: 'Google' },
-  { provider: 'kakao', label: 'Kakao' },
-  { provider: 'naver', label: 'Naver' },
+  { provider: 'google', label: '구글' },
+  { provider: 'kakao', label: '카카오' },
+  { provider: 'naver', label: '네이버' },
 ]
 
 export function LoginMethodsPage() {
+  const { search } = useLocation()
+  const params = new URLSearchParams(search)
+  params.set('section', 'login-methods')
+  return <Navigate replace to={`/mypage/profile?${params.toString()}`}/>
+}
+
+export function LoginMethodsSection() {
   const auth = useAuthentication()
   const [params] = useSearchParams()
   const connecting = socialLinkProvider(params.get('connect'))
@@ -46,23 +52,23 @@ export function LoginMethodsPage() {
     }
   }
 
-  return <MyPageLayout title="로그인 수단 관리">
-    <section style={{ maxWidth: 720, paddingBlock: 24 }}>
-      <h2>연결된 로그인 수단</h2>
+  return <section className="login-methods-panel">
+      <header className="login-methods-panel__header">
+        <h2>로그인 및 보안</h2>
+        <p>다른 간편 로그인을 연결하면 어느 수단으로 로그인해도 같은 회원 정보를 사용합니다.</p>
+      </header>
       {connectingLabel ? <p role="status">기존 계정으로 로그인했습니다. {connectingLabel} 계정을 이 회원 계정에 연결하려면 아래에서 동의하고 연결해 주세요.</p> : null}
-      <p>기존 계정에 다른 간편 로그인을 연결하면, 어느 수단으로 로그인해도 같은 회원 정보를 사용합니다.</p>
-      {loading ? <p role="status">로그인 수단을 확인하고 있습니다.</p> : <ul style={{ listStyle: 'none', padding: 0 }}>
-        {methods.filter(({ provider }) => !connecting || provider === connecting).map(({ provider, label }) => <li key={provider} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBlock: 16, borderBottom: '1px solid #e6e6e6' }}>
-          <span>{label}</span>
-          {linked.includes(provider) ? <span>연결됨</span> : <button className="button button--primary" disabled={!confirmed || pending !== null} onClick={() => void connect(provider)} type="button">연결하기</button>}
+      {loading ? <p role="status">로그인 수단을 확인하고 있습니다.</p> : <ul className="login-methods-panel__list">
+        {methods.filter(({ provider }) => !connecting || provider === connecting).map(({ provider, label }) => <li key={provider}>
+          <span><strong>{label}</strong><small>간편 로그인</small></span>
+          {linked.includes(provider) ? <span className="login-methods-panel__status">연결됨</span> : <button className="button button--secondary" disabled={!confirmed || pending !== null} onClick={() => void connect(provider)} type="button">연결하기</button>}
         </li>)}
       </ul>}
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 24 }}>
+      <label className="login-methods-panel__consent">
         <input checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} type="checkbox" />
         <span>선택한 간편 로그인 계정을 현재 회원에 연결하는 데 동의합니다.</span>
       </label>
-      <p>보안을 위해 기존 계정으로 로그인한 지 5분 이내에만 연결할 수 있습니다.</p>
-      {message ? <p role="alert" style={{ color: '#d32f2f' }}>{message}</p> : null}
+      <p className="login-methods-panel__help">보안을 위해 기존 계정으로 로그인한 지 5분 이내에만 연결할 수 있습니다.</p>
+      {message ? <p className="login-methods-panel__error" role="alert">{message}</p> : null}
     </section>
-  </MyPageLayout>
 }

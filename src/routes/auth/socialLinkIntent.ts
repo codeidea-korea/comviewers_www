@@ -8,7 +8,7 @@ export function socialLinkProvider(value: string | null): SocialAuthProvider | n
 }
 
 export function socialLinkDestination(provider: SocialAuthProvider): string {
-  return `/mypage/login-methods?connect=${provider}`
+  return `/mypage/profile?section=login-methods&connect=${provider}`
 }
 
 export function rememberSocialLink(provider: SocialAuthProvider): void {

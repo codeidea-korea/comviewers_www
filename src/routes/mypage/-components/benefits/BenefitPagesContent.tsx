@@ -149,10 +149,10 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                       : '조회된 포인트 사용 내역이 없습니다.'}
                 </p>
               ) : null}
-              <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} />
             </>
           ) : null}
           <RelativeLink className="points-policy" to="/terms?section=point">포인트·쿠폰 정책 〉</RelativeLink>
+          {result.data ? <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} /> : null}
         </section>
       </div>
     </MyPageLayout>
@@ -251,7 +251,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
           <section className="coupon-download">
             <header><h2>다운로드 가능한 쿠폰</h2><RelativeLink to="/terms?section=point">포인트·쿠폰 정책<img alt="" src={subtleChevronIcon} /></RelativeLink></header>
             <AccountQueryState pending={offers.isPending} error={offers.error} retry={offers.refetch} />
-            {download.isError ? <p role="alert">쿠폰을 다운로드하지 못했습니다.</p> : null}
+            {download.isError ? <p role="alert">{download.error.message}</p> : null}
             {offers.data?.length === 0 ? <p className="mypage-empty">다운로드 가능한 쿠폰이 없습니다.</p> : null}
             <div>
               {offers.data?.map((item) => (

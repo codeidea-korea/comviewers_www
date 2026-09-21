@@ -781,6 +781,9 @@
   .profile-catalog .profile-check { align-items: flex-start; height: auto; max-width: 100%; width: 100%; }
   .profile-catalog .profile-check span,
   .profile-catalog .profile-check small { white-space: normal; }
+  .profile-settings-page > .mypage-tabs { margin-bottom: 24px; }
+  .login-methods-panel { max-width: none; width: 100%; }
+  .login-methods-panel__list li { min-height: 76px; }
 
   .mypage-tabs--buttons { height: auto; overflow-x: auto; }
   .mypage-tabs--buttons button { flex: 0 0 auto; min-height: 48px; min-width: 100px; padding-inline: 14px; }

@@ -21,7 +21,7 @@ export function SocialLoginCallbackPage() {
     const pendingProvider = pendingSocialLink()
     return <Navigate replace to={pendingProvider ? socialLinkDestination(pendingProvider) : '/mypage'} />
   }
-  if (result === 'linked' && !auth.restoring && session.status === 'authenticated') return <Navigate replace to="/mypage/login-methods" />
+  if (result === 'linked' && !auth.restoring && session.status === 'authenticated') return <Navigate replace to="/mypage/profile?section=login-methods" />
 
   const waiting = (result === 'login' || result === 'linked') && auth.restoring
   const message = result === 'link_required'
@@ -30,14 +30,14 @@ export function SocialLoginCallbackPage() {
       ? '간편 로그인 계정을 연결하지 못했습니다. 다른 회원에 연결된 계정인지 확인하고 다시 시도해 주세요.'
       : '간편 로그인을 완료하지 못했습니다. 다시 시도해 주세요.'
   const canManageMethods = session.status === 'authenticated' && (result === 'link_required' || result === 'link_error')
-  const nextPath = provider ? socialLinkDestination(provider) : '/mypage/login-methods'
+  const nextPath = provider ? socialLinkDestination(provider) : '/mypage/profile?section=login-methods'
   const loginPath = `/login?returnTo=${encodeURIComponent(nextPath)}`
   const actionPath = result === 'link_required'
     ? (canManageMethods ? nextPath : loginPath)
-    : (canManageMethods ? '/mypage/login-methods' : '/login')
+    : (canManageMethods ? '/mypage/profile?section=login-methods' : '/login')
   const actionLabel = result === 'link_required'
     ? (canManageMethods ? '계정 연결 계속하기' : '기존 계정으로 로그인하기')
-    : (canManageMethods ? '로그인 수단 관리로 이동' : '로그인 화면으로 돌아가기')
+    : (canManageMethods ? '로그인 및 보안으로 이동' : '로그인 화면으로 돌아가기')
   return <AuthPage><AuthPanel result>
     <AuthHeading title="간편 로그인" />
     {waiting ? <LoadingState className="route-loading--compact" label="로그인 상태를 확인하고 있습니다." /> : <p role="alert">{message}</p>}

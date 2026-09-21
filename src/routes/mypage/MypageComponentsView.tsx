@@ -1,5 +1,4 @@
 import { useSession } from '@/app/session/SessionProvider'
-import { useAuthentication } from '@/app/session/AuthProvider'
 import { currentKstDate, dateRangeError, quickAccountDates } from './-components/accountDates'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -13,7 +12,7 @@ import { useMobileOverlay } from '@/components/ui/useMobileOverlay'
 import searchIcon from '@/assets/figma/mypage-search.svg'
 import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
-import { managerOrganizationCode, managerScopedPath } from './-components/managerPortalPath'
+import { managerScopedPath } from './-components/managerPortalPath'
 import { TranslatedText, type TranslationKey } from '../../i18n/translation'
 import { ManualTranslationControls } from '../../components/layout/GoogleTranslateTrial'
 
@@ -98,8 +97,6 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
   const profileEntryState = pathname === '/mypage/profile' ? state : { openProfilePasswordGate: true, returnTo: `${pathname}${search}${hash}` }
   const navigate = useNavigate()
   const session = useSession()
-  const auth = useAuthentication()
-  const managerPortalCode = managerOrganizationCode(pathname)
   const capability = session.status === 'authenticated' ? session.customerSession : null
   const isManager = capability?.myPageOnly === true
   const baseMenu = isManager ? mypageManagerMenu : mypageMenu
@@ -126,22 +123,13 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
     setMobileSearchOpen(false)
     navigate(managerScopedPath(`/mypage/rcpc?productNo=${encodeURIComponent(productNumber)}`, pathname))
   }
-
-  if (managerPortalCode) {
-    const links = [
-      { label: '이용 RCPC', href: '/mypage/rcpc' },
-      { label: '즐겨찾기', href: '/mypage/favorites' },
-      { label: '문의 관리', href: '/mypage/inquiries' },
-    ]
-    return <div className="manager-portal-page">
-      <div className="manager-portal-page__top"><strong>담당 RCPC</strong><button onClick={() => { void auth.logout() }} type="button">로그아웃</button></div>
-      <nav aria-label="담당자 페이지" className="manager-portal-page__nav">{links.map(item => <Link aria-current={pathname.startsWith(managerScopedPath(item.href, pathname)) ? 'page' : undefined} key={item.href} to={item.href}>{item.label}</Link>)}</nav>
-      <main className="mypage-content" id="main-content" tabIndex={-1}>{title ? <h1 className="mypage-title">{title}</h1> : null}{children}</main>
-    </div>
+  const isCurrentMenuPath = (href: string) => {
+    const scopedHref = managerScopedPath(href, pathname)
+    return pathname === scopedHref || pathname.startsWith(`${scopedHref}/`)
   }
 
   return (
-    <AppShell className="mypage-shell">
+    <AppShell className="mypage-shell" showHeader={!isManager}>
       <MyPageMobileHeader
         menuOpen={mobileMenuOpen}
         onBack={() => navigate(-1)}
@@ -152,11 +140,11 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
         <ManualTranslationControls />
         {menu.map((group) => (
           <section className={group.items.length ? 'has-children' : ''} key={group.id}>
-            <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>
+            <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link onClick={() => setMobileMenuOpen(false)} className={isCurrentMenuPath(group.href) ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>
             {group.items.map((item) => (
               item.disabled
                 ? <span className="mypage-mobile-menu__disabled" key={item.id}><MyPageMenuLabel item={item} /></span>
-                : <Link className={pathname === item.href ? 'is-active' : undefined} key={item.id} onClick={() => setMobileMenuOpen(false)} to={item.href}><MyPageMenuLabel item={item} /></Link>
+                : <Link className={isCurrentMenuPath(item.href) ? 'is-active' : undefined} key={item.id} onClick={() => setMobileMenuOpen(false)} to={item.href}><MyPageMenuLabel item={item} /></Link>
             ))}
           </section>
         ))}
@@ -168,10 +156,10 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
           <nav aria-label="마이페이지 메뉴">
             {menu.map((group) => (
               <section key={group.id}>
-                <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>
+                <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link className={isCurrentMenuPath(group.href) ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>
                 {group.items.map((item) => (
                   item.disabled ? <span className="mypage-sidebar__disabled" key={item.id}><MyPageMenuLabel item={item} /></span> : <Link
-                    className={pathname === item.href ? 'is-active' : undefined}
+                    className={isCurrentMenuPath(item.href) ? 'is-active' : undefined}
                     key={item.id}
                     to={item.href}
                   >

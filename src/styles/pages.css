@@ -215,6 +215,8 @@
 .auth-page--signup-complete .result-copy { font-size: 16px; line-height: 24px; }
 .auth-page--signup-complete .result-copy > p:first-child { font-size: 18px; line-height: 24px; }
 .auth-page--signup-complete .result-copy dl { line-height: 24px; }
+.signup-request-actions { margin-top: 24px; }
+.signup-request-actions > .button:only-child { grid-column: 1 / -1; justify-self: center; width: 50%; }
 .single-result { display: grid; font-size: 16px; grid-template-columns: 41px 1fr; column-gap: 20px; line-height: 24px; margin: 0 0 40px; }
 .single-result dt { white-space: nowrap; }
 .result-actions { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }

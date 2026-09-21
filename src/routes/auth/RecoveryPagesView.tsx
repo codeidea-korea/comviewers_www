@@ -152,16 +152,17 @@ function PasswordSentPage() {
   const cooldown = useResetCooldown()
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
   async function resend() {
     if (busy || cooldown.remaining > 0 || !api || !state?.username || !state.email) return
-    setBusy(true); setNotice('')
+    setBusy(true); setNotice(''); setError('')
     try { await api.requestPasswordReset(state.username, state.email); cooldown.start(); setNotice('메일 재발송 요청이 접수되었습니다.') }
     catch (cause) {
       const retryAt = cause instanceof ApiClientError ? resolvePasswordResetRateLimit(cause) : null
       if (retryAt !== null) {
         cooldown.startAt(retryAt)
       } else {
-        setNotice('메일 재발송을 요청하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+        setError(cause instanceof Error ? cause.message : '메일 재발송을 요청하지 못했습니다. 잠시 후 다시 시도해 주세요.')
       }
     }
     finally { setBusy(false) }
@@ -173,6 +174,7 @@ function PasswordSentPage() {
     <p><strong>비밀번호 재설정 메일을 받지 못하셨나요?</strong><br />스팸메일함을 확인하거나 메일을 다시 보내 주세요.</p>
     {state?.username && state.email && cooldown.remaining > 0 ? <p aria-label={passwordResetCountdownLabel(cooldown.remaining)} aria-live="off" className="resend-timer" role="timer">남은 시간 {countdown(cooldown.remaining)}</p> : null}
     {notice ? <p role="status">{notice}</p> : null}
+    {error ? <p className="form-error" role="alert">{error}</p> : null}
   </div><div className="result-actions">{state?.username && state.email ? <Button disabled={busy || cooldown.remaining > 0 || !api} onClick={() => { void resend() }} size="large" type="button" variant="secondary">{busy ? '요청 중' : '메일 다시 보내기'}</Button> : <Button as={Link} size="large" to="/account/find-password" variant="secondary">다시 요청</Button>}<Button as={Link} size="large" to="/login">로그인하기</Button></div></AuthPanel></AuthPage>
 }
 

@@ -33,7 +33,7 @@ export function RefundDetail({ api, requestId, onClose }: { api: InquiryReadServ
       <p>승인 금액: {detail.data.request.approvedAmount?.toLocaleString('ko-KR') ?? '-'}원 / {detail.data.request.approvedPointAmount?.toLocaleString('ko-KR') ?? '-'}포인트</p>
       <details><summary>처리·지급 이력</summary>{detail.data.decisions.map((item) => <p key={item.id}>{item.decidedAt.replace('T', ' ')} · {item.decisionType} · {item.cashAmount.toLocaleString('ko-KR')}원 / {item.pointAmount.toLocaleString('ko-KR')}포인트 · {item.reason}</p>)}{detail.data.payouts.map((item) => <p key={item.id}>지급 {item.payoutNo}: {refundStatuses[item.status] ?? item.status} · {item.amount.toLocaleString('ko-KR')} {item.currency}</p>)}</details>
       {detail.data.request.status === 'requested' ? <button disabled={cancel.isPending} onClick={() => setCancelConfirmOpen(true)} type="button">{cancel.isPending ? '철회 중…' : '신청 철회'}</button> : <p>처리가 확정되었거나 철회된 신청은 다시 철회할 수 없습니다.</p>}
-      {cancel.isError ? <p role="alert">신청을 철회하지 못했습니다. 처리 상태를 새로 확인해 주세요.</p> : null}{cancel.isSuccess ? <p role="status">신청이 철회되었습니다.</p> : null}
+      {cancel.isError ? <p role="alert">{cancel.error.message}</p> : null}{cancel.isSuccess ? <p role="status">신청이 철회되었습니다.</p> : null}
     </> : null}
     <Modal className="modal--refund-withdraw-confirm" isOpen={cancelConfirmOpen} title="환불·중도해지 신청을 철회하시겠습니까?" closeLabel="취소" confirmLabel={cancel.isPending ? '철회 중…' : '철회하기'} confirmDisabled={cancel.isPending} onClose={() => { if (!cancel.isPending) setCancelConfirmOpen(false) }} onConfirm={() => { setCancelConfirmOpen(false); cancel.mutate() }}><p>관리자 처리 전 신청만 철회할 수 있습니다.</p></Modal>
   </Modal>

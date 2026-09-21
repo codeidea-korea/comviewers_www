@@ -36,7 +36,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
-  if (terminal) return <div className="order-catalog-item__actions"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
+  if (terminal) return <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
   const active = paid && ['using', 'replacement_using'].includes(item.customerRentalStatus) && ['active', 'expiring'].includes(item.rentalStatus ?? '') && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const canExtend = !item.refundPending
     && paid
@@ -46,7 +46,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const now = Date.now()
   const canConfirm = active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
-  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={confirmation.isError ? '구매확정을 처리하지 못했습니다. 최신 주문 상태를 확인한 뒤 다시 시도해 주세요.' : undefined} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
+  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={confirmation.error?.message} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   if (variant === 'dashboard') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>포인트 받기</span> : null}</Button> : null}
     {confirmDialog}

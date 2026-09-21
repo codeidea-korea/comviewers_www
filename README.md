@@ -4,6 +4,8 @@ ComViewers 사용자용 웹 애플리케이션이다. React, TypeScript, Vite를
 
 ## 기술 스택
 
+2026-09-21 에디터 통일: 사용자·관리자 앱은 `src/components/ui/RichTextEditorCore.tsx`, `richTextEditor.css`, `editor-icons/`의 동일 구현을 사용한다. 독립 저장소의 자체 빌드를 위해 각각 포함하므로 변경 시 양쪽을 함께 동기화한다. 사용자 `RichTextEditorControl`은 공통 구현을 내보내며 HTML/JSON 콜백을 유지한다. 한글 메뉴·서식·전체화면·링크 입력 UI를 통일했고, 본문 이미지 버튼은 기존 첨부 안내 단계다. 이번 확인은 정적 검토이며 브라우저·빌드·테스트 검증은 미실시다.
+
 - React 19
 - TypeScript 5.9
 - Vite 6

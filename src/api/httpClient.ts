@@ -35,6 +35,7 @@ const apiCodeMessages: Record<string, string> = {
   U005: '이미 사용 중인 닉네임입니다.',
   A016: '입력하신 정보와 일치하는 회원정보가 없습니다.',
   A017: '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.',
+  A021: '비밀번호 재설정 메일을 발송할 수 없습니다. 잠시 후 다시 시도해 주세요.',
 }
 
 const errorMessages: Record<ApiClientErrorKind, string> = {
@@ -53,8 +54,8 @@ export class ApiClientError extends Error {
   readonly code?: string
   readonly retryAfter?: string
 
-  constructor(kind: ApiClientErrorKind, status?: number, details: { code?: string; retryAfter?: string } = {}) {
-    super(details.code && apiCodeMessages[details.code] ? apiCodeMessages[details.code] : errorMessages[kind])
+  constructor(kind: ApiClientErrorKind, status?: number, details: { code?: string; message?: string; retryAfter?: string } = {}) {
+    super(details.message ?? (details.code && apiCodeMessages[details.code] ? apiCodeMessages[details.code] : errorMessages[kind]))
     this.name = 'ApiClientError'
     this.kind = kind
     this.status = status
@@ -73,7 +74,11 @@ interface ClientOptions {
 interface ApiBase { origin: string; prefix: string; relative: boolean }
 const relativeParsingOrigin = 'https://same-origin.invalid'
 // ApiResponse.java omits null data; ErrorCode.SUCCESS is S000.
-const envelopeSchema = z.object({ code: z.string().regex(/^[A-Z][A-Z0-9_]{0,63}$/), data: z.unknown().optional() })
+const envelopeSchema = z.object({
+  code: z.string().regex(/^[A-Z][A-Z0-9_]{0,63}$/),
+  message: z.string().trim().min(1).max(1000).optional(),
+  data: z.unknown().optional(),
+})
 
 function parseBase(baseUrl: string): ApiBase {
   if (!baseUrl || baseUrl !== baseUrl.trim()) throw new ApiClientError('configuration')
@@ -190,7 +195,7 @@ async function readResponse<T>(response: Response, schema: z.ZodType<T>, signal?
   try { text = await response.text() } catch (error) { return rethrowTransportError(error, signal) }
   signal?.throwIfAborted()
   const envelope = parseEnvelope(text)
-  const details = { code: envelope?.code, retryAfter: retryAfterHeader(response) }
+  const details = { code: envelope?.code, message: envelope?.message, retryAfter: retryAfterHeader(response) }
   if (!response.ok) {
     notifyAuthenticationFailure(response, envelope?.code, onAuthenticationFailure)
     throw new ApiClientError('http', response.status, details)
@@ -210,7 +215,7 @@ async function readBlobResponse(response: Response, signal?: AbortSignal, onAuth
     try { envelope = parseEnvelope(await response.text()) } catch (error) { return rethrowTransportError(error, signal) }
     signal?.throwIfAborted()
     notifyAuthenticationFailure(response, envelope?.code, onAuthenticationFailure)
-    const details = { code: envelope?.code, retryAfter: retryAfterHeader(response) }
+    const details = { code: envelope?.code, message: envelope?.message, retryAfter: retryAfterHeader(response) }
     throw new ApiClientError('http', response.status, details)
   }
   try {

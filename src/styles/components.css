@@ -161,7 +161,6 @@
 .modal--password-reset .text-field__control { margin-top: 0; }
 .modal--password-confirm .popup-form > p { margin-bottom: 40px; }
 .modal--password-confirm .text-field__control { margin-top: 0; }
-.modal--password-confirm.is-filled .text-field--error .text-field__control { border-color: var(--color-black); }
 
 .product-card { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 16px; padding: 15px; position: relative; width: 294px; }
 .product-card__detail-overlay { border-radius: inherit; inset: 0; position: absolute; z-index: 1; }.product-card__detail-overlay:focus-visible { outline: 2px solid var(--color-black); outline-offset: 3px; }.product-card__cart { position: relative; z-index: 2; }

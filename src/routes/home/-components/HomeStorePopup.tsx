@@ -18,7 +18,7 @@ export function HomeStorePopup({ popup, onClose, onHideToday }: { popup: Storefr
   const image = popup.imageUrl ? <img alt={popup.title} src={popup.imageUrl} /> : null
 
   return <PopupLayer className={`store-popup-layer store-popup-layer--${popup.displayPosition}`} dialogClassName="store-popup-card" isOpen onClose={onClose} title={popup.title}>
-    {image && (link ? <a href={link} rel="noopener noreferrer" target="_blank">{image}</a> : image)}
+    {image && <div className="store-popup-card__media">{link ? <a href={link} rel="noopener noreferrer" target="_blank">{image}</a> : image}</div>}
     {popup.content && <p className="store-popup-card__content">{popup.content}</p>}
     <div className="store-popup-card__actions">
       {link && !image && <a href={link} rel="noopener noreferrer" target="_blank">자세히 보기</a>}

@@ -220,20 +220,8 @@
 .post-editor .editor-surface > img { display: block; height: 264.48px; width: 720px; }
 .post-editor .editor-surface > textarea { background: transparent; border: 0; height: 208.48px; left: 0; padding: 14px; position: absolute; resize: none; top: 56px; width: 720px; }
 .post-editor .editor-surface > textarea::placeholder { color: transparent; }
-.post-editor .rich-text-editor { background: white; border: 1px solid var(--color-gray-300); height: 264.48px; position: relative; width: 720px; }
+.post-editor .rich-text-editor { height: 264.48px; width: 720px; max-width: 100%; }
 :where(:root:not([data-input-modality="pointer"])) .post-editor .rich-text-editor:focus-within { border-color: var(--color-black); }
-.post-editor .rich-text-editor__toolbar { align-content: center; align-items: center; background: white; border: 0; border-bottom: 1px solid var(--color-gray-300); display: flex; flex-wrap: wrap; gap: 0; height: 58px; padding: 3px 8px; }
-.post-editor .rich-text-editor__toolbar-row { align-items: center; display: flex; height: 25px; width: 100%; }
-.post-editor .rich-text-editor__toolbar button { align-items: center; background: transparent; border: 0; border-radius: 3px; color: var(--color-gray-800); display: inline-flex; font-family: inherit; font-size: 12px; height: 24px; justify-content: center; min-width: 28px; padding: 0 6px; }
-.post-editor .rich-text-editor__toolbar button:hover,.post-editor .rich-text-editor__toolbar button:focus-visible,.post-editor .rich-text-editor__toolbar button.is-active { background: var(--color-gray-200); color: var(--color-black); }
-.post-editor .rich-text-editor__toolbar button:disabled { color: var(--color-gray-400); cursor: not-allowed; }
-.post-editor .rich-text-editor__toolbar button[aria-label="굵게"] { font-weight: 800; }.post-editor .rich-text-editor__toolbar button[aria-label="기울임"] { font-style: italic; }.post-editor .rich-text-editor__toolbar button[aria-label="밑줄"] { text-decoration: underline; }.post-editor .rich-text-editor__toolbar button[aria-label="취소선"] { text-decoration: line-through; }
-.post-editor .rich-text-editor__block-type select,.post-editor .rich-text-editor__select select { appearance: auto; background: white; border: 0; color: var(--color-gray-800); font-family: inherit; font-size: 12px; height: 24px; padding: 0 4px; width: 72px; }.post-editor .rich-text-editor__select select { width: 52px; }.post-editor .rich-text-editor__color { align-items: center; display: inline-flex; height: 24px; justify-content: center; min-width: 28px; position: relative; }.post-editor .rich-text-editor__color > span { border-bottom: 2px solid currentColor; color: var(--color-gray-800); font-size: 12px; font-weight: 700; line-height: 15px; }.post-editor .rich-text-editor__color input { cursor: pointer; height: 18px; inset: 3px; opacity: 0; position: absolute; width: 22px; }.post-editor .rich-text-editor__toolbar button img { display: block; height: 14px; max-width: 20px; object-fit: contain; width: 14px; }.post-editor .rich-text-editor__toolbar button[aria-label="링크"] img { width: 18px; }.post-editor .rich-text-editor__toolbar button[aria-label="전체 화면"] img { height: 14px; width: 14px; }.post-editor .rich-text-editor__toolbar button[aria-label="가운데 정렬"] { justify-content: center; text-align: center; }.post-editor .rich-text-editor__toolbar button[aria-label="오른쪽 정렬"] { justify-content: flex-end; text-align: right; }
-.post-editor .rich-text-editor__divider { background: var(--color-gray-300); height: 20px; margin: 0 5px; width: 1px; }
-.post-editor .rich-text-editor__error { background: white; bottom: 8px; color: var(--color-system-error); font-size: 12px; left: 14px; margin: 0; padding: 2px 4px; position: absolute; right: 14px; z-index: 1; }
-.post-editor .rich-text-editor__content { background: white; height: 204.48px; outline: 0; overflow-y: auto; padding: 14px; }
-.post-editor .rich-text-editor__content p { margin: 0 0 12px; }.post-editor .rich-text-editor__content p.is-editor-empty:first-child::before { color: var(--color-gray-400); content: attr(data-placeholder); float: left; font-style: italic; height: 0; pointer-events: none; }.post-editor .rich-text-editor__content a { color: var(--color-blue-500); text-decoration: underline; }.post-editor .rich-text-editor__content ul,.post-editor .rich-text-editor__content ol { margin: 0 0 12px; padding-left: 24px; }
-.post-editor .rich-text-editor.is-fullscreen { height: calc(100vh - 48px); inset: 24px; position: fixed; width: calc(100vw - 48px); z-index: 1001; }.post-editor .rich-text-editor.is-fullscreen .rich-text-editor__content { height: calc(100vh - 108px); }
 .post-files { height: 312px; left: 0; margin: 0; position: absolute; top: 575.48px; width: 720px; }
 .post-files h2 { font-size: 18px; height: 24px; line-height: 24px; margin: 0; }
 .post-files > p { height: 24px; line-height: 24px; position: absolute; top: 32px; }
@@ -457,12 +445,8 @@
 .company-catalog-benefits article:hover button strong img,.company-catalog-benefits article.is-open button strong img { filter: brightness(0) invert(1); }
 .company-catalog-benefits article:hover > p,.company-catalog-benefits article.is-open > p { color: #ddd; max-height: 138px; opacity: 1; padding: 0 70px 30px; }
 
-/* Support list/detail corrections: fixed notices are visually emphasized, and
-   the shell stretches only as needed so a tall viewport cannot expose a white
-   strip after the footer. */
+/* Fixed support notices are visually emphasized. */
 .support-list > a > strong.is-pinned-title { font-weight: 700; }
-.support-shell { display: flex; flex-direction: column; min-height: 100vh; }
-.support-shell main { flex: 1 0 auto; }
 
 /* These route-local actions are links/labels rather than native buttons, so
    they opt into the same shared 4px publishing-control corner explicitly. */

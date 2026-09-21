@@ -19,7 +19,8 @@ p, h1, h2, h3, dl, dd { margin: 0; }
 }
 /* Pointer focus must not add a ring, including native text-input focus rings. */
 :root[data-input-modality="pointer"] :focus { outline: none; }
-.app-shell { min-height: 100vh; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.app-shell > main { flex: 1 0 auto; min-width: 0; }
 .content-container { margin-inline: auto; max-width: none; width: var(--layout-content); }
 .skip-link { background: var(--color-black); color: var(--color-white); left: var(--page-gutter); padding: 10px 14px; position: fixed; top: 0; transform: translateY(-120%); z-index: 100; }
 .skip-link:focus { transform: translateY(0); }

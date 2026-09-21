@@ -34,11 +34,10 @@ export const mypageMenu: readonly MyPageMenuGroup[] = [
   { id: 'support', label: '문의 관리', href: '/mypage/inquiries', items: [] },
   { id: 'managers', label: 'RCPC 담당자 관리', href: '/mypage/managers', items: [] },
   { id: 'profile', label: '내 정보 수정', href: '/mypage/profile', opensPasswordGate: true, items: [] },
-  { id: 'login-methods', label: '로그인 수단 관리', href: '/mypage/login-methods', items: [] },
 ]
 
 export const mypageManagerMenu = mypageMenu.map((group) => ({
   ...group,
-  disabled: ['orders', 'storage', 'benefits', 'managers', 'profile', 'login-methods'].includes(group.id),
+  disabled: ['orders', 'storage', 'benefits', 'managers', 'profile'].includes(group.id),
   items: group.items.map((item) => ({ ...item, disabled: group.id === 'benefits' })),
 }))

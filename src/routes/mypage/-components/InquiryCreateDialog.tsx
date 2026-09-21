@@ -105,7 +105,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       composer={{
         message,
         sentMessages: [],
-        notice: create.isError ? '문의를 접수하지 못했습니다. 선택 상품과 권한을 확인해 주세요.' : '',
+        notice: create.error?.message ?? '',
         pending: create.isPending,
         onMessageChange: setMessage,
         onSend: () => {

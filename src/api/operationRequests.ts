@@ -49,7 +49,7 @@ const refundQuote = z.object({ items: z.array(z.object({ operationRequestTargetI
     promotionalPointDeduction: count, purchaseConfirmationPointReversal: count })),
   cashTotal: count, pointTotal: count, bankRequired: z.boolean(), fingerprint: z.string().regex(/^[a-f0-9]{64}$/), quotedAt: z.string(), policyExplanation: z.string() })
 const refundSubmission = z.object({ quote: refundQuoteRequest, expectedFingerprint: z.string().regex(/^[a-f0-9]{64}$/), reason: z.string().trim().min(1).max(2000),
-  contactPhone: z.string().trim().regex(/^[0-9+() -]{8,30}$/), refundPolicyAgreed: z.literal(true), terminationAgreed: z.literal(true),
+  contactPhone: z.string().trim().regex(/^(?:[0-9+() -]{8,30})?$/), refundPolicyAgreed: z.literal(true), terminationAgreed: z.literal(true),
   bank: z.object({ code: z.string().regex(/^[0-9]{2,3}$/), name: z.string().trim().min(1).max(100), accountNumber: z.string().regex(/^[0-9 -]{8,40}$/), holder: z.string().trim().min(1).max(100) }).nullable() })
 const refundDirectSubmission = refundSubmission.extend({ quote: refundDirectQuoteRequest })
 export type RefundQuoteRequest = z.infer<typeof refundQuoteRequest>

@@ -95,7 +95,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
           </article>)}
           {!isManager && requestInfo.data?.items[0]?.requestType === 'refund_cancel' ? <><AccountQueryState pending={refundLink.isPending} error={refundLink.error} retry={refundLink.refetch}/>{refund ? <button className="inquiry-chat__refund-action" onClick={() => setRefundOpen(true)} type="button">{refund.status === 'requested' ? '해지 신청 상세 / 철회' : '해지 신청 상세'}</button> : refundLink.data ? <p className="inquiry-chat__system">연결된 해지 신청 내역이 없습니다.</p> : null}</> : null}
           {!historyEnd && (olderMessages.length > 0 || chat.data.messages.length >= 100) ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? '불러오는 중…' : '이전 대화 더보기'}</button> : null}
-          {earlier.isError ? <p role="alert">이전 대화를 불러오지 못했습니다. 다시 시도해 주세요.</p> : null}
+          {earlier.isError ? <p role="alert">{earlier.error.message}</p> : null}
           {messages.map((item) => {
             const isMine = session.status === 'authenticated' && item.authorType === 'customer'
               && item.authorUserId !== null && String(item.authorUserId) === session.userId
@@ -117,7 +117,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
         <p className="inquiry-chat__attachment-guidance">첨부파일 ({files.length}/5) · 파일당 최대 10MB</p>
         <label><span className="sr-only">새 메시지</span><textarea aria-label="새 메시지" disabled={send.isPending || attachmentBusy} maxLength={4000} placeholder="메시지를 입력해 주세요." value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
         <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? '전송 중…' : send.isError ? '재전송' : '전송'}</Button>
-        {send.isError ? <p role="alert">메시지를 전송하지 못했습니다.</p> : null}
+        {send.isError ? <p role="alert">{send.error.message}</p> : null}
       </form>) : null}
     </section>
   </DialogLayer>

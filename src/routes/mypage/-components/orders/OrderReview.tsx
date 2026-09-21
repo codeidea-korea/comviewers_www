@@ -28,7 +28,7 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
     <ProductReviewDialog
       eligibleRentals={sourceId && allowed ? [{ id: sourceId, label: `${item.title} · ${item.productNo}` }] : []}
       eligibilityPending={eligible.isPending}
-      error={eligible.isError ? '후기 작성 가능 여부를 확인하지 못했습니다.' : eligible.isSuccess && !allowed ? '이미 후기를 작성했거나 현재 후기 작성 대상이 아닙니다.' : save.isError ? '후기를 등록하지 못했습니다. 작성 가능 여부를 확인해 주세요.' : undefined}
+      error={eligible.error?.message ?? (eligible.isSuccess && !allowed ? '이미 후기를 작성했거나 현재 후기 작성 대상이 아닙니다.' : save.error?.message)}
       isOpen={open}
       onClose={() => { if (!save.isPending) setOpen(false) }}
       onSubmit={(draft, rentalId) => save.mutate({ draft, rentalId })}

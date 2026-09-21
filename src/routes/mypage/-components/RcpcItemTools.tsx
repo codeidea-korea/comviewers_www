@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/ModalControl'
 import editIcon from '@/assets/figma/scrap-edit.svg'
 import { AccountQueryState } from './AccountQueryState'
 
-export function RcpcAliasButton({ api, item, mutations, compact = false }: { api: MyRcpcReadServices; item: MyRcpcItem; mutations?: ReturnType<typeof createCustomerRcpcMutations>; compact?: boolean }) {
+export function RcpcAliasButton({ api, item, mutations, compact = false, onAliasSaved }: { api: MyRcpcReadServices; item: MyRcpcItem; mutations?: ReturnType<typeof createCustomerRcpcMutations>; compact?: boolean; onAliasSaved?: () => void | Promise<unknown> }) {
   const session = useSession()
   const client = useQueryClient()
   const [open, setOpen] = useState(false)
@@ -18,10 +18,17 @@ export function RcpcAliasButton({ api, item, mutations, compact = false }: { api
   const save = useMutation({ mutationFn: () => {
     if (!mutations || !canEdit) throw new Error('별명 수정 권한이 없습니다.')
     return mutations.preference(String(item.rentalId), { alias: alias.length ? alias : null, favorite: item.preference.favorite })
-  }, onSuccess: async () => { setOpen(false); await client.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] }) } })
+  }, onSuccess: async () => {
+    setOpen(false)
+    if (onAliasSaved) {
+      await onAliasSaved()
+      return
+    }
+    await client.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] })
+  } })
   const label = item.preference.alias ? '별명 수정' : '별명 설정'
-  return <>{canEdit && <button aria-label={`${item.productNo} RCPC ${label}`} className={compact ? item.preference.alias ? 'mypage-home-rcpc__edit' : 'mypage-home-rcpc__spec-action' : undefined} type="button" onClick={() => { setAlias(item.preference.alias ?? ''); setOpen(true); save.reset() }}>{compact ? item.preference.alias ? <img alt="" src={editIcon}/> : '+ 별명 설정' : label}</button>}
-    {open ? <RcpcAliasSurface alias={alias} confirmDisabled={save.isPending} error={save.error ? '별명을 저장하지 못했습니다. 다시 시도해 주세요.' : undefined}
+  return <>{canEdit && <button aria-label={`${item.productNo} RCPC ${label}`} className={compact ? 'mypage-home-rcpc__edit' : undefined} type="button" onClick={() => { setAlias(item.preference.alias ?? ''); setOpen(true); save.reset() }}>{compact ? <img alt="" src={editIcon}/> : label}</button>}
+    {open ? <RcpcAliasSurface alias={alias} confirmDisabled={save.isPending} error={save.error?.message}
       onAliasChange={setAlias} onClose={() => { if (!save.isPending) setOpen(false) }} onConfirm={() => save.mutate()} rcpc={{ rcpcId: item.productNo }} /> : null}</>
 }
 
