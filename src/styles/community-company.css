@@ -161,7 +161,7 @@
 .company-catalog-cta a { height: 50px; margin-top: 60px; padding: 13px 16px; }
 .community-hero--support::after { background: none; }
 .company-catalog-hero h1 { font-family: "Pretendard Variable","Pretendard",sans-serif; white-space: nowrap; }
-.support-page { padding: 50px 0 0; }
+.support-page { height: auto; padding: 50px 0 120px; }
 .support-toolbar { align-items: center; display: flex; height: 80px; justify-content: space-between; }
 .support-toolbar > span { color: var(--color-gray-600); font-size: 12px; }
 .support-toolbar > div { align-items: center; display: flex; gap: 12px; }

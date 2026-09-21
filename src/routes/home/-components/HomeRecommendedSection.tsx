@@ -11,7 +11,7 @@ export function HomeRecommendedSection({ content, selectedOptionId, onOptionChan
     .filter(group => group.categoryCode === 'recommended_use')
     .flatMap(group => group.options)
     .filter(option => (productCounts.get(option.id) ?? 0) > 0) ?? []
-  const productListHref = selectedOptionId === null ? '/products' : `/products?filterOptionId=${selectedOptionId}`
+  const productListHref = selectedOptionId === null ? '/products?categoryCode=rcpc' : `/products?categoryCode=rcpc&filterOptionId=${selectedOptionId}`
   return (
       <section className="home-section products-section">
         <div className="content-container">

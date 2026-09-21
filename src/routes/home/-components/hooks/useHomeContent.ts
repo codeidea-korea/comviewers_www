@@ -7,7 +7,7 @@ import { useArticlePage, usePostPage, useReviewPage } from '@/routes/community/-
 export function useHomeContent(recommendedUseOptionId: number | null) {
   const { products } = useServices()
   const publicCatalogClient = usePublicCatalogQueryClient()
-  const query = { page: 1, pageSize: 8, instantOnly: false, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {}, filterOptionIds: recommendedUseOptionId ? [recommendedUseOptionId] : [] }
+  const query = { categoryCode: 'rcpc', page: 1, pageSize: 8, instantOnly: false, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {}, filterOptionIds: recommendedUseOptionId ? [recommendedUseOptionId] : [] }
   const recommended = useQuery({ queryKey: ['products', 'home', query], queryFn: async () => productPageSchema.parse(await products.list(query)) }, publicCatalogClient)
   const recommendedUseMetadata = useQuery({
     queryKey: ['product-filter-metadata', 'rcpc'],
