@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { cartQueryKeys } from '@/domain/cart/cartRepository'
-import { cartSchema, type AddCartItem } from '@/domain/cart/schemas'
+import type { AddCartItem } from '@/domain/cart/schemas'
 import { checkoutQueryKeys } from '@/domain/checkout/checkoutRepository'
 
 export function useAddToCart() {
@@ -10,17 +10,11 @@ export function useAddToCart() {
   const queryClient = useQueryClient()
   const adding = useRef(false)
   const mutation = useMutation({
-    mutationFn: async (input: AddCartItem) => cartSchema.parse(await cart.add(input)),
-    onSettled: async () => {
-      // Refetch canonical state rather than publishing an older mutation snapshot.
-      await Promise.all([
-        queryClient.cancelQueries({ queryKey: cartQueryKeys.all }),
-        queryClient.cancelQueries({ queryKey: checkoutQueryKeys.all }),
-      ])
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: cartQueryKeys.all }),
-        queryClient.invalidateQueries({ queryKey: checkoutQueryKeys.all }),
-      ])
+    mutationFn: async (input: AddCartItem) => cart.add(input),
+    onSettled: () => {
+      // Refresh canonical state without delaying the add result or its confirmation dialog.
+      void queryClient.invalidateQueries({ queryKey: cartQueryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: checkoutQueryKeys.all })
     },
   })
   function add(productNo: string, rentalPeriods = 1) {

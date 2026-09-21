@@ -35,7 +35,6 @@ interface AuthController {
   socialLoginAvailable: boolean
   login(username: string, password: string, autoLogin?: boolean): Promise<'authenticated' | 'password-change-required'>
   managerLogin(organizationCode: string, username: string, password: string): Promise<void>
-  restoreSession(): Promise<void>
   startSocialLogin(provider: SocialAuthProvider): void
   loadSocialSignupContext(): Promise<SocialSignupContext>
   completeSocialSignup(input: SocialSignupInput): Promise<void>
@@ -114,17 +113,6 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
         store.logout()
         throw new Error('담당자 계정을 확인할 수 없습니다.')
       }
-    },
-    async restoreSession() {
-      if (!adapter?.restore) throw new Error('로그인 상태를 확인할 수 없습니다.')
-      const expectedRevision = store.getSnapshot().revision
-      let result: Awaited<ReturnType<NonNullable<AuthAdapter['restore']>>>
-      try { result = await adapter.restore() }
-      catch { throw new Error('로그인 상태를 확인하지 못했습니다. 다시 시도해 주세요.') }
-      store.establishFromVerifiedResponse(result.response, {
-        expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations,
-      })
-      if (store.getSnapshot().status !== 'authenticated') throw new Error('로그인하지 못했습니다.')
     },
     startSocialLogin(provider) {
       if (!adapter?.socialLoginUrl) throw new Error('현재 소셜 로그인을 이용할 수 없습니다.')

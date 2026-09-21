@@ -40,7 +40,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   const [selectedGroup, setSelectedGroup] = useState<GroupSelection>('all')
   const [selectedRentals, setSelectedRentals] = useState<ReadonlySet<number>>(() => new Set())
   const [page, setPage] = useState(0)
-  const [filters, setFilters] = useState<MyRcpcQuery>({ size: 20, sort: 'favoriteEdited' })
+  const [filters, setFilters] = useState<MyRcpcQuery>({ size: 20, sort: 'favoriteEdited', sortDirection: 'desc' })
   const [creating, setCreating] = useState(false), [editing, setEditing] = useState(false), [assigning, setAssigning] = useState(false)
   const [mobileGroupOpen, setMobileGroupOpen] = useState(false)
   const available = useQuery({ queryKey: ['my-rcpcs', api.organizationId, 'filter-options'], queryFn: ({ signal }) => api.filterOptions(signal) })
@@ -153,7 +153,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       <div className="favorites-results__filters"><label>서버 위치<select value={filters.region ?? ''} onChange={event => updateFilters({ region: event.target.value || undefined, serverRoomId: undefined })}><option value="">전체</option>{locations.map(value => <option key={value}>{value}</option>)}</select></label><label>서버실<select value={filters.serverRoomId ?? ''} onChange={event => updateFilters({ serverRoomId: event.target.value ? Number(event.target.value) : undefined })}><option value="">전체</option>{rooms.map(item => <option key={item.id} value={item.id}>{item.name ?? String(item.id)}</option>)}</select></label></div>
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
       <p className="rcpc-list-count">총 <b>{rows.data.totalElements}</b>개 상품</p>
-      <RcpcDashboardTable api={api} canEditAlias={owner} canExtend={canExtend} className="favorites-table" items={rows.data.items} selected={selectedRentals} onSelectedChange={setSelectedRentals} sort={filters.sort} onSort={sort => updateFilters({ sort })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} mobileVariant="favorites"/>
+      <RcpcDashboardTable api={api} canEditAlias={owner} canExtend={canExtend} className="favorites-table" items={rows.data.items} selected={selectedRentals} onSelectedChange={setSelectedRentals} sortConfig={{ key: filters.sort ?? 'favoriteEdited', direction: filters.sortDirection ?? 'desc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} mobileVariant="favorites"/>
       {rows.data.totalPages > 1 ? <Pagination currentPage={rows.data.page + 1} totalPages={rows.data.totalPages} onPageChange={(nextPage) => { setPage(nextPage - 1); setSelectedRentals(new Set()) }}/> : null}
     </section> : null}
     </div></div>

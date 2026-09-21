@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { TranslatedText, useTranslation } from '@/i18n/translation'
 import { useMutation, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
 import type { AccountOrderDetail, AccountOrderItem } from '@/api/myAccountOrders'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
@@ -18,6 +19,7 @@ import { RefundWithdrawalAction } from './RefundWithdrawalAction'
 import tollIcon from '@/assets/figma/icon-toll.svg'
 
 export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatus, orderDetail, variant = 'default' }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; paymentStatus: string; orderStatus: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; variant?: 'default' | 'purchase-summary' | 'dashboard' }) {
+  const { t } = useTranslation()
   const { myAccount } = useServices()
   const [open, setOpen] = useState(false)
   const [key] = useState(() => crypto.randomUUID())
@@ -26,7 +28,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const { message: confirmationMessage, setMessage: setConfirmationMessage, toastKey } = useToastMessage()
   const confirmation = useMutation({ mutationFn: () => api.confirmPurchase(item.orderItemId, key), onSuccess: async (result) => {
     setOpen(false)
-    setConfirmationMessage(`구매확정되었습니다. ${result.accruedPoints.toLocaleString('ko-KR')}포인트가 적립되었습니다.`)
+    setConfirmationMessage(t('order.confirmedPoints', { points: result.accruedPoints.toLocaleString('ko-KR') }))
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] })])
   }, onSettled: () => { busy.current = false } })
   const confirmedAt = confirmation.data?.confirmedAt ?? item.purchaseConfirmedAt
@@ -44,14 +46,14 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const now = Date.now()
   const canConfirm = active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
-  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? '처리 중…' : '구매확정하기'} confirmDisabled={confirmation.isPending} error={confirmation.isError ? '구매확정을 처리하지 못했습니다. 최신 주문 상태를 확인한 뒤 다시 시도해 주세요.' : undefined} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
+  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={confirmation.isError ? '구매확정을 처리하지 못했습니다. 최신 주문 상태를 확인한 뒤 다시 시도해 주세요.' : undefined} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   if (variant === 'dashboard') return <>
-    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>포인트 받기</span> : null}</Button> : null}
+    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>포인트 받기</span> : null}</Button> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (variant === 'purchase-summary') return <>
-    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}>구매확정 {item.automaticConfirmationAt ? `(자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}</Button> : null}
+    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</Button> : null}
     {item.expectedPoints !== null ? <b>포인트 {item.expectedPoints.toLocaleString('ko-KR')}P 받기</b> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
@@ -59,25 +61,26 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   if (item.billingUnit === 'unit' && item.durationUnits === null && item.pcAssetId === null && !item.rentalId)
     return paid ? <PartPurchaseActions api={api} item={item}/> : null
   return <>
-    <button
-      className={`order-catalog-item__confirm${canConfirm ? ' is-active' : ''}`}
+    {!item.refundPending && <button
+      className={`order-catalog-item__confirm${import.meta.env.DEV ? ' notranslate' : ''}${canConfirm ? ' is-active' : ''}`}
+      translate={import.meta.env.DEV ? 'no' : undefined}
       disabled={!canConfirm || confirmation.isPending}
       onClick={() => setOpen(true)}
       type="button"
     >
       {confirmedAt
-        ? `구매확정 완료 (확정일: ${accountDate(confirmedAt).slice(0, 10)})`
-        : `구매확정${item.automaticConfirmationAt ? ` (자동 구매확정일: ${accountDate(item.automaticConfirmationAt).slice(0, 10)})` : ''}`}
+        ? t('order.confirmedDate', { date: accountDate(confirmedAt).slice(0, 10) })
+        : `${t('order.purchaseConfirmation')}${item.automaticConfirmationAt ? ` (${t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})` : ''}`}
       {canConfirm && item.expectedPoints !== null ? <span>◉ {item.expectedPoints.toLocaleString('ko-KR')}P 받기<i aria-hidden="true" /></span> : null}
-    </button>
+    </button>}
     <div className="order-catalog-item__actions">
       <div className="order-catalog-item__action-primary">
         {item.rentalId && canExtend && myAccount.rcpcApi
-          ? <RcpcExtensionCheckout api={myAccount.rcpcApi} rentalIds={[Number(item.rentalId)]} displayTargets={[{ rcpcId: item.productNo, cpu: item.title }]} triggerLabel="기간 연장" />
-          : <Button size="small" variant="secondary" disabled>기간 연장</Button>}
+          ? <RcpcExtensionCheckout api={myAccount.rcpcApi} rentalIds={[Number(item.rentalId)]} displayTargets={[{ rcpcId: item.productNo, cpu: item.title }]} triggerLabel={t('rental.extend')} />
+          : <Button size="small" variant="secondary" disabled><TranslatedText id="rental.extend" /></Button>}
         {confirmedAt && paid && !item.refundPending
           ? <OrderReview item={item} />
-          : <Button size="small" variant="secondary" disabled>후기 작성</Button>}
+          : <Button size="small" variant="secondary" disabled><TranslatedText id="order.writeReview" /></Button>}
       </div>
       <OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} />
     </div>
@@ -87,6 +90,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
 }
 
 export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentStatus, orderStatus }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; paymentStatus: string; orderStatus: string }) {
+  const { t } = useTranslation()
   const { myAccount } = useServices()
 
   const paid = paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
@@ -98,12 +102,12 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
 
   if (item.billingUnit === 'unit' && !item.rentalId) return null
   return <div className="order-catalog-item__action-support">
-    {item.rentalId && myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={!terminal && active} triggerLabel="해지신청" /> : null}
+    {item.rentalId && myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={!terminal && active} triggerLabel={t('order.terminationRequest')} /> : null}
     {terminal ? null : item.refundPending && orderNo && orderDetail && myAccount.inquiryApi
       ? <RefundWithdrawalAction order={orderDetail} itemId={item.orderItemId} />
       : item.rentalId && myAccount.inquiryApi && active
         ? null
-        : <Button size="small" variant="secondary" disabled>해지신청</Button>}
+        : <Button size="small" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
     <InquiryAction disabled={!item.rentalId} initialIds={item.pcAssetId ? [Number(item.pcAssetId)] : []} initialProductNo={item.pcAssetId ? '' : item.productNo} />
   </div>
 }

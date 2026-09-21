@@ -1,9 +1,10 @@
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { AccountOrderDetail } from '@/api/myAccountOrders'
 import { AccountQueryState } from '../AccountQueryState'
-import { accountMoney } from '../shared/AccountReadCommon'
+import { TranslatedText, useTranslation } from '@/i18n/translation'
 
 export function OrderRefundSummary({ result, itemId, originalAmount }: { result: UseQueryResult<AccountOrderDetail, Error>; itemId: string; originalAmount: number }) {
+  const { t } = useTranslation()
   const refund = result.data?.refunds.find(entry => entry.orderItemId === itemId)
     ?? result.data?.refunds.find(entry => entry.orderItemId === null)
   const pointRefund = refund?.method === 'point'
@@ -11,11 +12,11 @@ export function OrderRefundSummary({ result, itemId, originalAmount }: { result:
   const approvedAmount = pointRefund ? refund?.approvedPointAmount : refund?.approvedAmount
   const requestedAmount = pointRefund ? refund?.requestedPointAmount : refund?.requestedAmount
   const finalAmount = approvedAmount ?? (paidAmount > 0 ? paidAmount : requestedAmount) ?? originalAmount
-  return <section aria-label="환불 내역"><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>
+  return <section aria-label={t('refund.history')}><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>
     {result.data ? <div className="order-catalog-item__refund-totals">
-      <span>{refund ? '원결제금액' : '주문금액'} <strong>{accountMoney(originalAmount)}</strong></span>
-      {refund?.usedDaysDeductionRateBasisPoints !== null && refund?.usedDaysDeductionRateBasisPoints !== undefined ? <span>공제율 <strong>{refund.usedDaysDeductionRateBasisPoints / 100}%</strong></span> : null}
-      {refund ? <span>최종 환불금액 <strong>{pointRefund ? `${finalAmount.toLocaleString('ko-KR')}점` : accountMoney(finalAmount)}</strong></span> : <span>환불 내역 없음</span>}
+      <span><TranslatedText id={refund ? 'refund.originalPayment' : 'refund.orderAmount'} /> <strong>{t('money.krwAmount', { amount: originalAmount.toLocaleString('ko-KR') })}</strong></span>
+      {refund?.usedDaysDeductionRateBasisPoints !== null && refund?.usedDaysDeductionRateBasisPoints !== undefined ? <span><TranslatedText id="refund.deductionRate" /> <strong>{refund.usedDaysDeductionRateBasisPoints / 100}%</strong></span> : null}
+      {refund ? <span><TranslatedText id="refund.finalAmount" /> <strong>{pointRefund ? t('money.pointAmount', { points: finalAmount.toLocaleString('ko-KR') }) : t('money.krwAmount', { amount: finalAmount.toLocaleString('ko-KR') })}</strong></span> : <TranslatedText id="refund.noHistory" />}
     </div> : null}
   </section>
 }

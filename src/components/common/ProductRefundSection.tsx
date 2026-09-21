@@ -1,6 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { useServices } from '@/app/ServiceProvider'
-import { legalDocumentSchema } from '@/domain/legal/legalRepository'
+import { usePublicLegalDocuments } from '@/domain/legal/usePublicLegalDocuments'
 import type { Product } from '@/domain/products/types'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
@@ -11,14 +9,7 @@ const scopeLabel: Record<NonNullable<Product['refundPolicy']>['scopeType'], stri
 }
 
 function PolicyDocumentBlock({ kind, title }: { kind: 'refund' | 'point'; title: string }) {
-  const { legal } = useServices()
-  const query = useQuery({
-    queryKey: ['legal', kind],
-    queryFn: async ({ signal }) => {
-      const documents = legalDocumentSchema.array().parse(await legal.list(kind, signal))
-      return [...documents].sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))
-    },
-  })
+  const query = usePublicLegalDocuments(kind)
   if (query.isPending) return <LoadingState className="route-loading--compact" label={`${title} 문서를 불러오는 중입니다.`} />
   if (query.isError) return <p role="alert">{title} 문서를 불러오지 못했습니다.</p>
   const document = query.data[0]

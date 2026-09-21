@@ -9,10 +9,13 @@ import { createOrdersPaymentsApi } from '@/api/ordersPayments'
 export function createHttpCheckoutRepository(api: ReturnType<typeof createCartApi>, cart: CartRepository, client: ApiClient, organizationId: string): CheckoutRepository {
   const orders = createOrdersPaymentsApi(client, organizationId)
   return {
-    async quote(input, signal) {
+    async quote(input, signal, knownCartItems) {
       const ids = checkoutSelectionSchema.parse(input)
       const numericIds = ids.map((id) => apiCartItemIdSchema.parse(id))
-      const [response, cartItems] = await Promise.all([api.quote(numericIds, signal), cart.list(signal)])
+      const [response, cartItems] = await Promise.all([
+        api.quote(numericIds, signal),
+        knownCartItems ? Promise.resolve(cartSchema.parse(knownCartItems)) : cart.list(signal),
+      ])
       if (response.items.length !== ids.length || new Set(response.items.map((row) => row.cartItemId)).size !== ids.length) {
         throw new Error('선택한 상품과 견적 응답이 일치하지 않습니다.')
       }
@@ -64,6 +67,7 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
     },
     payment: orders.payment,
     resume: orders.resume,
+    abandon: orders.abandon,
     refresh: orders.refresh,
     benefitQuote: (ids, userCouponId, pointAmount, signal) => orders.benefitQuote({ cartItemIds: ids.map(value => Number(apiCartItemIdSchema.parse(value))), userCouponId, pointAmount }, signal),
     confirm: orders.confirm,

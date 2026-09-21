@@ -37,10 +37,13 @@ export const eligibleReviewRentalResponseSchema = z.object({
 
 export function createProductReviewsApi(client: ApiClient) {
   return {
-    listPublic(page: number, size: number, authenticated: boolean, signal?: AbortSignal) {
+    listPublic(page: number, size: number, authenticated: boolean, options: { keyword?: string; mineOnly?: boolean; sort?: string; signal?: AbortSignal } = {}) {
       return client.request('/api/v1/product-reviews', productReviewPageResponseSchema, {
-        authenticated, query: { sort: 'latest', page, size }, signal,
+        authenticated, query: { sort: options.sort ?? 'latest', keyword: options.keyword || undefined, mineOnly: options.mineOnly, page, size }, signal: options.signal,
       })
+    },
+    detail(reviewId: string, authenticated: boolean) {
+      return client.request(`/api/v1/product-reviews/${safeId.parse(reviewId)}`, productReviewResponseSchema.nullable(), { authenticated })
     },
     list(productNo: string, page: number, size: number, authenticated: boolean, signal?: AbortSignal) {
       return client.request(`/api/v1/products/${encodeURIComponent(catalogProductNoSchema.parse(productNo))}/reviews`,

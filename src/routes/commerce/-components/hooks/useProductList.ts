@@ -1,4 +1,5 @@
 import { productQueryKeys } from '@/domain/products/productQueryKeys'
+import { usePublicCatalogQueryClient } from '@/app/PublicCatalogQueryProvider'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
@@ -45,16 +46,17 @@ function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductL
 export function useProductList() {
   const [params, setParams] = useSearchParams()
   const { products } = useServices()
+  const publicCatalogClient = usePublicCatalogQueryClient()
   const defaultInstantOnly = products.filterMetadata ? false : products.capabilities?.instantOnly !== false
   const storedQuery = readQuery(params, defaultInstantOnly)
-  const metadata = useQuery({ queryKey: ['product-filter-metadata', storedQuery.categoryCode], enabled: Boolean(products.filterMetadata), queryFn: ({ signal }) => products.filterMetadata!(storedQuery.categoryCode, signal) })
+  const metadata = useQuery({ queryKey: ['product-filter-metadata', storedQuery.categoryCode], enabled: Boolean(products.filterMetadata), queryFn: () => products.filterMetadata!(storedQuery.categoryCode) }, publicCatalogClient)
   const defaultPriceBasis = metadata.data?.priceBuckets.some(bucket => bucket.priceBasis === 'unit')
     && !metadata.data.priceBuckets.some(bucket => bucket.priceBasis === 'monthly') ? 'unit' : 'monthly'
   const query: ProductListQuery = { ...storedQuery, priceBasis: storedQuery.categoryCode === 'parts' ? 'unit' : storedQuery.priceBasis ?? defaultPriceBasis }
   const result = useQuery({
     queryKey: productQueryKeys.list(query),
-    queryFn: async ({ signal }) => productPageSchema.parse(await products.list(query, signal)),
-  })
+    queryFn: async () => productPageSchema.parse(await products.list(query)),
+  }, publicCatalogClient)
   const resolvedPage = result.data?.page
   useEffect(() => {
     if (resolvedPage === undefined || resolvedPage === query.page) return

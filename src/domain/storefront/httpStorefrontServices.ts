@@ -5,6 +5,7 @@ import { createStorePopupsApi } from '@/api/storePopups'
 import type { Article, Comment, Post, StorefrontServices } from './services'
 import { contentDateTime } from './contentDateTime'
 import { publicApiResourceUrl, toPublicAttachment } from './publicAttachment'
+import { isDefinitivePostRejection } from './postSaveRetry'
 
 const date = (value: string) => value.slice(0, 10).replaceAll('-', '.')
 const htmlToText = (value: string) => value
@@ -35,40 +36,71 @@ const toReview = (row: ProductReviewResponse) => ({
   center: row.serverRoomName, rating: row.rating, author: row.author, date: date(row.reviewedAt),
   content: row.content, isMine: row.mine,
 })
-async function collect<T>(first: { totalPages: number; items: T[] }, next: (page: number) => Promise<{ totalPages: number; items: T[] }>) {
-  if (first.totalPages <= 1) return first.items
-  const pages = await Promise.all(Array.from({ length: first.totalPages - 1 }, (_, index) => next(index + 1)))
-  return [...first.items, ...pages.flatMap((page) => page.items)]
-}
 export function createHttpStorefrontServices(client: ApiClient, authenticated: boolean, baseUrl = ''): StorefrontServices {
   const api = createCommunityApi(client, authenticated)
+  const publicApi = createCommunityApi(client, false)
   const reviewApi = createProductReviewsApi(client)
   const popupApi = createStorePopupsApi(client)
+  type PreparedPost = { title: string; content: string; richContent: unknown; attachmentIds: number[] }
+  let preparedPosts = new Map<string, Promise<PreparedPost>>()
   return {
     async listActivePopups(signal) {
       return (await popupApi.active(signal)).map((popup) => ({ ...popup, imageUrl: publicApiResourceUrl(popup.imageUrl, baseUrl) ?? null }))
     },
-    async listPosts(input) { const first = await api.posts(0, input); return (await collect(first, (page) => api.posts(page, input))).map((row) => toPost(row, baseUrl)) },
+    async listPostPage(input) {
+      const result = await (input.anonymous ? publicApi : api).posts(input.page - 1, { ...input, size: input.size })
+      return { items: result.items.map((row) => toPost(row, baseUrl)), totalCount: result.totalCount, totalPages: result.totalPages }
+    },
     async getPost(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.post(id); return row ? toPost(row, baseUrl) : null },
-    async savePost(draft, value) {
-      const attachmentIds = await Promise.all(draft.attachments.map(async (attachment) => {
-        if (attachment.file) return (await api.uploadAttachment(attachment.file)).id
-        const id = Number(attachment.id)
-        if (!Number.isSafeInteger(id) || id <= 0) throw new Error('첨부파일 정보를 확인할 수 없습니다.')
-        return id
-      }))
-      const input = { title: draft.title, content: draft.content.join('\n'), richContent: draft.richContent ?? null, attachmentIds }
-      return toPost(value ? await api.update(Number(value), input) : await api.create(input), baseUrl)
+    async savePost(draft, value, idempotencyKey) {
+      if (!value && !idempotencyKey) throw new Error('게시글 저장 요청을 확인할 수 없습니다.')
+      const body = { title: draft.title, content: draft.content.join('\n'), richContent: draft.richContent == null ? null : structuredClone(draft.richContent) }
+      const prepare = async (): Promise<PreparedPost> => {
+        const attachmentIds = await Promise.all(draft.attachments.map(async (attachment) => {
+          if (attachment.file) return (await api.uploadAttachment(attachment.file)).id
+          const id = Number(attachment.id)
+          if (!Number.isSafeInteger(id) || id <= 0) throw new Error('첨부파일 정보를 확인할 수 없습니다.')
+          return id
+        }))
+        return { ...body, attachmentIds }
+      }
+      let pending = idempotencyKey && !value ? preparedPosts.get(idempotencyKey) : undefined
+      if (!pending) {
+        pending = prepare()
+        if (idempotencyKey && !value) preparedPosts = new Map([...preparedPosts, [idempotencyKey, pending]])
+      }
+      let input: PreparedPost
+      try { input = await pending } catch (error) {
+        if (idempotencyKey && !value) preparedPosts = new Map([...preparedPosts].filter(([key]) => key !== idempotencyKey))
+        throw error
+      }
+      try {
+        const saved = toPost(value ? await api.update(Number(value), input) : await api.create(input, idempotencyKey!), baseUrl)
+        if (idempotencyKey && !value) preparedPosts = new Map([...preparedPosts].filter(([key]) => key !== idempotencyKey))
+        return saved
+      } catch (error) {
+        if (idempotencyKey && !value && isDefinitivePostRejection(error)) {
+          preparedPosts = new Map([...preparedPosts].filter(([key]) => key !== idempotencyKey))
+        }
+        throw error
+      }
     },
     async removePost(value) { await api.remove(Number(value)) },
     async listComments(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return []; return (await api.comments(id)).map(toComment) },
     async saveComment(postId, content, value) { if (value) await api.updateComment(Number(value), content); else await api.createComment(Number(postId), content) },
     async removeComment(_postId, value) { await api.removeComment(Number(value)) },
-    async listArticles(input) { const first = await api.articles(0, input); return (await collect(first, (page) => api.articles(page, input))).map((row) => toArticle(row, baseUrl)) },
+    async listArticlePage(input) {
+      const result = await (input.anonymous ? publicApi : api).articles(input.page - 1, { ...input, size: input.size })
+      return { items: result.items.map((row) => toArticle(row, baseUrl)), totalCount: result.totalCount, totalPages: result.totalPages }
+    },
     async getArticle(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.article(id); return row ? toArticle(row, baseUrl) : null },
-    async listReviews() {
-      const first = await reviewApi.listPublic(0, 100, authenticated)
-      return (await collect(first, (page) => reviewApi.listPublic(page, 100, authenticated))).map(toReview)
+    async listReviewPage(input) {
+      const result = await reviewApi.listPublic(input.page - 1, input.size, !input.anonymous && authenticated, input)
+      return { items: result.items.map(toReview), totalCount: result.totalCount, totalPages: result.totalPages }
+    },
+    async getReview(value) {
+      const row = await reviewApi.detail(value, authenticated)
+      return row ? toReview(row) : null
     },
   }
 }

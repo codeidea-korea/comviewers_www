@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import { useAuthentication } from '@/app/session/AuthProvider'
 import { useSession } from '@/app/session/SessionProvider'
 import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
@@ -12,30 +12,18 @@ export function SocialLoginCallbackPage() {
   const session = useSession()
   const result = new URLSearchParams(window.location.search).get('result')
   const provider = socialLinkProvider(new URLSearchParams(window.location.search).get('provider'))
-  const attemptedRestore = useRef(false)
-  const [restoreStatus, setRestoreStatus] = useState<'idle' | 'pending' | 'completed' | 'failed'>('idle')
-
   useEffect(() => {
     if (result === 'link_required' && provider) rememberSocialLink(provider)
   }, [provider, result])
 
-  useEffect(() => {
-    if ((result !== 'login' && result !== 'linked') || auth.restoring || attemptedRestore.current) return
-    attemptedRestore.current = true
-    setRestoreStatus('pending')
-    void auth.restoreSession()
-      .then(() => setRestoreStatus('completed'))
-      .catch(() => setRestoreStatus('failed'))
-  }, [auth, auth.restoring, result, session.status])
-
   if (result === 'signup_required') return <Navigate replace to="/signup/terms?mode=social" />
-  if (result === 'login' && restoreStatus === 'completed' && session.status === 'authenticated') {
+  if (result === 'login' && !auth.restoring && session.status === 'authenticated') {
     const pendingProvider = pendingSocialLink()
     return <Navigate replace to={pendingProvider ? socialLinkDestination(pendingProvider) : '/mypage'} />
   }
-  if (result === 'linked' && restoreStatus === 'completed' && session.status === 'authenticated') return <Navigate replace to="/mypage/login-methods" />
+  if (result === 'linked' && !auth.restoring && session.status === 'authenticated') return <Navigate replace to="/mypage/login-methods" />
 
-  const waiting = (result === 'login' || result === 'linked') && (auth.restoring || restoreStatus === 'pending' || restoreStatus === 'idle')
+  const waiting = (result === 'login' || result === 'linked') && auth.restoring
   const message = result === 'link_required'
     ? '이미 가입된 이메일입니다. 기존에 사용하던 계정으로 로그인하면 이 간편 로그인을 연결할 수 있습니다.'
     : result === 'link_error'

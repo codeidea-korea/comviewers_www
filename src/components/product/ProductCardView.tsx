@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { TranslatedText, useTranslation } from '../../i18n/translation'
 import type { Product } from '../../domain/products/types'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import flagKorea from '../../assets/figma/flag-korea.png'
@@ -17,7 +18,7 @@ import defaultPartProductImage from '../../assets/figma/cart-product-partner.png
 
 const formatPrice = (price: number) => new Intl.NumberFormat('ko-KR').format(price)
 
-function ProductSpec({ className = '', label, value, tone }: { className?: string; label: string; value: ReactNode; tone?: 'blue' | 'gray' | 'red' }) {
+function ProductSpec({ className = '', label, value, tone }: { className?: string; label: ReactNode; value: ReactNode; tone?: 'blue' | 'gray' | 'red' }) {
   return (
     <div className={`product-card__spec ${className}`.trim()}>
       <dt>{label}</dt>
@@ -27,9 +28,10 @@ function ProductSpec({ className = '', label, value, tone }: { className?: strin
 }
 
 function PriceValue({ amount, compact = false }: { amount: number | null; compact?: boolean }) {
+  const { locale, t } = useTranslation()
   return (
-    <strong className={compact ? 'product-card__price-value product-card__price-value--compact' : 'product-card__price-value'}>
-      <b>{amount === null ? '정보 없음' : formatPrice(amount)}</b><small>원</small>
+    <strong translate={import.meta.env.DEV ? 'no' : undefined} className={`${import.meta.env.DEV ? 'notranslate' : ''} ${compact ? 'product-card__price-value product-card__price-value--compact' : 'product-card__price-value'}`}>
+      {amount === null ? <b>{t('common.noInformation')}</b> : locale === 'ko' ? <><b>{formatPrice(amount)}</b><small>원</small></> : <b>{t('money.krwAmount', { amount: formatPrice(amount) })}</b>}
     </strong>
   )
 }
@@ -51,16 +53,16 @@ export function ProductCard({ image, onAddToCart, product, size = 'medium' }: { 
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">
-          <ProductSpec label="품번" value={product.productId} />
-          <ProductSpec className="product-card__spec--os" label="OS" value={product.os ?? '정보 없음'} />
-          <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ?? '정보 없음'} />
-          <ProductSpec label="RAM" tone="blue" value={product.ram ?? '정보 없음'} />
-          <ProductSpec label="DISK" tone="gray" value={product.disk ?? '정보 없음'} />
-          <ProductSpec label="GPU" tone="red" value={product.gpu ?? '정보 없음'} />
+          <ProductSpec label={<TranslatedText id="product.number" />} value={<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.productId}</span>} />
+          <ProductSpec className="product-card__spec--os" label="OS" value={product.os ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.os}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
+          <ProductSpec label="DISK" tone="gray" value={product.disk ?? <TranslatedText id="common.noInformation" />} />
+          <ProductSpec label="GPU" tone="red" value={product.gpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.gpu}</span> : <TranslatedText id="common.noInformation" />} />
           {isLarge ? (
             <>
               <ProductSpec
-                label="주변기기"
+                label={<TranslatedText id="product.peripherals" />}
                 value={(
                   <span className="product-card__peripherals">
                     <span>{product.mouseIncluded === null ? "—" : <img alt="" src={hasMouse ? mouseActiveIcon : mouseIcon} />}</span>
@@ -75,18 +77,18 @@ export function ProductCard({ image, onAddToCart, product, size = 'medium' }: { 
                 value={<>{product.country === "Korea" ? <img alt="대한민국" className="flag" src={flagKorea} /> : null}<span>{product.country ?? "국가 정보 없음"}</span><small>{product.ip ?? "IP 정보 없음"}</small></>}
               />
               <ProductSpec
-                label="서버상태"
-                value={product.serverState === null ? "정보 없음" : <span className={`product-card__server-state${serverOnline ? '' : ' is-waiting'}`}><img alt="" src={serverOnline ? serverLinkIcon : serverOffIcon} /><span className="sr-only">{serverOnline ? '서버 연결됨' : '서버 연결 끊김'}</span></span>}
+                label={<TranslatedText id="product.serverStatus" />}
+                value={product.serverState === null ? <TranslatedText id="common.noInformation" /> : <span className={`product-card__server-state${serverOnline ? '' : ' is-waiting'}`}><img alt="" src={serverOnline ? serverLinkIcon : serverOffIcon} /><span className="sr-only"><TranslatedText id={serverOnline ? 'product.connected' : 'product.disconnected'} /></span></span>}
               />
             </>
           ) : null}
         </dl>
         <div className="product-card__purchase">
           <div className="product-card__price">
-            {isLarge ? <span>세팅비 <PriceValue amount={product.setupFee} compact /></span> : null}
-            <span>{part ? '상품 금액' : '월 렌탈료'} <PriceValue amount={productPrice} /></span>
+            {isLarge ? <span><TranslatedText id="money.setupFee" /> <PriceValue amount={product.setupFee} compact /></span> : null}
+            <span><TranslatedText id={part ? 'money.productAmount' : 'money.monthlyRental'} /> <PriceValue amount={productPrice} /></span>
           </div>
-          {isLarge ? <button disabled={productPrice === null} className="product-card__cart" onClick={() => onAddToCart?.(product)} type="button">담기 <img alt="" src={shoppingBagIcon} /></button> : null}
+          {isLarge ? <button disabled={productPrice === null} className="product-card__cart" onClick={() => onAddToCart?.(product)} type="button"><TranslatedText id="cart.add" /> <img alt="" src={shoppingBagIcon} /></button> : null}
         </div>
       </div>
       <Link aria-label={`상품 ${product.productId} 상세 보기`} className="product-card__detail-overlay" to={`/products/${product.productId}`} />

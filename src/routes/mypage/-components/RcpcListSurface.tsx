@@ -10,6 +10,8 @@ import { RcpcRemoteAccess } from './RcpcRemoteAccess'
 import { extensionBlocked, totalTraffic } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
+import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
+import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -24,18 +26,18 @@ const columns: ReadonlyArray<{ label: string; sort?: SortKey }> = [
   { label: '빠른 실행' },
 ]
 
-export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, sort }: {
+export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, sortConfig }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
   emptyMessage: string
   items: readonly MyRcpcItem[]
   mutations?: RcpcMutations
-  onSort: (sort: SortKey) => void
-  sort: MyRcpcQuery['sort']
+  onSort: (sort: SortConfig<SortKey>) => void
+  sortConfig: SortConfig<SortKey>
 }) {
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <button aria-pressed={sort === column.sort} className="table-sort-button" onClick={() => onSort(column.sort!)} type="button">{column.label}<span aria-hidden="true">↕</span></button>
+    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label}</SortButton>
     : column.label
 
   return <>

@@ -57,13 +57,7 @@ function ProductDetailContent() {
   const [activeTab, setActiveTab] = useState<'guide' | 'reviews' | 'refund'>('guide')
   const directPurchase = useMutation({
     mutationFn: async (rentalPeriods: number) => {
-      const items = await cart.add({ productNo: String(product?.productId ?? ''), rentalPeriods })
-      const part = product?.pricingType === 'one_time' && product.billingUnit === 'unit'
-      const item = items.find((candidate) => candidate.productId === product?.productId && (part
-        ? candidate.billingUnit === 'unit' && candidate.durationUnits === null && candidate.quantity === rentalPeriods
-        : candidate.durationUnits === rentalPeriods))
-      if (!item) throw new Error('주문할 상품을 장바구니에서 확인하지 못했습니다.')
-      return item.id
+      return cart.add({ productNo: String(product?.productId ?? ''), rentalPeriods })
     },
     onSuccess: async (cartItemId) => {
       await Promise.all([

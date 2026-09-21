@@ -185,6 +185,6 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
     submitRefundApplication: (input: RefundApplicationInput, key: string) => client.request('/api/v1/my/refunds/applications', refundDetail.array(), { ...context, method: 'POST', body: refundSubmission.parse(input), idempotencyKey: z.uuidv4().parse(key) }),
     submitDirectRefundApplication: (input: RefundDirectApplicationInput, key: string) => client.request('/api/v1/my/refunds/direct-applications', refundDetail.array(), { ...context, method: 'POST', body: refundDirectSubmission.parse(input), idempotencyKey: z.uuidv4().parse(key) }),
     refundDetail: (requestId: number, signal?: AbortSignal) => client.request(`/api/v1/my/refunds/${id.parse(requestId)}`, refundDetail, { ...context, signal }),
-    cancelRefund: (requestId: number) => client.request(`/api/v1/my/refunds/${id.parse(requestId)}/cancel`, refundDetail, { ...context, method: 'POST' }),
+    cancelRefund: (requestId: number) => client.request(`/api/v1/my/refunds/${id.parse(requestId)}/cancel`, refundDetail, { ...context, method: 'POST', body: {} }),
   }
 }

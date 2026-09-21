@@ -3,7 +3,7 @@ import type { createCartApi, CartDto } from '@/api/cart'
 import type { createCatalogApi, CatalogDetail } from '@/api/catalog'
 import { ApiClientError } from '@/api/httpClient'
 import type { CartRepository } from './cartRepository'
-import { addCartItemSchema, cartSchema, changeCartQuantitySchema, removeCartItemsSchema } from './schemas'
+import { addCartItemSchema, cartItemSchema, cartSchema, changeCartQuantitySchema, removeCartItemsSchema } from './schemas'
 
 type CartApi = ReturnType<typeof createCartApi>
 type CatalogApi = ReturnType<typeof createCatalogApi>
@@ -58,6 +58,9 @@ export function createHttpCartRepository(api: CartApi, catalog: CatalogApi): Car
   }
   return {
     list,
+    async count(signal) {
+      return (await api.list(signal)).items.length
+    },
     async add(input) {
       const { productNo, rentalPeriods } = addCartItemSchema.parse(input)
       const product = await catalog.get(productNo)
@@ -67,8 +70,13 @@ export function createHttpCartRepository(api: CartApi, catalog: CatalogApi): Car
       if ((!part && !rental) || rentalPeriods < product.minUnits || rentalPeriods > maximum) {
         throw new Error('선택한 상품의 수량 또는 이용기간을 확인해 주세요.')
       }
-      await api.putItem(productNo, part ? { quantity: rentalPeriods, durationUnits: null } : { quantity: 1, durationUnits: rentalPeriods })
-      return list()
+      const quantity = part ? rentalPeriods : 1
+      const durationUnits = part ? null : rentalPeriods
+      const item = await api.putItem(productNo, { quantity, durationUnits })
+      if (item.productNo !== productNo || item.quantity !== quantity || item.durationUnits !== durationUnits) {
+        throw new Error('장바구니에 저장된 상품을 확인하지 못했습니다.')
+      }
+      return String(item.id)
     },
     async remove(input) {
       const ids = removeCartItemsSchema.parse(input).map((id) => apiCartItemIdSchema.parse(id))
@@ -78,18 +86,23 @@ export function createHttpCartRepository(api: CartApi, catalog: CatalogApi): Car
       if (results.some((result) => result.status === 'rejected')) throw new Error('일부 상품을 삭제하지 못했습니다. 장바구니를 다시 확인해 주세요.')
       return items
     },
-    async changeQuantity(input) {
-      const change = changeCartQuantitySchema.parse(input)
-      apiCartItemIdSchema.parse(change.id)
-      const item = (await list()).find((row) => row.id === change.id)
-      if (!item || !item.quantityEditable || change.quantity < item.minimumQuantity
+    async changeQuantity(currentItem, quantity) {
+      const item = cartItemSchema.parse(currentItem)
+      const change = changeCartQuantitySchema.parse({ id: item.id, quantity })
+      apiCartItemIdSchema.parse(item.id)
+      if (!item.quantityEditable || change.quantity < item.minimumQuantity
         || (item.maximumQuantity !== null && change.quantity > item.maximumQuantity)) {
         throw new Error('변경할 상품 또는 수량을 확인해 주세요.')
       }
-      await api.putItem(item.productId, item.billingUnit === 'unit'
+      const saved = await api.putItem(item.productId, item.billingUnit === 'unit'
         ? { quantity: change.quantity, durationUnits: null }
         : { quantity: 1, durationUnits: change.quantity })
-      return list()
+      const expectedQuantity = item.billingUnit === 'unit' ? change.quantity : 1
+      const expectedDuration = item.billingUnit === 'unit' ? null : change.quantity
+      if (saved.id !== Number(item.id) || saved.productNo !== item.productId
+        || saved.quantity !== expectedQuantity || saved.durationUnits !== expectedDuration) {
+        throw new Error('변경된 장바구니 상품을 확인하지 못했습니다.')
+      }
     },
   }
 }

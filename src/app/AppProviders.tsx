@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ServiceProvider, type Services } from './ServiceProvider'
 import { createSessionStore, type SessionState, type SessionStore } from './session/sessionStore'
 import { SessionProvider, useSession, useSessionStore } from './session/SessionProvider'
+import { PublicCatalogQueryProvider } from './PublicCatalogQueryProvider'
 
 export interface ServiceScope {
   readonly session: SessionState
@@ -47,6 +48,12 @@ function SessionScope({ children, createServices }: { children: ReactNode; creat
 }
 export function AppProviders({ children, session, authAdapter, createServices }: AppProvidersProps) {
   const [store] = useState(() => session ?? createSessionStore())
-  return <SessionProvider store={store}><AuthProvider adapter={authAdapter}><SessionScope createServices={createServices}>{children}</SessionScope></AuthProvider></SessionProvider>
+  return <PublicCatalogQueryProvider>
+    <SessionProvider store={store}>
+      <AuthProvider adapter={authAdapter}>
+        <SessionScope createServices={createServices}>{children}</SessionScope>
+      </AuthProvider>
+    </SessionProvider>
+  </PublicCatalogQueryProvider>
 }
 

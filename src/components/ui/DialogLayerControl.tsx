@@ -1,6 +1,7 @@
 import type { ReactNode, RefObject } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { TranslatedText, useTranslation, type TranslationKey } from '../../i18n/translation'
 
 export interface DialogLayerProps {
   asChild?: boolean
@@ -14,6 +15,7 @@ export interface DialogLayerProps {
   returnFocusRef?: RefObject<HTMLElement | null>
   showTitle?: boolean
   title?: string
+  titleTranslationKey?: TranslationKey
 }
 
 interface DocumentScrollState {
@@ -95,7 +97,10 @@ export function DialogLayer({
   returnFocusRef,
   showTitle = true,
   title,
+  titleTranslationKey,
 }: DialogLayerProps) {
+  const { t } = useTranslation()
+  const accessibleTitle = titleTranslationKey ? t(titleTranslationKey) : title
   const backdropRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
   const dialogRef = useRef<HTMLElement | null>(null)
@@ -107,13 +112,13 @@ export function DialogLayer({
     if (!isOpen) return undefined
     if (asChild) dialogRef.current = backdropRef.current?.querySelector<HTMLElement>('[role="dialog"]') ?? null
     const dialog = dialogRef.current
-    if (asChild && !showTitle && title && dialog && !dialog.hasAttribute('aria-label')) dialog.setAttribute('aria-label', title)
+    if (asChild && !showTitle && accessibleTitle && dialog && (titleTranslationKey || !dialog.hasAttribute('aria-label'))) dialog.setAttribute('aria-label', accessibleTitle)
     const firstFocusable = dialog?.querySelector<HTMLElement>(focusableSelector)
     const initialFocusTarget = initialFocus === 'dialog' ? dialog : firstFocusable ?? dialog
     const focusFrame = window.requestAnimationFrame(() => initialFocusTarget?.focus({ preventScroll: true }))
 
     return () => window.cancelAnimationFrame(focusFrame)
-  }, [asChild, focusKey, initialFocus, isOpen, showTitle, title])
+  }, [asChild, focusKey, initialFocus, isOpen, showTitle, accessibleTitle, titleTranslationKey])
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -182,7 +187,7 @@ export function DialogLayer({
       role="presentation"
     >
       {asChild ? children : <section
-        aria-label={showTitle ? undefined : title}
+        aria-label={showTitle ? undefined : accessibleTitle}
         aria-labelledby={showTitle ? titleId : undefined}
         aria-modal="true"
         className={dialogClassName}
@@ -190,7 +195,7 @@ export function DialogLayer({
         role="dialog"
         tabIndex={-1}
       >
-        {showTitle ? <h2 id={titleId}>{title}</h2> : null}
+        {showTitle ? <h2 id={titleId}>{titleTranslationKey ? <TranslatedText id={titleTranslationKey} /> : title}</h2> : null}
         {children}
       </section>}
     </div>,

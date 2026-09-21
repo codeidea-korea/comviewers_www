@@ -1,8 +1,7 @@
-export { SortButton } from '@/components/ui/SortButtonControl'
-export interface AccountSort { key: string; direction: 'asc' | 'desc' }
-export function nextSortConfig(current: AccountSort | null, key: string): AccountSort {
-  return { key, direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc' }
-}
+import type { SortConfig } from '@/components/ui/SortButtonControl'
+
+export { nextSortConfig, SortButton } from '@/components/ui/SortButtonControl'
+export type AccountSort = SortConfig
 export function sortRows<T>(rows: readonly T[], config: AccountSort | null, value: (row: T, key: string) => unknown): T[] {
   if (!config) return [...rows]
   const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })

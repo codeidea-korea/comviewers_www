@@ -149,6 +149,10 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
   const dailyDeduction = quote.data?.items.reduce((total, item) => total + item.dailyQuantityDeduction, 0) ?? 0
   const beforeBulkRefundTotal = quote.data?.items.reduce((total, item) => total + (method === 'point' ? item.pointAmount : item.cashAmount) + item.dailyQuantityDeduction, 0) ?? 0
   const selectedCount = selected.length
+  const methodChoices = <fieldset className="refund-application__method"><legend>환불 방법 선택</legend><div>
+    <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>포인트 적립</strong><small>최종 환불금이 포인트로 즉시 적립되며, 상품 구매에 이용하실 수 있습니다.</small></span></label>
+    <label><input type="radio" name="refund-method" checked={method === 'original'} onChange={() => changeMethod('original')}/><span><strong>결제수단 환불</strong><small>기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.</small></span></label>
+  </div></fieldset>
 
   return <Modal className={`modal--refund-application modal--refund-step-${step}`} isOpen title="중도해지 및 환불 신청" closeLabel="취소" onClose={close} returnFocusRef={returnFocusRef} showClose={false}>
     {step === 1 ? <form className="refund-application refund-application--select" onSubmit={(event) => {
@@ -180,7 +184,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
       if (!submit.isPending && (attempt.current || quoteCurrent)) submit.mutate()
     }}>
       {quote.isPending ? <LoadingState className="refund-application__loading" label="환불 예상 금액을 계산하고 있습니다." /> : null}
-      {quote.isError ? <p role="alert">{quote.error instanceof Error ? quote.error.message : '환불 예상 금액을 확인하지 못했습니다.'} <button type="button" onClick={() => requestQuote()}>다시 시도</button></p> : null}
+      {quote.isError ? <><p role="alert">{quote.error instanceof Error ? quote.error.message : '환불 예상 금액을 확인하지 못했습니다.'} <button type="button" onClick={() => requestQuote()}>다시 시도</button></p>{methodChoices}</> : null}
       {quoteCurrent && quote.data ? <>
         <section className="refund-application__summary" aria-label="최종 환불 예상 금액 요약">
           <p><span>신청 품목 <strong>{selectedCount}개</strong></span></p>
@@ -198,10 +202,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
         </details>
         <section className="refund-application__bulk"><h3>다량 중도해지 공제</h3><dl><div><dt>해지 요청 건 수</dt><dd>{dailyQuantity}건</dd></div><div><dt>공제율</dt><dd>{dailyRate}%</dd></div><div><dt>공제금</dt><dd>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</dd></div></dl></section>
         <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 부분적으로 복원됩니다.</li></ul>
-        <fieldset className="refund-application__method"><legend>환불 방법 선택</legend><div>
-          <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>포인트 적립</strong><small>최종 환불금이 포인트로 즉시 적립되며, 상품 구매에 이용하실 수 있습니다.</small></span></label>
-          <label><input type="radio" name="refund-method" checked={method === 'original'} onChange={() => changeMethod('original')}/><span><strong>결제수단 환불</strong><small>기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.</small></span></label>
-        </div></fieldset>
+        {methodChoices}
         {quote.data.bankRequired ? <fieldset className="refund-application__bank"><legend>환불 계좌정보</legend><select required aria-label="은행명" value={bank.code} onChange={(event) => {
           const selectedBank = bankOptions.find(([code]) => code === event.target.value)
           setBank(current => ({ ...current, code: selectedBank?.[0] ?? '', name: selectedBank?.[1] ?? '' })); attempt.current = null

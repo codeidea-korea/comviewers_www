@@ -13,7 +13,7 @@ function safeLink(value: string | null) {
   }
 }
 
-export function HomeStorePopup({ popup, onClose }: { popup: StorefrontPopup; onClose: () => void }) {
+export function HomeStorePopup({ popup, onClose, onHideToday }: { popup: StorefrontPopup; onClose: () => void; onHideToday: () => void }) {
   const link = safeLink(popup.linkUrl)
   const image = popup.imageUrl ? <img alt={popup.title} src={popup.imageUrl} /> : null
 
@@ -22,6 +22,7 @@ export function HomeStorePopup({ popup, onClose }: { popup: StorefrontPopup; onC
     {popup.content && <p className="store-popup-card__content">{popup.content}</p>}
     <div className="store-popup-card__actions">
       {link && !image && <a href={link} rel="noopener noreferrer" target="_blank">자세히 보기</a>}
+      <button onClick={onHideToday} type="button">오늘 다시 보지 않기</button>
       <button onClick={onClose} type="button">닫기</button>
     </div>
   </PopupLayer>

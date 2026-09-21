@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import logoGray from '../../assets/figma/logo-gray.png'
 import { footerMenuItems } from '../../navigation/menuItems'
+import { TranslatedText } from '../../i18n/translation'
 
 const companyInfoRows: ReadonlyArray<ReadonlyArray<readonly [string, string]>> = [
   [
@@ -38,7 +39,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="site-footer__inner">
         <nav aria-label="회사 정보 메뉴" className="site-footer__menu">
-          {footerMenuItems.map((item) => <Link key={item.id} to={item.href}>{item.label}</Link>)}
+          {footerMenuItems.map((item) => <Link key={item.id} to={item.href}>{item.id === 'company' ? <TranslatedText id="nav.company" /> : item.id === 'support' ? <TranslatedText id="nav.support" /> : item.label}</Link>)}
         </nav>
         <img alt="ComViewers" className="site-footer__logo" src={logoGray} />
         <div className="site-footer__content">
@@ -58,7 +59,7 @@ export function Footer() {
             ))}
           </address>
           <div className="site-footer__support">
-            <strong>고객센터</strong>
+            <strong><TranslatedText id="nav.support" /></strong>
             <div>
               <p>운영시간 <span>평일 11:00 ~ 19:00 (점심시간 13:00 ~ 14:00)</span></p>
               <nav aria-label="고객센터 문의 방법">
@@ -71,7 +72,7 @@ export function Footer() {
           </div>
         </div>
         <div className="site-footer__bottom">
-          <div><Link to="/terms">서비스 이용약관</Link><Link className="site-footer__privacy" to="/privacy">개인정보처리방침</Link></div>
+          <div><Link to="/terms"><TranslatedText id="legal.termsTitle" /></Link><Link className="site-footer__privacy" to="/privacy"><TranslatedText id="legal.privacyTitle" /></Link></div>
           <p>Copyright © ComViewers.com All rights reserved.</p>
         </div>
       </div>

@@ -17,7 +17,7 @@ interface CommerceFactoryOptions {
 
 function unavailableCommerce(message: string): Pick<Services, 'cart' | 'checkout'> {
   const reject = async (): Promise<never> => { throw new Error(message) }
-  const cart: CartRepository = { list: reject, add: reject, remove: reject, changeQuantity: reject }
+  const cart: CartRepository = { list: reject, count: reject, add: reject, remove: reject, changeQuantity: reject }
   const checkout: CheckoutRepository = { quote: reject }
   return { cart, checkout }
 }

@@ -12,6 +12,8 @@ import { RcpcRemoteAccess } from '../RcpcRemoteAccess'
 import { extensionBlocked, totalTraffic } from '../rcpcPresentation'
 import { RcpcStatusContents } from './RcpcStatusContents'
 import { RcpcExtensionAction } from './RcpcExtensionAction'
+import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
+import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -24,15 +26,15 @@ const sortHeaders: ReadonlyArray<{ label: string; sort?: SortKey }> = [
 ]
 
 /** API-backed rows use the same card/grid surface as the publishing original. */
-export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items, selected, onSelectedChange, sort, onSort, emptyMessage, mutations, selectable = true, className = '', mobileVariant = 'none', showAccessValuesByDefault = false }: {
+export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items, selected, onSelectedChange, sortConfig, onSort, emptyMessage, mutations, selectable = true, className = '', mobileVariant = 'none', showAccessValuesByDefault = false }: {
   api: MyRcpcReadServices; canEditAlias?: boolean; canExtend: boolean; items: readonly MyRcpcItem[]
   selected: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void
-  sort: MyRcpcQuery['sort']; onSort: (sort: SortKey) => void; emptyMessage: string; mutations?: RcpcMutations; selectable?: boolean; className?: string; mobileVariant?: MobileVariant; showAccessValuesByDefault?: boolean
+  sortConfig: SortConfig<SortKey>; onSort: (sort: SortConfig<SortKey>) => void; emptyMessage: string; mutations?: RcpcMutations; selectable?: boolean; className?: string; mobileVariant?: MobileVariant; showAccessValuesByDefault?: boolean
 }) {
   const selectableItems = items.filter(item => !extensionBlocked(item))
   const allSelected = selectableItems.length > 0 && selectableItems.every(item => selected.has(item.rentalId))
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <button aria-pressed={sort === column.sort} className="table-sort-button" type="button" onClick={() => onSort(column.sort!)}>{column.label}<span aria-hidden="true">↕</span></button>
+    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label}</SortButton>
     : column.label
   return <>
   <div className={`mypage-home-rcpc${selectable ? ' is-selectable' : ''}${className ? ` ${className}` : ''}`} role="table" aria-label="RCPC 목록">

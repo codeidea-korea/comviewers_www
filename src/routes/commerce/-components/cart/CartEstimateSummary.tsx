@@ -1,5 +1,6 @@
 import type { CartEstimate } from '@/domain/cart/cartEstimate'
 import { CartMoney } from './CartMoney'
+import { TranslatedText, useTranslation } from '@/i18n/translation'
 
 interface Props {
   estimate: { [K in keyof CartEstimate]: number | null } & { subtotalAmount?: number; setupFeeAmount?: number }
@@ -12,25 +13,26 @@ interface Props {
 }
 
 export function CartEstimateSummary({ estimate, selectedCount, disabled, quoteError = false, onRetryQuote, onPurchase, onPrevious }: Props) {
+  const { locale, t } = useTranslation()
   return <aside className={`purchase-summary cart-summary${quoteError ? ' cart-summary--error' : ''}`}>
-    <h2>주문 예상 금액</h2>
-    {quoteError ? <p className="cart-summary__error" role="alert">주문 금액을 확인하지 못했습니다. <button onClick={onRetryQuote} type="button">다시 시도</button></p> : null}
+    <h2><TranslatedText id="cart.estimatedOrder" /></h2>
+    {quoteError ? <p className="cart-summary__error" role="alert">주문 금액을 확인하지 못했습니다. <button onClick={onRetryQuote} type="button"><TranslatedText id="common.retry" /></button></p> : null}
     <div className="purchase-summary__box cart-summary__box">
       <dl>
         <div className="purchase-summary__products cart-summary__products">
-          <div className="cart-summary__main"><dt>렌탈상품</dt><dd><CartMoney value={estimate.rentalTotal} /></dd></div>
-          <div className="cart-summary__sub"><dt>L 세팅비</dt><dd><CartMoney value={estimate.rentalSetupTotal} /></dd></div>
-          <div className="cart-summary__sub"><dt>L 렌탈금액</dt><dd><CartMoney value={estimate.rentalMonthlyTotal} /></dd></div>
-          <div className="cart-summary__main"><dt>파트상품</dt><dd><CartMoney value={estimate.partTotal} /></dd></div>
+          <div className="cart-summary__main"><dt><TranslatedText id="cart.rentalProducts" /></dt><dd><CartMoney value={estimate.rentalTotal} /></dd></div>
+          <div className="cart-summary__sub"><dt>L <TranslatedText id="money.setupFee" /></dt><dd><CartMoney value={estimate.rentalSetupTotal} /></dd></div>
+          <div className="cart-summary__sub"><dt>L <TranslatedText id="money.rentalAmount" /></dt><dd><CartMoney value={estimate.rentalMonthlyTotal} /></dd></div>
+          <div className="cart-summary__main"><dt><TranslatedText id="nav.parts" /></dt><dd><CartMoney value={estimate.partTotal} /></dd></div>
         </div>
         <div aria-hidden="true" className="cart-summary__divider" />
-        <div className="purchase-summary__points cart-summary__points"><dt>적립 포인트</dt><dd><span>{estimate.pointTotal ?? '-'}</span>{estimate.pointTotal !== null && <span>점</span>}</dd></div>
+        <div className="purchase-summary__points cart-summary__points"><dt><TranslatedText id="cart.pointsToEarn" /></dt><dd className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{estimate.pointTotal === null ? <span>-</span> : locale === 'ko' ? <><span>{estimate.pointTotal}</span><span>점</span></> : <span>{t('money.pointAmount', { points: estimate.pointTotal })}</span>}</dd></div>
         <div aria-hidden="true" className="cart-summary__divider" />
-        <div className="purchase-summary__total cart-summary__total"><dt>예상 결제 금액</dt><dd><CartMoney value={estimate.expectedTotal} /></dd></div>
+        <div className="purchase-summary__total cart-summary__total"><dt><TranslatedText id="cart.estimatedPayment" /></dt><dd><CartMoney value={estimate.expectedTotal} /></dd></div>
         <div aria-hidden="true" className="cart-summary__divider" />
       </dl>
-      <p>쿠폰·포인트는 결제 단계에서 사용할 수 있습니다.</p>
+      <p><TranslatedText id="cart.benefitsAtCheckout" /></p>
     </div>
-    <div className="purchase-summary__actions cart-summary__actions"><button disabled={disabled || !selectedCount} onClick={onPurchase} type="button"><strong>선택 상품 {selectedCount}개</strong> 구매하기</button><button onClick={onPrevious} type="button">이전 페이지</button></div>
+    <div className="purchase-summary__actions cart-summary__actions"><button className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined} disabled={disabled || !selectedCount} onClick={onPurchase} type="button">{locale === 'ko' ? <><strong>선택 상품 {selectedCount}개</strong> 구매하기</> : <strong>{t('cart.purchaseSelected', { count: selectedCount })}</strong>}</button><button onClick={onPrevious} type="button"><TranslatedText id="common.previousPage" /></button></div>
   </aside>
 }

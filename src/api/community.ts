@@ -34,7 +34,7 @@ const draft = z.object({
 export function createCommunityApi(client: ApiClient, authenticated: boolean) {
   const auth = { authenticated } as const
   return {
-    posts(pageNumber = 0, options: { keyword?: string; mineOnly?: boolean; sort?: string; signal?: AbortSignal } = {}) { return client.request('/api/v1/community/posts', page, { ...auth, query: { page: pageNumber, size: 100, keyword: options.keyword || undefined, mineOnly: options.mineOnly, sort: options.sort }, signal: options.signal }) },
+    posts(pageNumber = 0, options: { keyword?: string; mineOnly?: boolean; sort?: string; size?: number; signal?: AbortSignal } = {}) { return client.request('/api/v1/community/posts', page, { ...auth, query: { page: pageNumber, size: options.size ?? 100, keyword: options.keyword || undefined, mineOnly: options.mineOnly, sort: options.sort }, signal: options.signal }) },
     post(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, nullableDetail, { ...auth, signal }) },
     comments(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}/comments`, comment.array(), { ...auth, signal }) },
     uploadAttachment(file: File) {
@@ -42,13 +42,13 @@ export function createCommunityApi(client: ApiClient, authenticated: boolean) {
       form.set('file', file)
       return client.request('/api/v1/community/attachments', attachment, { method: 'POST', body: form, authenticated: true })
     },
-    create(input: z.input<typeof draft>) { return client.request('/api/v1/community/posts', detail, { method: 'POST', body: draft.parse(input), authenticated: true }) },
+    create(input: z.input<typeof draft>, idempotencyKey: string) { return client.request('/api/v1/community/posts', detail, { method: 'POST', body: draft.parse(input), authenticated: true, idempotencyKey }) },
     update(postId: number, input: z.input<typeof draft>) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, detail, { method: 'PUT', body: draft.parse(input), authenticated: true }) },
     remove(postId: number) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, z.undefined(), { method: 'DELETE', authenticated: true }) },
     createComment(postId: number, content: string) { return client.request(`/api/v1/community/posts/${id.parse(postId)}/comments`, comment, { method: 'POST', body: { parentCommentId: null, content: z.string().trim().min(1).max(1000).parse(content) }, authenticated: true }) },
     updateComment(commentId: number, content: string) { return client.request(`/api/v1/community/comments/${id.parse(commentId)}`, comment, { method: 'PUT', body: { parentCommentId: null, content: z.string().trim().min(1).max(1000).parse(content) }, authenticated: true }) },
     removeComment(commentId: number) { return client.request(`/api/v1/community/comments/${id.parse(commentId)}`, z.undefined(), { method: 'DELETE', authenticated: true }) },
-    articles(pageNumber = 0, options: { keyword?: string; sort?: string; signal?: AbortSignal } = {}) { return client.request('/api/v1/support/articles', page, { ...auth, query: { page: pageNumber, size: 100, keyword: options.keyword || undefined, sort: options.sort }, signal: options.signal }) },
+    articles(pageNumber = 0, options: { keyword?: string; sort?: string; size?: number; signal?: AbortSignal } = {}) { return client.request('/api/v1/support/articles', page, { ...auth, query: { page: pageNumber, size: options.size ?? 100, keyword: options.keyword || undefined, sort: options.sort }, signal: options.signal }) },
     article(articleId: number, signal?: AbortSignal) { return client.request(`/api/v1/support/articles/${id.parse(articleId)}`, nullableDetail, { ...auth, signal }) },
   }
 }

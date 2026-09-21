@@ -18,12 +18,14 @@ import viewGridIcon from '../../assets/figma/view-grid.svg'
 import viewListIcon from '../../assets/figma/view-list.svg'
 import { useSession } from '@/app/session/SessionProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
+import { TranslatedText, useTranslation } from '@/i18n/translation'
 
 function matchesMedia(query: string) {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches
 }
 
 export function ProductListPage() {
+  const { locale, t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const session = useSession()
@@ -88,10 +90,10 @@ export function ProductListPage() {
     requestAnimationFrame(() => filterTriggerRef.current?.focus({ preventScroll: true }))
   }, [])
   const categoryTitle = {
-    rcpc_room: 'RCPC방',
-    zen_server: '젠서버',
-    parts: '파트상품',
-  }[productList.catalogSelections.categoryCode ?? ''] ?? 'RCPC 상품'
+    rcpc_room: t('nav.rcpcRoom'),
+    zen_server: t('nav.zenServer'),
+    parts: t('nav.parts'),
+  }[productList.catalogSelections.categoryCode ?? ''] ?? (locale === 'ko' ? 'RCPC 상품' : t('nav.rcpcProducts'))
 
   const setDetailSelection = (id: keyof DetailSelections, values: string[]) => {
     setDetailSelections((current) => ({ ...current, [id]: values }))
@@ -103,10 +105,10 @@ export function ProductListPage() {
   return (
     <AppShell className="commerce-shell">
       <section aria-label={categoryTitle} className={`products-hero${filterOpen && !filterDrawer ? ' products-hero--filter-open' : ''}`}>
-        <h1 className="products-hero__title">{categoryTitle}</h1>
+        <h1 className={['products-hero__title', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>{categoryTitle}</h1>
       </section>
       <div className={`products-body${filterOpen && !filterDrawer ? ' products-body--filter-open' : ''}${catalogIsEmpty ? ' products-body--empty' : ''}${isError ? ' products-body--error' : ''}`}>
-        {showCatalogControls && !filterOpen && !mobileViewport ? <button disabled={productList.filterMetadataPending} aria-label="상세 필터 열기" className="product-filter-trigger product-filter-trigger--desktop" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterChevronBackwardIcon} /></button> : null}
+        {showCatalogControls && !filterOpen && !mobileViewport ? <button disabled={productList.filterMetadataPending} className={import.meta.env.DEV ? 'notranslate product-filter-trigger product-filter-trigger--desktop' : 'product-filter-trigger product-filter-trigger--desktop'} translate={import.meta.env.DEV ? 'no' : undefined} aria-label={t('filter.open')} onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterChevronBackwardIcon} /></button> : null}
         {filterOpen && filterDrawer ? (
           <DialogLayer
             asChild
@@ -126,19 +128,19 @@ export function ProductListPage() {
           <section className="products-content">
           {showCatalogControls ? <ProductCatalogFilterControls controls={productList} mobileFilterTrigger={!filterOpen && mobileViewport ? <button disabled={productList.filterMetadataPending} aria-label="모바일 상세 필터 열기" className="product-filter-trigger product-filter-trigger--mobile" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterTuneIcon} /></button> : null} /> : null}
           {showCatalogControls ? <div className="product-results-toolbar" ref={resultsToolbarRef}>
-            <div><span className="product-result-count"><span>총</span><span><strong>{resultTotal}</strong>개</span><span>상품</span></span><span className="product-results-toolbar__divider" /><label className="product-availability-switch"><Checkbox disabled={capabilities?.instantOnly === false} aria-label="즉시 사용 가능 상품만 보기" checked={instantOnly} onChange={(event) => setInstantOnly(event.target.checked)} role="switch" variant="switch" /><span aria-hidden="true" />즉시 사용 가능 상품만 보기</label></div>
-            <div className="product-view-toggle"><button aria-label="카드형 보기" aria-pressed={view === 'cards'} onClick={() => setView('cards')} type="button"><img alt="" src={viewGridIcon} /></button><button aria-label="리스트형 보기" aria-pressed={view === 'list'} onClick={() => setView('list')} type="button"><img alt="" src={viewListIcon} /></button></div>
+            <div><span className={['product-result-count', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>{locale === 'ko' ? <><span>총</span><span><strong>{resultTotal}</strong>개</span><span>상품</span></> : <TranslatedText id="product.totalCount" values={{ count: resultTotal }} />}</span><span className="product-results-toolbar__divider" /><label className="product-availability-switch"><Checkbox disabled={capabilities?.instantOnly === false} aria-label={t('product.instantOnly')} checked={instantOnly} onChange={(event) => setInstantOnly(event.target.checked)} role="switch" variant="switch" /><span className="product-availability-switch__track" aria-hidden="true" /><TranslatedText id="product.instantOnly" /></label></div>
+            <div className={['product-view-toggle', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}><button aria-label={t('product.cardView')} aria-pressed={view === 'cards'} onClick={() => setView('cards')} type="button"><img alt="" src={viewGridIcon} /></button><button aria-label={t('product.listView')} aria-pressed={view === 'list'} onClick={() => setView('list')} type="button"><img alt="" src={viewListIcon} /></button></div>
           </div> : null}
-          {isPending ? <LoadingState label="상품을 불러오고 있습니다." /> : isError ? <div className="product-results-state product-results-state--error" role="alert"><p>{errorMessage}</p><button className="product-results-state__retry" onClick={() => refetch()} type="button">다시 시도</button></div> : visibleProducts.length === 0 ? <div className="product-list-empty" role="status">새로운 상품이 등록될 예정입니다.</div> : <ProductResults products={visibleProducts} view={view} onAddToCart={addToCart} />}
+          {isPending ? <LoadingState label={t('product.loading')} /> : isError ? <div className="product-results-state product-results-state--error" role="alert"><p>{errorMessage}</p><button className="product-results-state__retry" onClick={() => refetch()} type="button"><TranslatedText id="common.retry" /></button></div> : visibleProducts.length === 0 ? <div className="product-list-empty" role="status"><TranslatedText id="product.comingSoon" /></div> : <ProductResults products={visibleProducts} view={view} onAddToCart={addToCart} />}
           {!isPending && !isError && totalPages > 0 ? <Pagination currentPage={currentPage} onPageChange={changePage} totalPages={totalPages} /> : null}
           </section>
         </div>
       </div>
-      <Modal closeLabel="계속 쇼핑하기" confirmLabel="장바구니 이동" onConfirm={cartAddition.isSuccess ? () => navigate('/cart') : undefined} isOpen={cartPopupOpen} onClose={() => setCartPopupOpen(false)} title={cartAddition.isError ? '장바구니 담기 실패' : '장바구니 담기 완료'}>
-        {cartAddition.isError ? <p role="alert">{cartAddition.message}</p> : <p role="status">상품을 장바구니에 담았습니다.<br />장바구니로 이동하시겠습니까?</p>}
+      <Modal closeTranslationKey="cart.continueShopping" confirmTranslationKey="cart.goToCart" titleTranslationKey={cartAddition.isError ? 'cart.addFailureTitle' : 'cart.addSuccessTitle'} onConfirm={cartAddition.isSuccess ? () => navigate('/cart') : undefined} isOpen={cartPopupOpen} onClose={() => setCartPopupOpen(false)}>
+        {cartAddition.isError ? <p role="alert">{cartAddition.message}</p> : <p role="status"><TranslatedText id="cart.addedPrompt" /></p>}
       </Modal>
-      <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginRequiredOpen} onClose={() => setLoginRequiredOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)} title="로그인이 필요합니다.">
-        <p>상품을 구매하려면 로그인해 주세요.<br />로그인 후 구매를 계속할 수 있습니다.</p>
+      <Modal closeTranslationKey="common.cancel" confirmTranslationKey="auth.loginAction" titleTranslationKey="auth.loginRequired" isOpen={loginRequiredOpen} onClose={() => setLoginRequiredOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)}>
+        <p><TranslatedText id="auth.loginToPurchase" /></p>
       </Modal>
     </AppShell>
   )

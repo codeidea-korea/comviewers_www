@@ -18,6 +18,13 @@ export type Article = z.infer<typeof articleSchema>
 export type RentalReview = z.infer<typeof reviewSchema>
 export type Comment = z.infer<typeof commentSchema>
 export type PostDraft = z.infer<typeof draftSchema>
+export interface StorefrontPage<T> { items: T[]; totalCount: number; totalPages: number }
+export interface StorefrontPageInput {
+  page: number
+  size: number
+  /** Only for surfaces that do not render user-specific `isMine` values. */
+  anonymous?: boolean
+}
 export interface StorefrontPopup {
   id: number
   title: string
@@ -29,14 +36,15 @@ export interface StorefrontPopup {
 }
 export interface StorefrontServices {
   listActivePopups(signal?: AbortSignal): Promise<StorefrontPopup[]>
-  listPosts(input?: { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<Post[]>
+  listPostPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<StorefrontPage<Post>>
   getPost(id: string): Promise<Post | null>
-  savePost(draft: PostDraft, id?: string): Promise<Post>
+  savePost(draft: PostDraft, id?: string, idempotencyKey?: string): Promise<Post>
   removePost(id: string): Promise<void>
   listComments(postId: string): Promise<Comment[]>
   saveComment(postId: string, content: string, id?: string): Promise<void>
   removeComment(postId: string, id: string): Promise<void>
-  listArticles(input?: { keyword?: string; sort?: string }): Promise<Article[]>
+  listArticlePage(input: StorefrontPageInput & { keyword?: string; sort?: string }): Promise<StorefrontPage<Article>>
   getArticle(id: string): Promise<Article | null>
-  listReviews(): Promise<RentalReview[]>
+  listReviewPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<StorefrontPage<RentalReview>>
+  getReview(id: string): Promise<RentalReview | null>
 }

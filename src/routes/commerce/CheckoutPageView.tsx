@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { AppShell } from '@/components/layout/AppShellView'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
@@ -24,6 +24,8 @@ type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefi
 function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const { checkout, myAccount } = useServices()
   const navigate = useNavigate()
+  const client = useQueryClient()
+  const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const [couponId, setCouponId] = useState<number | null>(null)
   const [points, setPoints] = useState('0')
   const [attempt, setAttempt] = useState<CheckoutAttempt | null>(null)
@@ -44,7 +46,25 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     if (myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate(false) }
   }, [myAccount.readApi, profile])
   const showReceipt = form.payment === 'virtual-account'
+  async function checkAbandonedPayment(providerOrderId: string) {
+    setUnresolvedOrderId(providerOrderId)
+    if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
+    let status: string
+    try { status = (await checkout.abandon(providerOrderId)).status }
+    catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
+    if (status === 'cancelled') {
+      attemptRef.current = null
+      setAttempt(null)
+      setUnresolvedOrderId(null)
+      await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(key => client.invalidateQueries({ queryKey: [key] })))
+      throw new Error('결제가 취소되어 재고와 혜택이 복원되었습니다. 다시 주문할 수 있습니다.')
+    }
+    throw new Error(status === 'approved'
+      ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
+      : '결제 상태를 확인 중입니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.')
+  }
   const submit = useMutation({ mutationFn: async (current: CheckoutAttempt) => {
+    if (unresolvedOrderId) return checkAbandonedPayment(unresolvedOrderId)
     if (!checkout.start) throw new Error('현재 주문을 진행할 수 없습니다.')
     const controller = new AbortController()
     windowAbort.current = controller
@@ -54,7 +74,14 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     if (controller.signal.aborted) return
     if (payment.paymentStatus === 'approved') { navigate(`/checkout/complete?paymentId=${payment.paymentId}`); return }
     try { await openTossPaymentWindow(payment, controller.signal) }
-    catch (error) { throw new Error(paymentWindowError(error)) }
+    catch (error) {
+      // Navigation/unmount is not evidence of a cancelled payment.
+      if (controller.signal.aborted) return
+      if (payment.provider === 'toss_payments' && payment.providerOrderId) {
+        await checkAbandonedPayment(payment.providerOrderId)
+      }
+      throw new Error(paymentWindowError(error))
+    }
   } })
   async function submitOrder() {
     if (submitting.current) return
@@ -90,7 +117,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
               </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={() => void benefits.refetch()} onReset={() => { setCouponId(null); setPoints('0') }} />}
               {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
               <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} />{showReceipt && <CheckoutReceipt form={form} />}</fieldset>
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} refreshing={refreshing} locked={!!attempt} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} refreshing={refreshing} locked={!!attempt} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>
 }

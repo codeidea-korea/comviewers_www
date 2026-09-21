@@ -1,8 +1,14 @@
 import type { CartItem } from './schemas'
+import { translate } from '@/i18n/translation-core'
 
 export const getCartSelectionUnits = (item: CartItem) => item.durationUnits ?? item.quantity
 export const cartUnitLabel = (item: CartItem) => ({ thirty_day: '개월', day: '일', hour: '시간', unit: '개' })[item.billingUnit]
-export const cartPriceLabel = (item: CartItem) => ({ thirty_day: '월 렌탈료', day: '일 렌탈료', hour: '시간 렌탈료', unit: '상품금액' })[item.billingUnit]
+export const cartSelectionLabel = (item: CartItem) => translate(({
+  thirty_day: 'unit.months', day: 'unit.days', hour: 'unit.hours', unit: 'unit.quantity',
+} as const)[item.billingUnit], { count: getCartSelectionUnits(item) })
+export const cartPriceLabel = (item: CartItem) => translate(({
+  thirty_day: 'money.monthlyRental', day: 'money.dailyRental', hour: 'money.hourlyRental', unit: 'money.productAmount',
+} as const)[item.billingUnit])
 export const getCartItemAmount = (item: CartItem) => item.quotedAmount
 // ADR 0015: setup fees do not earn purchase-confirmation points.
 export const getCartItemPoints = (item: CartItem) => item.expectedPoints

@@ -79,6 +79,6 @@
 .store-popup-card h2 { font-size: 22px; line-height: 1.4; margin: 0 0 16px; }
 .store-popup-card img { display: block; height: auto; max-width: 100%; }
 .store-popup-card__content { line-height: 1.6; margin: 16px 0; overflow-wrap: anywhere; white-space: pre-wrap; }
-.store-popup-card__actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+.store-popup-card__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 20px; }
 .store-popup-card__actions a, .store-popup-card__actions button { background: var(--color-white); border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); color: var(--color-black); cursor: pointer; font: inherit; padding: 10px 18px; text-decoration: none; }
 @media (max-width: 600px) { .store-popup-layer--left, .store-popup-layer--right { justify-content: center; } .store-popup-card { padding: 20px; } }

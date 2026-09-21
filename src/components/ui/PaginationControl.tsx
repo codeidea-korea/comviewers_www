@@ -1,6 +1,7 @@
 import chevronLeft from '../../assets/figma/pagination-chevron-left.svg'
 import chevronRight from '../../assets/figma/pagination-chevron-right.svg'
 import ellipsis from '../../assets/figma/pagination-ellipsis.svg'
+import { useTranslation } from '../../i18n/translation'
 
 export interface PaginationProps {
   currentPage?: number
@@ -24,6 +25,7 @@ function createPageItems(currentPage: number, totalPages: number): (number | str
 }
 
 export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: PaginationProps) {
+  const { t } = useTranslation()
   const numericTotal = Number(totalPages)
   if (!Number.isFinite(numericTotal) || numericTotal <= 0) return null
 
@@ -32,8 +34,8 @@ export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: P
   const pages = createPageItems(safeCurrent, safeTotal)
 
   return (
-    <nav aria-label="페이지 이동" className="pagination">
-      <button aria-label="이전 페이지" className="pagination__arrow" disabled={safeCurrent === 1} onClick={() => onPageChange?.(safeCurrent - 1)} type="button">
+    <nav aria-label="페이지 이동" className={['pagination', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>
+      <button aria-label={t('common.previousPage')} className="pagination__arrow" disabled={safeCurrent === 1} onClick={() => onPageChange?.(safeCurrent - 1)} type="button">
         <img alt="" src={chevronLeft} />
       </button>
       {pages.map((page) => typeof page === 'string' ? (
@@ -41,7 +43,7 @@ export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: P
       ) : (
         <button
           aria-current={page === safeCurrent ? 'page' : undefined}
-          aria-label={`${page}페이지`}
+          aria-label={t('common.pageNumber', { page })}
           className="pagination__page"
           key={page}
           onClick={() => onPageChange?.(page)}
@@ -50,7 +52,7 @@ export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: P
           <span className="pagination__page-label">{page}</span>
         </button>
       ))}
-      <button aria-label="다음 페이지" className="pagination__arrow" disabled={safeCurrent === safeTotal} onClick={() => onPageChange?.(safeCurrent + 1)} type="button">
+      <button aria-label={t('common.nextPage')} className="pagination__arrow" disabled={safeCurrent === safeTotal} onClick={() => onPageChange?.(safeCurrent + 1)} type="button">
         <img alt="" src={chevronRight} />
       </button>
     </nav>

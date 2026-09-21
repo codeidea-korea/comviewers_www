@@ -1,19 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router'
-import { useServices } from '@/app/ServiceProvider'
 import { AppShell } from '@/components/layout/AppShellView'
-import { legalDocumentSchema, type LegalKind } from '@/domain/legal/legalRepository'
+import type { LegalKind } from '@/domain/legal/legalRepository'
+import { usePublicLegalDocuments } from '@/domain/legal/usePublicLegalDocuments'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
 function DocumentBody({ kind }: { kind: LegalKind }) {
-  const { legal } = useServices()
   const [params, setParams] = useSearchParams()
-  const query = useQuery({ queryKey: ['legal', kind], queryFn: async ({ signal }) => {
-    const documents = legalDocumentSchema.array().parse(await legal.list(kind, signal))
-    if (documents.some(item => item.kind !== kind)) throw new Error('문서 종류가 일치하지 않습니다.')
-    return [...documents].sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))
-  } })
+  const query = usePublicLegalDocuments(kind)
   if (query.isPending) return <LoadingState label="문서를 불러오는 중입니다." />
   if (query.isError) return <p role="alert">문서를 불러오지 못했습니다. <button onClick={() => void query.refetch()}>다시 시도</button></p>
   const selectedId = params.get('version')

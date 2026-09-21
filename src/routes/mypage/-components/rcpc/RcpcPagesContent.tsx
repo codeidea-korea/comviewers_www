@@ -38,6 +38,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     page: 0,
     size: 20,
     sort: 'serverStatus',
+    sortDirection: 'asc',
     productNo: initialProductNo || undefined,
     status: initialStatus,
     usageStatus: initialUsage,
@@ -95,7 +96,11 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       </div>
       <MyPageTabs active={activeTab} items={tabs}/>
       <MyPageToolbar count={rows.data?.totalElements ?? 0} label="총" suffix="개 상품">
-        <NativeSelect aria-label="서버 위치" onChange={event => setQuery(previous => ({ ...previous, page: 0, region: event.target.value || undefined, serverRoomId: undefined }))} value={query.region ?? ''}>
+        <NativeSelect aria-label="서버 위치" onChange={event => {
+          const region = event.target.value || undefined
+          const matchingRooms = available.data?.serverRooms.filter(room => room.region === region) ?? []
+          setQuery(previous => ({ ...previous, page: 0, region, serverRoomId: matchingRooms.length === 1 ? matchingRooms[0].id : undefined }))
+        }} value={query.region ?? ''}>
           <option value="">서버 위치 전체</option>
           {regions.map(region => <option key={region} value={region}>{region}</option>)}
         </NativeSelect>
@@ -107,10 +112,10 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       {available.error ? <p role="alert">서버실 목록을 불러오지 못했습니다. <button onClick={() => void available.refetch()} type="button">다시 시도</button></p> : null}
       <AccountQueryState error={rows.error} pending={rows.isPending} retry={rows.refetch}/>
       {rows.data ? <>
-        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={rows.data.items} mutations={mutations} onSort={sort => setQuery(previous => ({ ...previous, page: 0, sort }))} sort={query.sort}/>
+        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={rows.data.items} mutations={mutations} onSort={sort => setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction }))} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
         {rows.data.totalPages > 1 ? <Pagination currentPage={rows.data.page + 1} onPageChange={page => setQuery(previous => ({ ...previous, page: page - 1 }))} totalPages={rows.data.totalPages}/> : null}
       </> : null}
     </div>
-    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => setQuery(previous => ({ ...previous, page: 0, sort: mobileSortByLabel[label] ?? previous.sort }))} open={mobileSortOpen}/>
+    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => setQuery(previous => ({ ...previous, page: 0, sort: mobileSortByLabel[label] ?? previous.sort, sortDirection: 'asc' }))} open={mobileSortOpen}/>
   </MyPageLayout>
 }

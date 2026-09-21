@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { DialogLayer } from '@/components/ui/DialogLayerControl'
@@ -36,6 +36,8 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   const [productMenuOpen, setProductMenuOpen] = useState(false)
   const [refundOpen, setRefundOpen] = useState(false)
   const lastRead = useRef(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const pendingSentMessageId = useRef(0)
   const chatKey = useMemo(() => ['operation-requests', api.organizationId, 'chat', id] as const, [api.organizationId, id])
   // The stream only wakes the cached REST query. A minute fallback covers intermediaries that
   // silently drop long-lived SSE connections without exposing chat content in the stream itself.
@@ -51,6 +53,11 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
     setHistoryEnd(response.messages.length < 100)
   } })
   const lastId = Math.max(0, ...(chat.data?.messages.map((item) => item.id) ?? []))
+  useLayoutEffect(() => {
+    if (!pendingSentMessageId.current || lastId < pendingSentMessageId.current || !scrollRef.current) return
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    pendingSentMessageId.current = 0
+  }, [lastId, messageId])
   useEffect(() => api.subscribeChatEvents(id, () => {
     void client.invalidateQueries({ queryKey: chatKey })
     void client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
@@ -63,6 +70,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   }, [api, id, lastId])
   const send = useMutation({ mutationFn: () => api.sendMessage(id, message, messageId, files.map((file) => file.attachmentId)), onSuccess: async (response) => {
     setMessage(''); setFiles([]); setMessageId(`customer-web:${crypto.randomUUID()}`)
+    pendingSentMessageId.current = Math.max(0, ...response.messages.map((item) => item.id))
     client.setQueryData(chatKey, response)
     await client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
   } })
@@ -78,7 +86,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
         <button aria-label="닫기" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
       </header>
       {productMenuOpen && chat.data ? <div className="inquiry-chat__products-menu" role="menu"><strong>문의 상품 {chat.data.operationRequest.targets.length}개</strong>{chat.data.operationRequest.targets.map((target, index) => <button disabled={!target.productNo} key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} onClick={() => { if (target.productNo) { setProductMenuOpen(false); setProductConversation(target.productNo) } }} role="menuitem" type="button"><span>{target.productNo ? `${target.alias ? `${target.alias}·` : ''}${target.productNo}` : '상품 정보 없음'}</span><small>{target.serverRoomName ?? '서버실 정보 없음'}</small></button>)}</div> : null}
-      <div className="inquiry-chat__scroll">
+      <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
         {chat.data && requestInfo.data ? <>
           {requestInfo.data?.items[0] ? <time>{new Date(requestInfo.data.items[0].createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</time> : null}

@@ -14,9 +14,26 @@ import searchIcon from '@/assets/figma/mypage-search.svg'
 import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 import { managerOrganizationCode, managerScopedPath } from './-components/managerPortalPath'
+import { TranslatedText, type TranslationKey } from '../../i18n/translation'
+import { ManualTranslationControls } from '../../components/layout/GoogleTranslateTrial'
 
 interface MyPageMenuItem { id: string; label: string; href: string; disabled?: boolean }
 interface MyPageMenuGroup { id: string; label: string; href?: string; disabled?: boolean; opensPasswordGate?: boolean; items: readonly MyPageMenuItem[] }
+
+const menuTranslationKeys: Readonly<Partial<Record<string, TranslationKey>>> = {
+  rcpc: 'nav.rcpcManagement',
+  'rcpc-list': 'nav.myRcpc',
+  orders: 'nav.orders',
+  points: 'nav.points',
+  coupons: 'nav.coupons',
+  support: 'nav.inquiries',
+  profile: 'nav.profile',
+}
+
+function MyPageMenuLabel({ item }: { item: { id: string; label: string } }) {
+  const key = menuTranslationKeys[item.id]
+  return key ? <TranslatedText id={key} /> : item.label
+}
 
 export function MobileBottomSheet({ children, hideHeader = false, id, label, onClose, open }: { children: ReactNode; hideHeader?: boolean; id: string; label: string; onClose?: () => void; open: boolean }) {
   const surfaceRef = useRef<HTMLElement | null>(null)
@@ -132,13 +149,14 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
         onSearchOpen={() => { setMobileMenuOpen(false); setMobileSearchOpen(true) }}
       />
       {mobileMenuOpen ? <nav aria-label="모바일 마이페이지 메뉴" className="mypage-mobile-menu" id="mypage-mobile-menu">
+        <ManualTranslationControls />
         {menu.map((group) => (
           <section className={group.items.length ? 'has-children' : ''} key={group.id}>
-            <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
+            <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link onClick={() => setMobileMenuOpen(false)} className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>
             {group.items.map((item) => (
               item.disabled
-                ? <span className="mypage-mobile-menu__disabled" key={item.id}>{item.label}</span>
-                : <Link className={pathname === item.href ? 'is-active' : undefined} key={item.id} onClick={() => setMobileMenuOpen(false)} to={item.href}>{item.label}</Link>
+                ? <span className="mypage-mobile-menu__disabled" key={item.id}><MyPageMenuLabel item={item} /></span>
+                : <Link className={pathname === item.href ? 'is-active' : undefined} key={item.id} onClick={() => setMobileMenuOpen(false)} to={item.href}><MyPageMenuLabel item={item} /></Link>
             ))}
           </section>
         ))}
@@ -150,14 +168,14 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
           <nav aria-label="마이페이지 메뉴">
             {menu.map((group) => (
               <section key={group.id}>
-                <h2>{group.href ? (group.disabled ? <span>{group.label}</span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}>{group.label}</Link>) : group.label}</h2>
+                <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link className={pathname === group.href ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>
                 {group.items.map((item) => (
-                  item.disabled ? <span className="mypage-sidebar__disabled" key={item.id}>{item.label}</span> : <Link
+                  item.disabled ? <span className="mypage-sidebar__disabled" key={item.id}><MyPageMenuLabel item={item} /></span> : <Link
                     className={pathname === item.href ? 'is-active' : undefined}
                     key={item.id}
                     to={item.href}
                   >
-                    {item.label}
+                    <MyPageMenuLabel item={item} />
                   </Link>
                 ))}
               </section>

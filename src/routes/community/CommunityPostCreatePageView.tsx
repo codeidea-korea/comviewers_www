@@ -6,6 +6,7 @@ import { RichTextEditor } from '../../components/ui/RichTextEditorControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
 import { usePost, usePostActions } from '@/routes/community/-components/hooks/useContent'
 import type { Post } from '@/domain/storefront/services'
+import { isDefinitivePostRejection } from '@/domain/storefront/postSaveRetry'
 import { CommunityShell } from './CommunityComponentsView'
 import closeIcon from '../../assets/figma/product-list-close.svg'
 
@@ -26,6 +27,7 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const submitting = useRef(false)
+  const createAttempt = useRef<{ signature: string; key: string } | null>(null)
   const [files, setFiles] = useState<EditorAttachment[]>((editingPost?.attachments ?? []).map((file, index) => ({ ...file, localId: file.id ?? `${file.name}-${index}` })))
   const [title, setTitle] = useState(editingPost?.title || '')
   const [content, setContent] = useState(editingPost ? toEditorHtml(editingPost.content || []) : '')
@@ -48,13 +50,23 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
     if (plainText.length < 10 || plainText.length > 10_000) { setNotice('게시글 내용은 10~10,000자로 입력해 주세요.'); return }
     submitting.current = true
     try {
+      const draft = { title: title.trim(), content: paragraphs, richContent, attachments: files.map(({ id, name, size, type, file }) => ({ id, name, size: size ?? '', type: type ?? '', file })) }
+      const signature = JSON.stringify({ ...draft, attachments: files.map(({ id, localId, name, size, type, file }) => ({ id, localId, name, size, type, fileSize: file?.size, fileModified: file?.lastModified })) })
+      const idempotencyKey = mode === 'create'
+        ? createAttempt.current?.signature === signature ? createAttempt.current.key : crypto.randomUUID()
+        : undefined
+      if (idempotencyKey) createAttempt.current = { signature, key: idempotencyKey }
       const saved = await actions.save.mutateAsync({
         id: editingPost?.postId,
-        draft: { title: title.trim(), content: paragraphs, richContent, attachments: files.map(({ id, name, size, type, file }) => ({ id, name, size: size ?? '', type: type ?? '', file })) },
+        draft,
+        idempotencyKey,
       })
       const listParams = params.toString()
       navigate(`/community/posts/${saved.postId}${listParams ? `?${listParams}` : ''}`, { replace: true })
-    } catch (error) { setNotice(error instanceof Error ? error.message : '저장에 실패했습니다.') } finally { submitting.current = false }
+    } catch (error) {
+      if (mode === 'create' && isDefinitivePostRejection(error)) createAttempt.current = null
+      setNotice(error instanceof Error ? error.message : '저장에 실패했습니다.')
+    } finally { submitting.current = false }
   }
   return (
     <CommunityShell>

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { cartSchema } from '@/domain/cart/schemas'
+import { cartSchema, type CartItem } from '@/domain/cart/schemas'
 
 const amount = z.number().int().nonnegative().safe()
 export const checkoutSelectionSchema = z.array(z.string().min(1)).min(1).max(100).refine(
@@ -21,9 +21,10 @@ export type CheckoutQuote = z.infer<typeof checkoutQuoteSchema>
 export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
 export type CheckoutStartResult = import('@/api/ordersPayments').PreparedPayment
 export interface CheckoutRepository {
-  quote(cartItemIds: readonly string[], signal?: AbortSignal): Promise<CheckoutQuote>
+  quote(cartItemIds: readonly string[], signal?: AbortSignal, knownCartItems?: readonly CartItem[]): Promise<CheckoutQuote>
   start?(input: CheckoutSubmission): Promise<CheckoutStartResult>
   payment?(paymentId: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').PaymentDetail>
+  abandon?(providerOrderId: string): Promise<import('@/api/ordersPayments').PaymentAbandonment>
   resume?(orderNo: string, key: string): Promise<CheckoutStartResult>
   refresh?(providerOrderId: string, key: string): Promise<import('@/api/ordersPayments').PaymentConfirmation>
   benefitQuote?(cartItemIds: readonly string[], userCouponId: number | null, pointAmount: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').OrderBenefitQuote>

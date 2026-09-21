@@ -54,6 +54,7 @@ export const myRcpcQuerySchema = z.object({
   usageStatus: z.enum(['using', 'extension_waiting', 'ended', 'other']).optional(),
   productNo: productNoSearchSchema.optional(), serverRoomId: id.optional(), region: z.string().trim().max(100).optional(), status: status.optional(),
   favorite: z.boolean().optional(), groupId: count.optional(), ungrouped: z.boolean().optional(), sort: z.enum(['recent', 'expiring', 'productNo', 'serverRoom', 'serverStatus', 'servicePeriod', 'traffic', 'favoriteEdited']).default('recent'),
+  sortDirection: z.enum(['asc', 'desc']).optional(),
   page: z.number().int().nonnegative().max(2147483647).default(0), size: z.number().int().min(1).max(100).default(20),
 }).refine(({ page, size }) => page * size <= 2147483647)
 export type MyRcpcQuery = z.input<typeof myRcpcQuerySchema>
