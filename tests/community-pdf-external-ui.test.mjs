@@ -34,10 +34,12 @@ test('U57 detail renders persisted body without an inferred empty-body sentence'
 
 test('U47 and U54-U57 preserve PDF-visible metadata and the publishing list structure', () => {
   const manager = source('src/routes/mypage/ManagerPagesView.tsx')
+  const managerCatalog = source('src/routes/mypage/-components/ManagerCatalog.tsx')
   const postDetail = source('src/routes/community/CommunityPostDetailPageView.tsx')
   const support = source('src/routes/support/SupportPagesView.tsx')
 
-  assert.match(manager, /\{item\.assignedRcpcIds\.length\} \{item\.name\}/)
+  assert.match(manager, /\{item\.name\} \(\{item\.assignedRcpcIds\.length\}\)/)
+  assert.match(managerCatalog, /\{manager\.name\}<em>\{manager\.assignedRcpcIds\.length\}<\/em>/)
   assert.match(postDetail, /작성자 \{post\.author\}/)
   assert.match(postDetail, /작성일시 \{post\.dateTime \?\? post\.date\}/)
   assert.match(support, /className="support-list"/)

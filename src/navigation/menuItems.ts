@@ -38,6 +38,6 @@ export const mypageMenu: readonly MyPageMenuGroup[] = [
 
 export const mypageManagerMenu = mypageMenu.map((group) => ({
   ...group,
-  disabled: ['orders', 'storage', 'benefits', 'managers', 'profile'].includes(group.id),
+  disabled: ['storage', 'benefits', 'managers', 'profile'].includes(group.id),
   items: group.items.map((item) => ({ ...item, disabled: group.id === 'benefits' })),
 }))

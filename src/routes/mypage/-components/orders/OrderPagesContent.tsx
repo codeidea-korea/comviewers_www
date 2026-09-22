@@ -377,11 +377,11 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
         [t('refund.restoredPoints'), t('money.pointAmount', { points: (refund.restoredPoints ?? 0).toLocaleString('ko-KR') })],
       ]}/>
     })}</section> : null}
-    <section className="order-full-section"><h2>주문자 정보</h2><AccountInfo rows={[
+    {order.contact ? <section className="order-full-section"><h2>주문자 정보</h2><AccountInfo rows={[
       ['이름', order.contact?.name],
       ['메신저ID', [order.contact?.messengerType, order.contact?.messengerId].filter(Boolean).join(' / ') || '-'],
       ['핸드폰', order.contact?.phone || '-'],
       ['E-mail', order.contact?.email],
-    ]}/></section>
+    ]}/></section> : null}
   </div>}</main></AppShell>
 }

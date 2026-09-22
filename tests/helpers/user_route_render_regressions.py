@@ -201,11 +201,11 @@ def verify_c_manager_favorites_capabilities(browser):
     assert session_headers[-1].get("x-customer-organization-id") == "41"
     assert session_headers[-1].get("authorization") == "Bearer qa.cmanager.token"
 
-    page.get_by_role("link", name="즐겨찾기", exact=True).click()
+    page.get_by_role("link", name="즐겨찾기 그룹", exact=True).click()
     page.wait_for_url("**/mypage/favorites")
     page.locator(".favorites-results").wait_for(state="visible")
     page.locator(".mypage-home-rcpc").get_by_text("담당 RCPC", exact=True).wait_for(state="visible")
-    assert page.get_by_role("link", name="문의", exact=True).count() >= 1
+    assert page.get_by_role("button", name="문의", exact=True).count() >= 1
     assert page.locator('.favorites-groups a:has-text("편집")').count() == 1
     assert page.locator('.favorites-groups button:has-text("추가")').count() == 1
     assert page.locator('button[form="favorite-groups-editor"]').count() == 0

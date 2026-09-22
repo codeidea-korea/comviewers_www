@@ -17,10 +17,13 @@ import { Button } from '@/components/ui/ButtonControl'
 import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { RefundWithdrawalAction } from './RefundWithdrawalAction'
 import tollIcon from '@/assets/figma/icon-toll.svg'
+import { useSession } from '@/app/session/SessionProvider'
 
 export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatus, orderDetail, variant = 'default' }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; paymentStatus: string; orderStatus: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; variant?: 'default' | 'purchase-summary' | 'dashboard' }) {
   const { t } = useTranslation()
   const { myAccount } = useServices()
+  const session = useSession()
+  const cManager = session.status === 'authenticated' && session.customerSession?.memberRole === 'c_manager'
   const [open, setOpen] = useState(false)
   const [key] = useState(() => crypto.randomUUID())
   const busy = useRef(false)
@@ -38,13 +41,13 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     || ['cancelled', 'refunded'].includes(item.itemStatus)
   if (terminal) return <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
   const active = paid && ['using', 'replacement_using'].includes(item.customerRentalStatus) && ['active', 'expiring'].includes(item.rentalStatus ?? '') && ['paid', 'active', 'completed'].includes(item.itemStatus)
-  const canExtend = !item.refundPending
+  const canExtend = !cManager && !item.refundPending
     && paid
     && ['using', 'extension_waiting'].includes(item.customerRentalStatus)
     && ['active', 'expiring'].includes(item.rentalStatus ?? '')
     && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const now = Date.now()
-  const canConfirm = active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
+  const canConfirm = !cManager && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
   const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={confirmation.error?.message} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   if (variant === 'dashboard') return <>
@@ -60,6 +63,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   </>
   if (item.billingUnit === 'unit' && item.durationUnits === null && item.pcAssetId === null && !item.rentalId)
     return paid ? <PartPurchaseActions api={api} item={item}/> : null
+  if (cManager) return <div className="order-catalog-item__actions"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
   return <>
     {!item.refundPending && <button
       className={`order-catalog-item__confirm${import.meta.env.DEV ? ' notranslate' : ''}${canConfirm ? ' is-active' : ''}`}

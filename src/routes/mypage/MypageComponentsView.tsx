@@ -102,7 +102,7 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
   const baseMenu = isManager ? mypageManagerMenu : mypageMenu
   const menu: readonly MyPageMenuGroup[] = baseMenu.filter(group => {
     if (!capability) return false
-    if (capability.myPageOnly) return ['rcpc', 'support'].includes(group.id)
+    if (capability.myPageOnly) return ['rcpc', 'orders', 'support'].includes(group.id)
     if (group.id === 'managers') return capability.cManagerManagementAvailable
     if (['orders', 'storage', 'benefits'].includes(group.id)) return capability.commerceAvailable
     return true

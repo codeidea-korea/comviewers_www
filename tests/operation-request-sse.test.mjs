@@ -95,7 +95,7 @@ test('U46 does not reconnect an unauthorized or forbidden stream', async () => {
 })
 
 test('U46 keeps REST as the query source of truth with bounded fallback and stream invalidation', () => {
-  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/inquiries/InquiryPagesContent.tsx`, 'utf8')
+  const view = readFileSync(`${projectRoot}src/routes/mypage/-components/inquiries/InquiryConversationDialog.tsx`, 'utf8')
 
   assert.match(view, /api\.subscribeChatEvents\(id/)
   assert.match(view, /invalidateQueries\(\{ queryKey: chatKey \}\)/)

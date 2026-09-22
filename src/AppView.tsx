@@ -68,6 +68,8 @@ export function App() {
         <Route path="rcpc/:rcpcId" element={<RcpcDetailPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
         <Route path="favorites/settings" element={<FavoritesPage settings />} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route path="orders/:orderId" element={<OrderDetailPage />} />
         <Route path="inquiries" element={<InquiryListPage />} />
         <Route path="inquiries/:inquiryId" element={<InquiryDetailPage />} />
       </Route>

@@ -64,6 +64,31 @@ export type RemoteAccessType = 'anydesk' | 'teamviewer'
 const rebootStatusSchema = z.object({ status: z.enum(['idle', 'requested', 'failed', 'expired', 'communication_resumed', 'waiting_communication']), pending: z.boolean(), available: z.boolean() })
 const remoteAccessSchema = z.object({ accessType: z.enum(['anydesk', 'teamviewer']), remoteId: z.string(), password: z.string().optional(), serviceEndsAt: z.iso.datetime({ offset: true }) })
 const remoteIdentifierSchema = z.object({ remoteId: z.string().min(1), serviceEndsAt: z.iso.datetime({ offset: true }) })
+const extensionRequestSchema = z.object({
+  extensionRequestId: id,
+  requestNo: z.string(),
+  rentalId: id,
+  orderId: id,
+  orderItemId: id,
+  extensionType: z.string(),
+  units: z.number().int().positive(),
+  billingUnit: z.string(),
+  previousServiceEndsAt: instant,
+  quotedServiceEndsAt: z.iso.datetime({ offset: true }),
+  quotedAmount: count,
+  currency: z.string(),
+  status: z.string(),
+  paymentRequired: z.boolean(),
+  replayed: z.boolean(),
+  requestedAt: z.iso.datetime({ offset: true }),
+})
+const extensionRequestPageSchema = z.object({
+  items: z.array(extensionRequestSchema),
+  page: count,
+  size: z.number().int().min(1).max(100),
+  totalElements: count,
+  totalPages: count,
+})
 
 export function createMyRcpcApi(client: ApiClient, organizationId: string) {
   const customerOrganizationId = z.string().regex(/^[1-9]\d{0,18}$/).refine((value) => BigInt(value) <= 9223372036854775807n).parse(organizationId)
@@ -87,9 +112,10 @@ export function createMyRcpcApi(client: ApiClient, organizationId: string) {
         previousServiceEndsAt: instant, quotedServiceEndsAt: z.iso.datetime({ offset: true }), quotedAmount: count, currency: z.string() }),
       { ...context, method: 'POST', body: { units: z.number().int().min(1).max(10000).parse(units) } }),
     requestExtension: (rentalId: number, units: number, idempotencyKey = `extension:${crypto.randomUUID()}`) => client.request(`/api/v1/my/rentals/${id.parse(rentalId)}/extension-requests`,
-      z.object({ extensionRequestId: id, requestNo: z.string(), rentalId: id, orderId: id, orderItemId: id, extensionType: z.string(),
-        units: z.number().int().positive(), billingUnit: z.string(), previousServiceEndsAt: instant, quotedServiceEndsAt: z.iso.datetime({ offset: true }),
-        quotedAmount: count, currency: z.string(), status: z.string(), paymentRequired: z.boolean(), replayed: z.boolean(), requestedAt: z.iso.datetime({ offset: true }) }),
+      extensionRequestSchema,
       { ...context, method: 'POST', body: { units: z.number().int().min(1).max(10000).parse(units) }, idempotencyKey }),
+    extensionRequests: (rentalId: number, signal?: AbortSignal) => client.request('/api/v1/my/rentals/extension-requests',
+      extensionRequestPageSchema,
+      { ...context, query: { rentalId: id.parse(rentalId), page: 0, size: 100 }, signal }),
   }
 }
