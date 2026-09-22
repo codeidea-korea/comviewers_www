@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
 import { colocationDraftInputSchema, colocationDraftSchema, type ColocationDraft } from '@/domain/colocation/draftRepository'
-import { assignColocationEvidenceTypes, colocationSubmissionErrorMessage, hasRequiredColocationEvidenceTypes, validateColocation } from '../colocationInput'
+import { assignColocationEvidenceTypes, colocationSubmissionErrorMessage, validateColocation } from '../colocationInput'
 
 const draftKey = ['colocationDraft'] as const
 export function useColocationDraft() {
@@ -52,12 +52,6 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     }
     setValidationIssue(null)
     if (!terms.data) { setValidationIssue({ field: 'accepted', message: '입점 약관을 불러온 후 다시 신청해 주세요.' }); return }
-    if (!hasRequiredColocationEvidenceTypes(fileTypes)) {
-      setValidationIssue({ field: 'files', message: '사업자등록증과 통장 사본을 각각 한 개 첨부해 주세요.' })
-      const evidenceFiles = form.elements.namedItem('evidenceFiles')
-      if (evidenceFiles instanceof HTMLElement) evidenceFiles.focus()
-      return
-    }
     const values = Object.fromEntries(new FormData(event.currentTarget))
     const input = { fields: { ...values, emailDomain: emailDomainInput, phonePrefix, messenger }, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
     const fingerprint = JSON.stringify({ ...input, files: files.map(file => [file.name, file.size, file.lastModified]) })

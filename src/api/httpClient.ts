@@ -6,6 +6,7 @@ export interface ApiRequestOptions {
   body?: unknown
   signal?: AbortSignal
   authenticated?: boolean
+  includeCredentials?: boolean
   customerOrganizationId?: string
   idempotencyKey?: string
 }
@@ -249,7 +250,7 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
       }
       let response: Response
       try {
-        response = await send(url, { method, headers, body, signal: options.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' })
+        response = await send(url, { method, headers, body, signal: options.signal, credentials: options.includeCredentials ? 'include' : 'omit', cache: 'no-store', redirect: 'error' })
       } catch (error) { return rethrowTransportError(error, options.signal) }
       return readResponse(response, schema, options.signal, onAuthenticationFailure)
     },
@@ -259,7 +260,7 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
       const headers = requestHeaders(options, getAccessToken)
       let response: Response
       try {
-        response = await send(url, { method: 'GET', headers, signal: options.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' })
+        response = await send(url, { method: 'GET', headers, signal: options.signal, credentials: options.includeCredentials ? 'include' : 'omit', cache: 'no-store', redirect: 'error' })
       } catch (error) { return rethrowTransportError(error, options.signal) }
       return readBlobResponse(response, options.signal, onAuthenticationFailure)
     },
@@ -275,7 +276,7 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
       void (async () => {
         let response: Response
         try {
-          response = await send(url, { method: 'GET', headers, signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' })
+          response = await send(url, { method: 'GET', headers, signal: controller.signal, credentials: options.includeCredentials ? 'include' : 'omit', cache: 'no-store', redirect: 'error' })
         } catch (error) {
           if (controller.signal.aborted) return
           try { rethrowTransportError(error, controller.signal) } catch (reason) { disconnect(reason instanceof ApiClientError ? reason : undefined) }

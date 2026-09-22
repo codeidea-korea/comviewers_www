@@ -373,6 +373,9 @@
 .colocation-page:not(.colocation-page--compact) .colocation-card legend { margin-bottom: 17px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid { row-gap: 26px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid label > span { color: var(--color-gray-500); font-weight: 400; }
+.colocation-card .colocation-file-list { height: 108px; overflow-y: auto; overscroll-behavior-y: contain; padding-right: 4px; scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
+.colocation-card .colocation-file-list::-webkit-scrollbar { width: 8px; }
+.colocation-card .colocation-file-list::-webkit-scrollbar-thumb { background: var(--color-gray-400); border: 2px solid white; border-radius: 999px; }
 .colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box { background: white; border: 1px solid var(--color-gray-200); display: block; height: 116px; margin: 6px 0 0 26px; padding: 8px; position: relative; width: 574px; }
 .colocation-submit:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: default; }
 

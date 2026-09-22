@@ -20,7 +20,17 @@ export function usePostPage(input: StorefrontPageInput & { keyword?: string; min
 }
 export function usePost(id: string | undefined) {
   const { storefront } = useServices()
-  return useQuery({ queryKey: ['storefront', 'posts', id], queryFn: async () => postSchema.nullable().parse(await storefront.getPost(id ?? '')), enabled: Boolean(id) })
+  const client = useQueryClient()
+  return useQuery({
+    queryKey: ['storefront', 'posts', id],
+    queryFn: async () => {
+      const post = postSchema.nullable().parse(await storefront.getPost(id ?? ''))
+      await client.invalidateQueries({ queryKey: ['storefront', 'post-page'], refetchType: 'none' })
+      return post
+    },
+    enabled: Boolean(id),
+    staleTime: 0,
+  })
 }
 export function useArticlePage(input: StorefrontPageInput & { keyword?: string; sort?: string }, client?: QueryClient) {
   const { storefront } = useServices()

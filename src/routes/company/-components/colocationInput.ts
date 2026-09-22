@@ -18,21 +18,8 @@ const colocationInputSchema = z.object({
 
 export type ColocationEvidenceType = 'business_license' | 'bankbook' | 'other'
 
-export function assignColocationEvidenceTypes(fileNames: readonly string[]): ColocationEvidenceType[] {
-  let businessAssigned = false
-  let bankbookAssigned = false
-  return fileNames.map((fileName) => {
-    const normalized = fileName.toLowerCase().replace(/[\s_-]/g, '')
-    if (!businessAssigned && /(사업자|business(?:registration|license))/.test(normalized)) {
-      businessAssigned = true
-      return 'business_license' as const
-    }
-    if (!bankbookAssigned && /(통장|bankbook|accountcopy)/.test(normalized)) {
-      bankbookAssigned = true
-      return 'bankbook' as const
-    }
-    return 'other' as const
-  })
+export function assignColocationEvidenceTypes(files: readonly unknown[]): ColocationEvidenceType[] {
+  return files.map((_, index) => index === 0 ? 'business_license' : index === 1 ? 'bankbook' : 'other')
 }
 
 export function hasRequiredColocationEvidenceTypes(fileTypes: readonly ColocationEvidenceType[]): boolean {

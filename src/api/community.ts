@@ -35,7 +35,7 @@ export function createCommunityApi(client: ApiClient, authenticated: boolean) {
   const auth = { authenticated } as const
   return {
     posts(pageNumber = 0, options: { keyword?: string; mineOnly?: boolean; sort?: string; size?: number; signal?: AbortSignal } = {}) { return client.request('/api/v1/community/posts', page, { ...auth, query: { page: pageNumber, size: options.size ?? 100, keyword: options.keyword || undefined, mineOnly: options.mineOnly, sort: options.sort }, signal: options.signal }) },
-    post(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, nullableDetail, { ...auth, signal }) },
+    post(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, nullableDetail, { ...auth, includeCredentials: true, signal }) },
     comments(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}/comments`, comment.array(), { ...auth, signal }) },
     uploadAttachment(file: File) {
       const form = new FormData()
