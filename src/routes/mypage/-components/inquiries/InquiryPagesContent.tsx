@@ -45,7 +45,7 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
   const [query, setQuery] = useState<OperationRequestQuery>({ page: 0, size: 20 })
   const [productSearch, setProductSearch] = useState('')
   const initialIds = [...new Set((params.get('pcAssetIds') ?? '').split(',').filter(value => /^[1-9]\d*$/.test(value)).map(Number).filter(Number.isSafeInteger))].slice(0, 20)
-  const initialProductNo = (params.get('productNo') ?? '').replace(/\D/g, '').slice(0, 16)
+  const initialProductNo = (params.get('productNo') ?? '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16)
   const [createOpen, setCreateOpen] = useState(initialIds.length > 0 || !!initialProductNo)
   const rows = useQuery({ queryKey: ['operation-requests', api.organizationId, query], queryFn: ({ signal }) => api.list(query, signal) })
   const accessDenied = isAccountReadDenied(rows.error)
@@ -56,7 +56,7 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
     <div className="inquiry-catalog__filters">
       <label><span className="sr-only">문의 유형</span><NativeSelect disabled={accessDenied} value={query.requestType ?? ''} onChange={event => setQuery(current => ({ ...current, page: 0, requestType: (event.target.value || undefined) as OperationRequestQuery['requestType'] }))}><option value="">전체 문의 유형</option>{Object.entries(inquiryTypes).map(([code, label]) => <option key={code} value={code}>{label}</option>)}</NativeSelect></label>
       <label><span className="sr-only">처리 상태</span><NativeSelect disabled={accessDenied} value={query.customerVisibleStatus ?? ''} onChange={event => setQuery(current => ({ ...current, page: 0, customerVisibleStatus: (event.target.value || undefined) as OperationRequestQuery['customerVisibleStatus'] }))}><option value="">전체 처리 상태</option>{statuses.map(status => <option key={status.value} value={status.value}>{status.label}</option>)}</NativeSelect></label>
-      <form className="inquiry-catalog__search-form" onSubmit={event => { event.preventDefault(); if (accessDenied) return; setQuery(current => ({ ...current, page: 0, productNo: productSearch.trim() || undefined })) }}><SearchField disabled={accessDenied} className="inquiry-catalog__search" icon={mypageSearch} iconClassName="inquiry-catalog__search-icon" label="품번 검색" maxLength={16} placeholder="품번을 입력해 주세요." value={productSearch} onChange={event => setProductSearch(event.target.value.replace(/\D/g, '').slice(0, 16))}/><button className="sr-only" disabled={accessDenied} type="submit">검색</button></form>
+      <form className="inquiry-catalog__search-form" onSubmit={event => { event.preventDefault(); if (accessDenied) return; setQuery(current => ({ ...current, page: 0, productNo: productSearch.trim() || undefined })) }}><SearchField disabled={accessDenied} className="inquiry-catalog__search" icon={mypageSearch} iconClassName="inquiry-catalog__search-icon" label="품번 검색" maxLength={16} placeholder="품번을 입력해 주세요." value={productSearch} onChange={event => setProductSearch(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16))}/><button className="sr-only" disabled={accessDenied} type="submit">검색</button></form>
       <button className="inquiry-catalog__create" disabled={accessDenied || rows.isPending} type="button" onClick={() => setCreateOpen(true)}>문의 접수</button>
     </div>
     {!accessDenied ? <AccountQueryState pending={rows.isPending} error={rows.error} retry={rows.refetch}/> : null}

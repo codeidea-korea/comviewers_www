@@ -181,7 +181,7 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
           className="mypage-mobile-search"
           controlClassName="mypage-mobile-search__control"
           label="품번 검색"
-          onChange={(event) => setMobileSearchValue(event.target.value.replace(/\D/g, '').slice(0, 16))}
+          onChange={(event) => setMobileSearchValue(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16))}
           onSubmit={submitMobileSearch}
           placeholder="품번 검색"
           value={mobileSearchValue}

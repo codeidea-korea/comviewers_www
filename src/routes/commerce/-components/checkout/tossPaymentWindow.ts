@@ -25,6 +25,8 @@ type TossFactory = (key: string) => { payment(options: { customerKey: string }):
 let sdkLoad: Promise<TossFactory> | undefined
 let windowOpening = false
 
+class PaymentWindowCancelledError extends Error {}
+
 function lockPaymentBackground(signal: AbortSignal): () => void {
   const scrollX = window.scrollX
   const scrollY = window.scrollY
@@ -140,7 +142,7 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
         requestPending = false
         const code = providerErrorCode(error)
         if (code === 'PAY_PROCESS_CANCELED' || code === 'USER_CANCEL' || code === 'PAYMENT_REQUEST_ABORTED') {
-          finish(new Error('결제를 취소했습니다. 다시 시도할 수 있습니다.'))
+          finish(new PaymentWindowCancelledError('결제를 취소했습니다. 다시 시도할 수 있습니다.'))
         } else finish(new Error('결제가 완료되지 않았습니다. 주문내역을 확인하거나 다시 시도해 주세요.'))
       })
     })
@@ -158,6 +160,10 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
       windowOpening = false
     }
   }
+}
+
+export function isPaymentWindowCancelled(error: unknown): boolean {
+  return error instanceof PaymentWindowCancelledError
 }
 
 export function paymentWindowError(error: unknown): string {

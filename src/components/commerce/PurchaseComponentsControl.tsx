@@ -77,7 +77,7 @@ export function PurchaseProductRow({ item, onQuantityChange, onRemove, onSelecti
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><span>세팅비</span><span>{formatWon(item.setupFee ?? 0)}</span></p><p><span>월 렌탈료</span><span>{formatWon(item.rentalFee ?? item.price ?? 0)}</span></p></div>}
         <div className="cart-item__bottom">
           <PurchaseQuantityControl className="purchase-row__quantity cart-quantity" maximum={partner ? undefined : MAX_RENTAL_MONTHS} onChange={onQuantityChange} quantity={resolvedQuantity} unit={partner ? '개' : '개월'} />
-          <div className="purchase-row__amount cart-item__amount">{!partner && <span className="cart-item__points"><span>포인트 적립</span><span className="cart-item__point-value"><b>{getEarnedPoints(normalizedItem)}</b><span>점</span></span></span>}<Money className={`cart-money--item${!partner && resolvedQuantity >= MAX_RENTAL_MONTHS ? ' cart-money--item--expanded' : ''}`} value={amount} /></div>
+          <div className="purchase-row__amount cart-item__amount">{!partner && <span className="cart-item__points"><span>포인트 적립</span><span className="cart-item__point-value"><b>{getEarnedPoints(normalizedItem)}</b><span>점</span></span></span>}<Money className="cart-money--item" value={amount} /></div>
         </div>
       </div>
     </div>

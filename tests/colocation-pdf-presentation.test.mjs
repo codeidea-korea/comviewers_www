@@ -11,21 +11,21 @@ import {
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
 
-test('입점 증빙 파일은 PDF에 없는 종류 선택 없이 API 필수 역할로 배정한다', () => {
+test('입점 증빙은 파일명과 무관하게 첫 파일을 사업자등록증, 둘째를 통장사본으로 배정한다', () => {
   assert.deepEqual(
     assignColocationEvidenceTypes(['사업자등록증.pdf', '통장 사본.png']),
     ['business_license', 'bankbook'],
   )
   assert.deepEqual(
     assignColocationEvidenceTypes(['bankbook.png', 'business-license.pdf']),
-    ['bankbook', 'business_license'],
+    ['business_license', 'bankbook'],
   )
   const ambiguous = assignColocationEvidenceTypes(['first.pdf', 'second.png', 'appendix.jpg'])
-  assert.deepEqual(ambiguous, ['other', 'other', 'other'])
-  assert.equal(hasRequiredColocationEvidenceTypes(ambiguous), false)
+  assert.deepEqual(ambiguous, ['business_license', 'bankbook', 'other'])
+  assert.equal(hasRequiredColocationEvidenceTypes(ambiguous), true)
   assert.equal(
     hasRequiredColocationEvidenceTypes(assignColocationEvidenceTypes(['사업자등록증-1.pdf', '사업자등록증-2.pdf'])),
-    false,
+    true,
   )
   assert.equal(
     hasRequiredColocationEvidenceTypes(assignColocationEvidenceTypes(['사업자등록증.pdf', '통장사본.png'])),

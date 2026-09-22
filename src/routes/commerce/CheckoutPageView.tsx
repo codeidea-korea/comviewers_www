@@ -12,7 +12,7 @@ import { CheckoutDiscounts } from './-components/checkout/CheckoutDiscounts'
 import { CheckoutCustomer } from './-components/checkout/CheckoutCustomer'
 import { CheckoutReceipt } from './-components/checkout/CheckoutReceipt'
 import { CheckoutSummary } from './-components/checkout/CheckoutSummary'
-import { openTossPaymentWindow, paymentWindowError } from './-components/checkout/tossPaymentWindow'
+import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } from './-components/checkout/tossPaymentWindow'
 import type { OrderBenefitQuote } from '@/api/ordersPayments'
 import { ApiClientError } from '@/api/httpClient'
 import type { CheckoutQuote, CheckoutSubmission } from '@/domain/checkout/checkoutRepository'
@@ -77,6 +77,9 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     catch (error) {
       // Navigation/unmount is not evidence of a cancelled payment.
       if (controller.signal.aborted) return
+      // A provider-confirmed user cancellation only closes the payment window. Keep the
+      // prepared order so the existing idempotent retry path can reopen it safely.
+      if (isPaymentWindowCancelled(error)) throw error
       if (payment.provider === 'toss_payments' && payment.providerOrderId) {
         await checkAbandonedPayment(payment.providerOrderId)
       }

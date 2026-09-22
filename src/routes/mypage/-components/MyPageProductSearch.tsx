@@ -47,7 +47,7 @@ export function MyPageProductSearch() {
   }
   return <div className="mypage-sidebar__search-area" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }} onFocus={() => setOpen(true)}>
     <SearchField className="mypage-sidebar__search" controlClassName="mypage-sidebar__search-row" icon={searchIcon} label="품번 검색" labelClassName="" placeholder=" " value={value}
-      onChange={event => { submitSequence.current += 1; setValue(event.target.value.replace(/\D/g, '').slice(0, 16)); setNotice(''); setOpen(true) }}
+      onChange={event => { submitSequence.current += 1; setValue(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16)); setNotice(''); setOpen(true) }}
       onSubmit={input => { void submit(input) }}/>
     {open && keyword && keyword === value.trim() && myAccount.rcpcApi && <div className="mypage-sidebar__recent" aria-label="품번 검색 결과">
       {result.isPending ? <p role="status">검색 중…</p> : result.isError ? <p role="alert">품번을 검색하지 못했습니다.</p> : result.data?.items.length ? result.data.items.map(item => <button key={item.rentalId} type="button" onClick={() => select(item.productNo)}>{item.productNo}</button>) : <p>일치하는 RCPC가 없습니다.</p>}
