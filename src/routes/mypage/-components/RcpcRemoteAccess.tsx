@@ -129,7 +129,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
     }
   }
   const providerName = accessType === 'anydesk' ? 'AnyDesk' : 'TeamViewer'
-  const displayedId = revealed?.remoteId ?? visibleId ?? maskedId ?? '-'
+  const displayedId = revealed?.remoteId ?? visibleId ?? maskedId?.replace(/./g, '*') ?? '-'
   const displayedPassword = passwordConfigured ? revealed?.password ?? '********' : '미등록'
   const providerHeading = <h4 className="rcpc-remote-provider__heading"><img alt="" src={accessType === 'anydesk' ? anydeskIcon : teamviewerIcon}/>{providerName}</h4>
   if (!maskedId && !passwordConfigured) return <article className={compact ? 'rcpc-remote-provider--compact' : undefined}>{providerHeading}<p className="rcpc-remote-provider__empty">원격정보 없음</p></article>
@@ -141,7 +141,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
     {message ? <Toast message={message} toastKey={toastKey}/> : null}
   </article>
   return <article>{providerHeading}
-    <p>ID: {revealed?.remoteId ?? maskedId ?? '등록되지 않음'}</p><p>비밀번호: {passwordConfigured ? revealed ? revealed.password ?? '등록되지 않음' : '••••••••' : '등록되지 않음'}</p>
+    <p>ID: {maskedId ? displayedId : '등록되지 않음'}</p><p>비밀번호: {passwordConfigured ? revealed ? revealed.password ?? '등록되지 않음' : '••••••••' : '등록되지 않음'}</p>
     <button aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId || !passwordConfigured} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}>{revealed ? '숨기기' : '보기'}</button>
     <button aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}>ID 복사</button>
     <button aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}>비밀번호 복사</button>

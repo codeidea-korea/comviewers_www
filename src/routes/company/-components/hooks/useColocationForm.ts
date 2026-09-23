@@ -18,7 +18,6 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
   const [files, setFiles] = useState<File[]>(initialDraft?.files ?? [])
   const fileTypes = assignColocationEvidenceTypes(files.map(file => file.name))
   const submissionKey = useRef<{ fingerprint: string; key: string } | null>(null)
-  const [notice, setNotice] = useState('')
   const [validationIssue, setValidationIssue] = useState<{ field: string; message: string } | null>(null)
   const [completeOpen, setCompleteOpen] = useState(false)
   const [emailDomain, setEmailDomain] = useState('direct')
@@ -28,12 +27,27 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
   const save = useMutation({ mutationFn: async (input: Parameters<typeof repository.save>[0]) => colocationDraftSchema.parse(await repository.save(input)), onSuccess: (draft) => client.setQueryData(draftKey, draft) })
   const terms = useQuery({ queryKey: ['colocation', 'terms'], enabled: Boolean(repository.terms), queryFn: ({ signal }) => repository.terms!(signal) })
   const fixture: Partial<ColocationDraft['fields']> & { phone?: string[] } = initialDraft ? { ...initialDraft.fields, phone: [initialDraft.fields.phonePrefix, initialDraft.fields.phoneMiddle, initialDraft.fields.phoneLast] } : {}
+  function showIssue(form: HTMLFormElement, field: string, message: string) {
+    setValidationIssue({ field, message })
+    const name = field === 'email' ? 'emailId' : field === 'files' ? 'evidenceFiles' : field
+    const input = form.elements.namedItem(name)
+    if (input instanceof HTMLElement) {
+      input.focus()
+      const scrollTarget = field === 'files' ? input.closest('.colocation-file') ?? input : input
+      scrollTarget.scrollIntoView({ block: 'center' })
+    } else {
+      form.querySelector('header')?.scrollIntoView({ block: 'center' })
+    }
+  }
   function updateFiles(event: ChangeEvent<HTMLInputElement>) {
     const incoming = Array.from(event.target.files ?? [])
     const next = [...files, ...incoming.filter((file) => !files.some((current) => current.name === file.name && current.size === file.size && current.lastModified === file.lastModified))]
     if (next.length > 5 || next.some((file) => !/\.(jpe?g|png|pdf)$/i.test(file.name) || !file.size || file.size > 10 * 1024 * 1024)) {
-      setNotice('JPG, PNG, PDF 파일을 5개 이하, 파일당 10MB 이하로 선택해 주세요.')
-    } else { setFiles(next); setNotice('') }
+      setValidationIssue({ field: 'files', message: 'JPG, PNG, PDF 파일을 5개 이하, 파일당 10MB 이하로 선택해 주세요.' })
+    } else {
+      setFiles(next)
+      setValidationIssue(current => current?.field === 'files' ? null : current)
+    }
     event.target.value = ''
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -44,38 +58,42 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     if (!checked.success) {
       const issue = checked.error.issues[0]
       const key = String(issue?.path[0] ?? '')
-      setValidationIssue({ field: key, message: issue?.message ?? '입력값을 확인해 주세요.' })
-      setNotice('')
-      const field = form.elements.namedItem(key === 'email' ? 'emailId' : key === 'files' ? 'evidenceFiles' : key)
-      if (field instanceof HTMLElement) { field.focus(); field.scrollIntoView({ block: 'center' }) }
+      showIssue(form, key, issue?.message ?? '입력값을 확인해 주세요.')
       return
     }
     setValidationIssue(null)
-    if (!terms.data) { setValidationIssue({ field: 'accepted', message: '입점 약관을 불러온 후 다시 신청해 주세요.' }); return }
+    if (!terms.data) { showIssue(form, 'accepted', '입점 약관을 불러온 후 다시 신청해 주세요.'); return }
     const values = Object.fromEntries(new FormData(event.currentTarget))
     const input = { fields: { ...values, emailDomain: emailDomainInput, phonePrefix, messenger }, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
     const fingerprint = JSON.stringify({ ...input, files: files.map(file => [file.name, file.size, file.lastModified]) })
     if (submissionKey.current?.fingerprint !== fingerprint) {
       try { submissionKey.current = { fingerprint, key: crypto.randomUUID() } }
-      catch { setNotice('안전한 연결 환경에서 다시 신청해 주세요.'); return }
+      catch { showIssue(form, 'form', '안전한 연결 환경에서 다시 신청해 주세요.'); return }
     }
     const result = colocationDraftInputSchema.safeParse({ ...input, idempotencyKey: submissionKey.current?.key })
     if (!result.success) {
       const issue = result.error.issues[0]
       const key = String(issue?.path[0] === 'fields' ? issue.path[1] : issue?.path[0] ?? '')
-      setValidationIssue({ field: key, message: issue?.message ?? '입력값을 확인해 주세요.' })
-      const field = form.elements.namedItem(key)
-      if (field instanceof HTMLElement) { field.focus(); field.scrollIntoView({ block: 'center' }) }
+      const mappedField = key === 'termsPolicyVersionId' ? 'accepted' : key === 'fileTypes' ? 'files'
+        : key === 'emailId' || key === 'emailDomain' ? 'email'
+        : key === 'phonePrefix' ? 'phoneMiddle' : key === 'idempotencyKey' ? 'form' : key
+      const field = ['businessName', 'businessNumber', 'representative', 'managerName', 'email', 'phoneMiddle', 'phoneLast', 'serverRoomName', 'messenger', 'messengerId', 'accepted', 'files'].includes(mappedField) ? mappedField : 'form'
+      showIssue(form, field, issue?.message ?? '입력값을 확인해 주세요.')
       return
     }
     busy.current = true
-    setNotice('')
     try { await save.mutateAsync(result.data); setCompleteOpen(true) }
-    catch (error) { setNotice(colocationSubmissionErrorMessage(error)) }
+    catch (error) {
+      const message = colocationSubmissionErrorMessage(error)
+      const field = message === '검토 중인 입점 신청 내역이 있습니다.' ? 'businessNumber'
+        : message.includes('증빙') || message.includes('첨부파일') ? 'files'
+        : message.includes('약관') ? 'accepted' : 'form'
+      showIssue(form, field, message)
+    }
     finally { busy.current = false }
   }
   return { fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)),
-    notice, validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailDomainInput, setEmailDomainInput,
+    validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailDomainInput, setEmailDomainInput,
     phonePrefix, setPhonePrefix, messenger, setMessenger, pending: save.isPending,
     submitLabel: '입점 신청',
     pendingLabel: '제출 중…',

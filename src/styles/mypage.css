@@ -940,7 +940,7 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .rcpc-remote-provider--compact .rcpc-remote-provider__empty { display: block; grid-column: 2; word-break: keep-all; }
 .rcpc-remote-provider__credentials { display: grid; gap: 2px; grid-column: 2; grid-row: 1; min-width: 0; }
 .rcpc-remote-provider__line { align-items: center; display: flex; font-size: 12px; gap: 2px; justify-content: space-between; min-width: 0; white-space: nowrap; }
-.rcpc-remote-provider__line > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.rcpc-remote-provider__line > span:first-child { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .rcpc-remote-provider__actions { display: inline-flex; flex: none; gap: 2px; }
 .rcpc-remote-provider--compact button:disabled,.rcpc-wan-ip--compact button:disabled { opacity: .45; }
 
@@ -975,6 +975,9 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 
 .mypage-home-rcpc > article > div { min-width: 0; }
 .mypage-home-rcpc__connection { overflow: visible; }
+.mypage-home-rcpc__connection .rcpc-wan-ip--compact,
+.mypage-home-rcpc__connection .rcpc-remote-access--compact,
+.mypage-home-rcpc__connection .rcpc-remote-provider__credentials { width: 100%; }
 .mypage-home-rcpc__connection .rcpc-remote-access--compact { min-width: 0; }
 .mypage-home-rcpc__connection .rcpc-wan-ip--compact { font-size: 12px; gap: 4px; grid-template-columns: 80px minmax(0, 1fr) 16px 16px; }
 .mypage-home-rcpc__connection .rcpc-wan-ip--compact b,
