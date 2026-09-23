@@ -33,7 +33,7 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     const next = [...files, ...incoming.filter((file) => !files.some((current) => current.name === file.name && current.size === file.size && current.lastModified === file.lastModified))]
     if (next.length > 5 || next.some((file) => !/\.(jpe?g|png|pdf)$/i.test(file.name) || !file.size || file.size > 10 * 1024 * 1024)) {
       setNotice('JPG, PNG, PDF 파일을 5개 이하, 파일당 10MB 이하로 선택해 주세요.')
-    } else { setFiles(next); setNotice('파일을 선택했습니다.') }
+    } else { setFiles(next); setNotice('') }
     event.target.value = ''
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -74,7 +74,7 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     catch (error) { setNotice(colocationSubmissionErrorMessage(error)) }
     finally { busy.current = false }
   }
-  return { fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => { setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)); setNotice(current => current === '파일을 선택했습니다.' ? '' : current) },
+  return { fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)),
     notice, validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailDomainInput, setEmailDomainInput,
     phonePrefix, setPhonePrefix, messenger, setMessenger, pending: save.isPending,
     submitLabel: '입점 신청',

@@ -305,7 +305,7 @@
 .community-shell--isolated { background: var(--color-white); height: 1679px; overflow: hidden; width: 720px; }
 
 /* 4-05 colocation: desktop page plus the 720px isolated filled unit. */
-.colocation-shell main { min-height: 1866px; }.colocation-page { height: 1866px; padding: 60px 24px 120px; }.colocation-card { height: 1720px; margin-left: calc(50vw - 384px); margin-right: 0; max-width: 720px; padding: 60px; }.colocation-card > header { border: 0; padding-bottom: 28px; }.colocation-card > header h1 { font-size: 24px; }.colocation-card > header p { font-size: 12px; }.colocation-card fieldset { padding: 24px 0; }.colocation-card legend { font-size: 16px; }.colocation-grid { grid-template-columns: 1fr; }.colocation-grid__wide { grid-column: auto; }.colocation-grid input,.colocation-grid select { border: 0; border-bottom: 1px solid var(--color-black); }.colocation-submit { width: 100%; }
+.colocation-shell main { min-height: 1866px; }.colocation-page { min-height: 1866px; padding: 60px 24px 120px; }.colocation-card { margin: 0 auto; max-width: 720px; min-height: 1720px; padding: 60px; width: 100%; }.colocation-card > header { border: 0; padding-bottom: 28px; }.colocation-card > header h1 { font-size: 24px; }.colocation-card > header p { font-size: 12px; }.colocation-card fieldset { padding: 24px 0; }.colocation-card legend { font-size: 16px; }.colocation-grid { grid-template-columns: 1fr; }.colocation-grid__wide { grid-column: auto; }.colocation-grid input,.colocation-grid select { border: 0; border-bottom: 1px solid var(--color-black); }.colocation-submit { width: 100%; }
 .colocation-shell:has(.colocation-page--compact) .site-header,.colocation-shell:has(.colocation-page--compact) .site-footer { display: none; }.colocation-shell:has(.colocation-page--compact) main { min-height: 1865px; }.colocation-page--compact { background: white; height: 1865px; margin: 0 auto; overflow: hidden; padding: 0; width: 720px; }.colocation-page--compact .colocation-card { height: 1865px; margin: 0; width: 720px; }
 .colocation-page--compact .colocation-card { padding: 60px; }
 .colocation-page--compact .colocation-card fieldset { border: 0; padding: 20px 0; }
@@ -370,13 +370,15 @@
 
 .colocation-page:not(.colocation-page--compact) .colocation-file { align-items: center; background: var(--color-black); border: 0; color: white; display: inline-flex; height: 50px; justify-content: center; padding: 0 16px; width: 110px; }
 .colocation-page:not(.colocation-page--compact) .colocation-card fieldset { padding-bottom: 29px; }
+.colocation-page:not(.colocation-page--compact) .colocation-card fieldset:nth-of-type(3),
+.colocation-page:not(.colocation-page--compact) .colocation-card fieldset:nth-of-type(4) { border-bottom: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-card fieldset:nth-of-type(4),
+.colocation-page:not(.colocation-page--compact) .colocation-card fieldset:nth-of-type(5) { padding-top: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-consent > label { margin-top: 0; }
 .colocation-page:not(.colocation-page--compact) .colocation-card legend { margin-bottom: 17px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid { row-gap: 26px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid label > span { color: var(--color-gray-500); font-weight: 400; }
-.colocation-card .colocation-file-list { height: 108px; overflow-y: auto; overscroll-behavior-y: contain; padding-right: 4px; scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
-.colocation-card .colocation-file-list::-webkit-scrollbar { width: 8px; }
-.colocation-card .colocation-file-list::-webkit-scrollbar-thumb { background: var(--color-gray-400); border: 2px solid white; border-radius: 999px; }
-.colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box { background: white; border: 1px solid var(--color-gray-200); display: block; height: 116px; margin: 6px 0 0 26px; padding: 8px; position: relative; width: 574px; }
+.colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box { background: white; border: 1px solid var(--color-gray-200); display: block; height: 116px; margin: 6px 0 0 26px; max-width: calc(100% - 26px); padding: 8px; position: relative; width: 574px; }
 .colocation-submit:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: default; }
 
 /* 4-03 rental-review catalog geometry and exported Figma vectors. */
