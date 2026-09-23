@@ -93,7 +93,7 @@ export const catalogPageSchema = z.object({
   totalElements: count, totalPages: count, sort: catalogSortSchema,
 })
 export const catalogDetailSchema = z.object({
-  ...productFields, description: nullableText, detailInformation: nullableText.optional(),
+  ...productFields, description: nullableText, detailInformation: nullableText.optional(), detailRichContent: z.unknown().nullable().optional(),
   stockQuantity: int.nonnegative(), minUnits: int.positive(), maxUnits: int.nonnegative(),
   instantAvailable: z.boolean(),
   connectionStatus: z.enum(['ONLINE', 'STALE', 'OFFLINE', 'NEVER_CONNECTED']).nullable(),

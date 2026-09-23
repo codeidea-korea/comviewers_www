@@ -13,6 +13,7 @@ export class UnsupportedProductFilterError extends Error {
 export function createHttpProductRepository(client: ApiClient): ProductRepository {
   const api = createCatalogApi(client)
   return {
+    loadEditorImage: id => client.download(`/api/v1/content/editor-images/${id}`, { authenticated: false }),
     capabilities: { instantOnly: true, rooms: true, primarySelectors: false, detailFilters: [], facetCounts: true },
     filterMetadata: (categoryCode, signal) => api.filterMetadata(categoryCode, signal),
     async list(input, signal) {

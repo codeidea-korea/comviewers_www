@@ -35,6 +35,9 @@ export interface StorefrontPopup {
   targets: { targetType: string; targetId: number }[]
 }
 export interface StorefrontServices {
+  uploadPostImage?(file: File): Promise<{ attachmentId: number; blob: Blob }>
+  loadPostImage?(attachmentId: number): Promise<Blob>
+  loadArticleImage?(attachmentId: number): Promise<Blob>
   listActivePopups(signal?: AbortSignal): Promise<StorefrontPopup[]>
   listPostPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<StorefrontPage<Post>>
   getPost(id: string): Promise<Post | null>

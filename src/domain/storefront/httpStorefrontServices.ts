@@ -1,3 +1,4 @@
+import { richAttachmentIds } from './richAttachmentIds'
 import type { ApiClient } from '@/api/httpClient'
 import { createCommunityApi, type CommunityDetailDto, type CommunityPostDto } from '@/api/community'
 import { createProductReviewsApi, type ProductReviewResponse } from '@/api/productReviews'
@@ -43,7 +44,29 @@ export function createHttpStorefrontServices(client: ApiClient, authenticated: b
   const popupApi = createStorePopupsApi(client)
   type PreparedPost = { title: string; content: string; richContent: unknown; attachmentIds: number[] }
   let preparedPosts = new Map<string, Promise<PreparedPost>>()
+  const uploadedFiles = new WeakMap<File, Promise<number>>()
+  function upload(file: File) {
+    let pending = uploadedFiles.get(file)
+    if (!pending) {
+      pending = api.uploadAttachment(file).then(result => {
+        if (result.uploadStatus !== 'uploaded' || result.malwareScanStatus !== 'clean') throw new Error('안전한 첨부파일로 확인되지 않았습니다.')
+        return result.id
+      }).catch(error => { uploadedFiles.delete(file); throw error })
+      uploadedFiles.set(file, pending)
+    }
+    return pending
+  }
+  function loadImage(kind: 'community' | 'content', attachmentId: number) {
+    if (!Number.isSafeInteger(attachmentId) || attachmentId <= 0) throw new Error('이미지 정보를 확인해 주세요.')
+    return client.download(`/api/v1/${kind}/attachments/${attachmentId}/download`, { authenticated, includeCredentials: true })
+  }
   return {
+    async uploadPostImage(file) {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) throw new Error('본문 이미지는 PNG·JPEG·WEBP, 최대 10MB입니다.')
+      return { attachmentId: await upload(file), blob: file }
+    },
+    loadPostImage: id => loadImage('community', id),
+    loadArticleImage: id => loadImage('content', id),
     async listActivePopups(signal) {
       return (await popupApi.active(signal)).map((popup) => ({ ...popup, imageUrl: publicApiResourceUrl(popup.imageUrl, baseUrl) ?? null }))
     },
@@ -57,12 +80,14 @@ export function createHttpStorefrontServices(client: ApiClient, authenticated: b
       const body = { title: draft.title, content: draft.content.join('\n'), richContent: draft.richContent == null ? null : structuredClone(draft.richContent) }
       const prepare = async (): Promise<PreparedPost> => {
         const attachmentIds = await Promise.all(draft.attachments.map(async (attachment) => {
-          if (attachment.file) return (await api.uploadAttachment(attachment.file)).id
+          if (attachment.file) return upload(attachment.file)
           const id = Number(attachment.id)
           if (!Number.isSafeInteger(id) || id <= 0) throw new Error('첨부파일 정보를 확인할 수 없습니다.')
           return id
         }))
-        return { ...body, attachmentIds }
+        const linkedIds = [...new Set([...attachmentIds, ...richAttachmentIds(body.richContent)])]
+        if (linkedIds.length > 3) throw new Error('본문 이미지와 첨부파일은 합계 3개까지 등록할 수 있습니다.')
+        return { ...body, attachmentIds: linkedIds }
       }
       let pending = idempotencyKey && !value ? preparedPosts.get(idempotencyKey) : undefined
       if (!pending) {

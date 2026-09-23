@@ -59,11 +59,11 @@ export function createRuntimeConfiguration(baseUrl: string | undefined): Runtime
               isManagerLoginAvailable: async (loginId: string) => (await managerApi.availability(loginId)).available,
               saveManager: async ({ id, draft }: Parameters<MyAccountServices['saveManager']>[0]) => {
                 if (id) {
-                  await managerApi.update(Number(id), { name: draft.name, password: draft.password || null, managementMemo: draft.memo })
+                  await managerApi.update(Number(id), { name: draft.name, password: draft.password || null, managementMemo: draft.memo, permissionGroupId: draft.permissionGroupId })
                   return
                 }
                 if (!draft.password) throw new Error('비밀번호를 입력해 주세요.')
-                await managerApi.create({ name: draft.name, username: draft.loginId, password: draft.password, managementMemo: draft.memo })
+                await managerApi.create({ name: draft.name, username: draft.loginId, password: draft.password, managementMemo: draft.memo, permissionGroupId: draft.permissionGroupId })
               },
               assignManager: async ({ managerId, rcpcIds }: Parameters<MyAccountServices['assignManager']>[0]) => {
                 await managerApi.assignRcpcs(rcpcIds.map(Number), managerId ? Number(managerId) : null)

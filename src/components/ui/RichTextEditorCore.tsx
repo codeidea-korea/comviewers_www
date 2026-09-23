@@ -17,6 +17,7 @@ import iconLink from './editor-icons/icon-link.svg'
 import iconFullscreen from './editor-icons/icon-close-fullscreen.svg'
 import iconTableRows from './editor-icons/icon-table-rows.svg'
 import './richTextEditor.css'
+import { persistentEditorDocument, persistentEditorHtml, useEditorImagePreviews, type EditorImageLoader, type EditorImageUpload } from './richTextEditorImages'
 
 export interface RichTextEditorProps {
   ariaLabel?: string
@@ -28,6 +29,9 @@ export interface RichTextEditorProps {
   onDocumentChange?: (document: JSONContent) => void
   placeholder?: string
   value?: string | JSONContent
+  uploadImage?: EditorImageUpload
+  loadImage?: EditorImageLoader
+  onImageUploadPendingChange?: (pending: boolean) => void
 }
 
 interface EditorError {
@@ -49,11 +53,31 @@ interface EditorToolbarProps {
   onError: (message: string) => void
   onFullscreenToggle: () => void
   onImageSelect: () => void
+  imageDisabled?: boolean
 }
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
-const SAFE_IMAGE_TYPES = new Set(['image/gif', 'image/jpeg', 'image/png', 'image/webp'])
+const SAFE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const SAFE_LINK_PROTOCOLS = new Set(['http:', 'https:'])
+
+const AttachmentImage = Image.extend({
+  parseHTML() { return [{ tag: "img[data-attachment-id]" }] },
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      attachmentId: {
+        default: null,
+        parseHTML: element => Number(element.getAttribute('data-attachment-id')) || null,
+        renderHTML: attributes => attributes.attachmentId ? { 'data-attachment-id': attributes.attachmentId } : {},
+      },
+      src: {
+        default: null,
+        parseHTML: () => null,
+        renderHTML: attributes => typeof attributes.src === 'string' && attributes.src.startsWith('blob:') ? { src: attributes.src } : {},
+      },
+    }
+  },
+})
 
 function isSafeLinkHref(value: unknown) {
   if (typeof value !== 'string') return false
@@ -133,7 +157,7 @@ function EditorLinkDialog({ isOpen, onClose, onConfirm, children }: { isOpen: bo
   </dialog>
 }
 
-function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggle, onImageSelect }: EditorToolbarProps) {
+function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggle, onImageSelect, imageDisabled }: EditorToolbarProps) {
   const [linkOpen, setLinkOpen] = useState(false)
   const [linkHref, setLinkHref] = useState('https://')
   const [linkError, setLinkError] = useState('')
@@ -209,7 +233,7 @@ function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggl
       <button aria-label="구분선 삽입" onClick={() => editor.chain().focus().setHorizontalRule().run()} type="button">―</button>
       <span aria-hidden="true" className="rich-text-editor__divider" />
       <button aria-describedby={errorId} aria-label="링크" aria-pressed={editor.isActive('link')} className={editor.isActive('link') ? 'is-active' : ''} onClick={() => { setLinkHref(editor.getAttributes('link').href || 'https://'); setLinkError(''); setLinkOpen(true) }} type="button"><img alt="" src={iconLink} /></button>
-      <button aria-label="이미지 삽입" onClick={onImageSelect} type="button">▣</button>
+      <button aria-label="이미지 삽입" disabled={imageDisabled} onClick={onImageSelect} type="button">▣</button>
       <button aria-label="서식 지우기" onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} type="button">Tx</button>
       <button aria-label="실행 취소" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} type="button">↶</button>
       <button aria-label="다시 실행" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} type="button">↷</button>
@@ -221,11 +245,13 @@ function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggl
   </EditorLinkDialog> : null}</>
 }
 
-export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, className = '', synchronizeValue = true, onChange, onTextChange, onDocumentChange, placeholder = '내용을 입력해 주세요.', value = '' }: RichTextEditorProps) {
+export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, className = '', synchronizeValue = true, onChange, onTextChange, onDocumentChange, placeholder = '내용을 입력해 주세요.', value = '', uploadImage, loadImage, onImageUploadPendingChange }: RichTextEditorProps) {
   const [fullscreen, setFullscreen] = useState(false)
   const [error, setError] = useState<EditorError | null>(null)
   const surfaceRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const uploading = useRef(false)
+  const [imageUploading, setImageUploading] = useState(false)
   const errorId = useId()
   const editor = useEditor({
     content: value,
@@ -239,21 +265,22 @@ export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, class
       LineHeight,
       Highlight.configure({ multicolor: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Image,
+      AttachmentImage,
       Link.configure({ autolink: true, isAllowedUri: isSafeLinkHref, openOnClick: false, shouldAutoLink: isSafeLinkHref }),
       Placeholder.configure({ placeholder }),
     ],
     editorProps: { attributes: { ...(ariaLabelledby ? { 'aria-labelledby': ariaLabelledby } : { 'aria-label': ariaLabel }), class: 'rich-text-editor__content' } },
     onUpdate: ({ editor: currentEditor }) => {
-      onChange?.(currentEditor.getHTML())
+      onChange?.(persistentEditorHtml(currentEditor.getHTML()))
       onTextChange?.(currentEditor.getText({ blockSeparator: '\n' }))
-      onDocumentChange?.(currentEditor.getJSON())
+      onDocumentChange?.(persistentEditorDocument(currentEditor.getJSON()))
     },
   })
+  const rememberImage = useEditorImagePreviews(editor, loadImage, value)
 
   useEffect(() => {
     if (!synchronizeValue || !editor || editor.isDestroyed) return
-    const unchanged = typeof value === 'string' ? value === editor.getHTML() : JSON.stringify(value) === JSON.stringify(editor.getJSON())
+    const unchanged = typeof value === 'string' ? value === persistentEditorHtml(editor.getHTML()) : JSON.stringify(value) === JSON.stringify(persistentEditorDocument(editor.getJSON()))
     if (!unchanged) editor.commands.setContent(value, { emitUpdate: false })
   }, [editor, synchronizeValue, value])
 
@@ -275,21 +302,37 @@ export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, class
     return () => document.removeEventListener('keydown', handleKey, true)
   }, [fullscreen])
 
-  const addImage = (event: ChangeEvent<HTMLInputElement>) => {
+  const addImage = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (!file || !editor) return
+    if (!file || !editor || !uploadImage || uploading.current) return
     if (!SAFE_IMAGE_TYPES.has(file.type)) {
-      setError({ message: '지원하지 않는 이미지 형식입니다. PNG, JPEG, GIF, WebP 파일을 선택해 주세요.', source: 'image' })
+      setError({ message: '지원하지 않는 이미지 형식입니다. PNG, JPEG, WebP 파일을 선택해 주세요.', source: 'image' })
       return
     }
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       setError({ message: '이미지 파일은 5MB 이하만 첨부할 수 있습니다.', source: 'image' })
       return
     }
-    setError({ message: '본문 이미지는 첨부파일로 업로드한 뒤 게시글에 연결해 주세요.', source: 'image' })
+    uploading.current = true
+    setImageUploading(true)
+    setError(null)
+    onImageUploadPendingChange?.(true)
+    try {
+      const result = await uploadImage(file)
+      if (editor.isDestroyed) return
+      if (!Number.isSafeInteger(result.attachmentId) || result.attachmentId <= 0) throw new Error('이미지 업로드 결과를 확인할 수 없습니다.')
+      const src = rememberImage(result.attachmentId, result.blob)
+      editor.chain().focus().insertContent({ type: 'image', attrs: { attachmentId: result.attachmentId, src, alt: file.name, title: null } }).run()
+    } catch (failure) {
+      if (!editor.isDestroyed) setError({ message: failure instanceof Error ? failure.message : '이미지 업로드에 실패했습니다. 다시 선택해 주세요.', source: 'image' })
+    } finally {
+      uploading.current = false
+      if (!editor.isDestroyed) setImageUploading(false)
+      onImageUploadPendingChange?.(false)
+    }
   }
 
-  const surface = <div aria-label={fullscreen ? `${ariaLabel} 전체 화면 편집` : undefined} aria-modal={fullscreen ? true : undefined} role={fullscreen ? 'dialog' : undefined} ref={surfaceRef} tabIndex={fullscreen ? -1 : undefined} className={`rich-text-editor ${className}${fullscreen ? ' is-fullscreen' : ''}`}><EditorToolbar editor={editor} errorId={error?.source === 'link' ? errorId : undefined} fullscreen={fullscreen} onError={(message) => setError(message ? { message, source: 'link' } : null)} onFullscreenToggle={() => setFullscreen((current) => !current)} onImageSelect={() => imageInputRef.current?.click()} /><input accept="image/gif,image/jpeg,image/png,image/webp" aria-describedby={error?.source === 'image' ? errorId : undefined} aria-invalid={error?.source === 'image' ? 'true' : undefined} aria-label="본문 이미지 선택" className="sr-only" onChange={addImage} ref={imageInputRef} type="file" /><EditorContent className="rich-text-editor__body" editor={editor} />{error ? <p className="rich-text-editor__error" id={errorId} role="alert">{error.message}</p> : null}</div>
+  const surface = <div aria-label={fullscreen ? `${ariaLabel} 전체 화면 편집` : undefined} aria-modal={fullscreen ? true : undefined} role={fullscreen ? 'dialog' : undefined} ref={surfaceRef} tabIndex={fullscreen ? -1 : undefined} className={`rich-text-editor ${className}${fullscreen ? ' is-fullscreen' : ''}`}><EditorToolbar editor={editor} errorId={error?.source === 'link' ? errorId : undefined} fullscreen={fullscreen} onError={(message) => setError(message ? { message, source: 'link' } : null)} onFullscreenToggle={() => setFullscreen((current) => !current)} imageDisabled={!uploadImage || imageUploading} onImageSelect={() => imageInputRef.current?.click()} /><input accept="image/jpeg,image/png,image/webp" aria-describedby={error?.source === 'image' ? errorId : undefined} aria-invalid={error?.source === 'image' ? 'true' : undefined} aria-label="본문 이미지 선택" className="sr-only" onChange={addImage} ref={imageInputRef} type="file" /><EditorContent className="rich-text-editor__body" editor={editor} />{imageUploading ? <p role="status">이미지 업로드 중…</p> : null}{error ? <p className="rich-text-editor__error" id={errorId} role="alert">{error.message}</p> : null}</div>
   return fullscreen ? createPortal(surface, document.body) : surface
 }

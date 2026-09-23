@@ -18,10 +18,12 @@ const password = z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/)
 const memo = z.string().max(500)
 export const cManagerFeatureCodes = ['rcpc', 'rcpc.preference', 'rcpc.group', 'rcpc.remote_access', 'operation_request'] as const
 const permissionRule = z.object({ featureCode: z.enum(cManagerFeatureCodes), canRead: z.boolean(), canCreate: z.boolean(), canUpdate: z.boolean(), canDelete: z.boolean() })
-const permissionGroupFields = { id, name, description: z.string().nullable(), createdByMemberId: id.nullable(), createdByName: z.string().nullable(), updatedByMemberId: id.nullable(), updatedByName: z.string().nullable(), createdAt: time, updatedAt: time }
+const groupName = z.string().trim().min(1).max(100)
+const permissionGroupFields = { id, name: groupName, description: z.string().nullable(), createdByMemberId: id.nullable(), createdByName: z.string().nullable(), updatedByMemberId: id.nullable(), updatedByName: z.string().nullable(), createdAt: time, updatedAt: time }
 const permissionGroupSummary = z.object({ ...permissionGroupFields, assignedMemberCount: z.number().int().nonnegative().safe() })
 const permissionGroup = z.object({ ...permissionGroupFields, customerOrganizationId: id, rules: permissionRule.array() })
-const permissionGroupInput = z.object({ name, description: memo.nullable(), rules: permissionRule.array().max(5).refine(rules => new Set(rules.map(rule => rule.featureCode)).size === rules.length) })
+const permissionGroupInput = z.object({ name: groupName, description: memo.nullable(), rules: permissionRule.array().max(5).refine(rules => new Set(rules.map(rule => rule.featureCode)).size === rules.length) })
+export type CManagerPermissionGroupSummaryDto = z.infer<typeof permissionGroupSummary>
 export type CManagerPermissionRuleDto = z.infer<typeof permissionRule>
 export type CManagerPermissionGroupDto = z.infer<typeof permissionGroup>
 export type CManagerPermissionGroupInput = z.infer<typeof permissionGroupInput>
@@ -40,8 +42,8 @@ export function createCManagersApi(client: ApiClient, organizationId: string) {
     rcpcs: (signal?: AbortSignal) => client.request('/api/v1/my/c-managers/rcpcs', rcpc.array(), { ...context, signal }),
     managerRcpcs: (memberId: number, signal?: AbortSignal) => client.request(`${path(memberId)}/rcpcs`, rcpc.array(), { ...context, signal }),
     availability: (value: string, signal?: AbortSignal) => client.request('/api/v1/my/c-managers/username-availability', z.object({ available: z.boolean() }), { ...context, query: { username: username.parse(value) }, signal }),
-    create: (input: { name: string; username: string; password: string; managementMemo: string }) => client.request('/api/v1/my/c-managers', id, { ...context, method: 'POST', body: z.object({ name, username, password, managementMemo: memo }).parse(input) }),
-    update: (memberId: number, input: { name: string; password?: string | null; managementMemo: string }) => client.request(path(memberId), z.undefined(), { ...context, method: 'PUT', body: z.object({ name, password: password.nullish(), managementMemo: memo }).parse(input) }),
+    create: (input: { name: string; username: string; password: string; managementMemo: string; permissionGroupId?: number }) => client.request('/api/v1/my/c-managers', id, { ...context, method: 'POST', body: z.object({ name, username, password, managementMemo: memo, permissionGroupId: id.optional() }).parse(input) }),
+    update: (memberId: number, input: { name: string; password?: string | null; managementMemo: string; permissionGroupId?: number }) => client.request(path(memberId), z.undefined(), { ...context, method: 'PUT', body: z.object({ name, password: password.nullish(), managementMemo: memo, permissionGroupId: id.optional() }).parse(input) }),
     changePassword: (memberId: number, nextPassword: string) => client.request(`${path(memberId)}/password`, z.undefined(), { ...context, method: 'PATCH', body: { password: password.parse(nextPassword) } }),
     deactivate: (memberId: number) => client.request(`${path(memberId)}/deactivation`, z.undefined(), { ...context, method: 'PATCH' }),
     assignments: (memberId: number, rentalIds: number[]) => client.request(`${path(memberId)}/rcpcs`, z.undefined(), { ...context, method: 'PUT', body: { rentalIds: z.array(id).parse(rentalIds) } }),

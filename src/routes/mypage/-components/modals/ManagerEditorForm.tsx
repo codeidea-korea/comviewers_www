@@ -3,8 +3,9 @@ import { managerInputSchema, type AccountManager, type ManagerInput } from '@/do
 import { DialogActions } from '@/components/ui/DialogActionsControl'
 import { ManagerField } from './ManagerForms'
 import { Button } from '@/components/ui/ButtonControl'
-export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete, checkLogin }: {
-  manager?: AccountManager; pending: boolean; onSave: (draft: ManagerInput) => Promise<void>; onClose: () => void; onDelete?: () => void; checkLogin: (loginId: string) => Promise<boolean>
+import { ManagerPermissionGroupField } from './ManagerPermissionGroupField'
+export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete, checkLogin, onBusyChange }: {
+  manager?: AccountManager; pending: boolean; onSave: (draft: ManagerInput) => Promise<void>; onClose: () => void; onDelete?: () => void; checkLogin: (loginId: string) => Promise<boolean>; onBusyChange?: (busy: boolean) => void
 }) {
   const [draft, setDraft] = useState({ name: manager?.name ?? '', loginId: manager?.loginId ?? '', password: '', memo: manager?.memo ?? '' })
   const [error, setError] = useState('')
@@ -12,6 +13,8 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
   const [loginError, setLoginError] = useState('')
   const [checkedId, setCheckedId] = useState('')
   const [checking, setChecking] = useState(false)
+  const [permissionGroupId, setPermissionGroupId] = useState<number | undefined>(manager?.permissionGroupId ?? undefined)
+  const [permissionReady, setPermissionReady] = useState(false)
   const revision = useRef(0)
   const saving = useRef(false)
   async function check() {
@@ -26,9 +29,10 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (saving.current || pending) return
+    if (!permissionReady || !permissionGroupId) { setError('권한 그룹을 선택하고 편집 중인 내용을 먼저 저장해 주세요.'); return }
     setTouched({ name: true, loginId: true, password: true, memo: true })
     if (!manager && checkedId !== draft.loginId.trim()) { setLoginError('아이디 중복확인을 먼저 완료해 주세요.'); return }
-    const parsed = managerInputSchema.safeParse({ ...draft, password: draft.password || undefined })
+    const parsed = managerInputSchema.safeParse({ ...draft, password: draft.password || undefined, permissionGroupId })
     if (!parsed.success) return
     saving.current = true
     try { await onSave(parsed.data) } catch (cause) { setError(cause instanceof Error ? cause.message : '저장하지 못했습니다.') } finally { saving.current = false }
@@ -47,9 +51,10 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
       {manager ? <label className="manager-modal__field">아이디<input aria-label="아이디" autoComplete="off" name="manager-login-id" readOnly value={draft.loginId} /></label> : <ManagerField autoComplete="off" error={loginIdFieldError} help={checkedId === draft.loginId.trim() && checkedId ? '사용 가능한 아이디입니다.' : undefined} name="manager-login-id" label="아이디" action={checking ? '확인 중' : '중복확인'} onAction={() => { if (!checking) void check() }} value={draft.loginId} onChange={(event) => { revision.current += 1; setCheckedId(''); setLoginError(''); setTouched(current => ({ ...current, loginId: true })); setDraft((current) => ({ ...current, loginId: event.target.value })) }} />}
       <ManagerField autoComplete="new-password" error={passwordFieldError} name="manager-new-password" label={manager ? '새 비밀번호' : '비밀번호'} showRequired={!manager} type="password" help={manager ? '변경할 때만 입력해 주세요.' : undefined} value={draft.password} onChange={(event) => { setTouched(current => ({ ...current, password: true })); setDraft((current) => ({ ...current, password: event.target.value })) }} />
       <label className="manager-modal__memo"><span>담당자 메모</span><textarea aria-label="담당자 메모" maxLength={500} placeholder="부서, 역할 등 관리용 메모" value={draft.memo} onChange={(event) => setDraft((current) => ({ ...current, memo: event.target.value }))} /></label>
+      <ManagerPermissionGroupField value={permissionGroupId} onChange={setPermissionGroupId} onReady={setPermissionReady} onBusyChange={onBusyChange} disabled={pending} />
       {error && <p className="manager-modal__action-error" role="alert">{error}</p>}
       {manager && onDelete ? <Button className="manager-modal__delete" size="large" variant="secondary" onClick={onDelete}>담당자 삭제</Button> : null}
-      <DialogActions><Button size="large" variant="secondary" onClick={onClose}>{manager ? '닫기' : '취소'}</Button><Button disabled={pending} size="large" type="submit">{pending ? '저장 중' : manager ? '수정' : '담당자 등록'}</Button></DialogActions>
+      <DialogActions><Button size="large" variant="secondary" onClick={onClose}>{manager ? '닫기' : '취소'}</Button><Button disabled={pending || !permissionReady} size="large" type="submit">{pending ? '저장 중' : manager ? '수정' : '담당자 등록'}</Button></DialogActions>
     </fieldset>
   </form>
 }

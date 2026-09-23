@@ -28,7 +28,12 @@ test('U54 arbitrary post images do not expose the publishing sample as alt text'
 test('U57 detail renders persisted body without an inferred empty-body sentence', () => {
   const view = source('src/routes/support/SupportPagesView.tsx')
 
-  assert.match(view, /<RichContentRenderer attachments=\{article\.attachments\} document=\{article\.richContent\} fallback=\{content\}/)
+  const renderer = view.match(/<RichContentRenderer\b[^>]*\/>/)?.[0]
+  assert.ok(renderer, 'support detail must render the persisted rich document')
+  assert.match(renderer, /\battachments=\{article\.attachments\}/)
+  assert.match(renderer, /\bdocument=\{article\.richContent\}/)
+  assert.match(renderer, /\bfallback=\{content\}/)
+  assert.match(renderer, /\bloadImage=\{storefront\.loadArticleImage\}/)
   assert.doesNotMatch(view, /등록된 내용이 없습니다\./)
 })
 

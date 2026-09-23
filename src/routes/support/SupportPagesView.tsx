@@ -1,3 +1,4 @@
+import { useServices } from '@/app/ServiceProvider'
 import { useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { RelativeLink as Link } from '../../components/navigation/RelativeLinkView'
@@ -73,6 +74,7 @@ export function SupportListPage() {
 }
 
 export function SupportDetailPage() {
+  const { storefront } = useServices()
   const { articleId } = useParams()
   const [params] = useSearchParams()
   const result = useArticle(articleId)
@@ -86,7 +88,7 @@ export function SupportDetailPage() {
     <AppShell className="support-shell">
       <article className="support-detail content-container">
         <header><h1>{article.title}</h1><time>작성일시 {article.dateTime ?? article.date}</time></header>
-        <div className="support-detail__body"><RichContentRenderer attachments={article.attachments} document={article.richContent} fallback={content} /></div>
+        <div className="support-detail__body"><RichContentRenderer loadImage={storefront.loadArticleImage} attachments={article.attachments} document={article.richContent} fallback={content} /></div>
         <AttachmentList attachments={article.attachments} downloadIcon={downloadIcon} iconAlt="다운로드" />
         <Link className="board-list-button" to={listPath}>게시글 목록</Link>
       </article>

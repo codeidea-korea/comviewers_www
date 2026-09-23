@@ -63,7 +63,7 @@ export function usePostActions() {
   ])
   const save = useMutation({ mutationFn: ({ draft, id, idempotencyKey }: { draft: PostDraft; id?: string; idempotencyKey?: string }) => storefront.savePost(draft, id, idempotencyKey), onSuccess: invalidate })
   const remove = useMutation({ mutationFn: (id: string) => storefront.removePost(id), onSuccess: invalidate })
-  return { save, remove }
+  return { save, remove, uploadImage: storefront.uploadPostImage, loadImage: storefront.loadPostImage }
 }
 export function useComments(postId: string | undefined) {
   const { storefront } = useServices()

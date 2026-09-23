@@ -15,6 +15,7 @@ export function mapCatalogProduct(dto: CatalogListItem | CatalogDetail): Product
     id: dto.productNo, productId: dto.productNo,
     image: 'images' in dto ? (dto.images.find((image) => image.primary)?.url ?? dto.images[0]?.url ?? null) : dto.primaryImageUrl,
     title: dto.title, description: 'description' in dto ? dto.description : null,
+    detailRichContent: 'detailRichContent' in dto ? dto.detailRichContent ?? null : null,
     detailInformation: 'detailInformation' in dto ? dto.detailInformation ?? null : null,
     os: spec?.osName ?? null, cpu: spec?.cpuModel ?? null,
     ram: spec?.ramGb == null ? spec?.ramType ?? null : [spec.ramType, `${spec.ramGb}GB`].filter(Boolean).join('/'),

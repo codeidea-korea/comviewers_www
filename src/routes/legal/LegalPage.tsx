@@ -1,3 +1,4 @@
+import { useServices } from '@/app/ServiceProvider'
 import { Link, useSearchParams } from 'react-router'
 import { AppShell } from '@/components/layout/AppShellView'
 import type { LegalKind } from '@/domain/legal/legalRepository'
@@ -6,6 +7,7 @@ import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 
 function DocumentBody({ kind }: { kind: LegalKind }) {
+  const { products } = useServices()
   const [params, setParams] = useSearchParams()
   const query = usePublicLegalDocuments(kind)
   if (query.isPending) return <LoadingState label="문서를 불러오는 중입니다." />
@@ -14,7 +16,7 @@ function DocumentBody({ kind }: { kind: LegalKind }) {
   const document = selectedId ? query.data.find(item => item.id === selectedId) : query.data[0]
   return <>
     {!document ? <p role="status">{selectedId ? '선택한 문서 버전을 찾을 수 없습니다.' : '등록된 문서가 없습니다.'}</p> : <article className="legal-page__document">
-      <RichContentRenderer document={document.richContent} fallback={document.paragraphs} />
+      <RichContentRenderer loadImage={products.loadEditorImage} document={document.richContent} fallback={document.paragraphs} />
     </article>}
     {query.data.length > 0 && <label className="legal-page__version">문서 버전 <select value={document?.id ?? ''} onChange={event => setParams(current => {
       const next = new URLSearchParams(current); next.set('version', event.target.value); return next

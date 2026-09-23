@@ -1,3 +1,4 @@
+import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { ProductRefundSection } from './-components/ProductRefundSection'
 import { ProductDetailHero } from './-components/ProductDetailHero'
 import { ProductReviewSection } from './-components/ProductReviewSection'
@@ -44,7 +45,7 @@ export function ProductDetailPage() {
 function ProductDetailContent() {
   const navigate = useNavigate()
   const cartAddition = useAddToCart()
-  const { cart } = useServices()
+  const { cart, products } = useServices()
   const session = useSession()
   const queryClient = useQueryClient()
   const { productId } = useParams()
@@ -112,11 +113,11 @@ function ProductDetailContent() {
         <nav className="product-tabs"><a aria-current={activeTab === 'guide' ? 'location' : undefined} className={activeTab === 'guide' ? 'is-active' : ''} href="#guide" onClick={() => setActiveTab('guide')}>상품 안내</a><a aria-current={activeTab === 'reviews' ? 'location' : undefined} className={activeTab === 'reviews' ? 'is-active' : ''} href="#reviews" onClick={() => setActiveTab('reviews')}>후기 <b>{reviews.reviewCount}</b></a><a aria-current={activeTab === 'refund' ? 'location' : undefined} className={activeTab === 'refund' ? 'is-active' : ''} href="#refund" onClick={() => setActiveTab('refund')}>환불 규정</a></nav>
         <section id="guide">
           <h2>상품 안내</h2>
+          <RichContentRenderer document={product.detailRichContent} fallback={product.detailInformation ? [product.detailInformation] : []} loadImage={products.loadEditorImage} />
           <p>
             품번 : {product.productId}<br />
             품명 : {product.title ?? product.productId}<br />
             내용 : <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{product.description?.trim() || '등록된 상품 설명이 없습니다.'}</span><br />
-            {product.detailInformation?.trim() ? <>상세 정보 : <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{product.detailInformation}</span><br /></> : null}
             {product.pricingType !== 'one_time' ? <>추천용도에 따른 제품 사양<br />{specRows(product).map(([label, value]) => <span key={label}>{label} : {value ?? '정보 없음'}<br /></span>)}</> : null}
             유지보수 (AS안내) : 서버실 담당자 문의 기준에 따릅니다.<br />
             {product.pricingType !== 'one_time' ? <>소유권 이전 : 렌탈 상품은 이용기간 동안 접속 권한을 제공하며 소유권 이전은 별도 계약이 없는 한 제공하지 않습니다.<br /></> : null}

@@ -1,10 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { AttachmentItem } from './AttachmentListControl'
+import type { EditorImageLoader } from './richTextEditorImages'
+import { RichAttachmentImage } from './RichAttachmentImage'
 
 interface RichContentRendererProps {
   attachments?: readonly AttachmentItem[]
   document: unknown
   fallback: readonly string[]
+  loadImage?: EditorImageLoader
 }
 
 const textAligns = new Set(['left', 'center', 'right', 'justify'])
@@ -24,8 +27,8 @@ function attrs(node: Record<string, unknown>) {
   return object(node.attrs) ?? {}
 }
 
-function children(node: Record<string, unknown>, attachments: readonly AttachmentItem[]): ReactNode[] {
-  return Array.isArray(node.content) ? node.content.map((child, index) => renderNode(child, `${index}`, attachments)) : []
+function children(node: Record<string, unknown>, attachments: readonly AttachmentItem[], loadImage?: EditorImageLoader): ReactNode[] {
+  return Array.isArray(node.content) ? node.content.map((child, index) => renderNode(child, `${index}`, attachments, loadImage)) : []
 }
 
 function safeStyle(nodeAttrs: Record<string, unknown>) {
@@ -75,40 +78,42 @@ function applyMarks(text: ReactNode, marks: unknown, key: string): ReactNode {
   }, text)
 }
 
-function renderNode(value: unknown, key: string, attachments: readonly AttachmentItem[]): ReactNode {
+function renderNode(value: unknown, key: string, attachments: readonly AttachmentItem[], loadImage?: EditorImageLoader): ReactNode {
   const node = object(value)
   const type = string(node?.type)
   if (!node || !type) return null
   const nodeAttrs = attrs(node)
   if (type === 'text') return applyMarks(string(node.text) ?? '', node.marks, key)
-  if (type === 'paragraph') return <p key={key} style={safeStyle(nodeAttrs)}>{children(node, attachments)}</p>
+  if (type === 'paragraph') return <p key={key} style={safeStyle(nodeAttrs)}>{children(node, attachments, loadImage)}</p>
   if (type === 'heading') {
     const level = nodeAttrs.level === 1 || nodeAttrs.level === 2 || nodeAttrs.level === 3 ? nodeAttrs.level : 2
-    const content = children(node, attachments)
+    const content = children(node, attachments, loadImage)
     if (level === 1) return <h1 key={key} style={safeStyle(nodeAttrs)}>{content}</h1>
     if (level === 3) return <h3 key={key} style={safeStyle(nodeAttrs)}>{content}</h3>
     return <h2 key={key} style={safeStyle(nodeAttrs)}>{content}</h2>
   }
-  if (type === 'bulletList') return <ul key={key}>{children(node, attachments)}</ul>
-  if (type === 'orderedList') return <ol key={key}>{children(node, attachments)}</ol>
-  if (type === 'listItem') return <li key={key}>{children(node, attachments)}</li>
-  if (type === 'blockquote') return <blockquote key={key}>{children(node, attachments)}</blockquote>
-  if (type === 'codeBlock') return <pre key={key}><code>{children(node, attachments)}</code></pre>
+  if (type === 'bulletList') return <ul key={key}>{children(node, attachments, loadImage)}</ul>
+  if (type === 'orderedList') return <ol key={key}>{children(node, attachments, loadImage)}</ol>
+  if (type === 'listItem') return <li key={key}>{children(node, attachments, loadImage)}</li>
+  if (type === 'blockquote') return <blockquote key={key}>{children(node, attachments, loadImage)}</blockquote>
+  if (type === 'codeBlock') return <pre key={key}><code>{children(node, attachments, loadImage)}</code></pre>
   if (type === 'horizontalRule') return <hr key={key} />
   if (type === 'hardBreak') return <br key={key} />
   if (type === 'image') {
     const attachmentId = String(nodeAttrs.attachmentId ?? '')
     const attachment = attachments.find((item) => item.id === attachmentId)
-    return attachment?.href ? <p key={key}><a href={attachment.href}>{attachment.name}</a></p> : null
+    const id = Number(attachmentId)
+    if (!Number.isSafeInteger(id) || id <= 0 || (!attachment && !loadImage)) return null
+    return <RichAttachmentImage attachmentId={id} href={attachment?.href} key={key} loadImage={loadImage} name={attachment?.name ?? string(nodeAttrs.alt) ?? '본문 이미지'} />
   }
-  if (type === 'doc') return <>{children(node, attachments)}</>
+  if (type === 'doc') return <>{children(node, attachments, loadImage)}</>
   return null
 }
 
-export function RichContentRenderer({ attachments = [], document, fallback }: RichContentRendererProps) {
+export function RichContentRenderer({ attachments = [], document, fallback, loadImage }: RichContentRendererProps) {
   const root = object(document)
   if (!root || root.type !== 'doc') {
     return <>{fallback.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</>
   }
-  return <>{renderNode(root, 'root', attachments)}</>
+  return <>{renderNode(root, 'root', attachments, loadImage)}</>
 }

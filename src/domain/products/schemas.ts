@@ -31,6 +31,7 @@ export const productQuerySchema = z.object({
 export const productSchema = z.object({
   id: z.string(), productId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/), image: z.string().nullable(),
   title: z.string().nullable().default(null), description: z.string().nullable().default(null),
+  detailRichContent: z.unknown().nullable().optional(),
   detailInformation: z.string().nullable().optional(),
   os: z.string().nullable(), cpu: z.string().nullable(), ram: z.string().nullable(), disk: z.string().nullable(), gpu: z.string().nullable(),
   country: z.string().nullable(), ip: z.string().nullable(), serverRoom: z.string(), serverRoomProvider: z.string().nullable().default(null),

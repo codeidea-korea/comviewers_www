@@ -16,10 +16,26 @@ interface LiveSnapshotDependencies {
   rcpcMutations: ReturnType<typeof createCustomerRcpcMutations>
 }
 
+async function readAllManagerRcpcs(api: MyRcpcReadServices) {
+  const first = await api.list({ page: 0, size: 100 })
+  let items = first.items
+  for (let page = 1; page < first.totalPages; page += 1) {
+    const next = await api.list({ page, size: 100 })
+    if (next.page !== page || next.items.length === 0 || next.totalElements !== first.totalElements) {
+      throw new Error('RCPC 목록이 변경되었습니다. 다시 조회해 주세요.')
+    }
+    items = [...items, ...next.items]
+  }
+  if (items.length !== first.totalElements || new Set(items.map(item => item.rentalId)).size !== items.length) {
+    throw new Error('RCPC 목록이 변경되었습니다. 다시 조회해 주세요.')
+  }
+  return { ...first, items }
+}
+
 export function createLiveMyAccountReader({ readApi, rcpcApi, inquiryApi, managerApi, rcpcMutations }: LiveSnapshotDependencies) {
   return async (): Promise<MyAccountSnapshot> => {
     const [profile, benefits, rcpcs, orders, points, coupons, inquiries, storage, groups, managers, managerRcpcs] = await Promise.all([
-      readApi.profile(), readApi.benefits(), rcpcApi.list({ page: 0, size: 100 }), readApi.orders({ page: 0, size: 100 }),
+      readApi.profile(), readApi.benefits(), readAllManagerRcpcs(rcpcApi), readApi.orders({ page: 0, size: 100 }),
       readApi.points({ page: 0, size: 100 }), readApi.coupons({ page: 0, size: 100 }), inquiryApi.list({ page: 0, size: 100 }),
       readApi.storage({ page: 0, size: 100, status: 'stored' }), rcpcMutations.groups(), managerApi?.list() ?? Promise.resolve([]),
       managerApi?.rcpcs() ?? Promise.resolve([]),
@@ -55,7 +71,8 @@ export function createLiveMyAccountReader({ readApi, rcpcApi, inquiryApi, manage
         title: item.title, content: '', status: item.customerVisibleStatus, createdAt: date(item.createdAt), rcpcIds: [], answer: '' })),
       managers: managers.map((item, index) => ({ id: String(item.memberId), managerId: String(item.memberId), name: item.name ?? item.username,
         loginId: item.username, assignedRcpcIds: managerDetails[index]?.rcpcs.map((rcpc) => String(rcpc.rentalId)) ?? [], assignmentHistory: [],
-        memo: item.managementMemo ?? '', status: item.status === 'active' ? '활성' : item.status })),
+        memo: item.managementMemo ?? '', status: item.status === 'active' ? '활성' : item.status,
+        permissionGroupId: item.permissionGroupId, permissionGroupName: item.permissionGroupName })),
       storage: storage.items.map(item => ({ id: item.id, type: item.pricingType === 'rental' ? 'rental' : 'part', rowKind: 'normal',
         label: item.productTitle ?? item.productNo ?? '보관 상품', productId: item.productId ?? item.id, source: 'api',
         billingUnit: ['thirty_day', 'day', 'hour', 'unit'].includes(item.billingUnit ?? '') ? item.billingUnit : 'unit', durationUnits: item.minUnits,
