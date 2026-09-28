@@ -11,7 +11,7 @@ export async function pendingOrders(api: MyAccountReadServices, signal: AbortSig
   }
   return orders.filter(order => order.paymentStatus === 'approved' && ['paid', 'completed'].includes(order.orderStatus))
     .map(order => ({ ...order, items: order.items.filter(item => !item.purchaseConfirmedAt && !item.refundPending
-      && ['active', 'expiring'].includes(item.rentalStatus ?? '')
+      && item.rentalStatus === 'active'
       && item.serviceStartedAt && item.serviceEndsAt
       && Date.parse(`${item.serviceStartedAt}+09:00`) <= Date.now() && Date.parse(`${item.serviceEndsAt}+09:00`) > Date.now()
       && ['paid', 'active', 'completed'].includes(item.itemStatus)) })).filter(order => order.items.length > 0)

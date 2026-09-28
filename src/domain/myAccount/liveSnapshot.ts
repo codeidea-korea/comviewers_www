@@ -5,7 +5,7 @@ import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import { myAccountSchema, type MyAccountSnapshot } from './services'
 
 const date = (value: string | null | undefined) => value?.slice(0, 10) ?? '-'
-const rcpcStatus = (value: string) => ({ active: '이용중', expiring: '연장대기', termination_pending: '종료대기', terminated: '이용종료' }[value] ?? value)
+const rcpcStatus = (value: string) => ({ active: '이용중', terminated: '이용종료', refunded: '환불' }[value] ?? value)
 const money = (type: string, value: number) => type === 'rate' ? `${value}%` : `${value.toLocaleString('ko-KR')}원`
 
 interface LiveSnapshotDependencies {

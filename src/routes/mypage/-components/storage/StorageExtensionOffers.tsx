@@ -20,7 +20,8 @@ export function StorageExtensionOffers({ api }: { api: MyRcpcReadServices }) {
     {offers.data.map(offer => <article key={offer.id}>
       <strong>품번 {offer.productNo} · {offer.title}</strong>
       <p>{offer.serverRoomName ?? '서버실 미등록'} · {offer.addedDays}일 연장 · {accountMoney(offer.quotedAmount)}</p>
-      <p>현재 종료 {offer.previousEnd.replace('T', ' ')} · 연장 후 {offer.targetEnd.replace('T', ' ')}</p>
+      <p>현재 종료 {offer.previousEnd.replace('T', ' ')} · 예상 연장 종료 {offer.targetEnd.replace('T', ' ')}</p>
+      <p>만료 후 결제가 승인되면 실제 연장 기간은 승인 시각부터 계산되어 예상 종료 시각과 달라질 수 있습니다.</p>
       {canCheckout ? <Link to="/mypage/extension-checkout" state={{
         selection: { rentalIds: [offer.rentalId], addedDays: offer.addedDays, pointAmount: 0 }, offerIds: [offer.id],
       }}>연장 주문서 작성</Link> : <p>대표관리자만 연장 주문을 진행할 수 있습니다.</p>}

@@ -40,11 +40,11 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
   if (terminal) return <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
-  const active = paid && ['using', 'replacement_using'].includes(item.customerRentalStatus) && ['active', 'expiring'].includes(item.rentalStatus ?? '') && ['paid', 'active', 'completed'].includes(item.itemStatus)
+  const active = paid && ['using', 'replacement_using'].includes(item.customerRentalStatus) && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const canExtend = !cManager && !item.refundPending
     && paid
     && ['using', 'extension_waiting'].includes(item.customerRentalStatus)
-    && ['active', 'expiring'].includes(item.rentalStatus ?? '')
+    && item.rentalStatus === 'active'
     && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const now = Date.now()
   const canConfirm = !cManager && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
@@ -99,7 +99,7 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
 
   const paid = paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
   const active = paid && !item.purchaseConfirmedAt && !item.refundPending && ['using', 'replacement_using'].includes(item.customerRentalStatus)
-    && ['active', 'expiring'].includes(item.rentalStatus ?? '') && ['paid', 'active', 'completed'].includes(item.itemStatus)
+    && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)

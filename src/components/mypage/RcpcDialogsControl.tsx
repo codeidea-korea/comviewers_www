@@ -68,7 +68,7 @@ export interface RcpcRebootSurfaceProps extends Omit<RcpcSurfaceProps, 'rcpc'> {
   onConfirm?: () => void
 }
 
-const extensionHeaders = ['상품', '연장 기간', '현재 종료일', '연장 후 종료일', '월 렌탈비', '결제 예정금액']
+const extensionHeaders = ['상품', '연장 기간', '현재 종료일', '예상 연장 종료', '월 렌탈비', '결제 예정금액']
 
 export function RcpcExtensionSurface({ action, busy = false, dateValue = '', error, extensionMode, itemCount, onClose, onDateChange, onModeChange, onPeriodChange, periodValue = '30', rcpc, rows, targets, totalAmount = '견적 미조회', returnFocusRef }: RcpcExtensionSurfaceProps) {
   const products = targets?.length ? targets : [rcpc]

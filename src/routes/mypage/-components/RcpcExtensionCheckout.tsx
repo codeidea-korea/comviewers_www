@@ -54,7 +54,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   if (!owner || !session.customerSession?.commerceAvailable || rentalIds.length === 0) return null
   const content = <>
       <h3>기간 연장 · {rentalIds.length}대</h3>
-      <p>같은 일수만큼 연장하거나 만료일을 같은 날짜로 맞출 수 있습니다. 각 상품은 최대 90일까지 연장할 수 있으며 종료 시각은 유지됩니다.</p>
+      <p>같은 일수만큼 연장하거나 만료일을 같은 날짜로 맞출 수 있습니다. 각 상품은 최대 90일까지 연장할 수 있습니다.</p>
       <fieldset disabled={locked || quote.isFetching}><legend>연장 방법</legend>
         <label><input type="radio" disabled={!!offerIds?.length} checked={mode === 'days'} onChange={() => setMode('days')}/>기간 지정</label>
         <label><input type="radio" disabled={!!offerIds?.length} checked={mode === 'date'} onChange={() => setMode('date')}/>동일 만료일</label>
@@ -69,11 +69,11 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       </fieldset>}
       {quote.isFetching && <p role="status">연장 견적을 확인하고 있습니다.</p>}
       {quote.error && <p role="alert">{quote.error.message}</p>}
-      {current && <><div style={{ maxHeight: '45vh', overflow: 'auto' }}><table><thead><tr><th>상품 / 서버실 / 사양</th><th>현재 만료</th><th>연장 일수</th><th>변경 만료</th><th>금액</th><th>확인</th></tr></thead><tbody>
+      {current && <><div style={{ maxHeight: '45vh', overflow: 'auto' }}><table><thead><tr><th>상품 / 서버실 / 사양</th><th>현재 만료</th><th>연장 일수</th><th>예상 연장 종료</th><th>금액</th><th>확인</th></tr></thead><tbody>
         {current.items.map(item => <tr key={item.rentalId}><td>{item.productNo} {item.title}<br/>{item.serverRoomName} / {item.spec}</td>
           <td>{item.previousEnd?.replace('T', ' ') ?? '-'}</td><td>{item.addedDays ?? '-'}일</td><td>{item.targetEnd?.replace('T', ' ') ?? '-'}</td>
           <td>{item.amount?.toLocaleString('ko-KR') ?? '-'}원</td><td>{item.eligible ? '연장 가능' : extensionResultText(item)}</td></tr>)}
-      </tbody></table></div><p>합계 {current.totalAmount.toLocaleString('ko-KR')}원</p>
+      </tbody></table></div><p>만료 후 결제가 승인되면 실제 연장 기간은 승인 시각부터 계산되어 예상 종료 시각과 달라질 수 있습니다.</p><p>합계 {current.totalAmount.toLocaleString('ko-KR')}원</p>
       {current.benefits && <p>쿠폰 −{current.benefits.couponDiscountAmount.toLocaleString('ko-KR')}원 · 포인트 −{current.benefits.pointUsedAmount.toLocaleString('ko-KR')}P · 최종 결제 {current.benefits.finalAmount.toLocaleString('ko-KR')}원{current.benefits.finalAmount === 0 ? ' (외부 결제 없이 내부 승인)' : ''}</p>}
       <p>30일 상품은 월 렌탈료 ÷ 30 × 연장 일수로 계산합니다. 원 미만 금액의 처리 정책이 미설정된 기간은 결제할 수 없습니다.</p>
       {!current.eligible && <p role="alert">연장할 수 없는 행을 확인하고 선택 대상 또는 기간을 수정해 주세요.</p>}

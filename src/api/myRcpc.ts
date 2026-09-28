@@ -8,7 +8,7 @@ const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
 const text = z.string().nullable()
 const instant = z.iso.datetime({ offset: true }).nullable()
-const status = z.enum(['pending_payment', 'ready', 'active', 'expiring', 'grace_period', 'access_restricted', 'expired', 'termination_pending', 'resetting', 'terminated', 'cancelled', 'refunded'])
+const status = z.enum(['active', 'terminated', 'refunded'])
 const preference = z.object({
   alias: z.string().optional(), favorite: z.boolean(), groupId: id.optional(),
   groupName: z.string().optional(), parentGroupId: id.optional(), parentGroupName: z.string().optional(),
@@ -36,9 +36,7 @@ export const myRcpcItemSchema = z.object({
 })
 export const myRcpcPageSchema = z.object({ items: z.array(myRcpcItemSchema), page: count, size: z.number().int().min(1).max(100), totalElements: count, totalPages: count })
 export const myRcpcSummarySchema = z.object({ total: count, usageCounts: z.object({ using: count, extension_waiting: count, ended: count, other: count }), statusCounts: z.object({
-  pending_payment: count, ready: count, active: count, expiring: count, grace_period: count,
-  access_restricted: count, expired: count, termination_pending: count, resetting: count,
-  terminated: count, cancelled: count, refunded: count, other: count,
+  active: count, terminated: count, refunded: count, other: count,
 }) })
 export const myRcpcFilterOptionsSchema = z.object({
   regions: z.array(z.string()),

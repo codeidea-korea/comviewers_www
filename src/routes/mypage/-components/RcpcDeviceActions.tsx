@@ -54,7 +54,7 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
   const [failed, setFailed] = useState(false)
   const [verified, setVerified] = useState(false)
   const sequence = useRef(0)
-  const allowed = ['running', 'needs_attention'].includes(item.serverStatus) && ['active', 'expiring'].includes(item.rentalStatus)
+  const allowed = ['running', 'needs_attention'].includes(item.serverStatus) && item.rentalStatus === 'active'
   const registered = item.wanIpConfigured
   const available = allowed && registered !== false
   useEffect(() => { sequence.current += 1; setValue(null); setMessage(''); setPending(false); setFailed(false); setVerified(false) }, [api.organizationId, item.rentalId, registered, setMessage])

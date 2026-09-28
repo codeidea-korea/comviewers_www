@@ -28,7 +28,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
   const options = useQuery({ queryKey: ['my-rcpcs', rcpcApi.organizationId, 'inquiry-addition-options'],
     queryFn: ({ signal }) => loadAuthorizedRcpcs(rcpcApi, signal), enabled: open && !closed })
   const available = (options.data ?? []).filter((item) => !existingIds.includes(item.pcAssetId)
-    && ['active', 'expiring', 'grace_period', 'access_restricted'].includes(item.rentalStatus))
+    && item.rentalStatus === 'active')
   const products = useMemo(() => sortInquiryChoices(available), [available])
   const selectedIndexes = products.map((product, index) => selected.includes(Number(product.rcpcId)) ? index : -1).filter((index) => index >= 0)
   const save = useMutation({ mutationFn: async () => {

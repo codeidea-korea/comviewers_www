@@ -8,10 +8,12 @@ const available = {
   usageStatus: 'using',
 }
 
-test('이용 중 RCPC만 연장 선택을 허용한다', () => {
+test('이용 중이거나 연장대기 중인 RCPC는 연장 선택을 허용하고 종료된 계약은 차단한다', () => {
   assert.equal(extensionBlocked(available), false)
+  assert.equal(extensionBlocked({ ...available, usageStatus: 'extension_waiting', serverStatus: 'extension_waiting' }), false)
   assert.equal(extensionBlocked({ ...available, usageStatus: 'ended' }), true)
   assert.equal(extensionBlocked({ ...available, serverStatus: 'ended' }), true)
   assert.equal(extensionBlocked({ ...available, serverStatus: 'format_waiting' }), true)
-  assert.equal(extensionBlocked({ ...available, rentalStatus: 'expired' }), true)
+  assert.equal(extensionBlocked({ ...available, rentalStatus: 'terminated' }), true)
+  assert.equal(extensionBlocked({ ...available, rentalStatus: 'refunded' }), true)
 })

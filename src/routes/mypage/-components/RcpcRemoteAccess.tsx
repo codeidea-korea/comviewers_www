@@ -14,6 +14,15 @@ type Revealed = Awaited<ReturnType<MyRcpcReadServices['reveal']>>
 type RemoteAccessItem = MyRcpcItem | MyRcpcDetail
 type RemoteAction = 'reveal' | 'remote_id' | 'password'
 
+const kstDateParts = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+})
+
+function accessDeadline(serviceEndsAt: string): number {
+  const parts = Object.fromEntries(kstDateParts.formatToParts(new Date(serviceEndsAt)).map(part => [part.type, part.value]))
+  return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day) + 2) - 9 * 60 * 60 * 1000
+}
+
 function remoteAccessErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 401 || error.kind === 'authentication') return '로그인 상태를 확인한 뒤 다시 시도해 주세요.'
@@ -60,7 +69,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
     const request = controller
     void api.identifier(item.rentalId, accessType, request.signal).then(result => {
       if (request.signal.aborted) return
-      const visibleFor = Math.min(Date.parse(result.serviceEndsAt) - Date.now(), 30_000)
+      const visibleFor = Math.min(accessDeadline(result.serviceEndsAt) - Date.now(), 30_000)
       if (visibleFor <= 0) return
       setVisibleId(result.remoteId)
       timer = window.setTimeout(() => setVisibleId(null), visibleFor)
@@ -81,7 +90,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
     }
     window.addEventListener('blur', hide)
     const itemEnd = 'serviceEndsAt' in item ? item.serviceEndsAt : null
-    const expiresAt = revealed?.serviceEndsAt ? Date.parse(revealed.serviceEndsAt) : itemEnd ? Date.parse(itemEnd) : Date.now() + 30_000
+    const expiresAt = revealed?.serviceEndsAt ? accessDeadline(revealed.serviceEndsAt) : itemEnd ? accessDeadline(itemEnd) : Date.now() + 30_000
     const timeout = window.setTimeout(hide, Math.min(Math.max(expiresAt - Date.now(), 0), 2_147_483_647))
     return () => { window.clearTimeout(timeout); window.removeEventListener('blur', hide) }
   }, [item, revealed?.serviceEndsAt])
@@ -97,7 +106,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
       if (field === 'remote_id') {
         const identifier = await api.identifier(item.rentalId, accessType, controller.signal)
         controller.signal.throwIfAborted()
-        if (Date.parse(identifier.serviceEndsAt) <= Date.now()) throw new Error('expired')
+        if (accessDeadline(identifier.serviceEndsAt) <= Date.now()) throw new Error('expired')
         await api.copy(item.rentalId, accessType, field, controller.signal)
         controller.signal.throwIfAborted()
         copying = true
@@ -108,7 +117,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
       }
       const value = await api.reveal(item.rentalId, accessType, controller.signal)
       controller.signal.throwIfAborted()
-      if (Date.parse(value.serviceEndsAt) <= Date.now()) throw new Error('expired')
+      if (accessDeadline(value.serviceEndsAt) <= Date.now()) throw new Error('expired')
       if (field) {
         const text = value.password
         if (!text) throw new Error('unavailable')

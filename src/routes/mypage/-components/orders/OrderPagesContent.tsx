@@ -76,7 +76,7 @@ const canApplyDirectRefund = (item: AccountOrderItem, paymentStatus: string, ord
   && paymentStatus === 'approved'
   && ['paid', 'completed'].includes(orderStatus)
   && ['using', 'replacement_using'].includes(item.customerRentalStatus)
-  && ['active', 'expiring'].includes(item.rentalStatus ?? '')
+  && item.rentalStatus === 'active'
   && ['paid', 'active', 'completed'].includes(item.itemStatus)
 
 const rowStatus = (item: AccountOrderItem, order: AccountOrderPage['items'][number], now: number) => {
