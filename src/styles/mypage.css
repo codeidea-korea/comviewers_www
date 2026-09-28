@@ -622,7 +622,8 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .inquiry-chat__message > small { color: var(--color-gray-500); display: block; font-size: 12px; margin-bottom: 4px; }
 .inquiry-chat__message-row { align-items: end; display: flex; gap: 5px; }
 .inquiry-chat__message-row > p { background: var(--color-gray-50); border-radius: 8px; font-size: 14px; line-height: 19px; margin: 0; min-width: 0; overflow-wrap: anywhere; padding: 12px 14px; white-space: pre-wrap; }
-.inquiry-chat__message-row > time { color: var(--color-gray-500); flex: 0 0 auto; font-size: 11px; white-space: nowrap; }
+.inquiry-chat__message-meta { color: var(--color-gray-500); display: flex; flex: 0 0 auto; flex-direction: column; font-size: 11px; gap: 2px; white-space: nowrap; }
+.inquiry-chat__message-meta > span { color: #8a7a00; }
 .inquiry-chat__message.is-mine { margin-left: auto; text-align: right; }
 .inquiry-chat__message.is-mine .inquiry-chat__message-row { flex-direction: row-reverse; }
 .inquiry-chat__message.is-mine .inquiry-chat__message-row > p { background: var(--color-black); color: white; text-align: left; }

@@ -102,7 +102,10 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
               {!isMine && <small>{item.authorDisplayName ?? item.authorType}</small>}
               <div className="inquiry-chat__message-row">
                 <p>{item.content}</p>
-                <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
+                <div className="inquiry-chat__message-meta">
+                  {item.unreadCount > 0 ? <span aria-label={`읽지 않은 사람 ${item.unreadCount}명`}>{item.unreadCount}</span> : null}
+                  <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
+                </div>
               </div>
               {item.attachments.map((attachment) => <InquiryAttachmentDownload key={attachment.id} api={api} requestId={id} attachment={attachment}/>)}
             </article>
