@@ -37,7 +37,6 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   const [refundOpen, setRefundOpen] = useState(false)
   const lastRead = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const pendingSentMessageId = useRef(0)
   const chatKey = useMemo(() => ['operation-requests', api.organizationId, 'chat', id] as const, [api.organizationId, id])
   // The stream only wakes the cached REST query. A minute fallback covers intermediaries that
   // silently drop long-lived SSE connections without exposing chat content in the stream itself.
@@ -53,11 +52,11 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
     setHistoryEnd(response.messages.length < 100)
   } })
   const lastId = Math.max(0, ...(chat.data?.messages.map((item) => item.id) ?? []))
+  const conversationReady = Boolean(chat.data && requestInfo.data)
   useLayoutEffect(() => {
-    if (!pendingSentMessageId.current || lastId < pendingSentMessageId.current || !scrollRef.current) return
+    if (!conversationReady || !scrollRef.current) return
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    pendingSentMessageId.current = 0
-  }, [lastId, messageId])
+  }, [conversationReady, lastId])
   useEffect(() => api.subscribeChatEvents(id, () => {
     void client.invalidateQueries({ queryKey: chatKey })
     void client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
@@ -70,7 +69,6 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   }, [api, id, lastId])
   const send = useMutation({ mutationFn: () => api.sendMessage(id, message, messageId, files.map((file) => file.attachmentId)), onSuccess: async (response) => {
     setMessage(''); setFiles([]); setMessageId(`customer-web:${crypto.randomUUID()}`)
-    pendingSentMessageId.current = Math.max(0, ...response.messages.map((item) => item.id))
     client.setQueryData(chatKey, response)
     await client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
   } })
@@ -97,12 +95,15 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
           {!historyEnd && (olderMessages.length > 0 || chat.data.messages.length >= 100) ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? '불러오는 중…' : '이전 대화 더보기'}</button> : null}
           {earlier.isError ? <p role="alert">{earlier.error.message}</p> : null}
           {messages.map((item) => {
-            const isMine = session.status === 'authenticated' && item.authorType === 'customer'
+            const fromComBar = item.authorType === 'device'
+            const isMine = fromComBar || session.status === 'authenticated' && item.authorType === 'customer'
               && item.authorUserId !== null && String(item.authorUserId) === session.userId
             return <article className={isMine ? 'inquiry-chat__message is-mine' : 'inquiry-chat__message'} key={item.id}>
               {!isMine && <small>{item.authorDisplayName ?? item.authorType}</small>}
-              <p>{item.content}</p>
-              <time>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
+              <div className="inquiry-chat__message-row">
+                <p>{item.content}</p>
+                <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
+              </div>
               {item.attachments.map((attachment) => <InquiryAttachmentDownload key={attachment.id} api={api} requestId={id} attachment={attachment}/>)}
             </article>
           })}
