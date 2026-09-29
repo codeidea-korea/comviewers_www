@@ -16,7 +16,7 @@ export interface ProfileEditorValues {
 }
 
 function profilePasswordError(password: string, currentPassword: string) {
-  if (!/^[A-Za-z0-9!@#$%]{8,16}$/.test(password)) return '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.'
+  if (!/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/.test(password)) return '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'
   return password === currentPassword ? '현재 비밀번호와 다른 비밀번호를 입력해 주세요.' : ''
 }
 

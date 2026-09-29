@@ -12,7 +12,7 @@ type FieldErrorKey = 'loginId' | 'password' | 'passwordConfirm' | 'name' | 'nick
 type FieldErrors = Readonly<Partial<Record<FieldErrorKey, string>>>
 const fieldValidationOrder: readonly FieldErrorKey[] = ['loginId', 'password', 'passwordConfirm', 'name', 'nickname', 'email', 'phone', 'messenger']
 const loginIdSchema = z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.')
-const passwordSchema = z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자의 영문, 숫자 및 허용된 특수문자를 사용해 주세요.')
+const passwordSchema = z.string().regex(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.')
 const nameSchema = z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.')
 const nicknameSchema = z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 한글, 영문, 숫자만 사용할 수 있습니다.')
 const emailSchema = z.email('이메일 주소를 확인해 주세요.').max(100, '이메일은 100자 이하로 입력해 주세요.')

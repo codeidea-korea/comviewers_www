@@ -14,7 +14,7 @@ const summary = z.object({ memberId: id, userId: id, username: z.string(), name:
 const detail = summary.extend({ rcpcs: rcpc.array() })
 const name = z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,10}$/)
 const username = z.string().trim().regex(/^[A-Za-z0-9_]{5,16}$/)
-const password = z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/)
+const password = z.string().regex(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/)
 const memo = z.string().max(500)
 export const cManagerFeatureCodes = ['rcpc', 'rcpc.preference', 'rcpc.group', 'rcpc.remote_access', 'operation_request'] as const
 const permissionRule = z.object({ featureCode: z.enum(cManagerFeatureCodes), canRead: z.boolean(), canCreate: z.boolean(), canUpdate: z.boolean(), canDelete: z.boolean() })

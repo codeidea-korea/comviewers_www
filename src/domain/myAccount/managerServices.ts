@@ -3,7 +3,7 @@ import type { MyAccountSnapshot } from './services'
 export const managerInputSchema = z.object({
   name: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,10}$/, '담당자명은 1~10자의 한글, 영문, 숫자로 입력해 주세요.'),
   loginId: z.string().trim().regex(/^[A-Za-z0-9_]{5,16}$/, '아이디는 5~16자의 영문, 숫자, 밑줄로 입력해 주세요.'),
-  password: z.string().regex(/^[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)로 입력해 주세요.').optional(),
+  password: z.string().regex(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.').optional(),
   memo: z.string().max(500, '메모는 500자 이하로 입력해 주세요.'),
   permissionGroupId: z.number().int().positive().safe().optional(),
 })

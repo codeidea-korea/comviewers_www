@@ -193,23 +193,23 @@ function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [complete, setComplete] = useState(false)
-  const validPasswordFormat = /^[A-Za-z0-9!@#$%]{8,16}$/.test(password)
+  const validPasswordFormat = /^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/.test(password)
   const validPassword = validPasswordFormat
-  const passwordError = passwordPolicyError || (passwordTouched && !validPasswordFormat ? '비밀번호는 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)만 사용할 수 있습니다.' : undefined)
+  const passwordError = passwordPolicyError || (passwordTouched && !validPasswordFormat ? '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.' : undefined)
   const confirmationError = confirmationTouched && password !== confirmation ? '비밀번호가 일치하지 않습니다.' : undefined
   async function submit() {
     if (!api || !token) { setError('비밀번호 재설정 링크가 올바르지 않습니다.'); return }
-    if (!validPassword) { setError('비밀번호는 8~16자의 영문, 숫자, ! @ # $ %만 사용할 수 있습니다.'); return }
+    if (!validPassword) { setError('비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'); return }
     if (password !== confirmation) { setError('비밀번호가 일치하지 않습니다.'); return }
     setBusy(true); setError('')
     try { await api.confirmPasswordReset(token, password, confirmation); setComplete(true) }
     catch (cause) {
-      if (cause instanceof ApiClientError && cause.code === 'A006') setPasswordPolicyError('기존 비밀번호와 다른 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 입력해 주세요.')
+      if (cause instanceof ApiClientError && cause.code === 'A006') setPasswordPolicyError('기존 비밀번호와 다르게, 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.')
       else setError(cause instanceof Error ? cause.message : '비밀번호를 재설정하지 못했습니다.')
     }
     finally { setBusy(false) }
   }
-  const helperText = '8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)만 사용할 수 있습니다.'
+  const helperText = '8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'
   return <><LoginPage />
     <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={() => navigate('/login', { replace: true })} onConfirm={() => { void submit() }} showClose={false} title="비밀번호 재설정">
       <div className="popup-form">
