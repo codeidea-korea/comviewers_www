@@ -6,6 +6,8 @@ import { PopupLayer } from '../ui/PopupLayerControl'
 
 export interface RcpcDialogTarget {
   rcpcId: string | number
+  alias?: string
+  currentEnd?: string
   location?: string
   os?: string
   cpu?: string
@@ -77,7 +79,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
     <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--extension" dialogClassName="rcpc-extension-dialog" initialFocus="dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} title="기간 연장">
       <div aria-busy={busy} className="rcpc-extension-dialog__scroll">
         <h3>선택 품목</h3>
-        <div aria-label="선택 품목" className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{products.map((target) => <article key={target.rcpcId}><strong>품번 {target.rcpcId}{target.location ? ` · ${target.location}` : ''}</strong><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || '사양 정보가 없습니다.'}</p></article>)}</div>
+        <div aria-label="선택 품목" className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{products.map((target) => <article key={target.rcpcId}><strong>{target.alias ? `${target.alias} · ` : ''}품번 {target.rcpcId}{target.location ? ` · ${target.location}` : ''}</strong><p>현재 만료일 {target.currentEnd ?? '확인 중'}</p><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || '사양 정보가 없습니다.'}</p></article>)}</div>
         <h3>연장 방식 선택</h3>
         <div className="rcpc-extension-dialog__modes">
           <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'period'} disabled={busy} name="extension-mode" onChange={() => onModeChange('period')} type="radio" /><span><strong>기간 선택</strong><small>선택한 기간 만큼 연장됩니다.</small></span></label><fieldset aria-label="연장 기간" disabled={busy}><legend className="sr-only">연장 기간</legend><div className="rcpc-extension-dialog__periods">{[['30', '1개월'], ['60', '2개월'], ['90', '3개월']].map(([value, label]) => <button aria-pressed={extensionMode === 'period' && periodValue === value} key={value} onClick={() => { onModeChange('period'); onPeriodChange?.(value) }} type="button">{label}</button>)}</div></fieldset></div>

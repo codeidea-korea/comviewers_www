@@ -50,6 +50,8 @@ function StandardSignupProfileStep() {
             <TextField
               error={fieldErrors.loginId || (usernameFeedback?.tone === 'error' ? usernameFeedback.message : undefined)}
               label={<><span className="required-mark">*</span>아이디</>}
+              helperText="3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다."
+              maxLength={20}
               name="loginId"
               onChange={setField('loginId')}
               placeholder="아이디 입력"
@@ -59,12 +61,12 @@ function StandardSignupProfileStep() {
             />
             <button disabled={busy} onClick={() => { void checkUsername() }} type="button">{checkedUsername === profile.loginId && checkedUsername ? '확인 완료' : '중복 확인'}</button>
           </div>
-          <PasswordField error={fieldErrors.password} label={<><span className="required-mark">*</span>비밀번호</>} name="password" onChange={setField('password')} placeholder="비밀번호 입력" required value={profile.password} />
-          <PasswordField error={fieldErrors.passwordConfirm} label={<><span className="required-mark">*</span>비밀번호 확인</>} name="passwordConfirm" onChange={setField('passwordConfirm')} placeholder="비밀번호 입력" required value={profile.passwordConfirm} />
-          <TextField error={fieldErrors.name} label={<><span className="required-mark">*</span>이름</>} name="name" onChange={setField('name')} placeholder="이름 입력" required value={profile.name} />
-          <TextField error={fieldErrors.nickname} label={<><span className="required-mark">*</span>닉네임</>} name="nickname" onChange={setField('nickname')} placeholder="닉네임 입력" required value={profile.nickname} />
+          <PasswordField error={fieldErrors.password} helperText="8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요." label={<><span className="required-mark">*</span>비밀번호</>} maxLength={16} name="password" onChange={setField('password')} placeholder="비밀번호 입력" required value={profile.password} />
+          <PasswordField error={fieldErrors.passwordConfirm} label={<><span className="required-mark">*</span>비밀번호 확인</>} maxLength={16} name="passwordConfirm" onChange={setField('passwordConfirm')} placeholder="비밀번호 입력" required value={profile.passwordConfirm} />
+          <TextField error={fieldErrors.name} helperText="1~18자의 한글, 영문, 하이픈(-), 아포스트로피(')만 사용할 수 있습니다." label={<><span className="required-mark">*</span>이름</>} maxLength={18} name="name" onChange={setField('name')} placeholder="이름 입력" required value={profile.name} />
+          <TextField error={fieldErrors.nickname} helperText="1~18자의 한글, 영문, 숫자만 사용할 수 있습니다." label={<><span className="required-mark">*</span>닉네임</>} maxLength={18} name="nickname" onChange={setField('nickname')} placeholder="닉네임 입력" required value={profile.nickname} />
           <div className="required-fieldset"><span className="required-mark">*</span><EmailAddressField domain={profile.emailDomain} domainPlaceholder="" error={fieldErrors.email} id={profile.emailId} onDomainChange={(value) => setFieldValue('emailDomain', value)} onIdChange={setField('emailId')} required /></div>
-          <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" onChange={setField('phone1')} value={profile.phone1}>{phonePrefixOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" onChange={(event) => setFieldValue('phone2', event.target.value.replace(/\D/g, '').slice(0, 4))} value={profile.phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" onChange={(event) => setFieldValue('phone3', event.target.value.replace(/\D/g, '').slice(0, 4))} value={profile.phone3} /></div>{fieldErrors.phone ? <p aria-live="polite" className="split-field__error">* {fieldErrors.phone}</p> : null}</fieldset>
+          <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" onChange={setField('phone1')} value={profile.phone1}>{phonePrefixOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" onChange={(event) => setFieldValue('phone2', event.target.value.replace(/\D/g, ''))} value={profile.phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" onChange={(event) => setFieldValue('phone3', event.target.value.replace(/\D/g, ''))} value={profile.phone3} /></div>{fieldErrors.phone ? <p aria-live="polite" className="split-field__error">* {fieldErrors.phone}</p> : null}</fieldset>
           <fieldset className="split-field split-field--messenger"><legend>메신저 ID</legend><div><NativeSelect aria-label="메신저 선택" onChange={setField('messenger')} value={profile.messenger}><option value="">메신저 선택</option>{messengerOptions.map((option) => <option key={option} value={option}>{messengerOptionLabel(option)}</option>)}</NativeSelect><input aria-label="메신저 아이디" onChange={setField('messengerId')} value={profile.messengerId} /></div>{fieldErrors.messenger ? <p aria-live="polite" className="split-field__error">* {fieldErrors.messenger}</p> : null}</fieldset>
           {notice ? <p aria-live="polite" className="auth-notice">{notice}</p> : null}
           {error ? <p aria-live="polite" className="form-error">{error}</p> : null}

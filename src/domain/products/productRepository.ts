@@ -6,4 +6,5 @@ export interface ProductRepository {
   readonly capabilities?: { readonly instantOnly: boolean; readonly rooms: boolean; readonly primarySelectors: boolean; readonly detailFilters: readonly string[]; readonly facetCounts: boolean }
   list(query: ProductListQuery, signal?: AbortSignal): Promise<ProductPage>
   get(productNo: string, signal?: AbortSignal): Promise<Product | null>
+  getReviewed?(productNo: string, reviewId: string, organizationId: string, signal?: AbortSignal): Promise<Product | null>
 }

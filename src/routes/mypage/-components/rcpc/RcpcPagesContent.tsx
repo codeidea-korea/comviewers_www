@@ -116,7 +116,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       {!accessDenied && available.error ? <p role="alert">서버실 목록을 불러오지 못했습니다. <button onClick={() => void available.refetch()} type="button">다시 시도</button></p> : null}
       {!accessDenied ? <AccountQueryState error={rows.error} pending={rows.isPending} retry={rows.refetch}/> : null}
       {accessDenied || page ? <>
-        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={page?.items ?? []} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} sortConfig={{ key: query.sort ?? 'recent', direction: query.sortDirection ?? 'desc' }}/>
+        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={page?.items ?? []} key={`${api.organizationId}:${accessDenied}`} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} sortConfig={{ key: query.sort ?? 'recent', direction: query.sortDirection ?? 'desc' }}/>
         {page && page.totalPages > 1 ? <Pagination currentPage={page.page + 1} onPageChange={nextPage => setQuery(previous => ({ ...previous, page: nextPage - 1 }))} totalPages={page.totalPages}/> : null}
       </> : null}
     </div>

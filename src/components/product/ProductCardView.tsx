@@ -43,13 +43,14 @@ export function ProductCard({ image, onAddToCart, product, size = 'medium' }: { 
   const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
+  const hasCustomImage = Boolean(image ?? product.image)
   const imageSource = image ?? product.image ?? (part ? defaultPartProductImage : defaultProductImage)
 
   return (
     <article className={`product-card product-card--${size}`}>
       <div className="product-card__image">
         <img alt={product.image || image ? '' : part ? '기본 파트 상품 이미지' : '기본 RCPC 상품 이미지'} src={imageSource} />
-        {product.os?.includes("Windows") ? <img alt="Windows" className="product-card__windows-logo" src={windowsLogo} /> : null}
+        {hasCustomImage && product.os?.includes('Windows') ? <img alt="Windows" className="product-card__windows-logo" src={windowsLogo} /> : null}
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">

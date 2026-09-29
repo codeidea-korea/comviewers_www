@@ -15,6 +15,8 @@ export function extensionTarget(item: MyRcpcItem) {
   const spec = item.pcSpec
   return {
     rcpcId: item.productNo,
+    alias: item.preference.alias || undefined,
+    currentEnd: item.serviceEndExclusiveDate ?? undefined,
     location: item.serverRoomName ?? undefined,
     os: [spec?.osName, spec?.osVersion].filter(Boolean).join(' '),
     cpu: [spec?.cpuModel, spec?.cpuCores == null ? null : `${spec.cpuCores}코어`, spec?.cpuThreads == null ? null : `${spec.cpuThreads}스레드`].filter(Boolean).join(' · '),

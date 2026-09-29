@@ -18,7 +18,7 @@ export const checkoutQuoteSchema = z.object({
   benefits: z.enum(['unconnected', 'available']),
 })
 export type CheckoutQuote = z.infer<typeof checkoutQuoteSchema>
-export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
+export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
 export type CheckoutStartResult = import('@/api/ordersPayments').PreparedPayment
 export interface CheckoutRepository {
   quote(cartItemIds: readonly string[], signal?: AbortSignal, knownCartItems?: readonly CartItem[]): Promise<CheckoutQuote>
@@ -28,6 +28,7 @@ export interface CheckoutRepository {
   resume?(orderNo: string, key: string): Promise<CheckoutStartResult>
   refresh?(providerOrderId: string, key: string): Promise<import('@/api/ordersPayments').PaymentConfirmation>
   benefitQuote?(cartItemIds: readonly string[], userCouponId: number | null, pointAmount: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').OrderBenefitQuote>
+  directEasyPayMethods?(signal?: AbortSignal): Promise<import('@/api/ordersPayments').DirectEasyPayMethods>
   confirm?(body: import('@/api/ordersPayments').PaymentConfirmationRequest, key: string): Promise<import('@/api/ordersPayments').PaymentConfirmation>
 }
 export const checkoutQueryKeys = {

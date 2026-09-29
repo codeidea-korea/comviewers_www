@@ -28,15 +28,29 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const [couponId, setCouponId] = useState<number | null>(null)
   const [points, setPoints] = useState('0')
+  const [paymentAvailabilityError, setPaymentAvailabilityError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState<CheckoutAttempt | null>(null)
   const attemptRef = useRef<CheckoutAttempt | null>(null)
   const submitting = useRef(false)
   const windowAbort = useRef<AbortController | null>(null)
   useEffect(() => () => windowAbort.current?.abort(), [])
   const result = useCheckoutQuote(ids, !attempt)
+  const directEasyPayMethods = useQuery({ queryKey: ['checkout', 'direct-easy-pay-methods'],
+    queryFn: ({ signal }) => checkout.directEasyPayMethods!(signal), enabled: Boolean(checkout.directEasyPayMethods), retry: false })
+  const availableDirectEasyPay = directEasyPayMethods.data
   const benefits = useQuery({ queryKey: ['checkout', 'benefits', ids, couponId, Number(points)],
     queryFn: ({ signal }) => checkout.benefitQuote!(ids, couponId, Number(points), signal),
     enabled: Boolean(checkout.benefitQuote && result.data?.checkoutEligible && !attempt), retry: false })
+  const invalidDiscountSelection = benefits.error instanceof ApiClientError && benefits.error.code === 'C001'
+  function retryBenefitQuote() {
+    if (invalidDiscountSelection && (couponId !== null || Number(points) > 0)) {
+      // A new query key requests a fresh quote without resending the rejected discount values.
+      setCouponId(null)
+      setPoints('0')
+      return
+    }
+    void benefits.refetch()
+  }
   const benefitReady = !checkout.benefitQuote || Boolean(benefits.data && !benefits.isFetching && !benefits.isError)
   const productUnavailable = !attempt && benefits.error instanceof ApiClientError && benefits.error.code === 'OR001'
   const form = useCheckoutForm()
@@ -88,11 +102,17 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   } })
   async function submitOrder() {
     if (submitting.current) return
+    setPaymentAvailabilityError(null)
     let current = attemptRef.current
     if (!current) {
       const draft = form.validate()
       if (!draft || !result.data?.checkoutEligible || !benefits.data || !benefitReady || result.isFetching) return
-      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'global-card': 'card' } as const)[draft.payment]
+      if ((draft.payment === 'naver-pay' && !availableDirectEasyPay?.naverPay)
+        || (draft.payment === 'kakao-pay' && !availableDirectEasyPay?.kakaoPay)) {
+        setPaymentAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
+        return
+      }
+      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
       current = { quote: result.data, benefits: benefits.data, input: { cartItemIds: ids, contact: draft.contact, payment,
         cashReceiptType: draft.receiptType, cashReceiptIdentifier: draft.receiptIdentifier, userCouponId: couponId,
         pointAmount: Number(points), expectedFinalAmount: benefits.data.finalAmount, idempotencyKey: crypto.randomUUID() } }
@@ -117,10 +137,10 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
               {productUnavailable ? <div className="checkout-product-error">
                 <p role="alert">선택한 상품 중 현재 주문할 수 없는 상품이 있습니다. 장바구니에서 상품 상태를 다시 확인해 주세요.</p>
                 <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">장바구니로 이동</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인'}</Button></div>
-              </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={() => void benefits.refetch()} onReset={() => { setCouponId(null); setPoints('0') }} />}
+              </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
               {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
               <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} />{showReceipt && <CheckoutReceipt form={form} />}</fieldset>
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} refreshing={refreshing} locked={!!attempt} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} onPaymentChange={() => setPaymentAvailabilityError(null)} refreshing={refreshing} locked={!!attempt} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>
 }

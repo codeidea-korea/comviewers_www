@@ -22,7 +22,8 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
     setOpen(false)
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] }), client.invalidateQueries({ queryKey: ['productReviews', item.productNo] })])
   } })
-  if (item.reviewId || save.isSuccess) return <RelativeLink to={`/products/${encodeURIComponent(item.productNo)}#reviews`}>후기 보기</RelativeLink>
+  const reviewId = item.reviewId ?? save.data?.id
+  if (reviewId) return <RelativeLink to={`/products/${encodeURIComponent(item.productNo)}?reviewId=${encodeURIComponent(reviewId)}#reviews`}>후기 보기</RelativeLink>
   return <>
     <Button size="small" variant="secondary" onClick={() => setOpen(true)}>후기 작성</Button>
     <ProductReviewDialog

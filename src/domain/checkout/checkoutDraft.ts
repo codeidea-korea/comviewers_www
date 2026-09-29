@@ -8,7 +8,7 @@ export const checkoutDraftSchema = z.object({
     phone: z.string().trim().max(30).regex(/^(?:01[016789]-\d{4}-\d{4})?$/, '핸드폰 번호의 가운데와 끝자리를 각각 4자리로 입력해 주세요.'),
     messengerType: z.string().max(50), messengerId: z.string().max(100),
   }),
-  payment: z.enum(['virtual-account', 'card', 'payco', 'global-card'], { error: '결제수단을 선택해 주세요.' }),
+  payment: z.enum(['virtual-account', 'card', 'payco', 'naver-pay', 'kakao-pay', 'global-card'], { error: '결제수단을 선택해 주세요.' }),
   receiptType: z.enum(['not_requested', 'income_deduction', 'business_expense']),
   receiptIdentifier: z.string(),
   orderAgreed: z.literal(true, { error: '주문 내용 확인을 선택해 주세요.' }),

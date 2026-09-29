@@ -125,6 +125,13 @@ export function createCatalogApi(client: ApiClient) {
       const parsed = catalogProductNoSchema.parse(productNo)
       return client.request(`/api/v1/products/${encodeURIComponent(parsed)}`, catalogDetailSchema, { signal, authenticated: false })
     },
+    getReviewed(productNo: string, reviewId: string, organizationId: string, signal?: AbortSignal): Promise<CatalogDetail> {
+      const parsed = catalogProductNoSchema.parse(productNo)
+      const id = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(reviewId)
+      const customerOrganizationId = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(organizationId)
+      return client.request(`/api/v1/my/products/${encodeURIComponent(parsed)}/reviews/${id}`, catalogDetailSchema,
+        { signal, authenticated: true, customerOrganizationId })
+    },
     categories(signal?: AbortSignal): Promise<CatalogCategory[]> {
       return client.request('/api/v1/product-categories', z.array(catalogCategorySchema), { signal, authenticated: false })
     },

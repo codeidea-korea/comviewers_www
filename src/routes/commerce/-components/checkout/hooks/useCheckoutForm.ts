@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { z } from 'zod'
 import { checkoutDraftSchema } from '@/domain/checkout/checkoutDraft'
 
-export type PaymentMethod = '' | 'virtual-account' | 'card' | 'payco' | 'global-card'
+export type PaymentMethod = '' | 'virtual-account' | 'card' | 'payco' | 'naver-pay' | 'kakao-pay' | 'global-card'
 export type ReceiptType = 'not_requested' | 'income_deduction' | 'business_expense'
 export type CheckoutValidatedDraft = z.infer<typeof checkoutDraftSchema>
 export interface CheckoutContact {

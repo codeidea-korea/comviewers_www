@@ -59,6 +59,7 @@ export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadS
       title="기간연장 요청"
     >
       <p>배정된 RCPC의 기간연장 견적을 확인한 뒤 관리자에게 요청합니다. 결제와 최종 반영은 관리자 처리 대상입니다.</p>
+      <p>{item.preference.alias ? `${item.preference.alias} · ` : ''}품번 {item.productNo} · 현재 만료일 {item.serviceEndExclusiveDate ?? '-'}</p>
       <label>추가 단위
         <input min={1} max={10000} step={1} type="number" value={units} onChange={event => { setUnits(event.target.value); request.reset() }}/>
       </label>

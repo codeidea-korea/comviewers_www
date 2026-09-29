@@ -50,12 +50,16 @@ function ProductDetailContent() {
   const queryClient = useQueryClient()
   const { productId } = useParams()
   const location = useLocation()
-  const { data: product, isPending, isError, refetch } = useProductDetail(productId)
+  const reviewIdText = new URLSearchParams(location.search).get('reviewId')
+  const reviewId = reviewIdText && /^[1-9]\d{0,18}$/.test(reviewIdText) && BigInt(reviewIdText) <= 9223372036854775807n ? reviewIdText : undefined
+  const organizationId = session.status === 'authenticated' ? session.organizationId : null
+  const reviewMode = Boolean(reviewId && organizationId && products.getReviewed)
+  const { data: product, isPending, isError, refetch } = useProductDetail(productId, reviewMode ? reviewId : undefined, organizationId)
   const [message, setMessage] = useState('')
   const reviews = useProductReviews({ productId, onMessage: setMessage })
   const [cartPopupOpen, setCartPopupOpen] = useState(false)
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'guide' | 'reviews' | 'refund'>('guide')
+  const [activeTab, setActiveTab] = useState<'guide' | 'reviews' | 'refund'>(location.hash === '#reviews' ? 'reviews' : 'guide')
   const directPurchase = useMutation({
     mutationFn: async (rentalPeriods: number) => {
       return cart.add({ productNo: String(product?.productId ?? ''), rentalPeriods })
@@ -77,6 +81,12 @@ function ProductDetailContent() {
   useEffect(() => {
     if (cartAddition.isSuccess || cartAddition.isError) setCartPopupOpen(true)
   }, [cartAddition.isError, cartAddition.isSuccess])
+  useEffect(() => {
+    if (product && location.hash === '#reviews') {
+      setActiveTab('reviews')
+      document.getElementById('reviews')?.scrollIntoView({ block: 'start' })
+    }
+  }, [location.hash, product])
 
   if (isPending || isError) {
     return <AppShell><section className="not-ready-page product-detail-not-found"><div className="auth-panel auth-panel--result">{isPending ? <LoadingState label="상품을 불러오고 있습니다." /> : <div role="alert"><p>상품 정보를 불러오지 못했습니다.</p><Button onClick={() => refetch()}>다시 시도</Button></div>}</div></section></AppShell>
@@ -100,9 +110,11 @@ function ProductDetailContent() {
     <AppShell className="commerce-shell product-detail-page">
       <div className="content-container product-breadcrumb"><span>HOME</span><img alt="" src={chevronRightIcon} /><span>{product.pricingType === 'one_time' ? '파트 상품' : 'RCPC 상품'}</span></div>
       <ProductDetailHero key={product.id} product={product} message={message} cartPending={cartAddition.isPending} buyPending={directPurchase.isPending} onCart={(rentalPeriods) => {
+        if (reviewMode) return
         if (session.status !== 'authenticated') { setLoginRequiredOpen(true); return }
         cartAddition.add(String(product.productId), rentalPeriods)
       }} onBuy={(rentalPeriods) => {
+        if (reviewMode) return
         if (session.status !== 'authenticated') {
           void navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)
           return

@@ -23,6 +23,8 @@ export type OrderBenefitQuote = z.infer<typeof benefitQuote>
 const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: z.number().int().positive().safe() })
 const confirmation = z.object({ paymentId: id, orderId: z.string(), providerPaymentId: z.string(), status: z.string(), approved: z.boolean(), replayed: z.boolean(), virtualAccount: z.object({ bankCode: z.string(), accountNumber: z.string(), customerName: z.string().nullable(), dueDate: z.string() }).nullable() })
 const abandonment = z.object({ status: z.enum(['cancelled', 'pending', 'approved']) })
+const directEasyPayMethods = z.object({ naverPay: z.boolean(), kakaoPay: z.boolean() })
+export type DirectEasyPayMethods = z.infer<typeof directEasyPayMethods>
 export type PaymentAbandonment = z.infer<typeof abandonment>
 export type PaymentConfirmation = z.infer<typeof confirmation>
 export type PaymentConfirmationRequest = z.infer<typeof confirmationRequest>
@@ -30,6 +32,7 @@ export type PaymentConfirmationRequest = z.infer<typeof confirmationRequest>
 export function createOrdersPaymentsApi(client: ApiClient, organizationId: string) {
   const scoped = { authenticated: true, customerOrganizationId: organizationId } as const
   return {
+    directEasyPayMethods: (signal?: AbortSignal) => client.request('/api/v1/payments/direct-easy-pay-methods', directEasyPayMethods, { ...scoped, signal }),
     resume: (orderNo: string, key: string) => client.request('/api/v1/payments/resume', prepared, { ...scoped, method: 'POST', body: { orderNo, paymentMethod: 'card', cashReceiptType: 'not_requested', cashReceiptIdentifier: null }, idempotencyKey: z.uuidv4().parse(key) }),
     benefitQuote: (body: { cartItemIds: number[]; userCouponId: number | null; pointAmount: number }, signal?: AbortSignal) => client.request('/api/v1/orders/quote', benefitQuote, { ...scoped, method: 'POST', body, signal }),
     order: (body: unknown, key: string) => client.request('/api/v1/orders', order, { ...scoped, method: 'POST', body, idempotencyKey: `order:${z.uuid().parse(key)}` }),

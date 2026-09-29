@@ -24,12 +24,13 @@ const profileInputSchema = z.object({
   nickname: nicknameSchema,
   email: emailSchema,
   phone1: z.string().regex(/^\d{2,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone2: z.string().regex(/^(?:\d{4})?$/, '휴대폰 번호의 가운데 자리는 4자리로 입력해 주세요.'),
-  phone3: z.string().regex(/^(?:\d{4})?$/, '휴대폰 번호의 끝자리는 4자리로 입력해 주세요.'),
+  phone2: z.string().regex(/^\d*$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
+  phone3: z.string().regex(/^\d*$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
   messenger: z.string().max(50),
   messengerId: z.string().max(100),
 }).refine((value) => value.password === value.passwordConfirm, { message: '비밀번호가 일치하지 않습니다.', path: ['passwordConfirm'] })
   .refine((value) => Boolean(value.phone2) === Boolean(value.phone3), { message: '휴대폰 번호를 모두 입력해 주세요.', path: ['phone2'] })
+  .refine((value) => !value.phone2 || [value.phone1, value.phone2, value.phone3].join('-').length <= 30, { message: '휴대폰 번호는 30자 이하로 입력해 주세요.', path: ['phone2'] })
   .refine((value) => Boolean(value.messenger.trim()) === Boolean(value.messengerId.trim()), { message: '메신저 종류와 아이디를 함께 입력해 주세요.', path: ['messenger'] })
 
 function schemaMessage(schema: z.ZodType<string>, value: string): string | undefined {
@@ -51,8 +52,9 @@ function fieldValidationMessage(field: FieldErrorKey, profile: Profile): string 
     case 'phone':
       if (!profile.phone2 && !profile.phone3) return undefined
       if (!profile.phone2 || !profile.phone3) return '휴대폰 번호를 모두 입력해 주세요.'
-      return /^\d{2,4}$/.test(profile.phone1) && /^\d{4}$/.test(profile.phone2) && /^\d{4}$/.test(profile.phone3)
-        ? undefined : '휴대폰 번호의 가운데와 끝자리를 각각 4자리로 입력해 주세요.'
+      return /^\d{2,4}$/.test(profile.phone1) && /^\d+$/.test(profile.phone2) && /^\d+$/.test(profile.phone3)
+        && [profile.phone1, profile.phone2, profile.phone3].join('-').length <= 30
+        ? undefined : '휴대폰 번호는 숫자만 사용해 30자 이하로 입력해 주세요.'
     case 'messenger':
       if (Boolean(profile.messenger.trim()) !== Boolean(profile.messengerId.trim())) return '메신저 종류와 아이디를 함께 입력해 주세요.'
       if (profile.messenger.length > 50 || profile.messengerId.length > 100) return '메신저 정보를 입력 가능한 길이로 줄여 주세요.'

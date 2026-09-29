@@ -3,7 +3,7 @@ import type { DetailSelections, ProductPage } from '../../../domain/products/typ
 import type { CatalogFilterMetadata } from '@/api/catalog'
 import type { useProductList } from './hooks/useProductList'
 type FilterId = keyof DetailSelections
-type FilterMenuDefinition = { id: FilterId; label: string; count?: number } & ({ type: 'range'; options: string[] } | { type?: undefined; options: [string, number][] })
+type FilterMenuDefinition = { id: FilterId; label: string } & ({ type: 'range'; options: string[] } | { type?: undefined; options: [string, number][] })
 type SelectionProps = { selectedValues: string[]; onSelectionChange: (values: string[]) => void }
 type PriceRangeProps = SelectionProps & { priceBasis?: 'monthly' | 'unit'; unitBounds?: { min: number; max: number } }
 import { useEffect, useId, useState } from 'react'
@@ -14,7 +14,7 @@ import filterChevronBackwardIcon from '../../../assets/figma/filter-chevron-back
 const componentFilterSections: { title: string; menus: FilterMenuDefinition[] }[] = [
   {
     title: '이용 조건',
-    menus: [{ id: 'monthly-fee', label: '월 렌탈료', count: 1, type: 'range', options: ['전체', '일반 사양', '고사양', '전문가용'] }],
+    menus: [{ id: 'monthly-fee', label: '월 렌탈료', type: 'range', options: ['전체', '일반 사양', '고사양', '전문가용'] }],
   },
   {
     title: 'OS',
@@ -187,12 +187,13 @@ function FilterMenu({ menu, isOpen, onToggle, selectedValues, onSelectionChange,
   const isRange = menu.type === 'range'
   const optionLabels = menu.type === 'range' ? [] : menu.options.map(([label]) => label)
   const selected = selectedValues.length > 0
+  const selectedCount = isRange ? Number(selected) : selectedValues.length
   const toggleValue = (label: string, checked: boolean) => onSelectionChange(checked
     ? [...selectedValues, label].filter((value, index, values) => values.indexOf(value) === index)
     : selectedValues.filter((value) => value !== label))
 
   return (
-    <ProductFilterMenuFrame count={menu.count} id={menu.id} isOpen={isOpen} label={menu.label} onSelectAll={(checked) => onSelectionChange(checked ? (isRange ? ['100000'] : optionLabels) : [])} onToggle={onToggle} selected={selected}>
+    <ProductFilterMenuFrame count={selectedCount} id={menu.id} isOpen={isOpen} label={menu.label} onSelectAll={(checked) => onSelectionChange(checked ? (isRange ? ['100000'] : optionLabels) : [])} onToggle={onToggle} selected={selected}>
       {menu.type === 'range' ? (
         <ProductPriceRange onSelectionChange={onSelectionChange} selectedValues={selectedValues} />
       ) : (
@@ -236,7 +237,7 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
     const menuId = `catalog-${group.code}-${group.id}`
     const groupOptionIds = group.options.map(option => option.id)
     const selectedInGroup = groupOptionIds.filter(id => ids.includes(id))
-    return <ProductFilterMenuFrame id={menuId} isOpen={isMenuOpen(menuId)} key={group.id} label={group.name}
+    return <ProductFilterMenuFrame count={selectedInGroup.length} id={menuId} isOpen={isMenuOpen(menuId)} key={group.id} label={group.name}
       onSelectAll={(checked) => applyOptionIds(checked
         ? [...ids.filter(id => !groupOptionIds.includes(id)), ...groupOptionIds]
         : ids.filter(id => !groupOptionIds.includes(id)))}
@@ -259,7 +260,7 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
     {controls.filterMetadataPending ? <LoadingState className="route-loading--compact" label="검색 조건을 불러오고 있습니다." /> : null}
     {controls.filterMetadataError ? <p role="alert">검색 조건을 불러오지 못했습니다. <button className="product-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}>다시 시도</button></p> : null}
     <section className="product-filter__section"><h2>이용 조건</h2>
-      <ProductFilterMenuFrame count={1} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
+      <ProductFilterMenuFrame count={Number(selected.minPrice !== undefined || selected.maxPrice !== undefined)} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
         onSelectAll={(checked) => update({ priceBasis, minPrice: undefined, maxPrice: checked ? (priceBasis === 'unit' ? unitBounds?.max ?? 500000 : 100000) : undefined })}
         onToggle={() => toggleMenu(priceMenuId)} selected={selected.minPrice !== undefined || selected.maxPrice !== undefined}>
         <ProductPriceRange priceBasis={priceBasis} unitBounds={unitBounds} selectedValues={selected.minPrice === undefined && selected.maxPrice === undefined ? [] : [selected.minPrice === undefined ? '' : String(selected.minPrice), selected.maxPrice === undefined ? '' : String(selected.maxPrice)]}
@@ -272,7 +273,7 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
     {renderCategory('disk', 'DISK')}
     {renderCategory('gpu', 'GPU')}
     {selected.categoryCode !== 'parts' || gameGroups.length > 0 ? <section className="product-filter__section"><h2>이용 환경</h2>
-      {selected.categoryCode !== 'parts' ? <ProductFilterMenuFrame id={deviceMenuId} isOpen={isMenuOpen(deviceMenuId)} label="주변 기기"
+      {selected.categoryCode !== 'parts' ? <ProductFilterMenuFrame count={Number(selected.keyboardConnectionStatus === 'connected') + Number(selected.mouseConnectionStatus === 'connected')} id={deviceMenuId} isOpen={isMenuOpen(deviceMenuId)} label="주변 기기"
         onSelectAll={(checked) => update({ keyboardConnectionStatus: checked ? 'connected' : undefined, mouseConnectionStatus: checked ? 'connected' : undefined })}
         onToggle={() => toggleMenu(deviceMenuId)} selected={deviceSelected}>
         <div className="product-filter-options">

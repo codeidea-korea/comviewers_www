@@ -42,7 +42,7 @@ export function SignupTermsStep() {
   })
   const [ageAccepted, setAgeAccepted] = useState(false)
   const [accepted, setAccepted] = useState<Record<number, boolean>>({})
-  const [error, setError] = useState('')
+  const [showRequiredErrors, setShowRequiredErrors] = useState(false)
   const section = useRef<HTMLElement>(null)
   const availableTerms = terms.data ?? []
   const requiredAccepted = ageAccepted && availableTerms.length > 0
@@ -58,12 +58,12 @@ export function SignupTermsStep() {
   function goToProfile() {
     if (!requiredAccepted) {
       const missing = !ageAccepted ? 'age' : `term-${availableTerms.find(term => term.required && !accepted[term.termsPolicyVersionId])?.termsPolicyVersionId}`
-      setError('필수 약관과 연령 확인에 동의해 주세요.')
+      setShowRequiredErrors(true)
       const field = section.current?.querySelector<HTMLInputElement>(`input[name="${missing}"]`)
       field?.focus(); field?.scrollIntoView({ block: 'center' })
       return
     }
-    setError('')
+    setShowRequiredErrors(false)
     saveSignupAgreements(availableTerms.map((term) => ({
       termsPolicyVersionId: term.termsPolicyVersionId,
       agreed: Boolean(accepted[term.termsPolicyVersionId]),
@@ -84,15 +84,17 @@ export function SignupTermsStep() {
         <div className="terms-list">
           <div className="terms-item">
             <Checkbox checked={ageAccepted} name="age" onChange={(event) => setAgeAccepted(event.target.checked)} required>[필수] 만 14세 이상입니다.</Checkbox>
+            {showRequiredErrors && !ageAccepted ? <p className="terms-required-error" role="alert">만 14세 이상인지 확인해 주세요.</p> : null}
           </div>
           {availableTerms.map((term) => <div className="terms-item" key={term.termsPolicyVersionId}>
             <Checkbox checked={Boolean(accepted[term.termsPolicyVersionId])} name={`term-${term.termsPolicyVersionId}`}
               onChange={(event) => setAccepted((current) => ({ ...current, [term.termsPolicyVersionId]: event.target.checked }))}
               required={term.required}>{signupTermDisplayLabel(term.policyKey, term.name, term.required)}</Checkbox>
+            {showRequiredErrors && term.required && !accepted[term.termsPolicyVersionId]
+              ? <p className="terms-required-error" role="alert">{signupTermLabel(term.policyKey, term.name)}에 동의해 주세요.</p> : null}
             {term.required ? <div aria-label={`${signupTermLabel(term.policyKey, term.name)} 내용`} className="terms-copy" role="region" tabIndex={0}><TermsCopy content={term.content} /></div> : null}
           </div>)}
         </div>
-        <p aria-hidden={!error || requiredAccepted} className={`terms-required-error${error && !requiredAccepted ? '' : ' is-empty'}`} role={error && !requiredAccepted ? 'alert' : undefined}>{error || '\u00a0'}</p>
         <Button disabled={!api || !availableTerms.length || terms.isPending || terms.isError} onClick={goToProfile} size="large">다음</Button>
       </section>
     </AuthPanel></AuthPage>

@@ -94,7 +94,7 @@ function CheckoutPaymentResult() {
   </AppShell>
 }
 
-const paymentMethods: Record<string, string> = { card: '카드결제', virtual_account: '가상계좌', payco: '페이코' }
+const paymentMethods: Record<string, string> = { card: '카드결제', virtual_account: '가상계좌', payco: '페이코', naver_pay: '네이버페이', kakao_pay: '카카오페이' }
 
 export function checkoutCompleteUsagePeriod(item: AccountOrderItem, waitingForDeposit: boolean) {
   if (item.billingUnit === 'unit') return '-'

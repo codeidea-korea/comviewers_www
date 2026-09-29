@@ -6,14 +6,14 @@ const payloadSchema = z.object({
   sdkUrl: z.literal(sdkUrl), clientKey: z.string().min(1), customerKey: z.string().min(1),
   virtualAccountDueDate: z.string().nullable(),
   cashReceiptType: z.enum(['not_requested', 'income_deduction', 'business_expense']),
-  requestedPaymentMethod: z.enum(['card', 'virtual_account', 'payco']),
+  requestedPaymentMethod: z.enum(['card', 'virtual_account', 'payco', 'naver_pay', 'kakao_pay']),
   amount: z.object({ value: z.number().int().positive().safe(), currency: z.literal('KRW') }),
   paymentRequest: z.object({ orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), orderName: z.string().min(1).max(100),
     customerEmail: z.string().nullable(), customerName: z.string().nullable(), customerMobilePhone: z.string().nullable(), successUrl: z.url(), failUrl: z.url() }),
 })
 type Request = z.infer<typeof payloadSchema>['paymentRequest']
 type PaymentOptions =
-  | { method: 'CARD'; card: { flowMode: 'DEFAULT' } | { flowMode: 'DIRECT'; easyPay: 'PAYCO' } }
+  | { method: 'CARD'; card: { flowMode: 'DEFAULT' } | { flowMode: 'DIRECT'; easyPay: 'PAYCO' | 'NAVERPAY' | 'KAKAOPAY' } }
   | { method: 'VIRTUAL_ACCOUNT'; virtualAccount: { dueDate: string; cashReceipt: { type: '미발행' | '소득공제' | '지출증빙' } } }
 type PaymentWindow = {
   requestPayment(request: Omit<Request, 'customerEmail' | 'customerName' | 'customerMobilePhone'> & PaymentOptions & {
@@ -87,6 +87,8 @@ function paymentOptions(payload: z.infer<typeof payloadSchema>): PaymentOptions 
   switch (payload.requestedPaymentMethod) {
     case 'card': return { method: 'CARD', card: { flowMode: 'DEFAULT' } }
     case 'payco': return { method: 'CARD', card: { flowMode: 'DIRECT', easyPay: 'PAYCO' } }
+    case 'naver_pay': return { method: 'CARD', card: { flowMode: 'DIRECT', easyPay: 'NAVERPAY' } }
+    case 'kakao_pay': return { method: 'CARD', card: { flowMode: 'DIRECT', easyPay: 'KAKAOPAY' } }
     case 'virtual_account': {
       const dueDate = payload.virtualAccountDueDate
       if (!dueDate || !Number.isFinite(Date.parse(dueDate)) || Date.parse(dueDate) <= Date.now()) {
