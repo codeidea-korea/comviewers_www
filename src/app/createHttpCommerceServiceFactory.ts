@@ -5,6 +5,7 @@ import type { CartRepository } from '@/domain/cart/cartRepository'
 import type { CheckoutRepository } from '@/domain/checkout/checkoutRepository'
 import { createHttpProductRepository } from '@/domain/products/httpProductRepository'
 import { createHttpCartRepository } from '@/domain/cart/httpCartRepository'
+import { createGuestCartRepository, mergeGuestCartInto } from '@/domain/cart/guestCartRepository'
 import { createHttpCheckoutRepository } from '@/domain/checkout/httpCheckoutRepository'
 import type { ServiceFactory, ServiceScope } from './AppProviders'
 import type { Services } from './ServiceProvider'
@@ -29,6 +30,10 @@ export function createHttpCommerceServiceFactory(options: CommerceFactoryOptions
     const products = createHttpProductRepository(client)
     const other = options.createOtherServices(scope)
     const session = scope.session
+    const catalog = createCatalogApi(client)
+    if (session.status === 'anonymous') {
+      return { ...other, products, cart: createGuestCartRepository(catalog), checkout: unavailableCommerce('로그인이 필요합니다.').checkout }
+    }
     if (session.status !== 'authenticated' || !scope.getAccessToken()) {
       return { ...other, products, ...unavailableCommerce('로그인이 필요합니다.') }
     }
@@ -42,7 +47,19 @@ export function createHttpCommerceServiceFactory(options: CommerceFactoryOptions
       return { ...other, products, ...unavailableCommerce('대표 관리자만 장바구니와 주문서를 이용할 수 있습니다.') }
     }
     const api = createCartApi(client, session.organizationId)
-    const cart = createHttpCartRepository(api, createCatalogApi(client))
+    const accountCart = createHttpCartRepository(api, catalog)
+    let merging: Promise<void> | null = null
+    const ensureMerged = () => {
+      if (!merging) merging = mergeGuestCartInto(accountCart).finally(() => { merging = null })
+      return merging
+    }
+    const cart: CartRepository = {
+      list: async (signal) => { await ensureMerged(); return accountCart.list(signal) },
+      count: async (signal) => { await ensureMerged(); return accountCart.count(signal) },
+      add: async (input) => { await ensureMerged(); return accountCart.add(input) },
+      remove: async (ids) => { await ensureMerged(); return accountCart.remove(ids) },
+      changeQuantity: async (item, quantity) => { await ensureMerged(); return accountCart.changeQuantity(item, quantity) },
+    }
     return { ...other, products, cart, checkout: createHttpCheckoutRepository(api, cart, client, session.organizationId) }
   }
 }

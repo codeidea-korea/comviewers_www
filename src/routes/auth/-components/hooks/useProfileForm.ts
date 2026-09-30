@@ -11,8 +11,10 @@ type Profile = typeof emptyProfile
 type FieldErrorKey = 'loginId' | 'password' | 'passwordConfirm' | 'name' | 'nickname' | 'email' | 'phone' | 'messenger'
 type FieldErrors = Readonly<Partial<Record<FieldErrorKey, string>>>
 const fieldValidationOrder: readonly FieldErrorKey[] = ['loginId', 'password', 'passwordConfirm', 'name', 'nickname', 'email', 'phone', 'messenger']
-const loginIdSchema = z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.')
-const passwordSchema = z.string().regex(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.')
+const loginIdSchema = z.string().regex(/^[A-Za-z0-9_]{3,20}$/, '3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.')
+const passwordSchema = z.string()
+  .regex(/^[A-Za-z0-9!@#$%]*$/, '비밀번호에 사용할 수 없는 문자가 포함되어 있습니다. 영문, 숫자, 특수문자(!, @, #, $, %)만 사용해 주세요.')
+  .regex(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/, '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.')
 const nameSchema = z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.')
 const nicknameSchema = z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 한글, 영문, 숫자만 사용할 수 있습니다.')
 const emailSchema = z.email('이메일 주소를 확인해 주세요.').max(100, '이메일은 100자 이하로 입력해 주세요.')
@@ -24,13 +26,12 @@ const profileInputSchema = z.object({
   nickname: nicknameSchema,
   email: emailSchema,
   phone1: z.string().regex(/^\d{2,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone2: z.string().regex(/^\d*$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone3: z.string().regex(/^\d*$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
+  phone2: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 각 칸에 숫자 4자리 이하로 입력해 주세요.'),
+  phone3: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 각 칸에 숫자 4자리 이하로 입력해 주세요.'),
   messenger: z.string().max(50),
   messengerId: z.string().max(100),
 }).refine((value) => value.password === value.passwordConfirm, { message: '비밀번호가 일치하지 않습니다.', path: ['passwordConfirm'] })
   .refine((value) => Boolean(value.phone2) === Boolean(value.phone3), { message: '휴대폰 번호를 모두 입력해 주세요.', path: ['phone2'] })
-  .refine((value) => !value.phone2 || [value.phone1, value.phone2, value.phone3].join('-').length <= 30, { message: '휴대폰 번호는 30자 이하로 입력해 주세요.', path: ['phone2'] })
   .refine((value) => Boolean(value.messenger.trim()) === Boolean(value.messengerId.trim()), { message: '메신저 종류와 아이디를 함께 입력해 주세요.', path: ['messenger'] })
 
 function schemaMessage(schema: z.ZodType<string>, value: string): string | undefined {
@@ -52,9 +53,8 @@ function fieldValidationMessage(field: FieldErrorKey, profile: Profile): string 
     case 'phone':
       if (!profile.phone2 && !profile.phone3) return undefined
       if (!profile.phone2 || !profile.phone3) return '휴대폰 번호를 모두 입력해 주세요.'
-      return /^\d{2,4}$/.test(profile.phone1) && /^\d+$/.test(profile.phone2) && /^\d+$/.test(profile.phone3)
-        && [profile.phone1, profile.phone2, profile.phone3].join('-').length <= 30
-        ? undefined : '휴대폰 번호는 숫자만 사용해 30자 이하로 입력해 주세요.'
+      return /^\d{2,4}$/.test(profile.phone1) && /^\d{1,4}$/.test(profile.phone2) && /^\d{1,4}$/.test(profile.phone3)
+        ? undefined : '휴대폰 번호는 각 칸에 숫자 4자리 이하로 입력해 주세요.'
     case 'messenger':
       if (Boolean(profile.messenger.trim()) !== Boolean(profile.messengerId.trim())) return '메신저 종류와 아이디를 함께 입력해 주세요.'
       if (profile.messenger.length > 50 || profile.messengerId.length > 100) return '메신저 정보를 입력 가능한 길이로 줄여 주세요.'
@@ -107,7 +107,9 @@ export function useProfileForm() {
     if (signupCoordinator.awaitingEmail) setNotice('회원정보가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
     else if (name === 'loginId') setNotice('')
     signupCoordinator.cancel()
-    const nextProfile = { ...profile, [name]: value }
+    const nextValue = name === 'name' || name === 'nickname' ? value.slice(0, 18)
+      : name === 'phone2' || name === 'phone3' ? value.replace(/\D/g, '').slice(0, 4) : value
+    const nextProfile = { ...profile, [name]: nextValue }
     setProfile(nextProfile)
     setFieldErrors((current) => affectedFields(name, nextProfile, current).reduce<FieldErrors>((next, field) => ({
       ...next,
@@ -123,7 +125,7 @@ export function useProfileForm() {
   async function checkUsername() {
     if (busy || !api) return
     if (!/^[A-Za-z0-9_]{3,20}$/.test(profile.loginId)) {
-      setFieldErrors((current) => ({ ...current, loginId: '아이디는 3~20자의 영문, 숫자, 밑줄만 사용할 수 있습니다.' }))
+      setFieldErrors((current) => ({ ...current, loginId: '3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.' }))
       return
     }
     setBusy(true); setError(''); setNotice(''); setCheckedUsername(''); setUsernameFeedback(null)

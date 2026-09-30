@@ -8,7 +8,7 @@ export const cartItemSchema = z.object({
   rowKind: z.enum(['partner', 'connected', 'normal', 'waiting']),
   label: z.string().min(1),
   productId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/),
-  source: z.enum(['mock', 'api']).default('mock'),
+  source: z.enum(['mock', 'api', 'guest']).default('mock'),
   billingUnit: z.enum(['thirty_day', 'day', 'hour', 'unit']).default('thirty_day'),
   durationUnits: z.number().int().positive().safe().nullable().default(null),
   instantAvailable: z.boolean().nullable().default(null),
@@ -28,7 +28,7 @@ export const cartItemSchema = z.object({
   quantity: z.number().int().positive().safe(),
   minimumQuantity: z.number().int().positive().safe().default(1),
   maximumQuantity: z.number().int().nonnegative().safe().nullable(),
-}).refine((item) => item.source === 'api' || item.maximumQuantity === null || (item.durationUnits ?? item.quantity) <= item.maximumQuantity, {
+}).refine((item) => item.source !== 'mock' || item.maximumQuantity === null || (item.durationUnits ?? item.quantity) <= item.maximumQuantity, {
   message: '선택 가능한 수량을 초과했습니다.', path: ['quantity'],
 }).refine((item) => (item.setupFee === null || item.rentalFee === null || Number.isSafeInteger(item.setupFee + item.rentalFee * item.quantity * (item.durationUnits ?? 1))), {
   message: '계산 가능한 금액 범위를 초과했습니다.', path: ['quantity'],

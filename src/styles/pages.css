@@ -152,7 +152,6 @@
 .social-button--kakao .social-button__icon { background: #fee500; }
 .auth-notice { color: var(--color-blue-500); font-size: 14px; line-height: 20px; margin-top: 16px; text-align: center; }
 .auth-notice--error { color: var(--color-system-error); }
-.auth-form--login > .auth-notice--error { text-align: left; }
 .terms-section { display: flex; flex-direction: column; gap: 20px; }
 .terms-section h2, .profile-form h2 { font-size: 18px; font-weight: 500; letter-spacing: -.36px; line-height: 24px; }
 .terms-section h2 { transform: translateY(-1px); }
@@ -162,14 +161,13 @@
 .terms-list > div { align-items: flex-start; display: flex; flex-direction: column; width: 100%; }
 .terms-list .auth-checkbox { color: var(--color-gray-800); letter-spacing: -.28px; }
 .terms-list .auth-checkbox > span:last-child { transform: translateY(-1px); }
-.terms-required-error { color: var(--color-system-error); font-size: 14px; letter-spacing: -.28px; line-height: 17px; margin-left: 26px; margin-top: 3px; }
+.terms-required-error { color: var(--color-system-error); font-size: 14px; letter-spacing: -.28px; line-height: 17px; margin-left: auto; margin-top: 3px; text-align: right; }
 .terms-required-error.is-empty { visibility: hidden; }
 .terms-copy { border: 1px solid var(--color-gray-200); border-radius: var(--radius-sm); color: var(--color-gray-500); font-size: 14px; height: 116px; letter-spacing: -.28px; line-height: 17px; margin-left: 26px; margin-top: 3px; overflow-y: auto; padding: 7px 12px 8px 8px; position: relative; scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; width: calc(100% - 26px); }
 .terms-copy p { margin: 0; }
 .terms-copy::-webkit-scrollbar { width: 8px; }
 .terms-copy::-webkit-scrollbar-track { background: transparent; }
 .terms-copy::-webkit-scrollbar-thumb { background: var(--color-gray-400); background-clip: padding-box; border: 2px solid transparent; border-radius: 999px; min-height: 22px; }
-.terms-required-error + .terms-copy { margin-top: 4px; }
 .profile-form { gap: 20px; }
 .profile-image-field { display: flex; flex-direction: column; }
 .profile-image-field > span { color: var(--color-gray-600); font-size: 14px; line-height: 24px; }

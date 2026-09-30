@@ -21,17 +21,14 @@ const formSchema = z.object({
   name: z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.'),
   nickname: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 문자와 숫자만 사용할 수 있습니다.'),
   phone1: z.string().regex(/^\d{2,4}$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone2: z.string().regex(/^\d*$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
-  phone3: z.string().regex(/^\d*$/, '휴대폰 번호는 숫자만 입력해 주세요.'),
+  phone2: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 각 칸에 숫자 4자리 이하로 입력해 주세요.'),
+  phone3: z.string().regex(/^\d{0,4}$/, '휴대폰 번호는 각 칸에 숫자 4자리 이하로 입력해 주세요.'),
   messengerType: z.string().max(50), messengerId: z.string().max(100),
 }).refine(value => Boolean(value.messengerType.trim()) === Boolean(value.messengerId.trim()), {
   message: '메신저 종류와 ID를 함께 입력해 주세요.',
   path: ['messengerType'],
 }).refine(value => Boolean(value.phone2) === Boolean(value.phone3), {
   message: '휴대폰 번호를 모두 입력해 주세요.',
-  path: ['phone2'],
-}).refine(value => !value.phone2 || [value.phone1, value.phone2, value.phone3].join('-').length <= 30, {
-  message: '휴대폰 번호는 30자 이하로 입력해 주세요.',
   path: ['phone2'],
 })
 
@@ -124,7 +121,7 @@ export function SocialSignupProfileStep() {
       <TextField label="이름" name="name" maxLength={18} onChange={(event) => setName(event.target.value)} placeholder={context.data.name ?? '이름 입력'} required value={name} />
       <TextField label="닉네임" name="nickname" maxLength={18} onChange={(event) => setNickname(event.target.value)} required value={nickname} />
       <fieldset className="email-field"><legend><span className="required-mark">*</span>E-mail</legend><div className="email-field__row"><input aria-label="이메일 아이디" readOnly value={context.data.email.split('@')[0] ?? ''} /><span>@</span><input aria-label="이메일 도메인" readOnly value={context.data.email.split('@')[1] ?? ''} /><NativeSelect aria-label="이메일 도메인 선택" disabled value={context.data.email.split('@')[1] ?? ''}><option>{context.data.email.split('@')[1] ?? ''}</option></NativeSelect></div></fieldset>
-      <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" name="phone-prefix" onChange={event => setPhone1(event.target.value)} value={phone1}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" name="phone-middle" onChange={event => setPhone2(event.target.value.replace(/\D/g, ''))} value={phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" name="phone-last" onChange={event => setPhone3(event.target.value.replace(/\D/g, ''))} value={phone3} /></div></fieldset>
+      <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" name="phone-prefix" onChange={event => setPhone1(event.target.value)} value={phone1}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" maxLength={4} name="phone-middle" onChange={event => setPhone2(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" maxLength={4} name="phone-last" onChange={event => setPhone3(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone3} /></div></fieldset>
       <fieldset className="split-field split-field--messenger"><legend>메신저 ID</legend><div><NativeSelect aria-label="메신저 선택" name="messengerType" value={messengerType} onChange={event => setMessengerType(event.target.value)}><option value="">메신저 선택</option>{messengerOptions.map(option => <option key={option} value={option}>{messengerOptionLabel(option)}</option>)}</NativeSelect><input aria-label="메신저 아이디" maxLength={100} name="messengerId" onChange={event => setMessengerId(event.target.value)} value={messengerId}/></div></fieldset>
       {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
       <Button disabled={busy} size="large" type="submit">{busy ? '처리 중' : '회원가입'}</Button>

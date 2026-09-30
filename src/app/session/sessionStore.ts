@@ -29,7 +29,7 @@ export interface SessionStore {
   establishCustomerSession(response: unknown, context: { expectedRevision: number; organizationId: string }): void
   failCustomerSession(context: { expectedRevision: number; organizationId: string }): void
   /** Pass verified server data; capture expectedRevision before starting the login request. Stale responses never alter the current session. */
-  establishFromVerifiedResponse(response: unknown, context: { expectedRevision: number; receivedAt: number; organizationIds?: readonly string[]; organizations?: readonly SessionOrganization[] }): void
+  establishFromVerifiedResponse(response: unknown, context: { expectedRevision: number; receivedAt: number; organizationIds?: readonly string[]; organizations?: readonly SessionOrganization[]; preferredOrganizationId?: string | null; preserveVerifiedOrganizations?: boolean }): void
 }
 
 export function createSessionStore(): SessionStore {
@@ -88,11 +88,17 @@ export function createSessionStore(): SessionStore {
       if (state.status !== 'authenticated' || state.revision !== expectedRevision || state.organizationId !== organizationId) return
       publish({ ...state, customerSession: null, capabilityStatus: 'error', revision: state.revision + 1 }, accessToken)
     },
-    establishFromVerifiedResponse(response, { expectedRevision, receivedAt, organizationIds, organizations }) {
+    establishFromVerifiedResponse(response, { expectedRevision, receivedAt, organizationIds, organizations, preferredOrganizationId, preserveVerifiedOrganizations }) {
       if (expectedRevision !== state.revision) throw new Error('이전 로그인 요청입니다. 다시 시도해 주세요.')
       const result = loginSchema.safeParse(response)
-      const details = organizationsSchema.safeParse(organizations ?? [])
-      const memberships = organizationIdsSchema.safeParse(organizationIds ?? (details.success ? details.data.map(item => item.id) : []))
+      const previous = state.status === 'authenticated' ? state : null
+      const sameAccount = Boolean(result.success && previous && result.data.userId === previous.userId && result.data.role === previous.role)
+      if (preserveVerifiedOrganizations && organizations === undefined && organizationIds === undefined && !sameAccount) {
+        logout(); throw new Error('갱신된 계정을 확인할 수 없습니다.')
+      }
+      const reuseOrganizations = Boolean(preserveVerifiedOrganizations && sameAccount && organizations === undefined && organizationIds === undefined)
+      const details = organizationsSchema.safeParse(organizations ?? (reuseOrganizations && previous ? previous.organizations : []))
+      const memberships = organizationIdsSchema.safeParse(organizationIds ?? (reuseOrganizations && previous ? previous.organizationIds : details.success ? details.data.map(item => item.id) : []))
       const consistent = organizations === undefined || (details.success && memberships.success && details.data.length === memberships.data.length && details.data.every(item => memberships.data.includes(item.id)))
       if (!result.success || !memberships.success || !details.success || !consistent || !Number.isSafeInteger(receivedAt) || receivedAt < 0 || receivedAt > Date.now()) { logout(); throw new Error('로그인 응답을 확인할 수 없습니다.') }
       const data = result.data
@@ -106,8 +112,15 @@ export function createSessionStore(): SessionStore {
         || data.expiresInMs <= 0 || expiresAt <= Date.now() || !Number.isSafeInteger(expiresAt)) {
         logout(); throw new Error('로그인 응답을 확인할 수 없습니다.')
       }
-      const selectedOrganizationId = memberships.data.length === 1 ? memberships.data[0] : null
-      publish({ ...identity, status: 'authenticated', expiresAt, customerSession: null, capabilityStatus: selectedOrganizationId ? 'pending' : 'unselected',
+      const selectedOrganizationId = preferredOrganizationId && memberships.data.includes(preferredOrganizationId)
+        ? preferredOrganizationId : memberships.data.length === 1 ? memberships.data[0] : null
+      const previousOrganization = previous?.organizations.find(item => item.id === selectedOrganizationId)
+      const renewedOrganization = details.data.find(item => item.id === selectedOrganizationId)
+      const preserveCapability = Boolean(sameAccount && previous && selectedOrganizationId === previous.organizationId
+        && previousOrganization?.role === renewedOrganization?.role)
+      publish({ ...identity, status: 'authenticated', expiresAt,
+        customerSession: preserveCapability && previous ? previous.customerSession : null,
+        capabilityStatus: preserveCapability && previous ? previous.capabilityStatus : selectedOrganizationId ? 'pending' : 'unselected',
         organizations: Object.freeze(details.data.map(item => Object.freeze({ ...item }))),
         organizationIds: Object.freeze([...memberships.data]), organizationId: selectedOrganizationId }, data.accessToken)
     },

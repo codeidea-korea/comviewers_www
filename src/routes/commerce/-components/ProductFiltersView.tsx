@@ -87,51 +87,70 @@ function priceSelectionValue(value?: string) {
 }
 
 function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'monthly', unitBounds }: PriceRangeProps) {
-  const inputId = useId()
+  const minInputId = useId()
+  const maxInputId = useId()
   const selectedMinAmount = selectedValues.length > 1 ? priceSelectionValue(selectedValues[0]) : undefined
-  const selectedAmount = selectedValues.length > 1 ? priceSelectionValue(selectedValues[1]) : priceSelectionValue(selectedValues[0])
+  const selectedMaxAmount = selectedValues.length > 1 ? priceSelectionValue(selectedValues[1]) : priceSelectionValue(selectedValues[0])
   const unitMin = unitBounds?.min ?? 0
   const unitMax = Math.max(unitMin + 1, unitBounds?.max ?? 500000)
   const unitStep = unitMax - unitMin < 1000 ? 1 : 1000
-  const selectedPercent = priceBasis === 'unit'
-    ? selectedAmount !== undefined ? Math.max(0, Math.min(100, (selectedAmount - unitMin) / (unitMax - unitMin) * 100)) : 100
-    : selectedAmount !== undefined && selectedAmount > 0
-      ? Math.max(0, Math.min(100, selectedAmount <= 100000 ? (selectedAmount - 30000) / 70000 * 60 : 60 + (selectedAmount - 100000) / 400000 * 40))
-      : PRICE_RANGE_INITIAL_PERCENT
-  const [draftPercent, setDraftPercent] = useState<number | null>(null)
-  useEffect(() => { setDraftPercent(null) }, [selectedAmount, selectedMinAmount, priceBasis])
-  const percent = draftPercent ?? selectedPercent
+  const percentFromAmount = (amount: number) => priceBasis === 'unit'
+    ? Math.max(0, Math.min(100, (amount - unitMin) / (unitMax - unitMin) * 100))
+    : Math.max(0, Math.min(100, amount <= 100000 ? (amount - 30000) / 70000 * 60 : 60 + (amount - 100000) / 400000 * 40))
+  const selectedMinPercent = selectedMinAmount === undefined ? 0 : percentFromAmount(selectedMinAmount)
+  const selectedMaxPercent = selectedMaxAmount === undefined ? (priceBasis === 'unit' || selectedMinAmount !== undefined ? 100 : PRICE_RANGE_INITIAL_PERCENT) : percentFromAmount(selectedMaxAmount)
+  const [draftRange, setDraftRange] = useState<{ min: number; max: number } | null>(null)
+  useEffect(() => { setDraftRange(null) }, [selectedMaxAmount, selectedMinAmount, priceBasis])
+  const minPercent = draftRange?.min ?? selectedMinPercent
+  const maxPercent = draftRange?.max ?? selectedMaxPercent
   const amountFromPercent = (value: number) => priceBasis === 'unit'
     ? Math.min(unitMax, Math.max(unitMin, Math.round((unitMin + (unitMax - unitMin) * value / 100) / unitStep) * unitStep))
     : priceFromRangePercent(value)
-  const amount = amountFromPercent(percent)
-  const formattedAmount = amount.toLocaleString('ko-KR')
-  const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && preset.min === selectedMinAmount && preset.max === selectedAmount)?.label ?? '전체'
-  const commitAmount = (nextPercent: number) => {
-    const nextAmount = amountFromPercent(nextPercent)
-    if (nextAmount !== selectedAmount || selectedValues.length === 0 || selectedMinAmount !== undefined) onSelectionChange([String(nextAmount)])
-    else setDraftPercent(null)
+  const minAmount = amountFromPercent(minPercent)
+  const maxAmount = amountFromPercent(maxPercent)
+  const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && preset.min === selectedMinAmount && preset.max === selectedMaxAmount)?.label ?? '전체'
+  const commitRange = (handle: 'min' | 'max', percent: number) => {
+    if (draftRange === null) return
+    const nextMin = amountFromPercent(handle === 'min' ? percent : draftRange.min)
+    const nextMax = amountFromPercent(handle === 'max' ? percent : draftRange.max)
+    setDraftRange(null)
+    onSelectionChange([String(Math.min(nextMin, nextMax)), String(Math.max(nextMin, nextMax))])
   }
 
   return (
     <>
       <div className="product-filter-price"><span>{priceBasis === 'unit' ? unitMin.toLocaleString('ko-KR') : '30,000'}원</span><span>{priceBasis === 'unit' ? unitMax.toLocaleString('ko-KR') : '500,000'}원</span></div>
-      <div className="product-filter-range" style={{ '--range-percent': `${percent}%` } as CSSProperties}>
+      <div className="product-filter-range" style={{ '--range-min-percent': `${minPercent}%`, '--range-max-percent': `${maxPercent}%`, '--range-label-percent': `${(minPercent + maxPercent) / 2}%` } as CSSProperties}>
         <input
-          aria-label={priceBasis === 'unit' ? '상품 금액 범위' : '월 렌탈료 범위'}
-          aria-valuetext={`${formattedAmount}원`}
-          id={inputId}
+          aria-label={priceBasis === 'unit' ? '상품 최소 금액' : '월 최소 렌탈료'}
+          aria-valuetext={`${minAmount.toLocaleString('ko-KR')}원`}
+          className="product-filter-range__min-input"
+          id={minInputId}
           max="100"
           min="0"
-          onChange={(event) => setDraftPercent(Number(event.target.value))}
-          onPointerUp={(event) => { if (draftPercent !== null) commitAmount(Number(event.currentTarget.value)) }}
-          onKeyUp={(event) => { if (draftPercent !== null) commitAmount(Number(event.currentTarget.value)) }}
-          onBlur={(event) => { if (draftPercent !== null) commitAmount(Number(event.currentTarget.value)) }}
+          onChange={(event) => { const next = Number(event.target.value); setDraftRange({ min: next, max: Math.max(next, maxPercent) }) }}
+          onPointerUp={(event) => commitRange('min', Number(event.currentTarget.value))}
+          onKeyUp={(event) => commitRange('min', Number(event.currentTarget.value))}
+          onBlur={(event) => commitRange('min', Number(event.currentTarget.value))}
           type="range"
-          value={percent}
+          value={minPercent}
         />
-        <span aria-hidden="true" className="product-filter-range__track"><i className="is-min" /><i className="is-active" /><i className="is-selected" /><i className="is-inactive" /></span>
-        <output htmlFor={inputId}>{formattedAmount}</output>
+        <input
+          aria-label={priceBasis === 'unit' ? '상품 최대 금액' : '월 최대 렌탈료'}
+          aria-valuetext={`${maxAmount.toLocaleString('ko-KR')}원`}
+          className="product-filter-range__max-input"
+          id={maxInputId}
+          max="100"
+          min="0"
+          onChange={(event) => { const next = Number(event.target.value); setDraftRange({ min: Math.min(next, minPercent), max: next }) }}
+          onPointerUp={(event) => commitRange('max', Number(event.currentTarget.value))}
+          onKeyUp={(event) => commitRange('max', Number(event.currentTarget.value))}
+          onBlur={(event) => commitRange('max', Number(event.currentTarget.value))}
+          type="range"
+          value={maxPercent}
+        />
+        <span aria-hidden="true" className="product-filter-range__track"><i className="is-before" /><i className="is-min" /><i className="is-active" /><i className="is-selected" /><i className="is-inactive" /></span>
+        <output htmlFor={maxInputId}>{minAmount.toLocaleString('ko-KR')}원 ~ {maxAmount.toLocaleString('ko-KR')}원</output>
       </div>
       {priceBasis === 'monthly' ? <div aria-label="월 렌탈료 사양 선택" className="product-filter-pills" role="group">
         {PRICE_RANGE_PRESETS.map((preset) => (
@@ -140,7 +159,7 @@ function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'mo
             className={activePreset === preset.label ? 'is-active' : ''}
             key={preset.label}
             onClick={() => {
-              setDraftPercent(null)
+              setDraftRange(null)
               onSelectionChange(preset.min === undefined || preset.max === undefined ? [] : [String(preset.min), String(preset.max)])
             }}
             type="button"

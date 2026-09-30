@@ -13,7 +13,7 @@ import { pendingSocialLink } from './socialLinkIntent'
 
 const rememberedIdKey = 'comviewers.login.remembered-id'
 function readRememberedId() {
-  try { return restoreRememberedLoginId(localStorage.getItem(rememberedIdKey)) }
+  try { return restoreRememberedLoginId(localStorage.getItem(rememberedIdKey)).slice(0, 20) }
   catch { return '' }
 }
 
@@ -70,6 +70,7 @@ export function LoginPage() {
             autoComplete="username"
             helperText="3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다."
             label="아이디"
+            maxLength={20}
             onChange={(event) => setLoginId(event.target.value)}
             placeholder="로그인 아이디를 입력해 주세요."
             required
@@ -80,6 +81,7 @@ export function LoginPage() {
             helperText="8~16자의 영문, 숫자, 특수문자(!, @, #, $, %, )만 사용할 수 있습니다."
             label="비밀번호"
             displayAsText={false}
+            maxLength={16}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="비밀번호를 입력해 주세요."
             required

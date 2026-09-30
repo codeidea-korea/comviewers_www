@@ -149,6 +149,11 @@
 .modal__content { color: var(--color-black); font-size: 18px; letter-spacing: -.36px; line-height: 24px; padding: 30px 0 40px; }
 .modal__actions { display: flex; gap: 12px; justify-content: flex-end; }
 .modal__actions .button { flex: 1; }
+.modal--telegram-support .modal__content { padding-bottom: 20px; }
+.telegram-support__actions { display: grid; gap: 12px; margin: 20px 0; }
+.telegram-support__actions .button { width: 100%; }
+.telegram-support__hint { color: var(--color-gray-600); font-size: 16px; line-height: 24px; margin-bottom: 12px; }
+.telegram-support__message { font-size: 14px; min-height: 20px; margin-top: 8px; }
 .modal--wide { max-width: 720px; }
 .modal--order-purchase { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
 .modal--order-purchase > .modal__content { min-height: 0; overflow-y: auto; overflow-wrap: break-word; word-break: keep-all; }

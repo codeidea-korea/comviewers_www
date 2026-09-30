@@ -53,7 +53,7 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
   }
   const post = (path: string, body?: unknown, accessToken?: string | null) => request('POST', path, body, accessToken)
   let restoreInFlight: Promise<AuthResult> | null = null
-  async function establishResult(result: { data: unknown; receivedAt: number }, allowPasswordChange: boolean, expectedRole?: 'USER' | 'C_MANAGER'): Promise<AuthResult> {
+  async function establishResult(result: { data: unknown; receivedAt: number }, allowPasswordChange: boolean, expectedRole?: 'USER' | 'C_MANAGER', background = false): Promise<AuthResult> {
       const login = loginResponseSchema.safeParse(result.data)
       if (!login.success || (expectedRole && login.data.role !== expectedRole) || (!allowPasswordChange && login.data.passwordChangeRequired)) {
         // A valid cookie may already have been issued for an account this application cannot accept.
@@ -66,6 +66,9 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
         const organizations = await client.request('/api/v1/my/organizations', organizationsSchema, { authenticated: true })
         return { response: login.data, receivedAt: result.receivedAt, organizations, organizationIds: organizations.map((organization) => organization.id) }
       } catch (error) {
+        if (background && !(error instanceof ApiClientError && (error.status === 401 || error.status === 403))) {
+          return { response: login.data, receivedAt: result.receivedAt }
+        }
         try { await post('/api/auth/logout') } catch { throw new ApiClientError('network') }
         throw error
       }
@@ -89,9 +92,9 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
       }
       return result
     },
-    restore() {
+    restore(options) {
       if (restoreInFlight) return restoreInFlight
-      const operation = post('/api/auth/refresh').then(result => establishResult(result, false))
+      const operation = post('/api/auth/refresh').then(result => establishResult(result, false, undefined, options?.background))
       restoreInFlight = operation
       const clear = () => { if (restoreInFlight === operation) restoreInFlight = null }
       void operation.then(clear, clear)

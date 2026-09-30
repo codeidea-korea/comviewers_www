@@ -15,15 +15,17 @@ type Props = {
   rcpcApi: MyRcpcReadServices
   initialIds: readonly number[]
   initialProductNo: string
+  fixedTarget?: boolean
   onClose: () => void
   onCreated: (id: number) => Promise<void>
 }
 
 const requestCodes = ['as_request', 'setup_change', 'refund_cancel', 'inquiry'] as const
 
-export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, onClose, onCreated }: Props) {
+export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, fixedTarget = false, onClose, onCreated }: Props) {
   const session = useSession()
-  const [step, setStep] = useState<'product' | 'type' | 'write'>('product')
+  const hasFixedTarget = fixedTarget && initialIds.length > 0 && initialIds.length <= 20
+  const [step, setStep] = useState<'product' | 'type' | 'write'>(hasFixedTarget ? 'type' : 'product')
   const [selectedIds, setSelectedIds] = useState<readonly number[]>(initialIds)
   const [typeIndex, setTypeIndex] = useState<number | null>(null)
   const [typeNotice, setTypeNotice] = useState('')
@@ -40,12 +42,14 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const selectedProducts = selectedIndexes
     .map((index) => products[index])
     .filter((item): item is InquiryChoice => Boolean(item))
+    .filter((item, index, items) => items.findIndex(candidate => candidate.rcpcId === item.rcpcId) === index)
     .slice(0, 20)
   const codes = requestCodes
   const selectedCode = typeIndex === null ? undefined : codes[typeIndex]
   const create = useMutation({
     mutationFn: () => {
       if (!selectedCode || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
+      if (hasFixedTarget && selectedProducts.length !== initialIds.length) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
       return api.create({
         requestType: selectedCode,
         title: inquiryTypes[selectedCode],
@@ -78,11 +82,16 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
 
   if (step === 'type') return <InquiryTypeChoicePopup backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-type" onClose={close}>
     <TypeChoiceContent
-      onBack={() => setStep('product')}
+      onBack={() => hasFixedTarget ? close() : setStep('product')}
+      backLabel={hasFixedTarget ? '닫기' : '이전'}
       onClose={close}
       notice={typeNotice}
       onNext={() => {
         if (!selectedCode) return
+        if (hasFixedTarget && selectedProducts.length !== initialIds.length) {
+          setTypeNotice(rcpcs.isPending ? '문의 대상 RCPC를 확인하고 있습니다.' : '문의 대상 RCPC를 확인할 수 없습니다. 다시 시도해 주세요.')
+          return
+        }
         if (selectedProducts.length === 0 && selectedCode !== 'inquiry') {
           setTypeNotice('선택한 문의 유형은 문의 상품을 선택해 주세요.')
           return
@@ -109,7 +118,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
         pending: create.isPending,
         onMessageChange: setMessage,
         onSend: () => {
-          if (!create.isPending && !submitting.current && selectedCode && (selectedProducts.length > 0 || selectedCode === 'inquiry') && message.trim()) {
+          if (!create.isPending && !submitting.current && selectedCode && (!hasFixedTarget || selectedProducts.length === initialIds.length) && (selectedProducts.length > 0 || selectedCode === 'inquiry') && message.trim()) {
             submitting.current = true
             create.mutate()
           }

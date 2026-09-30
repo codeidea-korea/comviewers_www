@@ -158,8 +158,7 @@
 .rcpc-list-page .mypage-tabs { margin: 0; }
 .rcpc-list-page .mypage-toolbar { height: 40px; }
 .rcpc-list-page .mypage-toolbar > strong { color: var(--color-gray-600); font-weight: 400; }.rcpc-list-page .mypage-toolbar > strong b { color: var(--color-black); font-size: 14px; font-weight: 400; }.rcpc-list-page .mypage-toolbar select { border: 0; height: 24px; min-width: 180px; padding: 0 8px; }
-.rcpc-list--table { height: 840px; }
-.rcpc-list--table:has(> .mypage-table__empty) { height: auto; }
+.rcpc-list--table { height: auto; }
 .rcpc-list--table > .mypage-table__empty,
 .mobile-rcpc-list > .mypage-table__empty { align-items: center; border-bottom: 1px solid var(--color-gray-200); color: var(--color-gray-500); display: flex; justify-content: center; margin: 0; min-height: 150px; padding: 24px; text-align: center; }
 .rcpc-list__header,.rcpc-list--table > article { display: grid; grid-template-columns: 150px 100px 100px 100px 223px 80px 223px; }
@@ -169,7 +168,7 @@
 .rcpc-list__product > input[type="checkbox"] { align-self: center; margin: 0; }
 .mobile-rcpc-card > header > input[type="checkbox"] { flex: 0 0 auto; margin: 0 6px 0 0; }
 .rcpc-list__header { align-items: center; background: var(--color-gray-50); color: var(--color-gray-700); font-size: 14px; height: 40px; letter-spacing: -.42px; text-align: center; }.rcpc-list__header > span { align-items: center; display: flex; gap: 4px; justify-content: center; }.rcpc-sort { height: 14px; position: relative; width: 10px; }.rcpc-sort::before,.rcpc-sort::after { border-left: 4px solid transparent; border-right: 4px solid transparent; content: ''; left: 1px; position: absolute; }.rcpc-sort::before { border-bottom: 5px solid var(--color-gray-500); top: 1px; }.rcpc-sort::after { border-top: 5px solid var(--color-gray-500); bottom: 1px; }
-.rcpc-list--table > article { align-items: center; border-bottom: 1px solid var(--color-gray-200); font-size: 14px; height: 100px; letter-spacing: -.42px; padding: 0; }
+.rcpc-list--table > article { align-items: center; border-bottom: 1px solid var(--color-gray-200); font-size: 14px; height: auto; min-height: 100px; letter-spacing: -.42px; padding: 0; }
 .rcpc-list--table > article > div { padding: 8px; text-align: center; }
 .rcpc-list__product { display: flex; flex-direction: column; gap: 4px; }.rcpc-list__product strong { align-items: center; display: flex; gap: 4px; justify-content: center; min-width: 0; }.rcpc-list__product strong span { font-weight: 600; max-width: 94px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.rcpc-list__product strong img { height: 16px; object-fit: contain; width: 16px; }.rcpc-list__product a { color: var(--color-gray-600); font-size: 13px; letter-spacing: -.39px; }
 .rcpc-list__state { align-items: center; display: flex; flex-direction: column; gap: 4px; }.rcpc-list__state img { display: block; height: auto; max-height: 24px; max-width: 24px; object-fit: contain; width: auto; }
@@ -178,11 +177,13 @@
 .rcpc-list__connect { display: flex; flex-direction: column; gap: 4px; }.rcpc-list__connect p { align-items: center; display: grid; gap: 8px; grid-template-columns: 80px 1fr; margin: 0; text-align: left; }.rcpc-list__connect b { align-items: center; display: flex; font-weight: 400; gap: 4px; white-space: nowrap; }.rcpc-list__connect b img { height: 20px; width: 20px; }.rcpc-list__connect small { margin: 0 !important; white-space: nowrap; }.rcpc-list__connect small img { display: inline-block; height: 16px; vertical-align: middle; width: 16px; }.rcpc-list__connect small .rcpc-list__copy { height: 14px; object-fit: contain; width: 12px; }.rcpc-list__password-actions { align-items: center; display: inline-flex; gap: 4px; margin-left: 4px; vertical-align: middle; }.rcpc-list__password-toggle,.rcpc-list__copy-button { align-items: center; background: transparent; border: 0; cursor: pointer; display: inline-flex; height: 16px; justify-content: center; padding: 0; vertical-align: middle; width: 16px; }.rcpc-list__copy-button { margin-left: 4px; }.rcpc-list__password-actions .rcpc-list__copy-button { margin-left: 0; }.rcpc-list__password-toggle img { display: block; height: 16px; width: 16px; }
 .rcpc-list--table .rcpc-list__actions { display: block; padding: 8px; }.rcpc-list--table .rcpc-list__actions span { display: grid; gap: 4px; grid-template-columns: 1fr 1fr; }.rcpc-list--table .rcpc-list__actions button,.rcpc-list--table .rcpc-list__actions a { align-items: center; display: flex; font-size: 14px; height: 32px; justify-content: center; letter-spacing: -.42px; padding: 0; }.rcpc-list--table .rcpc-list__actions > button,.rcpc-list--table .rcpc-list__actions > a { width: 100%; }.rcpc-list--table .rcpc-list__actions button,.rcpc-list--table .rcpc-list__actions span a { font-weight: 500; }.rcpc-list--table .rcpc-list__actions .is-dark { font-weight: 700; margin-top: 4px; }.rcpc-list--table .rcpc-list__actions button:disabled,.rcpc-list--table .rcpc-list__actions .is-disabled { background: var(--color-gray-100); border-color: var(--color-gray-200); color: var(--color-gray-500); cursor: default; font-weight: 500; }.rcpc-list--table .rcpc-list__actions .is-disabled { margin-top: 4px; }
 .rcpc-list__actions .rcpc-list__inquiry-action { color: inherit; }
-.rcpc-list--table .rcpc-list__actions > section { margin-top: 4px; width: 100%; }
+.rcpc-list--table .rcpc-list__actions > button,
+.rcpc-list--table .rcpc-list__actions > section { margin-top: 4px; }
+.rcpc-list--table .rcpc-list__actions > section { width: 100%; }
 .rcpc-list--table .rcpc-list__actions > section > .button { box-sizing: border-box; width: 100%; }
 .rcpc-list--table .rcpc-list__actions > section > .button:not(:disabled) { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }
 .rcpc-list--table > article.is-ended { color: var(--color-gray-400); background: #fdfdfd; }.rcpc-list--table > article.is-ended > div:not(:last-child) { opacity: .55; }
-.rcpc-list-page .rcpc-list + .pagination { height: 24px; margin-top: 60px; }
+.rcpc-list-page > .pagination { height: 24px; margin-top: 60px; }
 .mypage-tabs--buttons button { align-items: center; background: white; border: 0; border-bottom: 3px solid transparent; display: flex; font-family: inherit; font-size: 14px; justify-content: center; min-width: 132px; padding: 0 24px; }
 .mypage-tabs--buttons button[aria-pressed='true'] { border-color: var(--color-black); font-weight: 700; }
 .rcpc-list-page { height: auto; min-height: 0; }

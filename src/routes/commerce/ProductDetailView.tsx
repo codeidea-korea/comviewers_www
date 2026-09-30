@@ -111,12 +111,11 @@ function ProductDetailContent() {
       <div className="content-container product-breadcrumb"><span>HOME</span><img alt="" src={chevronRightIcon} /><span>{product.pricingType === 'one_time' ? '파트 상품' : 'RCPC 상품'}</span></div>
       <ProductDetailHero key={product.id} product={product} message={message} cartPending={cartAddition.isPending} buyPending={directPurchase.isPending} onCart={(rentalPeriods) => {
         if (reviewMode) return
-        if (session.status !== 'authenticated') { setLoginRequiredOpen(true); return }
         cartAddition.add(String(product.productId), rentalPeriods)
       }} onBuy={(rentalPeriods) => {
         if (reviewMode) return
         if (session.status !== 'authenticated') {
-          void navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)
+          setLoginRequiredOpen(true)
           return
         }
         directPurchase.mutate(rentalPeriods)
@@ -151,7 +150,7 @@ function ProductDetailContent() {
         {cartAddition.isError ? <p role="alert">{cartAddition.message}</p> : <p role="status">상품을 장바구니에 담았습니다.<br />장바구니로 이동하시겠습니까?</p>}
       </Modal>
       <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginRequiredOpen} onClose={() => setLoginRequiredOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)} title="로그인이 필요합니다.">
-        <p>상품을 구매하려면 로그인해 주세요.<br />로그인 후 구매를 계속할 수 있습니다.</p>
+        <p>상품을 구매하려면 로그인해 주세요.</p>
       </Modal>
     </AppShell>
   )

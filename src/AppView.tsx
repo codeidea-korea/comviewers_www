@@ -1,4 +1,5 @@
 import { CustomerCapabilityGate, SessionRouteGate } from './app/session/SessionControls'
+import { useSession } from './app/session/SessionProvider'
 import { Route, Routes, useLocation } from 'react-router'
 import { RouteErrorBoundary } from './app/RouteErrorBoundary'
 import { lazy, Suspense, useLayoutEffect } from 'react'
@@ -54,6 +55,11 @@ function ScrollToTop() {
   return null
 }
 
+function CartRoute() {
+  const session = useSession()
+  return session.status === 'anonymous' ? <CartPage /> : <SessionRouteGate requireOrganization><CartPage /></SessionRouteGate>
+}
+
 export function App() {
   return (
     <>
@@ -85,7 +91,7 @@ export function App() {
       <Route path="account/reset-password" element={<RecoveryPages page="reset-password" />} />
       <Route path="products" element={<ProductListPage />} />
       <Route path="products/:productId" element={<ProductDetailPage />} />
-      <Route path="cart" element={<SessionRouteGate requireOrganization><CartPage /></SessionRouteGate>} />
+      <Route path="cart" element={<CartRoute />} />
       <Route path="checkout" element={<SessionRouteGate requireOrganization><CheckoutPage /></SessionRouteGate>} />
       <Route path="checkout/complete" element={<SessionRouteGate requireOrganization><CheckoutCompletePage /></SessionRouteGate>} />
       <Route path="community/posts" element={<CommunityPostListPage />} />

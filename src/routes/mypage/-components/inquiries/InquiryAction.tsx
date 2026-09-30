@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/ButtonControl'
 import { InquiryDialog } from './InquiryDialog'
 import { InquiryConversationDialog } from './InquiryConversationDialog'
 
-export function InquiryAction({ initialIds = [], initialProductNo = '', requestId, disabled = false, appearance = 'button', className, children = '문의' }: {
+export function InquiryAction({ initialIds = [], initialProductNo = '', fixedTarget = false, requestId, disabled = false, appearance = 'button', className, children = '문의' }: {
   initialIds?: readonly number[]
   initialProductNo?: string
+  fixedTarget?: boolean
   requestId?: number
   disabled?: boolean
   appearance?: 'button' | 'text'
@@ -22,6 +23,6 @@ export function InquiryAction({ initialIds = [], initialProductNo = '', requestI
       : <Button className={className} disabled={unavailable} onClick={() => setOpen(true)} size="small" variant="secondary">{children}</Button>}
     {open && myAccount.inquiryApi && (requestId !== undefined
       ? <InquiryConversationDialog api={myAccount.inquiryApi} id={requestId} onClose={() => setOpen(false)} />
-      : myAccount.rcpcApi ? <InquiryDialog api={myAccount.inquiryApi} rcpcApi={myAccount.rcpcApi} initialIds={initialIds} initialProductNo={initialProductNo} onClose={() => setOpen(false)} /> : null)}
+      : myAccount.rcpcApi ? <InquiryDialog api={myAccount.inquiryApi} rcpcApi={myAccount.rcpcApi} initialIds={initialIds} initialProductNo={initialProductNo} fixedTarget={fixedTarget} onClose={() => setOpen(false)} /> : null)}
   </>
 }

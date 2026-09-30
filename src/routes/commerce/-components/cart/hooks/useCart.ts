@@ -6,6 +6,7 @@ import { summarizeQuotedCartItems } from '@/domain/cart/cartEstimate'
 import { cartSchema, changeCartQuantitySchema, type CartItem } from '@/domain/cart/schemas'
 import { checkoutQueryKeys, checkoutQuoteSchema } from '@/domain/checkout/checkoutRepository'
 import { useToastMessage } from '@/components/ui/ToastControl'
+import { useSession } from '@/app/session/SessionProvider'
 
 type CartChange = { type: 'remove'; ids: string[] } | { type: 'quantity'; item: CartItem; quantity: number }
 const emptyItems: CartItem[] = []
@@ -29,6 +30,8 @@ function changeCachedQuantity(items: readonly CartItem[], id: string, selectionU
 }
 
 export function useCart() {
+  const session = useSession()
+  const guest = session.status === 'anonymous'
   const { cart, checkout } = useServices()
   const queryClient = useQueryClient()
   const changing = useRef(0)
@@ -99,7 +102,7 @@ export function useCart() {
       signal,
       queryClient.getQueryData<CartItem[]>(cartQueryKeys.items),
     )),
-    enabled: selectedIds.length > 0 && selectedIds.length <= 100,
+    enabled: !guest && selectedIds.length > 0 && selectedIds.length <= 100,
     staleTime: 0, retry: false,
   })
   const allIds = items.map(item => item.id)
@@ -111,11 +114,12 @@ export function useCart() {
       signal,
       queryClient.getQueryData<CartItem[]>(cartQueryKeys.items),
     )),
-    enabled: allIds.length > 0 && allIds.length <= 100,
+    enabled: !guest && allIds.length > 0 && allIds.length <= 100,
     staleTime: 0, retry: false,
   })
   // Keep quoted rows while refetching; selecting a checkbox must not erase prices.
   const quotedItems = items.map(item => {
+    if (guest) return item
     const matchesCurrentQuantity = (row: CartItem) => row.quantity === item.quantity && row.durationUnits === item.durationUnits
     const selectedRow = quote.data?.items.find(row => row.id === item.id && matchesCurrentQuantity(row))
     const allRow = allQuote.data?.items.find(row => row.id === item.id && matchesCurrentQuantity(row))
@@ -123,7 +127,7 @@ export function useCart() {
   })
   const estimate = summarizeQuotedCartItems(quotedItems.filter(item => selectedIds.includes(item.id)))
   const checkoutBlocked = selectedIds.length === 0 || quote.isFetching || !quote.data?.checkoutEligible || quote.isError
-  const checkoutChecking = selectedIds.length > 0 && (quote.isPending || quote.isFetching)
+  const checkoutChecking = !guest && selectedIds.length > 0 && (quote.isPending || quote.isFetching)
   const unavailableItems = quote.isError ? [] : (quote.data?.items ?? []).filter(item => !item.checkoutEligible)
 
   async function change(input: CartChange) {
@@ -154,7 +158,7 @@ export function useCart() {
 
   return {
     ...result, items: quotedItems, selectedIds, allSelected, notice, toastKey,
-    estimate, checkoutBlocked, checkoutChecking, unavailableItems, quoteError: quote.isError || allQuote.isError,
+    estimate, checkoutBlocked, checkoutChecking, unavailableItems, quoteError: !guest && (quote.isError || allQuote.isError),
     retryQuote: () => Promise.all([...(selectedIds.length ? [quote.refetch()] : []), ...(!sameSelection && allIds.length ? [allQuote.refetch()] : [])]),
     isChanging, updatingQuantityIds,
     toggle: (id: string) => { if (changing.current === 0) setExcludedIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]) },

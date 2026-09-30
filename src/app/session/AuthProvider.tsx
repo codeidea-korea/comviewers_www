@@ -2,7 +2,7 @@ import type { CustomerSessionRequest } from '@/api/customerSession'
 import { ApiClientError } from '@/api/httpClient'
 import { loginCredentialsSchema } from '@/domain/auth/loginCredentials'
 import type { SessionOrganization } from './sessionStore'
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useSession, useSessionStore } from './SessionProvider'
 
 export type SocialAuthProvider = 'google' | 'naver' | 'kakao'
@@ -20,7 +20,7 @@ export interface AuthAdapter {
   /** Return the server response with its original receipt timestamp and verified active membership IDs; never invent credentials. */
   login(input: { username: string; password: string; autoLogin: boolean }): Promise<AuthResult>
   managerLogin?(organizationCode: string, input: { username: string; password: string }): Promise<AuthResult>
-  restore?(): Promise<AuthResult>
+  restore?(options?: { background?: boolean }): Promise<AuthResult>
   socialLoginUrl?(provider: SocialAuthProvider): string
   socialSignupContext?(): Promise<SocialSignupContext>
   completeSocialSignup?(input: SocialSignupInput): Promise<AuthResult>
@@ -53,6 +53,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
   const session = useSession()
   const [logoutNotice, setLogoutNotice] = useState('')
   const [restoring, setRestoring] = useState(() => Boolean(adapter?.restore && store.getSnapshot().status === 'anonymous'))
+  const finalRefreshExpiry = useRef<number | null>(null)
   useEffect(() => {
     if (!adapter?.restore || store.getSnapshot().status !== 'anonymous') return
     let active = true
@@ -65,6 +66,34 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
     }).finally(() => { if (active) setRestoring(false) })
     return () => { active = false }
   }, [adapter, store])
+  useEffect(() => {
+    const restore = adapter?.restore
+    if (session.status !== 'authenticated' || !restore || finalRefreshExpiry.current === session.expiresAt) return
+    let active = true
+    let timer: ReturnType<typeof setTimeout>
+    const expectedRevision = session.revision
+    const renew = () => {
+      void restore({ background: true }).then(result => {
+        if (!active || store.getSnapshot().revision !== expectedRevision) return
+        store.establishFromVerifiedResponse(result.response, {
+          expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds,
+          organizations: result.organizations, preferredOrganizationId: session.organizationId,
+          preserveVerifiedOrganizations: true,
+        })
+        const renewed = store.getSnapshot()
+        if (renewed.status === 'authenticated' && renewed.expiresAt <= session.expiresAt + 60_000) {
+          finalRefreshExpiry.current = renewed.expiresAt
+        }
+      }).catch(error => {
+        if (!active || store.getSnapshot().revision !== expectedRevision) return
+        if (isAuthenticationFailure(error)) { store.logout(); return }
+        const remaining = session.expiresAt - Date.now()
+        if (remaining > 5_000) timer = setTimeout(renew, Math.min(15_000, remaining - 5_000))
+      })
+    }
+    timer = setTimeout(renew, Math.max(0, session.expiresAt - Date.now() - 60_000))
+    return () => { active = false; clearTimeout(timer) }
+  }, [adapter, session, store])
   useEffect(() => {
     if (session.status !== 'authenticated' || !session.organizationId || session.capabilityStatus !== 'pending') return
     const request = { expectedRevision: session.revision, organizationId: session.organizationId }

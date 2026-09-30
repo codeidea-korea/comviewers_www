@@ -90,9 +90,9 @@ export function SignupTermsStep() {
             <Checkbox checked={Boolean(accepted[term.termsPolicyVersionId])} name={`term-${term.termsPolicyVersionId}`}
               onChange={(event) => setAccepted((current) => ({ ...current, [term.termsPolicyVersionId]: event.target.checked }))}
               required={term.required}>{signupTermDisplayLabel(term.policyKey, term.name, term.required)}</Checkbox>
+            {term.required ? <div aria-label={`${signupTermLabel(term.policyKey, term.name)} 내용`} className="terms-copy" role="region" tabIndex={0}><TermsCopy content={term.content} /></div> : null}
             {showRequiredErrors && term.required && !accepted[term.termsPolicyVersionId]
               ? <p className="terms-required-error" role="alert">{signupTermLabel(term.policyKey, term.name)}에 동의해 주세요.</p> : null}
-            {term.required ? <div aria-label={`${signupTermLabel(term.policyKey, term.name)} 내용`} className="terms-copy" role="region" tabIndex={0}><TermsCopy content={term.content} /></div> : null}
           </div>)}
         </div>
         <Button disabled={!api || !availableTerms.length || terms.isPending || terms.isError} onClick={goToProfile} size="large">다음</Button>

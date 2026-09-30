@@ -195,11 +195,14 @@ function ResetPasswordPage() {
   const [complete, setComplete] = useState(false)
   const validPasswordFormat = /^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/.test(password)
   const validPassword = validPasswordFormat
-  const passwordError = passwordPolicyError || (passwordTouched && !validPasswordFormat ? '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.' : undefined)
+  const invalidPasswordCharacters = /[^A-Za-z0-9!@#$%]/.test(password)
+  const passwordError = passwordPolicyError || (passwordTouched && invalidPasswordCharacters
+    ? '비밀번호에 사용할 수 없는 문자가 포함되어 있습니다. 영문, 숫자, 특수문자(!, @, #, $, %)만 사용해 주세요.'
+    : passwordTouched && !validPasswordFormat ? '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.' : undefined)
   const confirmationError = confirmationTouched && password !== confirmation ? '비밀번호가 일치하지 않습니다.' : undefined
   async function submit() {
     if (!api || !token) { setError('비밀번호 재설정 링크가 올바르지 않습니다.'); return }
-    if (!validPassword) { setError('비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'); return }
+    if (!validPassword) { setError(passwordError || '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'); return }
     if (password !== confirmation) { setError('비밀번호가 일치하지 않습니다.'); return }
     setBusy(true); setError('')
     try { await api.confirmPasswordReset(token, password, confirmation); setComplete(true) }

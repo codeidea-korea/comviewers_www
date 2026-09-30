@@ -53,8 +53,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   return <>
     <div className="rcpc-list__bulk-actions">
       <span>선택 {selectedAssetIds.length}대 (최대 20대)</span>
-      {selectedAssetIds.length > 0 ? <button onClick={() => setSelectedAssetIds([])} type="button">선택 해제</button> : null}
-      <InquiryAction disabled={selectedAssetIds.length === 0} initialIds={selectedAssetIds} key={selectedAssetIds.join(',')} children="선택 일괄문의" />
+      <InquiryAction disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} key={selectedAssetIds.join(',')} children="선택 일괄문의" />
     </div>
     <div aria-label="RCPC 목록" className="rcpc-list rcpc-list--table" role="table">
       <div className="rcpc-list__header" role="row">
@@ -118,7 +117,7 @@ function RcpcState({ item }: { item: MyRcpcItem }) {
 
 function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
   return <div className="rcpc-list__actions" role="cell">
-    <span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span>
+    <span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span>
     <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
   </div>
 }
@@ -149,7 +148,7 @@ function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, onSelec
       <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
     <footer>
-      <span><RcpcReboot api={api} item={item}/><InquiryAction initialIds={[item.pcAssetId]} /></span>
+      <span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span>
       <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
     </footer>
   </article>

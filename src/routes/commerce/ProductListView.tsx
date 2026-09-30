@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { AppShell } from '../../components/layout/AppShellView'
 import { DialogLayer } from '../../components/ui/DialogLayerControl'
 import { Modal } from '../../components/ui/ModalControl'
@@ -16,7 +16,6 @@ import filterChevronBackwardIcon from '../../assets/figma/filter-chevron-backwar
 import filterTuneIcon from '../../assets/figma/filter-tune.svg'
 import viewGridIcon from '../../assets/figma/view-grid.svg'
 import viewListIcon from '../../assets/figma/view-list.svg'
-import { useSession } from '@/app/session/SessionProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { TranslatedText, useTranslation } from '@/i18n/translation'
 
@@ -27,8 +26,6 @@ function matchesMedia(query: string) {
 export function ProductListPage() {
   const { locale, t } = useTranslation()
   const navigate = useNavigate()
-  const location = useLocation()
-  const session = useSession()
   const cartAddition = useAddToCart()
   const productList = useProductList()
   const {
@@ -41,7 +38,6 @@ export function ProductListPage() {
   const [mobileViewport, setMobileViewport] = useState(() => matchesMedia('(max-width: 767px)'))
   const [view, setView] = useState<'cards' | 'list'>('cards')
   const [cartPopupOpen, setCartPopupOpen] = useState(false)
-  const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
   const hasAdjustableFilters = productList.catalogSelections.rooms.length > 0
     || productList.catalogSelections.line !== '전체'
     || productList.catalogSelections.ip !== '전체'
@@ -57,10 +53,6 @@ export function ProductListPage() {
   const catalogIsEmpty = !isPending && !isError && resultTotal === 0 && !hasAdjustableFilters
   const showCatalogControls = !isError
   const addToCart = (product: Product) => {
-    if (session.status !== 'authenticated') {
-      setLoginRequiredOpen(true)
-      return
-    }
     cartAddition.add(String(product.productId), 1)
   }
   const resultsToolbarRef = useRef<HTMLDivElement>(null)
@@ -138,9 +130,6 @@ export function ProductListPage() {
       </div>
       <Modal closeTranslationKey="cart.continueShopping" confirmTranslationKey="cart.goToCart" titleTranslationKey={cartAddition.isError ? 'cart.addFailureTitle' : 'cart.addSuccessTitle'} onConfirm={cartAddition.isSuccess ? () => navigate('/cart') : undefined} isOpen={cartPopupOpen} onClose={() => setCartPopupOpen(false)}>
         {cartAddition.isError ? <p role="alert">{cartAddition.message}</p> : <p role="status"><TranslatedText id="cart.addedPrompt" /></p>}
-      </Modal>
-      <Modal closeTranslationKey="common.cancel" confirmTranslationKey="auth.loginAction" titleTranslationKey="auth.loginRequired" isOpen={loginRequiredOpen} onClose={() => setLoginRequiredOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)}>
-        <p><TranslatedText id="auth.loginToPurchase" /></p>
       </Modal>
     </AppShell>
   )
