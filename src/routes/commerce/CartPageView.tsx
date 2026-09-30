@@ -44,7 +44,6 @@ export function CartPage() {
   return <AppShell className={`commerce-shell cart-page${empty ? ' cart-page--empty' : ''}`}>
     <div className="content-container commerce-page">
       <h1 className="commerce-title">장바구니</h1>
-      {session.status === 'anonymous' ? <p role="status">표시된 금액은 현재 상품 정보 기준입니다. 주문 금액과 구매 가능 여부는 로그인 후 다시 확인합니다.</p> : null}
       {pendingGuestError ? <div role="alert"><p>{pendingGuestError}</p><button onClick={() => {
         try { clearUnreadableGuestCart(); setPendingGuestError(''); setPendingGuestItems([]); void cart.refetch() }
         catch { setPendingGuestError('저장된 장바구니를 초기화하지 못했습니다.') }
