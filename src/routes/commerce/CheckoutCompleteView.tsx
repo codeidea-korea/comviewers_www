@@ -21,12 +21,13 @@ function CheckoutPaymentResult() {
   const [params, setParams] = useSearchParams()
   const client = useQueryClient()
   // Keep paymentKey in memory only; the retry helper stores only the opaque orderId and UUID.
-  const [returned] = useState(() => ({ paymentKey: params.get('paymentKey') ?? '', orderId: params.get('orderId') ?? '', amount: Number(params.get('amount')), failed: params.has('code') }))
+  const [returned] = useState(() => ({ paymentKey: params.get('paymentKey') ?? '', orderId: params.get('orderId') ?? '', amount: Number(params.get('amount')), failed: params.has('code'),
+    customerCancelled: ['PAY_PROCESS_CANCELED', 'USER_CANCEL', 'PAYMENT_REQUEST_ABORTED'].includes(params.get('code') ?? '') }))
   const [key] = useState(() => confirmAttemptKey(returned.orderId))
   const started = useRef(false)
   const confirmInFlight = useRef(false)
   const abandonmentStarted = useRef(false)
-  const abandon = useMutation({ mutationFn: () => checkout.abandon!(returned.orderId),
+  const abandon = useMutation({ mutationFn: () => checkout.abandon!(returned.orderId, returned.customerCancelled),
     onSuccess: async () => {
       await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(key => client.invalidateQueries({ queryKey: [key] })))
     }, retry: false })
@@ -62,6 +63,28 @@ function CheckoutPaymentResult() {
     refetchInterval: query => query.state.data?.paymentStatus === 'pending' ? 10000 : false })
   const virtual = result.data?.paymentMethod === 'virtual_account'
   const payment = order.data?.payments.find(item => item.paymentId === String(paymentId))
+  const accountRefreshStarted = useRef<string | null>(null)
+  const accountRefresh = useMutation({ mutationFn: (providerOrderId: string) => checkout.refresh!(providerOrderId, crypto.randomUUID()),
+    onSuccess: async value => {
+      if (value.status !== 'WAITING_FOR_DEPOSIT') {
+        await Promise.all(['checkout', 'my-account'].map(queryKey => client.invalidateQueries({ queryKey: [queryKey] })))
+      }
+    }, retry: false })
+  useEffect(() => {
+    const providerOrderId = payment?.providerOrderId
+    if (!checkout.refresh || !providerOrderId || !virtual || confirm.data?.virtualAccount
+      || payment?.paymentId !== order.data?.payments[0]?.paymentId
+      || !order.data || !orderPaymentDisplay(order.data, Date.now()).waitingForDeposit
+      || accountRefreshStarted.current === providerOrderId) return
+    accountRefreshStarted.current = providerOrderId
+    accountRefresh.mutate(providerOrderId)
+  }, [checkout.refresh, virtual, confirm.data?.virtualAccount, payment?.paymentId, payment?.providerOrderId,
+    order.data, accountRefresh.mutate])
+  const refreshedAccount = accountRefresh.data?.paymentId === paymentId && accountRefresh.data.status === 'WAITING_FOR_DEPOSIT'
+    ? accountRefresh.data.virtualAccount : null
+  const accountRefreshProviderOrderId = accountRefresh.isError && !confirm.data?.virtualAccount && checkout.refresh
+    && payment?.providerOrderId && payment.paymentId === order.data?.payments[0]?.paymentId
+    ? payment.providerOrderId : null
   return <AppShell className={`commerce-shell complete-page complete-page--api ${virtual ? 'complete-page--virtual' : 'complete-page--card'}`}>
     <div className="content-container commerce-page">
       {cancelled ? <>
@@ -70,16 +93,19 @@ function CheckoutPaymentResult() {
           <p role="alert">{compensated ? '상품 배정이 불가능해 결제가 취소되었습니다.' : '결제가 취소되었습니다.'}</p>
           <a href="/cart">장바구니로 이동</a>
         </div>
-      </> : result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={confirm.data?.virtualAccount ?? null} /> : <>
+      </> : result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={confirm.data?.virtualAccount ?? refreshedAccount ?? null}
+        onAccountRefresh={accountRefreshProviderOrderId
+          ? () => accountRefresh.mutate(accountRefreshProviderOrderId) : undefined} /> : <>
         <PageTitle>주문 결과</PageTitle>
         <div className="complete-result-state">
           {returned.failed && <>
             <p role="alert">{abandon.isPending ? '결제 상태를 확인하고 있습니다.'
-              : abandon.data?.status === 'cancelled' ? '결제가 취소되어 재고와 혜택이 복원되었습니다.'
+              : abandon.data?.status === 'cancelled' ? '결제가 취소되어 재고와 혜택이 복원되었습니다. 주문내역에서 취소 내역을 확인할 수 있습니다.'
                 : abandon.data?.status === 'approved' ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
                   : '결제 종료 여부를 확인하지 못했습니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.'}</p>
             {failedCallbackValid && !abandon.isPending && abandon.data?.status !== 'cancelled' && <button type="button" onClick={() => abandon.mutate()}>결제 상태 다시 확인</button>}
-            <a href={abandon.data?.status === 'cancelled' ? '/cart' : '/mypage/orders'}>{abandon.data?.status === 'cancelled' ? '장바구니로 이동' : '주문내역 확인'}</a>
+            <a href="/mypage/orders">주문내역 확인</a>
+            {abandon.data?.status === 'cancelled' && <a href="/cart">장바구니로 이동</a>}
           </>}
           {confirm.isPending && <p aria-busy="true">결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.</p>}
           {confirm.isError && <><p role="alert">결제 승인 결과를 확인하지 못했습니다.</p><button type="button" onClick={requestConfirmation} disabled={confirm.isPending}>승인 결과 다시 확인</button></>}
@@ -118,13 +144,14 @@ function completeProduct(item: AccountOrderItem, waitingForDeposit: boolean) {
     monthlyRentalFee: item.billingUnit === 'unit' ? undefined : accountMoney(item.unitPrice), usagePeriod }
 }
 
-function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, payment, virtualAccount }: {
+function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, payment, virtualAccount, onAccountRefresh }: {
   order: AccountOrderDetail
   paymentMethod: string
   paymentAmount: number
   paymentStatus: string
   payment?: AccountOrderDetail['payments'][number]
   virtualAccount: { bankCode: string; accountNumber: string; customerName: string | null; dueDate: string } | null
+  onAccountRefresh?: () => void
 }) {
   const now = usePaymentDisplayClock(paymentMethod === 'virtual_account' && order.paymentStatus === 'pending')
   const currentAttempt = Boolean(payment && payment.paymentId === order.payments[0]?.paymentId)
@@ -136,7 +163,7 @@ function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, pa
   const depositor = virtualAccount?.customerName ?? payment?.depositorName ?? '-'
   const dueAt = virtualAccount?.dueDate ?? payment?.depositDueAt ?? null
   const depositRows: readonly (readonly [string, ReactNode])[] = waitingForDeposit ? [
-    ['입금은행', bank], ['입금자명', <strong key="depositor">{depositor}</strong>], ['입금계좌', <strong key="account">{account}</strong>],
+    ['입금은행', bank], ['입금자명', <strong key="depositor">{depositor}</strong>], ['입금계좌', <span key="account"><strong>{account}</strong>{onAccountRefresh ? <button type="button" onClick={onAccountRefresh} style={{ background: 'none', border: 0, color: 'var(--color-blue-500)', cursor: 'pointer', marginInlineStart: 12, textDecoration: 'underline' }}>계좌 다시 확인</button> : null}</span>],
     ['입금기한', <span className="complete-deadline" key="deadline"><strong>{accountKstDate(dueAt)}</strong><em>* 입금기한 내 미입금 시 자동 취소됩니다.</em></span>],
   ] : []
   const paymentRows: readonly (readonly [string, ReactNode])[] = [

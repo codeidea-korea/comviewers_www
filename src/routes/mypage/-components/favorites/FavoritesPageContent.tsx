@@ -29,6 +29,12 @@ function flattenGroups(groups: readonly SavedRcpcGroup[]): SavedRcpcGroup[] {
   return groups.flatMap((group) => [group, ...group.children])
 }
 
+function orderGroups(groups: readonly SavedRcpcGroup[]): SavedRcpcGroup[] {
+  return [...groups]
+    .sort((left, right) => left.displayOrder - right.displayOrder || left.id - right.id)
+    .map(group => ({ ...group, children: orderGroups(group.children) }))
+}
+
 function mutationMessage(error: Error | null): string | null {
   if (!error) return null
   if (error instanceof ApiClientError && error.code === 'RC002') return '그룹 단계 또는 생성 한도를 확인해 주세요. 상위 그룹은 최대 10개, 각 하위 그룹은 최대 20개, 전체는 최대 100개입니다.'
@@ -61,7 +67,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     }, signal),
   })
   const accessDenied = isAccountReadDenied(groups.error) || isAccountReadDenied(rows.error) || isAccountReadDenied(available.error)
-  const groupsData = accessDenied ? [] : groups.data
+  const groupsData = accessDenied ? [] : groups.data ? orderGroups(groups.data) : undefined
   const rowsData: Awaited<ReturnType<MyRcpcReadServices['list']>> | undefined = accessDenied
     ? { items: [], page: 0, size: filters.size ?? 20, totalElements: 0, totalPages: 0 }
     : rows.data

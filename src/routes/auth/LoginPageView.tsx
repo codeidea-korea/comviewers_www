@@ -68,6 +68,7 @@ export function LoginPage() {
         <form className="auth-form auth-form--login" noValidate onSubmit={submit}>
           <TextField
             autoComplete="username"
+            helperText="3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다."
             label="아이디"
             onChange={(event) => setLoginId(event.target.value)}
             placeholder="로그인 아이디를 입력해 주세요."
@@ -76,6 +77,7 @@ export function LoginPage() {
           />
           <PasswordField
             autoComplete="current-password"
+            helperText="8~16자의 영문, 숫자, 특수문자(!, @, #, $, %, )만 사용할 수 있습니다."
             label="비밀번호"
             displayAsText={false}
             onChange={(event) => setPassword(event.target.value)}

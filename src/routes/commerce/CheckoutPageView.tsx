@@ -26,6 +26,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const navigate = useNavigate()
   const client = useQueryClient()
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
+  const unresolvedCustomerCancellation = useRef(false)
   const [couponId, setCouponId] = useState<number | null>(null)
   const [points, setPoints] = useState('0')
   const [paymentAvailabilityError, setPaymentAvailabilityError] = useState<string | null>(null)
@@ -60,18 +61,20 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     if (myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate(false) }
   }, [myAccount.readApi, profile])
   const showReceipt = form.payment === 'virtual-account'
-  async function checkAbandonedPayment(providerOrderId: string) {
+  async function checkAbandonedPayment(providerOrderId: string, customerCancelled = false) {
     setUnresolvedOrderId(providerOrderId)
+    unresolvedCustomerCancellation.current ||= customerCancelled
     if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     let status: string
-    try { status = (await checkout.abandon(providerOrderId)).status }
+    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
     if (status === 'cancelled') {
       attemptRef.current = null
       setAttempt(null)
       setUnresolvedOrderId(null)
+      unresolvedCustomerCancellation.current = false
       await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(key => client.invalidateQueries({ queryKey: [key] })))
-      throw new Error('결제가 취소되어 재고와 혜택이 복원되었습니다. 다시 주문할 수 있습니다.')
+      throw new Error('결제가 취소되어 재고와 혜택이 복원되었습니다. 주문내역에서 취소 내역을 확인하고 다시 주문할 수 있습니다.')
     }
     throw new Error(status === 'approved'
       ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
@@ -91,9 +94,10 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     catch (error) {
       // Navigation/unmount is not evidence of a cancelled payment.
       if (controller.signal.aborted) return
-      // A provider-confirmed user cancellation only closes the payment window. Keep the
-      // prepared order so the existing idempotent retry path can reopen it safely.
-      if (isPaymentWindowCancelled(error)) throw error
+      // The SDK cancellation is a signal to reconcile, not proof that the PG payment ended.
+      if (isPaymentWindowCancelled(error) && payment.provider === 'toss_payments' && payment.providerOrderId) {
+        await checkAbandonedPayment(payment.providerOrderId, true)
+      }
       if (payment.provider === 'toss_payments' && payment.providerOrderId) {
         await checkAbandonedPayment(payment.providerOrderId)
       }

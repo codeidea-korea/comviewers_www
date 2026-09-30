@@ -20,7 +20,7 @@ export function RefundWithdrawalAction({ order, itemId }: { order: UseQueryResul
     return myAccount.inquiryApi.cancelRefund(requestId)
   }, onSuccess: async () => {
     setOpen(false)
-    await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['my-refund-requests'] }), client.invalidateQueries({ queryKey: ['my-rcpcs'] })])
+    await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['my-refund-requests'] }), client.invalidateQueries({ queryKey: ['my-rcpcs'] }), client.invalidateQueries({ queryKey: ['refund-application-candidates'] })])
   } })
   return <><Button size="small" variant="secondary" disabled={!myAccount.inquiryApi || !canWithdraw} onClick={() => setOpen(true)}><TranslatedText id="refund.withdrawTermination" /></Button><Modal isOpen={open} title={t('refund.withdrawTermination')} closeLabel={t('common.cancel')} confirmLabel="철회하기" confirmDisabled={cancel.isPending} onClose={() => { if (!cancel.isPending) setOpen(false) }} onConfirm={() => cancel.mutate()}>
     <p>해지 신청을 철회하시겠습니까?</p>{cancel.error && <p role="alert">{cancel.error.message}</p>}

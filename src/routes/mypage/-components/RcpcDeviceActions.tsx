@@ -54,22 +54,23 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
   const [failed, setFailed] = useState(false)
   const [verified, setVerified] = useState(false)
   const sequence = useRef(0)
+  const hiddenByUser = useRef(false)
   const allowed = ['running', 'needs_attention'].includes(item.serverStatus) && item.rentalStatus === 'active'
   const registered = item.wanIpConfigured
   const available = allowed && registered !== false
-  useEffect(() => { sequence.current += 1; setValue(null); setMessage(''); setPending(false); setFailed(false); setVerified(false) }, [api.organizationId, item.rentalId, registered, setMessage])
+  useEffect(() => { sequence.current += 1; hiddenByUser.current = false; setValue(null); setMessage(''); setPending(false); setFailed(false); setVerified(false) }, [api.organizationId, item.rentalId, registered, setMessage])
   useEffect(() => {
-    const clear = () => { sequence.current += 1; setValue(null); setMessage(''); setPending(false) }
+    const clear = () => { hiddenByUser.current = true; sequence.current += 1; setValue(null); setMessage(''); setPending(false) }
     window.addEventListener('blur', clear)
     return () => { sequence.current += 1; window.removeEventListener('blur', clear) }
   }, [api.organizationId, item.rentalId, setMessage])
-  useEffect(() => { if (value === null) return; const timer = window.setTimeout(() => setValue(null), 30000); return () => window.clearTimeout(timer) }, [value])
+  useEffect(() => { if (value === null) return; const timer = window.setTimeout(() => { hiddenByUser.current = true; setValue(null) }, 30000); return () => window.clearTimeout(timer) }, [value])
   useEffect(() => {
-    if (!autoReveal || !available) return
+    if (!autoReveal || !available || hiddenByUser.current) return
     const controller = new AbortController()
     const token = ++sequence.current
     void api.wanIp(item.rentalId, 'reveal', controller.signal).then(result => {
-      if (token === sequence.current) { setValue(result.wanIp); setVerified(true); setFailed(false) }
+      if (token === sequence.current && !hiddenByUser.current) { setValue(result.wanIp); setVerified(true); setFailed(false) }
     }).catch(error => {
       if (!controller.signal.aborted && token === sequence.current) { setFailed(true); setMessage(wanIpErrorMessage(error)) }
     })
@@ -77,6 +78,8 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
   }, [api, item.rentalId, available, autoReveal, setMessage])
   async function act(action: 'reveal' | 'copy') {
     if (!available || pending) return
+    if (action === 'copy' && value === null) hiddenByUser.current = true
+    if (action === 'reveal') hiddenByUser.current = false
     const token = ++sequence.current
     setPending(true); setMessage(''); setFailed(false)
     let readSucceeded = false
@@ -95,7 +98,8 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
     }
     finally { if (token === sequence.current) setPending(false) }
   }
+  const hide = () => { hiddenByUser.current = true; sequence.current += 1; setValue(null) }
   const label = registered === false ? '미등록' : !allowed ? '이용 불가' : pending ? '확인 중…' : value ?? (failed ? '조회 실패' : registered === true || verified ? '숨김' : '확인 전')
-  if (compact) return <div className="rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && !pending && Boolean(value)}/><button aria-label={`WAN IP ${value ? '숨기기' : '보기'}`} aria-pressed={Boolean(value)} type="button" disabled={!available || pending} onClick={() => value ? setValue(null) : void act('reveal')}><img alt="" src={eyeIcon}/></button><button aria-label="WAN IP 복사" type="button" disabled={!available || pending} onClick={() => void act('copy')}><img alt="" src={copyIcon}/></button>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
-  return <div>WAN IP: <span>{label}</span> <button type="button" disabled={!available || pending} onClick={() => value ? setValue(null) : void act('reveal')}>{value ? '숨기기' : '표시'}</button> <button type="button" disabled={!available || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
+  if (compact) return <div className="rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && !pending && Boolean(value)}/><button aria-label={`WAN IP ${value ? '숨기기' : '보기'}`} aria-pressed={Boolean(value)} type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}><img alt="" src={eyeIcon}/></button><button aria-label="WAN IP 복사" type="button" disabled={!available || pending} onClick={() => void act('copy')}><img alt="" src={copyIcon}/></button>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
+  return <div>WAN IP: <span>{label}</span> <button type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}>{value ? '숨기기' : '표시'}</button> <button type="button" disabled={!available || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
 }

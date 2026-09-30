@@ -40,7 +40,7 @@ export function createOrdersPaymentsApi(client: ApiClient, organizationId: strin
     settleInternal: (orderNo: string, key: string) => client.request('/api/v1/payments/internal/settle', prepared, { ...scoped, method: 'POST', body: { orderNo }, idempotencyKey: z.uuidv4().parse(key) }),
     confirm: (body: PaymentConfirmationRequest, key: string) => client.request('/api/v1/payments/toss/confirm', confirmation, { ...scoped, method: 'POST', body: confirmationRequest.parse(body), idempotencyKey: z.uuidv4().parse(key) }),
     refresh: (providerOrderId: string, key: string) => client.request('/api/v1/payments/toss/refresh', confirmation, { ...scoped, method: 'POST', body: { orderId: providerOrderId }, idempotencyKey: z.uuidv4().parse(key) }),
-    abandon: (providerOrderId: string) => client.request('/api/v1/payments/toss/abandon', abandonment, { ...scoped, method: 'POST', body: { orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/).parse(providerOrderId) } }),
+    abandon: (providerOrderId: string, customerCancelled = false) => client.request(`/api/v1/payments/toss/abandon?customerCancelled=${customerCancelled}`, abandonment, { ...scoped, method: 'POST', body: { orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/).parse(providerOrderId) } }),
     payment: (paymentId: number, signal?: AbortSignal) => client.request(`/api/v1/payments/${id.parse(paymentId)}`, detail, { ...scoped, signal }),
   }
 }

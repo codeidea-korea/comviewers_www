@@ -257,7 +257,9 @@
     width: 100%;
     z-index: auto;
   }
-  .product-mobile-server-sheet .server-room-select-panel__thumb { right: 12px; }
+  .product-mobile-server-sheet .server-room-select-panel__scroll { height: 100%; max-height: none; scrollbar-width: none; }
+  .product-mobile-server-sheet .server-room-select-panel__scroll::-webkit-scrollbar { display: none; }
+  .product-mobile-server-sheet .server-room-select-panel__thumb { background: var(--color-gray-400); border-radius: 999px; display: block; height: 165px; pointer-events: none; position: absolute; right: 12px; top: 10px; transition: transform 80ms linear; width: 4px; }
   .product-mobile-server-sheet .server-room-select-panel__group input:checked {
     background: var(--color-black) linear-gradient(var(--color-white), var(--color-white)) center/6px 2px no-repeat;
   }

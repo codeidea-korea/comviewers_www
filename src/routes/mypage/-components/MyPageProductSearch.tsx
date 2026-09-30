@@ -5,6 +5,7 @@ import { useServices } from '@/app/ServiceProvider'
 import { SearchField } from '@/components/ui/SearchFieldControl'
 import searchIcon from '@/assets/figma/mypage-search.svg'
 import { resolveExactProductNo } from './productSearchResolver'
+import { productNoSearchSchema } from '@/api/productNo'
 
 export function MyPageProductSearch() {
   const { myAccount } = useServices()
@@ -15,7 +16,8 @@ export function MyPageProductSearch() {
   const [notice, setNotice] = useState('')
   const submitSequence = useRef(0)
   useEffect(() => {
-    const timer = window.setTimeout(() => setKeyword(value.trim()), 250)
+    const normalized = value.trim().toUpperCase()
+    const timer = window.setTimeout(() => setKeyword(productNoSearchSchema.safeParse(normalized).success ? normalized : ''), 250)
     return () => window.clearTimeout(timer)
   }, [value])
   const result = useQuery({ queryKey: ['my-account', 'read', 'product-autocomplete', keyword],
@@ -27,12 +29,17 @@ export function MyPageProductSearch() {
     void navigate(`/mypage/rcpc?productNo=${encodeURIComponent(productNo)}`)
   }
   async function submit(input: string) {
-    const productNo = input.trim()
+    const productNo = input.trim().toUpperCase()
     const api = myAccount.rcpcApi
     const sequence = ++submitSequence.current
     if (!api || !productNo) {
       setOpen(false)
       setNotice('일치하는 RCPC가 없습니다.')
+      return
+    }
+    if (!productNoSearchSchema.safeParse(productNo).success) {
+      setOpen(false)
+      setNotice('품번은 영문과 숫자로 입력해 주세요.')
       return
     }
     setNotice('')
@@ -46,10 +53,11 @@ export function MyPageProductSearch() {
     }
   }
   return <div className="mypage-sidebar__search-area" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }} onFocus={() => setOpen(true)}>
-    <SearchField className="mypage-sidebar__search" controlClassName="mypage-sidebar__search-row" icon={searchIcon} label="품번 검색" labelClassName="" placeholder=" " value={value}
-      onChange={event => { submitSequence.current += 1; setValue(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16)); setNotice(''); setOpen(true) }}
+    <SearchField className="mypage-sidebar__search" controlClassName="mypage-sidebar__search-row" icon={searchIcon} label="품번 검색" labelClassName="" maxLength={16} placeholder=" " value={value}
+      onChange={event => { submitSequence.current += 1; setValue(event.target.value); setNotice(''); setOpen(true) }}
       onSubmit={input => { void submit(input) }}/>
-    {open && keyword && keyword === value.trim() && myAccount.rcpcApi && <div className="mypage-sidebar__recent" aria-label="품번 검색 결과">
+    {value ? <button aria-label="품번 검색어 지우기" className="mypage-sidebar__search-clear" onClick={() => { submitSequence.current += 1; setValue(''); setKeyword(''); setNotice(''); setOpen(false) }} type="button">×</button> : null}
+    {open && keyword && keyword === value.trim().toUpperCase() && myAccount.rcpcApi && <div className="mypage-sidebar__recent" aria-label="품번 검색 결과">
       {result.isPending ? <p role="status">검색 중…</p> : result.isError ? <p role="alert">품번을 검색하지 못했습니다.</p> : result.data?.items.length ? result.data.items.map(item => <button key={item.rentalId} type="button" onClick={() => select(item.productNo)}>{item.productNo}</button>) : <p>일치하는 RCPC가 없습니다.</p>}
     </div>}{notice && <p className="mypage-sidebar__search-notice" role="status">{notice}</p>}
   </div>

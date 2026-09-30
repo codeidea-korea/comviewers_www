@@ -108,7 +108,7 @@ function RcpcProduct({ api, canEditAlias, item, mutations, onSelectedChange, sel
       <span>{item.preference.alias || item.productNo}</span>
       {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
     </strong>
-    <span className="rcpc-list__spec-action"><span>{item.productNo} </span><RcpcSpecButton api={api} item={item} compact/></span>
+    <span className="rcpc-list__spec-action">{item.preference.alias ? <span>{item.productNo} </span> : null}<RcpcSpecButton api={api} item={item} compact/></span>
   </div>
 }
 
@@ -139,7 +139,7 @@ function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, onSelec
       <input aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionFull && !selected} onChange={event => onSelectedChange(event.target.checked)} type="checkbox" />
       <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{item.preference.alias || item.productNo}</span></strong>
       {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
-      <span className="mobile-rcpc-card__spec"><span>{item.productNo} </span><RcpcSpecButton api={api} item={item} compact/></span>
+      <span className="mobile-rcpc-card__spec">{item.preference.alias ? <span>{item.productNo} </span> : null}<RcpcSpecButton api={api} item={item} compact/></span>
     </header>
     <dl className="mobile-rcpc-card__facts">
       <div><dt>서버실</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>

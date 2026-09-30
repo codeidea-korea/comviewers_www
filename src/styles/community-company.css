@@ -157,7 +157,7 @@
 .company-catalog-cta { height: 608px; margin-top: 4px; }
 .company-catalog-cta > div { height: 608px; }
 .company-catalog-cta h2 { font-size: 32px; line-height: normal; }
-.company-catalog-cta a { height: 50px; margin-top: 60px; padding: 13px 16px; }
+.company-catalog-cta a { align-items: center; display: inline-flex; height: 50px; margin-top: 60px; padding: 0 16px; }
 .community-hero--support::after { background: none; }
 .company-catalog-hero h1 { font-family: "Pretendard Variable","Pretendard",sans-serif; white-space: nowrap; }
 .support-page { height: auto; padding: 50px 0 120px; }
@@ -460,11 +460,11 @@
 .post-avatar img.post-avatar__mark { background: transparent; box-shadow: none; display: block; filter: brightness(0) invert(1); height: 16px; transform: none; width: 16px; }
 
 /* Company value cards follow the Figma hover expansion instead of snapping content into the layout. */
-.company-catalog-benefits article { overflow: hidden; transition: background-color .28s ease,color .28s ease; }
-.company-catalog-benefits article > button { transition: background-color .28s ease,color .28s ease,height .28s ease,padding .28s ease; }
-.company-catalog-benefits article > p { box-sizing: border-box; display: block; height: auto; margin: 0; max-height: 0; opacity: 0; overflow: hidden; padding: 0 70px; transition: max-height .32s ease,opacity .2s ease,padding .32s ease; white-space: pre-line; }
+.company-catalog-benefits article { overflow: hidden; transition: background-color .45s ease,color .45s ease; }
+.company-catalog-benefits article > button { transition: background-color .45s ease,color .45s ease; }
+.company-catalog-benefits article > p { box-sizing: border-box; display: block; height: auto; margin: 0; max-height: 0; opacity: 0; overflow: hidden; padding: 0 70px; transition: max-height .5s ease,opacity .35s ease,padding .5s ease; white-space: pre-line; }
 .company-catalog-benefits article:hover,.company-catalog-benefits article.is-open { background: var(--color-black); border-radius: 12px; color: white; }
-.company-catalog-benefits article:hover button,.company-catalog-benefits article.is-open button { background: transparent; color: white; height: 79px; }
+.company-catalog-benefits article:hover button,.company-catalog-benefits article.is-open button { background: transparent; color: white; height: 89px; }
 .company-catalog-benefits article:hover button strong img,.company-catalog-benefits article.is-open button strong img { filter: brightness(0) invert(1); }
 .company-catalog-benefits article:hover > p,.company-catalog-benefits article.is-open > p { color: #ddd; max-height: 138px; opacity: 1; padding: 0 70px 30px; }
 
