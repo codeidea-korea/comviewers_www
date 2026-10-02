@@ -38,3 +38,21 @@ test('session authentication errors clear the session', async () => {
 test('a code-less HTTP 401 clears the session', async () => {
   assert.equal(await requestWith(undefined), 1)
 })
+
+for (const operation of ['request', 'download']) {
+  test(`late ${operation} 401 cannot clear a refreshed token`, async () => {
+    let token = 'old-token'
+    let complete
+    let failures = 0
+    const client = createApiClient({ baseUrl: '/', getAccessToken: () => token,
+      onAuthenticationFailure: () => { failures += 1 },
+      fetch: () => new Promise(resolve => { complete = resolve }),
+    })
+    const pending = operation === 'request' ? client.request('/api/v1/my/profile', z.unknown(), { authenticated: true })
+      : client.download('/api/v1/my/export', { authenticated: true })
+    token = 'renewed-token'
+    complete(new Response(JSON.stringify({ code: 'A002' }), { status: 401 }))
+    await assert.rejects(pending)
+    assert.equal(failures, 0)
+  })
+}

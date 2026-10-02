@@ -15,9 +15,9 @@ const organizationsSchema = z.array(sessionOrganizationSchema).refine(values => 
 export type SessionOrganization = Readonly<z.infer<typeof sessionOrganizationSchema>>
 export type SessionRole = z.infer<typeof roleSchema>
 export type SessionState =
-  | { readonly status: 'anonymous'; readonly revision: number }
-  | { readonly status: 'password-change-required'; readonly revision: number; readonly userId: string; readonly role: SessionRole }
-  | { readonly status: 'authenticated'; readonly revision: number; readonly userId: string; readonly role: SessionRole;
+  | { readonly status: 'anonymous'; readonly revision: number; readonly scopeRevision: number }
+  | { readonly status: 'password-change-required'; readonly revision: number; readonly scopeRevision: number; readonly userId: string; readonly role: SessionRole }
+  | { readonly status: 'authenticated'; readonly revision: number; readonly scopeRevision: number; readonly userId: string; readonly role: SessionRole;
       readonly customerSession: CustomerSession | null; readonly capabilityStatus: 'unselected' | 'pending' | 'ready' | 'error'; readonly expiresAt: number; readonly organizations: readonly SessionOrganization[]; readonly organizationIds: readonly string[]; readonly organizationId: string | null }
 export interface SessionStore {
   getSnapshot(): SessionState
@@ -33,7 +33,7 @@ export interface SessionStore {
 }
 
 export function createSessionStore(): SessionStore {
-  let state: SessionState = Object.freeze({ status: 'anonymous', revision: 0 })
+  let state: SessionState = Object.freeze({ status: 'anonymous', revision: 0, scopeRevision: 0 })
   let accessToken: string | null = null
   const listeners = new Set<() => void>()
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -52,7 +52,7 @@ export function createSessionStore(): SessionStore {
     scheduleExpiry()
     listeners.forEach(listener => listener())
   }
-  const logout = () => publish({ status: 'anonymous', revision: state.revision + 1 }, null)
+  const logout = () => publish({ status: 'anonymous', revision: state.revision + 1, scopeRevision: state.scopeRevision + 1 }, null)
   return {
     getSnapshot: () => state,
     subscribe(listener) {
@@ -70,7 +70,7 @@ export function createSessionStore(): SessionStore {
         throw new Error('로그인이 필요합니다.')
       }
       if (id !== null && !state.organizationIds.includes(id)) throw new Error('조직을 확인해 주세요.')
-      if (id !== state.organizationId) publish({ ...state, organizationId: id, customerSession: null, capabilityStatus: id === null ? 'unselected' : 'pending', revision: state.revision + 1 }, accessToken)
+      if (id !== state.organizationId) publish({ ...state, organizationId: id, customerSession: null, capabilityStatus: id === null ? 'unselected' : 'pending', revision: state.revision + 1, scopeRevision: state.scopeRevision + 1 }, accessToken)
     },
     retryCustomerSession() {
       if (state.status === 'authenticated' && state.organizationId && Date.now() < state.expiresAt) publish({ ...state, customerSession: null, capabilityStatus: 'pending', revision: state.revision + 1 }, accessToken)
@@ -102,7 +102,7 @@ export function createSessionStore(): SessionStore {
       const consistent = organizations === undefined || (details.success && memberships.success && details.data.length === memberships.data.length && details.data.every(item => memberships.data.includes(item.id)))
       if (!result.success || !memberships.success || !details.success || !consistent || !Number.isSafeInteger(receivedAt) || receivedAt < 0 || receivedAt > Date.now()) { logout(); throw new Error('로그인 응답을 확인할 수 없습니다.') }
       const data = result.data
-      const identity = { userId: data.userId, role: data.role, revision: state.revision + 1 }
+      const identity = { userId: data.userId, role: data.role, revision: state.revision + 1, scopeRevision: state.scopeRevision + 1 }
       if (data.passwordChangeRequired) {
         publish({ ...identity, status: 'password-change-required' }, null)
         return
@@ -116,9 +116,10 @@ export function createSessionStore(): SessionStore {
         ? preferredOrganizationId : memberships.data.length === 1 ? memberships.data[0] : null
       const previousOrganization = previous?.organizations.find(item => item.id === selectedOrganizationId)
       const renewedOrganization = details.data.find(item => item.id === selectedOrganizationId)
-      const preserveCapability = Boolean(sameAccount && previous && selectedOrganizationId === previous.organizationId
+      const preserveCapability = Boolean(preserveVerifiedOrganizations && sameAccount && previous && selectedOrganizationId === previous.organizationId
         && previousOrganization?.role === renewedOrganization?.role)
       publish({ ...identity, status: 'authenticated', expiresAt,
+        scopeRevision: preserveCapability && previous ? previous.scopeRevision : identity.scopeRevision,
         customerSession: preserveCapability && previous ? previous.customerSession : null,
         capabilityStatus: preserveCapability && previous ? previous.capabilityStatus : selectedOrganizationId ? 'pending' : 'unselected',
         organizations: Object.freeze(details.data.map(item => Object.freeze({ ...item }))),
