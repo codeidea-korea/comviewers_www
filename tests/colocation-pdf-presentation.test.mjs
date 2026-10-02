@@ -45,7 +45,7 @@ test('중복 신청 오류는 PDF 문구로 표시하고 다른 오류는 보존
   assert.equal(colocationSubmissionErrorMessage(null, true), '입점 신청을 제출하지 못했습니다.')
 })
 
-test('입점 신청 화면은 U58 PDF 문구를 유지하고 추론 UI를 노출하지 않는다', () => {
+test('[source contract] 입점 신청 화면은 U58 PDF 문구를 유지하고 추론 UI를 노출하지 않는다', () => {
   const view = readFileSync(`${projectRoot}src/routes/company/ColocationApplyPageView.tsx`, 'utf8')
   const hook = readFileSync(`${projectRoot}src/routes/company/-components/hooks/useColocationForm.ts`, 'utf8')
 

@@ -30,7 +30,7 @@ test('U55 목록 복귀는 검색어와 정렬만 보존한다', () => {
   assert.equal(communityListReturnTo('sort=latest&page=2'), '/community/posts')
 })
 
-test('U50/U57에 PDF 밖 수동 인증 입력과 상세 번호를 노출하지 않는다', () => {
+test('[source contract] U50/U57에 PDF 밖 수동 인증 입력과 상세 번호를 노출하지 않는다', () => {
   const profile = source('src/routes/mypage/-components/profile/ProfileEditor.tsx')
   const support = source('src/routes/support/SupportPagesView.tsx')
   assert.doesNotMatch(profile, /label="이메일 인증 링크"|여기에 붙여넣으세요|>인증 확인</)

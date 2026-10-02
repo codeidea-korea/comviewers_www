@@ -26,7 +26,7 @@ test('U54/U57 공개 첨부는 API MIME과 절대 다운로드 URL을 보존한�
   )
 })
 
-test('첨부 형식은 MIME을 우선하고 없으면 파일 확장자를 사용한다', () => {
+test('[source contract] 첨부 형식은 MIME을 우선하고 없으면 파일 확장자를 사용한다', () => {
   assert.equal(attachmentFormat({ name: 'guide.pdf', type: 'application/pdf' }), 'PDF')
   assert.equal(attachmentFormat({ name: 'diagnostic.log', type: '' }), 'LOG')
 

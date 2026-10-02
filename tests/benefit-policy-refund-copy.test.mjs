@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
 
-test('포인트·쿠폰 정책 링크는 독립 포인트 정책 문서로 이동한다', () => {
+test('[source contract] 포인트·쿠폰 정책 링크는 독립 포인트 정책 문서로 이동한다', () => {
   const benefit = readFileSync(
     `${projectRoot}src/routes/mypage/-components/benefits/BenefitPagesContent.tsx`,
     'utf8',
@@ -21,7 +21,7 @@ test('포인트·쿠폰 정책 링크는 독립 포인트 정책 문서로 이�
   assert.match(legal, /<DocumentBody key=\{section\} kind=\{section\}/)
 })
 
-test('중도해지 환불 신청의 최종 버튼은 PDF 문구를 사용한다', () => {
+test('[source contract] 중도해지 환불 신청의 최종 버튼은 PDF 문구를 사용한다', () => {
   const refund = readFileSync(
     `${projectRoot}src/routes/mypage/-components/InquiryRefundApplication.tsx`,
     'utf8',
@@ -31,7 +31,7 @@ test('중도해지 환불 신청의 최종 버튼은 PDF 문구를 사용한다'
   assert.doesNotMatch(refund, /: '해지 신청하기'/)
 })
 
-test('환불 목록 진입은 후보 상품을 복수 선택하고 구매확정 포인트 회수를 별도로 표시한다', () => {
+test('[source contract] 환불 목록 진입은 후보 상품을 복수 선택하고 구매확정 포인트 회수를 별도로 표시한다', () => {
   const refund = readFileSync(
     `${projectRoot}src/routes/mypage/-components/InquiryRefundApplication.tsx`,
     'utf8',
@@ -44,7 +44,7 @@ test('환불 목록 진입은 후보 상품을 복수 선택하고 구매확정 
   assert.doesNotMatch(refund, /displayMoney\(item\.promotionalPointDeduction \+ item\.purchaseConfirmationPointReversal\)/)
 })
 
-test('신청 성공으로 행 상태가 바뀌어도 완료 팝업은 닫기 전까지 유지된다', () => {
+test('[source contract] 신청 성공으로 행 상태가 바뀌어도 완료 팝업은 닫기 전까지 유지된다', () => {
   const refund = readFileSync(
     `${projectRoot}src/routes/mypage/-components/InquiryRefundApplication.tsx`,
     'utf8',

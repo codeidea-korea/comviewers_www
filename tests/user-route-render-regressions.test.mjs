@@ -45,12 +45,13 @@ function runBrowserAssertions(baseUrl) {
   })
 }
 
-test('실제 라우트는 인증·권한 상태와 PDF 대시보드 CTA·반응형 품번 검색을 렌더링한다', { timeout: 90_000 }, async () => {
+test('[browser] 실제 라우트는 인증·권한 상태와 PDF 대시보드 CTA·반응형 품번 검색을 렌더링한다', { timeout: 90_000 }, async () => {
   const previousApiBaseUrl = process.env.VITE_API_BASE_URL
   process.env.VITE_API_BASE_URL = '/backend'
   const server = await createServer({
     root: projectRoot,
     logLevel: 'error',
+    optimizeDeps: { entries: [] },
     server: { host: '127.0.0.1', port: 0, strictPort: false, hmr: false },
   })
   try {

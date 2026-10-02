@@ -122,7 +122,7 @@ function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExt
   </div>
 }
 
-function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, onSelectedChange, selected, selectionFull }: {
+export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, onSelectedChange, selected, selectionFull }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
