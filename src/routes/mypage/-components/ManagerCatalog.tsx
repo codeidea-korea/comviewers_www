@@ -9,7 +9,7 @@ import searchIcon from '../../../assets/figma/mypage-search.svg'
 import { Checkbox } from '../../../components/ui/CheckboxControl'
 import { Pagination } from '../../../components/ui/PaginationControl'
 import { AccountQueryState } from './AccountQueryState'
-import { useMyAccount } from './hooks/useMyAccount'
+import { useManagerWorkspace } from './hooks/useManagerWorkspace'
 import { MyPageLayout } from '../MypageComponentsView'
 import { managerCatalogRowMatches } from './managerCatalogSearch'
 
@@ -18,7 +18,7 @@ export function ManagerCatalog({ onCreate, onEdit, onAssign, onUnassign, onClose
   onAssign: (ids: string[]) => void; onUnassign: (ids: string[]) => void;
   onCloseMenu: () => void; onToggleMenu: (id: string) => void; openMenuRow?: string | null;
 }) {
-  const account = useMyAccount()
+  const account = useManagerWorkspace()
   const session = useSession()
   const managers = useMemo(() => [...(account.data?.managers ?? [])].filter(isActiveManager).sort((left, right) => left.name.localeCompare(right.name, 'ko')), [account.data?.managers])
   const managerRows = (account.data?.rcpcs ?? []).map((item) => {

@@ -24,23 +24,18 @@ async function isolatedServer(options) {
 async function modules(run) {
   const { server, close } = await isolatedServer({ root, logLevel: 'error', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false } })
   try {
-    const reader = await server.ssrLoadModule('/src/domain/myAccount/liveSnapshot.ts')
+    const reader = await server.ssrLoadModule('/src/domain/myAccount/httpManagerServices.ts')
     const managers = await server.ssrLoadModule('/src/api/cManagers.ts')
     await run({ ...reader, ...managers })
   } finally { await close() }
 }
 const rcpc = rentalId => ({ rentalId, productNo: `PC${rentalId}`, serverRoomName: 'Test room', rentalStatus: 'active', preference: { favorite: false }, serviceEndExclusiveDate: null, trafficDownloadTotalBytes: null, trafficUploadTotalBytes: null })
-const emptyPage = async () => ({ items: [] })
-function dependencies(list) {
-  return {
-    readApi: { profile: async () => ({ username: 'test_owner' }), benefits: async () => ({ pointBalance: 0 }), orders: emptyPage, points: emptyPage, coupons: emptyPage, storage: emptyPage },
-    rcpcApi: { list }, inquiryApi: { list: emptyPage }, rcpcMutations: { groups: async () => [] },
-  }
-}
+const managerApi = { list: async () => [], rcpcs: async () => [], detail: async () => ({ rcpcs: [] }) }
+const dependencies = list => ({ list })
 
-test('담당자 목록은 201대 전체를 읽어 100대 이후 장비를 보존한다', async () => modules(async ({ createLiveMyAccountReader }) => {
+test('담당자 목록은 201대 전체를 읽어 100대 이후 장비를 보존한다', async () => modules(async ({ createManagerReader }) => {
   const calls = []
-  const reader = createLiveMyAccountReader(dependencies(async ({ page, size }) => {
+  const reader = createManagerReader(managerApi, dependencies(async ({ page, size }) => {
     calls.push({ page, size })
     return { items: Array.from({ length: page < 2 ? 100 : 1 }, (_, i) => rcpc(page * 100 + i + 1)), page, size, totalElements: 201, totalPages: 3 }
   }))
@@ -51,8 +46,8 @@ test('담당자 목록은 201대 전체를 읽어 100대 이후 장비를 보존
 }))
 
 for (const mode of ['network', 'empty', 'duplicate', 'count_changed']) {
-  test(`담당자 전체 조회 ${mode} 실패를 부분 성공으로 반환하지 않는다`, async () => modules(async ({ createLiveMyAccountReader }) => {
-    const reader = createLiveMyAccountReader(dependencies(async ({ page, size }) => {
+  test(`담당자 전체 조회 ${mode} 실패를 부분 성공으로 반환하지 않는다`, async () => modules(async ({ createManagerReader }) => {
+    const reader = createManagerReader(managerApi, dependencies(async ({ page, size }) => {
       if (page === 1 && mode === 'network') throw new Error('page unavailable')
       return { items: page === 0 ? Array.from({ length: 100 }, (_, i) => rcpc(i + 1)) : mode === 'empty' ? [] : [rcpc(mode === 'duplicate' ? 1 : 101)], page, size, totalElements: page === 1 && mode === 'count_changed' ? 102 : 101, totalPages: 2 }
     }))
@@ -77,7 +72,7 @@ test('담당자 계정 생성·수정 요청에 선택한 그룹을 함께 보�
   assert.equal(requests.length, 2)
 }))
 
-test('권한 그룹이 없는 신규 담당자는 화면에서 그룹 생성·선택 후 저장할 수 있다', { timeout: 90_000 }, async () => {
+test('[browser] 권한 그룹이 없는 신규 담당자는 화면에서 그룹 생성·선택 후 저장할 수 있다', { timeout: 90_000 }, async () => {
   const source = `
     import React from 'react';
     import { createRoot } from 'react-dom/client';

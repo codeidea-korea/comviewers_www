@@ -10,7 +10,9 @@ export const managerInputSchema = z.object({
 export type ManagerInput = z.infer<typeof managerInputSchema>
 export const isActiveManager = (item: { status: string }) => item.status === '사용중' || item.status === '활성'
 export type AccountManager = MyAccountSnapshot['managers'][number]
+export type ManagerWorkspace = Pick<MyAccountSnapshot, 'managers' | 'rcpcs'>
 export interface ManagerServices {
+  read(signal?: AbortSignal): Promise<ManagerWorkspace>
   isManagerLoginAvailable(loginId: string): Promise<boolean>
   saveManager(input: { id?: string; draft: ManagerInput }): Promise<void>
   assignManager(input: { managerId: string | null; rcpcIds: readonly string[] }): Promise<void>
