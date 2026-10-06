@@ -33,9 +33,11 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
   const hasStockNotice = soldOut || stockReserved
   const hasNotice = !hasStockNotice && (item.priceChanged || item.issues.length > 0)
   const units = getCartSelectionUnits(item)
-  const quantityDisabled = quantityUpdating || !item.quantityEditable
+  const quantityDisabled = !item.quantityEditable
   const kind = item.rowKind
   const increased = item.maximumQuantity !== null && units >= item.maximumQuantity
+  const decreaseUnavailable = quantityDisabled || units <= item.minimumQuantity
+  const increaseUnavailable = quantityDisabled || increased
   const statusCopy = t(!item.available ? 'checkout.unavailable' : item.instantAvailable === null ? 'product.connectionUnknown' : item.instantAvailable ? 'product.available' : 'product.preparing')
   const points = getCartItemPoints(item)
   return <article className={`purchase-row cart-item cart-item--${kind} purchase-row--${kind}${hasNotice ? ' cart-item--has-notice' : ''}`}>
@@ -59,7 +61,7 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
           {item.issues.map(issue => <p className="cart-item__notice" key={issue} role="status"><span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{cartIssueMessage(issue)}</span></p>)}
         </>}
         <div className="cart-item__bottom">
-          <div aria-busy={quantityUpdating} className={`purchase-row__quantity cart-quantity${import.meta.env.DEV ? ' notranslate' : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}><div><button aria-label={t('cart.decreaseQuantity')} disabled={quantityDisabled || units <= item.minimumQuantity} onClick={() => onQuantityChange(Math.min(item.maximumQuantity ?? Number.MAX_SAFE_INTEGER, units - 1))} type="button"><img alt="" src={removeIcon} /></button><b style={locale === 'ko' ? undefined : { width: 'auto', minWidth: 50, paddingInline: 8 }}>{locale === 'ko' ? units : cartSelectionLabel(item)}</b><button aria-label={t('cart.increaseQuantity')} disabled={quantityDisabled || increased} onClick={() => onQuantityChange(Math.max(item.minimumQuantity, units + 1))} type="button"><img alt="" src={addIcon} /></button></div>{locale === 'ko' && <span>{cartUnitLabel(item)}</span>}</div>
+          <div aria-busy={quantityUpdating} className={`purchase-row__quantity cart-quantity${import.meta.env.DEV ? ' notranslate' : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}><div><button aria-label={t('cart.decreaseQuantity')} data-unavailable={decreaseUnavailable} disabled={quantityUpdating || decreaseUnavailable} onClick={() => onQuantityChange(Math.min(item.maximumQuantity ?? Number.MAX_SAFE_INTEGER, units - 1))} type="button"><img alt="" src={removeIcon} /></button><b style={locale === 'ko' ? undefined : { width: 'auto', minWidth: 50, paddingInline: 8 }}>{locale === 'ko' ? units : cartSelectionLabel(item)}</b><button aria-label={t('cart.increaseQuantity')} data-unavailable={increaseUnavailable} disabled={quantityUpdating || increaseUnavailable} onClick={() => onQuantityChange(Math.max(item.minimumQuantity, units + 1))} type="button"><img alt="" src={addIcon} /></button></div>{locale === 'ko' && <span>{cartUnitLabel(item)}</span>}</div>
           <div className="purchase-row__amount cart-item__amount">{!partner && <span className="cart-item__points"><TranslatedText id="cart.pointsToEarn" /><span className={`cart-item__point-value${import.meta.env.DEV ? ' notranslate' : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}>{locale === 'ko' ? <><b>{points ?? '-'}</b>{points !== null && <span>점</span>}</> : <b>{points === null ? '-' : t('money.pointAmount', { points })}</b>}</span></span>}<CartMoney className="cart-money--item" value={getCartItemAmount(item)} /></div>
         </div>
       </div>

@@ -123,7 +123,15 @@ export function useCart() {
     const matchesCurrentQuantity = (row: CartItem) => row.quantity === item.quantity && row.durationUnits === item.durationUnits
     const selectedRow = quote.data?.items.find(row => row.id === item.id && matchesCurrentQuantity(row))
     const allRow = allQuote.data?.items.find(row => row.id === item.id && matchesCurrentQuantity(row))
-    return (quote.dataUpdatedAt >= allQuote.dataUpdatedAt ? selectedRow ?? allRow : allRow ?? selectedRow) ?? item
+    const currentRow = quote.dataUpdatedAt >= allQuote.dataUpdatedAt ? selectedRow ?? allRow : allRow ?? selectedRow
+    if (currentRow) return currentRow
+    // Keep the last confirmed points visible until the new quantity is quoted.
+    if (updatingQuantityIds.has(item.id) || quote.isFetching || allQuote.isFetching) {
+      const previousQuotes = quote.dataUpdatedAt >= allQuote.dataUpdatedAt ? [quote.data, allQuote.data] : [allQuote.data, quote.data]
+      const previousRow = previousQuotes.flatMap(data => data?.items ?? []).find(row => row.id === item.id)
+      if (previousRow) return { ...item, expectedPoints: previousRow.expectedPoints }
+    }
+    return item
   })
   const estimate = summarizeQuotedCartItems(quotedItems.filter(item => selectedIds.includes(item.id)))
   const checkoutBlocked = selectedIds.length === 0 || quote.isFetching || !quote.data?.checkoutEligible || quote.isError
