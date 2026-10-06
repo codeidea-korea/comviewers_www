@@ -222,7 +222,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 .map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
           </label>
-          <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}　⌄</button></span>
+          <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</button></span>
         </div>
 
         <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
