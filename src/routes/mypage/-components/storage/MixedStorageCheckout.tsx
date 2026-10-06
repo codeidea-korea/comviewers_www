@@ -8,7 +8,7 @@ import { accountMoney } from '../shared/AccountReadCommon'
 
 export type StorageSelectedGroup = {items:{id:number;units:number|null;label:string;unitLabel:string}[];amount:number;rentalAmount:number;setupFeeAmount:number;points:number;valid:boolean;availableCount:number;state:'pending'|'ready'|'error'}
 const empty:StorageSelectedGroup={items:[],amount:0,rentalAmount:0,setupFeeAmount:0,points:0,valid:true,availableCount:0,state:'ready'}
-const SelectionContext=createContext<{locked:boolean;hasPending:boolean;hasError:boolean;report:(kind:'rentals'|'parts',selection:StorageSelectedGroup)=>void}|null>(null)
+const SelectionContext=createContext<{locked:boolean;hasPending:boolean;hasError:boolean;hasParts:boolean;report:(kind:'rentals'|'parts',selection:StorageSelectedGroup)=>void}|null>(null)
 export const useMixedStorageSelection=()=>useContext(SelectionContext)
 export function MixedStorageCheckout({api,children}:{api:MyAccountReadServices;children:ReactNode}) {
   const [groups,setGroups]=useState<{rentals:StorageSelectedGroup;parts:StorageSelectedGroup}>({rentals:empty,parts:{...empty,state:'pending'}})
@@ -16,7 +16,7 @@ export function MixedStorageCheckout({api,children}:{api:MyAccountReadServices;c
   const [confirmOpen,setConfirmOpen]=useState(false)
   const navigate=useNavigate();const client=useQueryClient()
   const report=useCallback((kind:'rentals'|'parts',selection:StorageSelectedGroup)=>setGroups(previous=>({...previous,[kind]:selection})),[])
-  const selection=useMemo(()=>({locked:Boolean(attempt),hasPending:groups.parts.state==='pending',hasError:groups.parts.state==='error',report}),[attempt,groups.parts.state,report])
+  const selection=useMemo(()=>({locked:Boolean(attempt),hasPending:groups.parts.state==='pending',hasError:groups.parts.state==='error',hasParts:groups.parts.availableCount>0,report}),[attempt,groups.parts.state,groups.parts.availableCount,report])
   const move=useMutation({mutationFn:(current:{selection:typeof groups;key:string})=>api.moveMixedStorage({
     rentals:current.selection.rentals.items.map(item=>({itemId:item.id,durationUnits:item.units})),parts:current.selection.parts.items.map(item=>({id:item.id,quantity:item.units??0}))},current.key),
     onSuccess:async result=>{setAttempt(null);await Promise.all([client.invalidateQueries({queryKey:['my-account']}),client.invalidateQueries({queryKey:['cart']})]);const params=new URLSearchParams();result.cartItemIds.forEach(id=>params.append('cartItemId',String(id)));navigate(`/checkout?${params}`)},
