@@ -19,33 +19,37 @@ async function getProduct(catalog: CatalogApi, number: string, signal?: AbortSig
 }
 
 function mapItem(row: CartDto['items'][number], product: CatalogDetail | null) {
+  const reserved = row.reservedProduct
   const unit = row.billingUnit
   const supported = ['thirty_day', 'day', 'hour', 'unit'].includes(unit)
   const pricingMissing = row.currentUnitPrice === null || row.currentSetupFee === null
   const pricingChanged = row.currentBillingUnit !== unit
-  const soldOut = product?.availability === 'SOLD_OUT'
+  const soldOut = !reserved && product?.availability === 'SOLD_OUT'
   const issues = [
     ...(!supported ? ['UNSUPPORTED_BILLING_UNIT'] : []),
     ...(pricingMissing ? ['MISSING_PRICE'] : []),
     ...(pricingChanged ? ['PRICING_MODEL_CHANGED'] : []),
     ...(soldOut ? ['SOLD_OUT'] : []),
     ...(!row.available ? ['ORDER_UNAVAILABLE'] : []),
-    ...(!product ? ['UNAVAILABLE'] : []),
+    ...(!product && !reserved ? ['UNAVAILABLE'] : []),
   ]
   const spec = product?.spec
   const specText = spec ? [spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter((value) => value !== null).join(' / ') : null
   return {
     id: String(row.id), productId: row.productNo, source: 'api',
     type: unit === 'unit' ? 'part' : 'rental', rowKind: unit === 'unit' ? 'partner' : 'normal',
-    label: row.title || row.productNo, location: product ? `${product.serverRoom.providerName ? `${product.serverRoom.providerName}/` : ''}${product.serverRoom.name}` : '-',
-    image: product?.images.find((image) => image.primary)?.url ?? product?.images[0]?.url ?? null,
-    spec: unit === 'unit' ? (product?.description ?? specText) || null : specText || null, available: product?.availability === 'AVAILABLE', instantAvailable: product?.instantAvailable ?? null,
+    label: row.title || row.productNo, location: reserved ? reserved.serverRoomName ?? '-' : product ? `${product.serverRoom.providerName ? `${product.serverRoom.providerName}/` : ''}${product.serverRoom.name}` : '-',
+    image: reserved ? reserved.imageUrl || null : product?.images.find((image) => image.primary)?.url ?? product?.images[0]?.url ?? null,
+    spec: reserved ? reserved.specSummary || null : unit === 'unit' ? (product?.description ?? specText) || null : specText || null,
+    available: reserved ? row.available : product?.availability === 'AVAILABLE', instantAvailable: product?.instantAvailable ?? null,
     billingUnit: unit, durationUnits: row.durationUnits, quantity: row.quantity,
-    minimumQuantity: product?.minUnits ?? 1,
-    maximumQuantity: product ? (unit === 'unit' ? Math.min(product.maxUnits, product.stockQuantity) : product.maxUnits) : null,
+    minimumQuantity: reserved ? reserved.minimumUnits ?? 1 : product?.minUnits ?? 1,
+    maximumQuantity: reserved ? reserved.maximumUnits : product ? (unit === 'unit' ? Math.min(product.maxUnits, product.stockQuantity) : product.maxUnits) : null,
     setupFee: row.currentSetupFee, rentalFee: row.currentUnitPrice,
     priceChanged: row.priceChanged, checkoutEligible: issues.length === 0,
-    quantityEditable: supported && !pricingMissing && !pricingChanged && product?.availability === 'AVAILABLE' && (unit !== 'unit' || product.stockQuantity > 0),
+    quantityEditable: supported && !pricingMissing && !pricingChanged && (reserved
+      ? unit === 'unit' && row.available && reserved.minimumUnits !== null && reserved.maximumUnits !== null && reserved.maximumUnits >= reserved.minimumUnits
+      : product?.availability === 'AVAILABLE' && (unit !== 'unit' || product.stockQuantity > 0)),
     issues, quotedAmount: null,
   }
 }
@@ -53,7 +57,7 @@ function mapItem(row: CartDto['items'][number], product: CatalogDetail | null) {
 export function createHttpCartRepository(api: CartApi, catalog: CatalogApi): CartRepository {
   async function list(signal?: AbortSignal) {
     const response = await api.list(signal)
-    const rows = await Promise.all(response.items.map(async (row) => mapItem(row, await getProduct(catalog, row.productNo, signal))))
+    const rows = await Promise.all(response.items.map(async (row) => mapItem(row, row.reservedProduct ? null : await getProduct(catalog, row.productNo, signal))))
     return cartSchema.parse(rows)
   }
   return {

@@ -16,6 +16,10 @@ export const cartItemDtoSchema = z.object({
   snapshotUnitPrice: amount, snapshotSetupFee: amount,
   currentUnitPrice: amount.nullable(), currentSetupFee: amount.nullable(),
   priceChanged: z.boolean(), available: z.boolean(), addedAt: localDateTime, updatedAt: localDateTime,
+  reservedProduct: z.object({
+    serverRoomName: z.string().nullable(), imageUrl: z.string().nullable(), specSummary: z.string().nullable(),
+    minimumUnits: positiveInt.nullable(), maximumUnits: z.number().int().nonnegative().max(2147483647).nullable(),
+  }).nullable().default(null),
 })
 export const cartDtoSchema = z.object({ cartId: id.nullable(), items: z.array(cartItemDtoSchema) })
 export const cartItemInputSchema = z.object({
