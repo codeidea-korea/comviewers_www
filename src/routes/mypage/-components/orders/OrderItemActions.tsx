@@ -47,7 +47,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     && item.rentalStatus === 'active'
     && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const now = Date.now()
-  const canConfirm = !cManager && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
+  const canConfirm = (!cManager || Boolean(item.rentalId)) && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
   const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={confirmation.error?.message} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   if (variant === 'dashboard') return <>
@@ -62,8 +62,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (item.billingUnit === 'unit' && item.durationUnits === null && item.pcAssetId === null && !item.rentalId)
-    return paid ? <PartPurchaseActions api={api} item={item}/> : null
-  if (cManager) return <div className="order-catalog-item__actions"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
+    return !cManager && paid ? <PartPurchaseActions api={api} item={item}/> : null
   return <>
     {!item.refundPending && <button
       className={`order-catalog-item__confirm${import.meta.env.DEV ? ' notranslate' : ''}${canConfirm ? ' is-active' : ''}`}
@@ -78,14 +77,14 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
       {canConfirm && item.expectedPoints !== null ? <span>◉ {item.expectedPoints.toLocaleString('ko-KR')}P 받기<i aria-hidden="true" /></span> : null}
     </button>}
     <div className="order-catalog-item__actions">
-      <div className="order-catalog-item__action-primary">
+      {!cManager && <div className="order-catalog-item__action-primary">
         {item.rentalId && canExtend && myAccount.rcpcApi
           ? <RcpcExtensionCheckout api={myAccount.rcpcApi} rentalIds={[Number(item.rentalId)]} displayTargets={[{ rcpcId: item.productNo, cpu: item.title }]} triggerLabel={t('rental.extend')} />
           : <Button size="small" variant="secondary" disabled><TranslatedText id="rental.extend" /></Button>}
         {confirmedAt && paid && !item.refundPending
           ? <OrderReview item={item} />
           : <Button size="small" variant="secondary" disabled><TranslatedText id="order.writeReview" /></Button>}
-      </div>
+      </div>}
       <OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} />
     </div>
     <Toast message={confirmationMessage} toastKey={toastKey} />
