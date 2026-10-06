@@ -75,7 +75,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
           <td>{item.amount?.toLocaleString('ko-KR') ?? '-'}원</td><td>{item.eligible ? '연장 가능' : extensionResultText(item)}</td></tr>)}
       </tbody></table></div><p>만료 후 결제가 승인되면 실제 연장 기간은 승인 시각부터 계산되어 예상 종료 시각과 달라질 수 있습니다.</p><p>합계 {current.totalAmount.toLocaleString('ko-KR')}원</p>
       {current.benefits && <p>쿠폰 −{current.benefits.couponDiscountAmount.toLocaleString('ko-KR')}원 · 포인트 −{current.benefits.pointUsedAmount.toLocaleString('ko-KR')}P · 최종 결제 {current.benefits.finalAmount.toLocaleString('ko-KR')}원{current.benefits.finalAmount === 0 ? ' (외부 결제 없이 내부 승인)' : ''}</p>}
-      <p>30일 상품은 월 렌탈료 ÷ 30 × 연장 일수로 계산합니다. 원 미만 금액의 처리 정책이 미설정된 기간은 결제할 수 없습니다.</p>
+      <p>30일 상품의 연장 금액은 (월 렌탈료 ÷ 30) × 연장 일수로 계산한 뒤, 상품별 금액의 소수점 이하를 반올림합니다. 최종 결제금액은 반올림한 금액을 합산하고 쿠폰·포인트를 차감합니다.</p>
       {!current.eligible && <p role="alert">연장할 수 없는 행을 확인하고 선택 대상 또는 기간을 수정해 주세요.</p>}
       {!pageMode && current.eligible && selection.success ? <Link to="/mypage/extension-checkout" state={{ selection: selection.data, offerIds }}>연장 결제하기 · 주문서 작성</Link> : null}
       {!pageMode && !current.eligible ? <button type="button" disabled>연장 결제하기</button> : null}

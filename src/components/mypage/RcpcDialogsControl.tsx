@@ -85,7 +85,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
           <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'period'} disabled={busy} name="extension-mode" onChange={() => onModeChange('period')} type="radio" /><span><strong>기간 선택</strong><small>선택한 기간 만큼 연장됩니다.</small></span></label><fieldset aria-label="연장 기간" disabled={busy}><legend className="sr-only">연장 기간</legend><div className="rcpc-extension-dialog__periods">{[['30', '1개월'], ['60', '2개월'], ['90', '3개월']].map(([value, label]) => <button aria-pressed={extensionMode === 'period' && periodValue === value} key={value} onClick={() => { onModeChange('period'); onPeriodChange?.(value) }} type="button">{label}</button>)}</div></fieldset></div>
           <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'date'} disabled={busy} name="extension-mode" onChange={() => onModeChange('date')} type="radio" /><span><strong>종료일 지정</strong><small>선택한 날짜로 모든 RCPC의 종료일을 통일합니다.</small></span></label><input aria-label="연장 종료일" disabled={busy} onChange={(event) => { onModeChange('date'); onDateChange?.(event.target.value) }} type="date" value={dateValue} /></div>
         </div>
-        <p className="rcpc-extension-dialog__help">ㆍ선택한 방식에 따라 각 RCPC의 연장 기간이 계산됩니다.<br />ㆍ연장 시에는 렌탈비만 추가되며, 상품별 결제 예정금액은 다를 수 있습니다.</p>
+        <p className="rcpc-extension-dialog__help">ㆍ선택한 방식에 따라 각 RCPC의 연장 기간이 계산됩니다.<br />ㆍ연장 시에는 렌탈비만 추가되며, 상품별 결제 예정금액은 다를 수 있습니다.<br />ㆍ30일 상품은 (월 렌탈료 ÷ 30) × 연장 일수로 계산한 뒤, 상품별 금액의 소수점 이하를 반올림합니다.</p>
         {busy ? <p role="status">연장 견적을 확인하고 있습니다.</p> : null}
         {error ? <p role="alert">{error}</p> : null}
         <div className="rcpc-extension-results-scroll" tabIndex={0}>
