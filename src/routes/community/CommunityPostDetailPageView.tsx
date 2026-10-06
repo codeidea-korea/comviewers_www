@@ -9,6 +9,7 @@ import { RichContentRenderer } from '../../components/ui/RichContentRendererCont
 import { LoadingState } from '../../components/ui/LoadingStateControl'
 import { Toast } from '../../components/ui/ToastControl'
 import downloadIcon from '../../assets/figma/community-company/support-download.svg'
+import attachmentIcon from '../../assets/figma/community-company/support-attachment.svg'
 import windowIcon from '../../assets/figma/icon-window.png'
 import { usePost } from '@/routes/community/-components/hooks/useContent'
 import type { Post } from '@/domain/storefront/services'
@@ -36,7 +37,7 @@ function PostDetail({ post }: { post: Post }) {
   return (
     <CommunityShell isolated={compact}>
       <article className={`post-detail content-container${compact ? ' post-detail--compact' : ''}`}>
-        <header><div><h1>{displayTitle}</h1><p><span className="post-avatar"><img alt="" className="post-avatar__mark" src={post.authorProfileImageUrl ?? windowIcon} /></span><span className="post-detail__author"><strong>작성자 {post.author}</strong><small><time>작성일시 {post.dateTime ?? post.date}</time><i aria-hidden="true" />조회수 <b>{post.views}</b></small></span></p>{post.isMine && communityWriteAllowed ? <span className="post-detail__menu-anchor"><button aria-expanded={menuOpen} aria-label="게시글 메뉴" onClick={() => setMenuOpen((value) => !value)} type="button">⋮</button>{menuOpen ? <div className="post-detail__menu"><button onClick={() => navigate(`/community/posts/${postId}/edit${listUrl.slice('/community/posts'.length)}`)} type="button">수정</button><button onClick={() => { setMenuOpen(false); setDeleteOpen(true) }} type="button">삭제</button></div> : null}</span> : null}</div></header>
+        <header><div><h1>{displayTitle}{attachments.length > 0 ? <img alt={`첨부파일 ${attachments.length}개`} className="post-detail__attachment-icon" src={attachmentIcon} /> : null}</h1><p><span className="post-avatar"><img alt="" className="post-avatar__mark" src={post.authorProfileImageUrl ?? windowIcon} /></span><span className="post-detail__author"><strong>작성자 {post.author}</strong><small><time>작성일시 {post.dateTime ?? post.date}</time><i aria-hidden="true" />조회수 <b>{post.views}</b></small></span></p>{post.isMine && communityWriteAllowed ? <span className="post-detail__menu-anchor"><button aria-expanded={menuOpen} aria-label="게시글 메뉴" onClick={() => setMenuOpen((value) => !value)} type="button">⋮</button>{menuOpen ? <div className="post-detail__menu"><button onClick={() => navigate(`/community/posts/${postId}/edit${listUrl.slice('/community/posts'.length)}`)} type="button">수정</button><button onClick={() => { setMenuOpen(false); setDeleteOpen(true) }} type="button">삭제</button></div> : null}</span> : null}</div></header>
         {post.image ? <img alt={displayTitle} className="post-detail__image" src={post.image} /> : null}
         <div className="post-detail__body"><RichContentRenderer loadImage={storefront.loadPostImage} attachments={attachments} document={post.richContent} fallback={postContent} /></div>
         <AttachmentList attachments={attachments} downloadIcon={downloadIcon} />

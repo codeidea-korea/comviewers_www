@@ -263,6 +263,7 @@
 .post-detail > header { height: auto; min-height: 120px; padding: 0 0 20px; }
 .post-detail > header > div { position: relative; }
 .post-detail > header h1 { font-size: 30px; font-weight: 800; min-height: 36px; letter-spacing: -.03em; line-height: 36px; }
+.post-detail__attachment-icon { display: inline-block; height: 20px; margin-left: 8px; object-fit: contain; vertical-align: middle; width: 16px; }
 .post-detail > header p { height: 44px; margin-top: 20px; }
 .post-avatar { background: var(--color-blue-500); height: 44px; overflow: hidden; padding: 3px; width: 44px; }
 .post-avatar__mark { background: white; box-shadow: 9px 0 white, 0 9px white, 9px 9px white; display: block; height: 8px; transform: translate(-4.5px, -4.5px); width: 8px; }
