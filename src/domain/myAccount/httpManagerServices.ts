@@ -29,8 +29,11 @@ export function createManagerReader(api: CManagersApi, rcpcApi: MyRcpcReadServic
     ])
     const details = await Promise.all(managers.map(manager => api.detail(manager.memberId, signal)))
     const byRental = new Map(assignableRcpcs.map(item => [item.rentalId, item]))
+    const currentRcpcs = rcpcs.filter(item => item.rentalStatus === 'active'
+      && item.usageStatus !== 'ended' && item.serverStatus !== 'ended')
+    const currentRentalIds = new Set(currentRcpcs.map(item => item.rentalId))
     return {
-      rcpcs: rcpcs.map(item => {
+      rcpcs: currentRcpcs.map(item => {
         const assignable = byRental.get(item.rentalId)
         return {
           id: String(item.rentalId), rcpcId: assignable?.assetNo ?? item.productNo,
@@ -48,7 +51,7 @@ export function createManagerReader(api: CManagersApi, rcpcApi: MyRcpcReadServic
       }),
       managers: managers.map((item, index) => ({
         id: String(item.memberId), managerId: String(item.memberId), name: item.name ?? item.username, loginId: item.username,
-        assignedRcpcIds: details[index].rcpcs.map(rcpc => String(rcpc.rentalId)), assignmentHistory: [],
+        assignedRcpcIds: details[index].rcpcs.filter(rcpc => currentRentalIds.has(rcpc.rentalId)).map(rcpc => String(rcpc.rentalId)), assignmentHistory: [],
         memo: item.managementMemo ?? '', status: item.status === 'active' ? '활성' : item.status,
         permissionGroupId: item.permissionGroupId, permissionGroupName: item.permissionGroupName,
       })),
