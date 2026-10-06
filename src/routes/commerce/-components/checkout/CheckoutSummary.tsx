@@ -24,7 +24,7 @@ const paymentOptions: readonly { value: PaymentMethod; label?: string; translati
   { value: 'kakao-pay', label: '카카오페이', directEasyPay: 'kakaoPay', icon: kakaoPayIcon },
   { value: 'global-card', label: '', cardLogos: true },
 ]
-export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitError, onSubmit }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitError?: string; onSubmit: () => void }) {
+export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitError, onSubmit }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitError?: string; onSubmit: () => void }) {
   const { locale, t } = useTranslation()
   const amount = quote.estimate
   return <aside className="order-summary">
@@ -44,7 +44,7 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
       <div aria-hidden="true" className="order-summary__rule" />
       <fieldset className="payment-methods" disabled={locked}><legend><TranslatedText id="checkout.paymentMethod" /></legend><div className="payment-methods__options">{paymentOptions.filter(option => !option.directEasyPay || directEasyPayMethods?.[option.directEasyPay] || form.payment === option.value).map(({ value, label, translationKey, cardLogos, directEasyPay, icon }) => {
         const unavailable = Boolean(directEasyPay && !directEasyPayMethods?.[directEasyPay])
-        return <Radio checked={form.payment === value} disabled={unavailable} iconClassName="payment-radio-icon" key={value} name="payment" offIcon={radioOffIcon} onChange={() => { form.setPayment(value); onPaymentChange?.() }} onIcon={radioOnIcon} value={value}>{translationKey ? <TranslatedText id={translationKey} /> : <span>{label}{unavailable ? ' (현재 이용 불가)' : ''}</span>}{icon ? <img alt="" className="payment-easy-pay-logo" src={icon} /> : null}{cardLogos ? <span className="payment-card-logos"><img alt="Mastercard" src={mastercardIcon} /><img alt="Visa" src={visaIcon} /><img alt="WeChat Pay" src={wechatIcon} /><img alt="JCB" src={jcbIcon} /></span> : null}</Radio>
+        return <Radio checked={form.payment === value} disabled={unavailable} iconClassName="payment-radio-icon" key={value} name="payment" offIcon={radioOffIcon} onChange={() => { form.setPayment(value); onPaymentChange?.() }} onIcon={radioOnIcon} value={value}>{translationKey ? <TranslatedText id={translationKey} /> : <span>{label}{unavailable ? ' (현재 이용 불가)' : ''}</span>}{value === 'card' ? <span className="payment-card-easy-pay-logos"><img alt="네이버페이" src={naverPayIcon} /><img alt="카카오페이" src={kakaoPayIcon} /></span> : null}{icon ? <img alt="" className="payment-easy-pay-logo" src={icon} /> : null}{cardLogos ? <span className="payment-card-logos"><img alt="Mastercard" src={mastercardIcon} /><img alt="Visa" src={visaIcon} /><img alt="WeChat Pay" src={wechatIcon} /><img alt="JCB" src={jcbIcon} /></span> : null}</Radio>
       })}</div>{form.fieldError('payment') && <small className="checkout-validation-error" role="alert">{form.fieldError('payment')}</small>}</fieldset>
       
       <div aria-hidden="true" className="order-summary__rule" />
@@ -56,6 +56,7 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
     {!quote.checkoutEligible && <div role="alert"><p><TranslatedText id="checkout.unavailable" /></p>{quote.issues.map((issue) => <p className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined} key={issue}>{cartIssueMessage(issue)}</p>)}</div>}
     {form.fieldError('orderAgreed') && <div className="checkout-agreement-errors" role="alert"><p>{form.fieldError('orderAgreed')}</p></div>}
     {paymentAvailabilityError && <p className="checkout-submit-error" role="alert">{paymentAvailabilityError}</p>}
+    {paymentNotice && <p className="checkout-payment-notice" role="status">{paymentNotice}</p>}
     {submitError ? <p className="checkout-submit-error" role="alert">{submitError} <RelativeLink to="/mypage/orders"><TranslatedText id="checkout.viewOrders" /></RelativeLink></p> : null}
     <Button className="commerce-primary-button" disabled={refreshing || submitting || !quote.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" /> : checkingPayment ? '결제 상태 다시 확인' : <TranslatedText id={locked ? 'checkout.retryPayment' : 'checkout.order'} />}</Button>
   </aside>

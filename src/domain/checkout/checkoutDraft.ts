@@ -11,7 +11,7 @@ export const checkoutDraftSchema = z.object({
   payment: z.enum(['virtual-account', 'card', 'payco', 'naver-pay', 'kakao-pay', 'global-card'], { error: '결제수단을 선택해 주세요.' }),
   receiptType: z.enum(['not_requested', 'income_deduction', 'business_expense']),
   receiptIdentifier: z.string(),
-  orderAgreed: z.literal(true, { error: '주문 내용 확인을 선택해 주세요.' }),
+  orderAgreed: z.literal(true, { error: '필수 항목에 동의해 주세요.' }),
 }).superRefine((draft, context) => {
   if (Boolean(draft.contact.messengerType.trim()) !== Boolean(draft.contact.messengerId.trim())) {
     context.addIssue({ code: 'custom', path: ['contact', 'messengerId'], message: '메신저 종류와 아이디를 함께 입력해 주세요.' })

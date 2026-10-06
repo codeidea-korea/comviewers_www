@@ -67,29 +67,29 @@ function CheckoutPaymentResult() {
     refetchInterval: query => query.state.data?.paymentStatus === 'pending' ? 10000 : false })
   const virtual = result.data?.paymentMethod === 'virtual_account'
   const payment = order.data?.payments.find(item => item.paymentId === String(paymentId))
-  const accountRefreshStarted = useRef<string | null>(null)
-  const accountRefresh = useMutation({ mutationFn: (providerOrderId: string) => checkout.refresh!(providerOrderId, crypto.randomUUID()),
-    onSuccess: async value => {
+  const currentPayment = payment?.paymentId === order.data?.payments[0]?.paymentId
+  const canRefreshAccount = Boolean(checkout.refresh && payment?.providerOrderId && virtual && currentPayment
+    && order.data && orderPaymentDisplay(order.data, Date.now(), result.data?.status).waitingForDeposit)
+  const confirmedAccount = confirm.data?.paymentId === paymentId && confirm.data.status === 'WAITING_FOR_DEPOSIT'
+    ? confirm.data.virtualAccount : null
+  const accountRefresh = useQuery({
+    queryKey: ['checkout', 'virtual-account', paymentId, payment?.providerOrderId],
+    queryFn: async () => {
+      const value = await checkout.refresh!(payment!.providerOrderId!, crypto.randomUUID())
+      if (value.paymentId !== paymentId) throw new Error('입금계좌 정보를 확인하지 못했습니다.')
       if (value.status !== 'WAITING_FOR_DEPOSIT') {
-        await Promise.all(['checkout', 'my-account'].map(queryKey => client.invalidateQueries({ queryKey: [queryKey] })))
+        await Promise.all([
+          client.invalidateQueries({ queryKey: ['checkout', 'payment', paymentId] }),
+          client.invalidateQueries({ queryKey: ['my-account'] }),
+        ])
+        return null
       }
-    }, retry: false })
-  const refreshAccount = accountRefresh.mutate
-  useEffect(() => {
-    const providerOrderId = payment?.providerOrderId
-    if (!checkout.refresh || !providerOrderId || !virtual || confirm.data?.virtualAccount
-      || payment?.paymentId !== order.data?.payments[0]?.paymentId
-      || !order.data || !orderPaymentDisplay(order.data, Date.now()).waitingForDeposit
-      || accountRefreshStarted.current === providerOrderId) return
-    accountRefreshStarted.current = providerOrderId
-    refreshAccount(providerOrderId)
-  }, [checkout.refresh, virtual, confirm.data?.virtualAccount, payment?.paymentId, payment?.providerOrderId,
-    order.data, refreshAccount])
-  const refreshedAccount = accountRefresh.data?.paymentId === paymentId && accountRefresh.data.status === 'WAITING_FOR_DEPOSIT'
-    ? accountRefresh.data.virtualAccount : null
-  const accountRefreshProviderOrderId = accountRefresh.isError && !confirm.data?.virtualAccount && checkout.refresh
-    && payment?.providerOrderId && payment.paymentId === order.data?.payments[0]?.paymentId
-    ? payment.providerOrderId : null
+      if (!value.virtualAccount?.accountNumber) throw new Error('입금계좌 정보를 확인하지 못했습니다.')
+      return value.virtualAccount
+    },
+    enabled: canRefreshAccount && !confirmedAccount, retry: false, gcTime: 0, refetchOnWindowFocus: false,
+  })
+  const virtualAccount = canRefreshAccount ? confirmedAccount ?? accountRefresh.data ?? null : null
   return <AppShell className={`commerce-shell complete-page complete-page--api ${virtual ? 'complete-page--virtual' : 'complete-page--card'}`}>
     <div className="content-container commerce-page">
       {cancelled ? <>
@@ -98,18 +98,19 @@ function CheckoutPaymentResult() {
           <p role="alert">{compensated ? '상품 배정이 불가능해 결제가 취소되었습니다.' : '결제가 취소되었습니다.'}</p>
           <a href="/cart">장바구니로 이동</a>
         </div>
-      </> : result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={confirm.data?.virtualAccount ?? refreshedAccount ?? null}
-        onAccountRefresh={accountRefreshProviderOrderId
-          ? () => accountRefresh.mutate(accountRefreshProviderOrderId) : undefined} /> : <>
+      </> : result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={virtualAccount}
+        accountLoading={canRefreshAccount && !virtualAccount && (accountRefresh.isPending || accountRefresh.isFetching)}
+        onAccountRefresh={canRefreshAccount && !virtualAccount && !accountRefresh.isFetching
+          ? () => { void accountRefresh.refetch() } : undefined} /> : <>
         <PageTitle>주문 결과</PageTitle>
         <div className="complete-result-state">
           {returned.failed && <>
             <p role="alert">{abandon.isPending ? '결제 상태를 확인하고 있습니다.'
-              : abandon.data?.status === 'cancelled' ? '결제가 취소되어 재고와 혜택이 복원되었습니다. 주문내역에서 취소 내역을 확인할 수 있습니다.'
+              : abandon.data?.status === 'cancelled' ? '결제를 취소했습니다. 장바구니에서 다시 주문할 수 있습니다.'
                 : abandon.data?.status === 'approved' ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
                   : '결제 종료 여부를 확인하지 못했습니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.'}</p>
             {failedCallbackValid && !abandon.isPending && abandon.data?.status !== 'cancelled' && <button type="button" onClick={() => abandon.mutate()}>결제 상태 다시 확인</button>}
-            <a href="/mypage/orders">주문내역 확인</a>
+            {abandon.data?.status !== 'cancelled' && <a href="/mypage/orders">주문내역 확인</a>}
             {abandon.data?.status === 'cancelled' && <a href="/cart">장바구니로 이동</a>}
           </>}
           {confirm.isPending && <p aria-busy="true">결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.</p>}
@@ -149,13 +150,14 @@ function completeProduct(item: AccountOrderItem, waitingForDeposit: boolean) {
     monthlyRentalFee: item.billingUnit === 'unit' ? undefined : accountMoney(item.unitPrice), usagePeriod }
 }
 
-function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, payment, virtualAccount, onAccountRefresh }: {
+function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, payment, virtualAccount, accountLoading, onAccountRefresh }: {
   order: AccountOrderDetail
   paymentMethod: string
   paymentAmount: number
   paymentStatus: string
   payment?: AccountOrderDetail['payments'][number]
   virtualAccount: { bankCode: string; accountNumber: string; customerName: string | null; dueDate: string } | null
+  accountLoading: boolean
   onAccountRefresh?: () => void
 }) {
   const now = usePaymentDisplayClock(paymentMethod === 'virtual_account' && order.paymentStatus === 'pending')
@@ -164,7 +166,7 @@ function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, pa
   // A historical attempt must not expose the current attempt's deposit instructions.
   const waitingForDeposit = paymentMethod === 'virtual_account' && currentAttempt && display.waitingForDeposit
   const bank = virtualAccount?.bankCode ?? payment?.bankName ?? '-'
-  const account = virtualAccount?.accountNumber ?? payment?.accountMasked ?? '-'
+  const account = virtualAccount?.accountNumber ?? (accountLoading ? '입금계좌 조회 중…' : '입금계좌를 확인하지 못했습니다.')
   const depositor = virtualAccount?.customerName ?? payment?.depositorName ?? '-'
   const dueAt = virtualAccount?.dueDate ?? payment?.depositDueAt ?? null
   const depositRows: readonly (readonly [string, ReactNode])[] = waitingForDeposit ? [

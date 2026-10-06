@@ -454,6 +454,9 @@
 .payment-radio-icon { display: none; }
 .checkout-page .payment-radio-icon { display: block; flex: 0 0 20px; height: 20px; width: 20px; }
 .checkout-page .payment-easy-pay-logo { display: block; height: 20px; margin-left: auto; max-width: 72px; object-fit: contain; }
+.checkout-page .payment-card-easy-pay-logos { align-items: center; display: flex; gap: 6px; margin-left: auto; }
+.checkout-page .payment-card-easy-pay-logos img { display: block; height: 18px; max-width: 48px; object-fit: contain; }
+.checkout-payment-notice { color: var(--color-gray-600); font-size: 14px; line-height: 1.5; margin: 12px 0; }
 .payment-card-logos { align-items: center; display: flex; gap: 4px; }.payment-card-logos img { display: block; object-fit: contain; }
 .payment-card-logos img:nth-child(1) { height: 16px; width: 16px; }
 .payment-card-logos img:nth-child(2) { height: 15px; width: 36px; }
@@ -466,6 +469,7 @@
 .checkout-page .order-summary__agreement input { flex: 0 0 18px; height: 18px; margin: 0; width: 18px; }.checkout-page .order-summary__agreement span { font-size: 14px; letter-spacing: -.28px; line-height: 17px; min-width: 0; word-break: keep-all; }
 .checkout-page select { appearance: none; background: var(--color-white) url('../assets/figma/selector-chevron-down.svg') right 6px center / 12px 7.4px no-repeat; border: 0; border-bottom: 1px solid var(--color-black); border-radius: 0; height: 50px; }
 .checkout-page select:disabled,.checkout-page input:disabled { background-color: var(--color-white); color: var(--color-gray-400); opacity: 1; }.checkout-page button:disabled { color: var(--color-gray-500); }
+.checkout-page .order-summary__agreement input[type='checkbox']:disabled:checked { background-color: var(--color-black); border-color: var(--color-black); }
 .checkout-page .coupon-select-field { min-height: 50px; position: relative; }
 .checkout-page .coupon-select-field select { border-bottom: 0; padding-right: 116px; width: 100%; }
 .checkout-page .coupon-select-field > strong { font-size: 18px; font-weight: 700; letter-spacing: -.54px; line-height: normal; position: absolute; right: 30px; top: 14px; }
