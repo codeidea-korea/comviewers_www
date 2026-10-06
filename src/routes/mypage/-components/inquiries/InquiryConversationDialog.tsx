@@ -16,6 +16,17 @@ import { RefundDetail } from '../InquiryRefundRequests'
 
 const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
 
+type Chat = Awaited<ReturnType<InquiryReadServices['chat']>>
+type ChatTarget = Chat['operationRequest']['targets'][number]
+type TimelineEntry = { kind: 'message'; time: number; message: Chat['messages'][number] }
+  | { kind: 'product'; time: number; target: ChatTarget; index: number }
+
+function InquiryChatProduct({ target, onSelect }: { target: ChatTarget; onSelect: (productNo: string) => void }) {
+  return <article className="inquiry-chat__product">
+    <span>문의 상품</span><img alt="RCPC 상품" src={productThumb}/><div><button type="button" onClick={() => target.productNo && onSelect(target.productNo)}>{target.productNo ? `${target.alias ? `${target.alias}·` : ''}${target.productNo}` : '상품 정보 없음'}</button><em>{target.serverRoomName ?? '서버실 정보 없음'}</em></div>
+  </article>
+}
+
 export function InquiryConversationDialog({ api, id, onClose }: { api: InquiryReadServices; id: number; onClose: () => void }) {
   const [activeId, setActiveId] = useState(id)
   return <InquiryChat key={`${api.organizationId}:${activeId}`} api={api} id={activeId} onClose={onClose} onSelectInquiry={setActiveId} />
@@ -49,6 +60,19 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   const closed = chat.data?.operationRequest.customerVisibleStatus === '처리 완료' || ['completed', 'cancelled'].includes(chat.data?.operationRequest.status ?? '')
   const messages = [...new Map([...olderMessages, ...(chat.data?.messages ?? [])].map((item) => [item.id, item])).values()]
     .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt) || left.id - right.id)
+  const hasEarlierMessages = !historyEnd && (olderMessages.length > 0 || (chat.data?.messages.length ?? 0) >= 100)
+  const timeline: TimelineEntry[] = messages.map(message => ({ kind: 'message', time: Date.parse(message.createdAt), message }))
+  chat.data?.operationRequest.targets.forEach((target, index) => {
+    if (!target.addedAt) return
+    const time = Date.parse(/(?:Z|[+-]\d{2}:\d{2})$/i.test(target.addedAt) ? target.addedAt : `${target.addedAt}+09:00`)
+    if (hasEarlierMessages && messages.length && time < Date.parse(messages[0]!.createdAt)) return
+    timeline.push({ kind: 'product', time, target, index })
+  })
+  timeline.sort((left, right) => left.time - right.time
+    || (left.kind === 'message' && right.kind === 'message' ? left.message.id - right.message.id
+      : left.kind === 'product' && right.kind === 'product' ? left.index - right.index
+        : left.kind === 'message' ? -1 : 1))
+  const targetCount = chat.data?.operationRequest.targets.length ?? 0
   const earlier = useMutation({ mutationFn: () => api.chat(id, 100, undefined, messages[0]?.id), onSuccess: (response) => {
     setOlderMessages((previous) => [...new Map([...response.messages, ...previous, ...(chat.data?.messages ?? [])].map((item) => [item.id, item])).values()])
     setHistoryEnd(response.messages.length < 100)
@@ -58,7 +82,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   useLayoutEffect(() => {
     if (!conversationReady || !scrollRef.current) return
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [conversationReady, lastId])
+  }, [conversationReady, lastId, targetCount])
   useEffect(() => api.subscribeChatEvents(id, () => {
     void client.invalidateQueries({ queryKey: chatKey })
     void client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
@@ -101,13 +125,13 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
         {chat.data && requestInfo.data ? <>
           {requestInfo.data?.items[0] ? <time>{new Date(requestInfo.data.items[0].createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</time> : null}
-          {chat.data.operationRequest.targets.map((target, index) => <article className="inquiry-chat__product" key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`}>
-            <span>문의 상품</span><img alt="RCPC 상품" src={productThumb}/><div><button type="button" onClick={() => target.productNo && setProductConversation(target.productNo)}>{target.productNo ? `${target.alias ? `${target.alias}·` : ''}${target.productNo}` : '상품 정보 없음'}</button><em>{target.serverRoomName ?? '서버실 정보 없음'}</em></div>
-          </article>)}
+          {chat.data.operationRequest.targets.filter(target => !target.addedAt).map((target, index) => <InquiryChatProduct key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} target={target} onSelect={setProductConversation} />)}
           {!isManager && requestInfo.data?.items[0]?.requestType === 'refund_cancel' ? <><AccountQueryState pending={refundLink.isPending} error={refundLink.error} retry={refundLink.refetch}/>{refund ? <button className="inquiry-chat__refund-action" onClick={() => setRefundOpen(true)} type="button">{refund.status === 'requested' ? '해지 신청 상세 / 철회' : '해지 신청 상세'}</button> : refundLink.data ? <p className="inquiry-chat__system">연결된 해지 신청 내역이 없습니다.</p> : null}</> : null}
-          {!historyEnd && (olderMessages.length > 0 || chat.data.messages.length >= 100) ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? '불러오는 중…' : '이전 대화 더보기'}</button> : null}
+          {hasEarlierMessages ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? '불러오는 중…' : '이전 대화 더보기'}</button> : null}
           {earlier.isError ? <p role="alert">{earlier.error.message}</p> : null}
-          {messages.map((item) => {
+          {timeline.map(entry => {
+            if (entry.kind === 'product') return <InquiryChatProduct key={`added-product:${entry.index}`} target={entry.target} onSelect={setProductConversation} />
+            const item = entry.message
             const fromComBar = item.authorType === 'device'
             const isMine = fromComBar || session.status === 'authenticated' && item.authorType === 'customer'
               && item.authorUserId !== null && String(item.authorUserId) === session.userId

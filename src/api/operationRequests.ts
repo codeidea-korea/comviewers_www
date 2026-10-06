@@ -16,7 +16,7 @@ export const operationRequestPageSchema = z.object({ items: z.array(operationReq
 export const operationRequestSummarySchema = z.object({ total: count, statusCounts: z.array(z.object({ status, count })) })
 export const operationRequestChatSchema = z.object({
   operationRequest: z.object({ id, requestNo: z.string(), status: z.string(), customerVisibleStatus: status,
-    targets: z.array(z.object({ targetType: z.string().optional(), pcAssetId: id.nullable(), productId: id.nullable().optional(), productNo: productNoResponseSchema.nullable(), managementNo: z.string().nullable(), serverRoomId: id.nullable(), serverRoomName: z.string().nullable(), alias: z.string().nullable().optional() })),
+    targets: z.array(z.object({ targetType: z.string().optional(), pcAssetId: id.nullable(), productId: id.nullable().optional(), productNo: productNoResponseSchema.nullable(), managementNo: z.string().nullable(), serverRoomId: id.nullable(), serverRoomName: z.string().nullable(), alias: z.string().nullable().optional(), addedAt: z.iso.datetime({ local: true, offset: true }).nullable().optional() })),
   }),
   messages: z.array(z.object({
     id, clientMessageId: z.string().nullable(), sourceChannel: z.string(), authorType: z.string(), authorUserId: id.nullable(),
