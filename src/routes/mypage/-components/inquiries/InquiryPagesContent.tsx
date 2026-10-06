@@ -8,6 +8,7 @@ import type { OperationRequestQuery } from '@/api/operationRequests'
 import { Pagination } from '@/components/ui/PaginationControl'
 import { SearchField } from '@/components/ui/SearchFieldControl'
 import { NativeSelect } from '@/components/ui/SelectControl'
+import { accountKstDate } from '@/lib/accountFormat'
 import mypageSearch from '@/assets/figma/mypage-search.svg'
 
 import { MyPageLayout } from '../../MypageComponentsView'
@@ -28,6 +29,8 @@ const statuses = [
 ] as const
 
 const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
+
+const registrationDate = (value: string) => accountKstDate(value).replace(/^(\d{4})-(\d{2})-(\d{2})/, '$1.$2.$3')
 
 function activityLabel(value: string | null): string {
   if (!value) return '-'
@@ -61,7 +64,7 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
     </div>
     {!accessDenied ? <AccountQueryState pending={rows.isPending} error={rows.error} retry={rows.refetch}/> : null}
     {data ? <><div aria-label="문의 목록" className="inquiry-catalog__table" role="table"><div className="inquiry-catalog__head" role="row"><span role="columnheader">문의 유형</span><span role="columnheader">대상 RCPC</span><span role="columnheader">최근 메시지</span><span role="columnheader">최근 활동</span><span role="columnheader">문의 상태</span><span role="columnheader">등록일</span></div>{data.items.map(item => <div className="inquiry-catalog__row" key={item.operationRequestId} role="row">
-      <span role="cell"><InquiryAction appearance="text" className="inquiry-catalog__row-link" requestId={item.operationRequestId}>{inquiryTypeLabel(item.requestType)}<span className="sr-only"> 문의 상세 보기</span></InquiryAction></span><span role="cell">{item.targetProductNos || '선택안함'}</span><span role="cell"><small>{item.lastMessage ? '최근 메시지' : ''}</small><small>{item.lastMessage ?? '등록된 메시지가 없습니다.'}</small></span><span role="cell">{activityLabel(item.lastActivityAt)}</span><span role="cell">{customerStatusLabel(item.customerVisibleStatus)}</span><span role="cell">{new Date(item.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</span>
+      <span role="cell"><InquiryAction appearance="text" className="inquiry-catalog__row-link" requestId={item.operationRequestId}>{inquiryTypeLabel(item.requestType)}<span className="sr-only"> 문의 상세 보기</span></InquiryAction></span><span role="cell">{item.targetProductNos || '선택안함'}</span><span role="cell"><small>{item.lastMessage ? '최근 메시지' : ''}</small><small>{item.lastMessage ?? '등록된 메시지가 없습니다.'}</small></span><span role="cell">{activityLabel(item.lastActivityAt)}</span><span role="cell">{customerStatusLabel(item.customerVisibleStatus)}</span><span role="cell">{registrationDate(item.createdAt)}</span>
     </div>)}{!data.items.length ? <p className="mypage-empty">{query.requestType || query.customerVisibleStatus || query.productNo ? '검색 조건에 해당하는 문의가 없습니다.' : '등록된 문의 내역이 없습니다.'}</p> : null}</div><div aria-label="모바일 문의 목록" className="mobile-inquiry-list">{data.items.map(item => <article className="mobile-inquiry-card" key={item.operationRequestId}>
       <h2><InquiryAction appearance="text" requestId={item.operationRequestId}>{inquiryTypeLabel(item.requestType)}</InquiryAction></h2>
       <dl>
@@ -69,7 +72,7 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
         <div><dt>최근 메시지</dt><dd>{item.lastMessage ?? '등록된 메시지가 없습니다.'}</dd></div>
         <div><dt>최근 활동</dt><dd>{activityLabel(item.lastActivityAt)}</dd></div>
         <div><dt>문의 상태</dt><dd>{customerStatusLabel(item.customerVisibleStatus)}</dd></div>
-        <div><dt>등록일</dt><dd>{new Date(item.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</dd></div>
+        <div><dt>등록일</dt><dd>{registrationDate(item.createdAt)}</dd></div>
       </dl>
     </article>)}{!data.items.length ? <p className="mypage-empty">{query.requestType || query.customerVisibleStatus || query.productNo ? '검색 조건에 해당하는 문의가 없습니다.' : '등록된 문의 내역이 없습니다.'}</p> : null}</div>{Math.ceil(data.total / data.size) > 1 ? <Pagination currentPage={data.page + 1} totalPages={Math.ceil(data.total / data.size)} onPageChange={page => setQuery(previous => ({ ...previous, page: page - 1 }))}/> : null}</> : null}
     {accessDenied ? <AccountReadDeniedDialog key={api.organizationId} resource="문의"/> : null}
