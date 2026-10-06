@@ -407,11 +407,17 @@
 .auth-page .profile-image-preview img:not([alt=""]) { height: 104px; object-fit: cover; width: 104px; }
 .auth-page .profile-image-field label { justify-self: auto; padding: 0 16px; }
 .mypage-layout:has(.points-catalog) { padding-bottom: 120.891px; }
-.point-carousel { overflow: visible; }
-.point-carousel > div { overflow: hidden; width: 976px; }
-.point-carousel__next { top: 9px; }
-.point-carousel__next img { height: 12px; width: 7.4px; }
-.point-carousel__track { display: flex; flex: 0 0 1280px; gap: 40px; width: 1280px; }
+.point-carousel { height: auto; overflow: visible; }
+.point-carousel .point-carousel__viewport { display: block; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding-bottom: 8px; scrollbar-width: thin; width: 100%; }
+.point-carousel__previous,.point-carousel__next { align-items: center; background: white; border: 1px solid var(--color-gray-300); border-radius: 50%; display: flex; height: 40px; justify-content: center; padding: 0; position: absolute; top: 44px; width: 40px; z-index: 1; }
+.point-carousel__previous { left: 0; }
+.point-carousel__next { right: 0; }
+.point-carousel__previous img,.point-carousel__next img { height: 12px; width: 7.4px; }
+.point-carousel__previous img { transform: rotate(180deg); }
+.point-carousel__track { display: flex; gap: 40px; width: 100%; }
+.point-carousel__track article { flex-basis: min(400px, 100%); min-width: 0; }
+.point-carousel__track article span { min-width: 0; }
+.point-carousel__track article small { overflow-wrap: anywhere; }
 .coupons-available .benefit-table > div strong,.coupons-available .benefit-table > p span { font-size: 14px; }
 .coupon-product-link { align-items: center; color: var(--color-gray-500); display: inline-flex; gap: 6px; }
 .coupon-product-link img { height: 8px; width: 4.933px; }

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { PointEntryType } from '@/api/myAccount'
 import { useServices } from '@/app/ServiceProvider'
@@ -48,7 +48,9 @@ function pointReasonLabel(reason: string | null, amount: number) {
 
 export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
   const [page, setPage] = useState(0)
-  const [carouselPage, setCarouselPage] = useState(0)
+  const carouselViewport = useRef<HTMLDivElement>(null)
+  const carouselTrack = useRef<HTMLDivElement>(null)
+  const [carouselEdges, setCarouselEdges] = useState({ previous: false, next: false })
   const [periodOpen, setPeriodOpen] = useState(false)
   const [entryType, setEntryType] = useState<PointEntryType>('all')
   const [dates, setDates] = useState(() => accountDateRange('month'))
@@ -70,6 +72,38 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
     order.items.map((item) => ({ order, item })),
   ) ?? []
 
+  useEffect(() => {
+    const viewport = carouselViewport.current
+    const track = carouselTrack.current
+    if (!viewport || !track) return
+    const updateEdges = () => {
+      const maximum = Math.max(0, viewport.scrollWidth - viewport.clientWidth)
+      const left = Math.max(0, Math.min(viewport.scrollLeft, maximum))
+      const previous = left > 1
+      const next = left < maximum - 1
+      setCarouselEdges(current => current.previous === previous && current.next === next
+        ? current : { previous, next })
+    }
+    updateEdges()
+    viewport.addEventListener('scroll', updateEdges, { passive: true })
+    const observer = new ResizeObserver(updateEdges)
+    observer.observe(viewport)
+    observer.observe(track)
+    return () => {
+      viewport.removeEventListener('scroll', updateEdges)
+      observer.disconnect()
+    }
+  }, [candidates.length])
+
+  const scrollOrders = (direction: -1 | 1) => {
+    const viewport = carouselViewport.current
+    const track = carouselTrack.current
+    if (!viewport || !track) return
+    const card = track.firstElementChild
+    const distance = card ? card.getBoundingClientRect().width + (Number.parseFloat(getComputedStyle(track).columnGap) || 0) : viewport.clientWidth
+    viewport.scrollBy({ left: direction * distance, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }
+
   return (
     <MyPageLayout title="포인트">
       <div className="points-catalog">
@@ -80,7 +114,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
               <strong>구매확정이 필요한 주문 <b>{candidates.length}</b></strong>
               <RelativeLink to="/mypage/orders">주문내역 보기</RelativeLink>
             </header>
-            <div className="point-carousel__viewport"><div className="point-carousel__track" style={{ transform: `translateX(-${carouselPage * 440}px)` }}>
+            <div aria-label="구매확정이 필요한 주문 목록" className="point-carousel__viewport" id="point-confirmation-orders" ref={carouselViewport} role="region" tabIndex={0}><div className="point-carousel__track" ref={carouselTrack}>
               {candidates.map(({ item, order }) => <article key={item.orderItemId}>
                 <div>
                   <img alt={item.title} src={item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? item.imageUrl : pointOrderProduct} />
@@ -89,7 +123,8 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                 <OrderItemActions api={api} item={item} orderStatus={order.orderStatus} paymentStatus={order.paymentStatus} variant="purchase-summary" />
               </article>)}
             </div></div>
-            {candidates.length > 2 ? <button aria-label="다음 주문 보기" className="point-carousel__next" onClick={() => setCarouselPage((current) => (current + 1) % (candidates.length - 1))} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label="이전 주문 보기" className="point-carousel__previous" onClick={() => scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {carouselEdges.next ? <button aria-controls="point-confirmation-orders" aria-label="다음 주문 보기" className="point-carousel__next" onClick={() => scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
           </section>
         ) : null}
 
