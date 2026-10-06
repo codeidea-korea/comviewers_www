@@ -32,8 +32,8 @@ export function CommunityTabs({ active }: { active: 'posts' | 'reviews' }) {
   return <nav aria-label="커뮤니티 구분" className="community-tabs">{communityTabs.map((tab) => <Link className={tab.id === active ? 'is-active' : ''} key={tab.id} to={tab.href}><TranslatedText id={tab.id === 'reviews' ? 'nav.rentalReviews' : 'nav.community'} /></Link>)}</nav>
 }
 
-export function BoardToolbar({ count, onSearchChange, onSortChange, onWrite, search = '', showWrite = false, sort = 'latest', sortOptions, writeLabel, writeTo }: { count: number; onSearchChange: (value: string) => void; onSortChange: (value: string) => void; onWrite?: () => void; search?: string; showWrite?: boolean; sort?: string; sortOptions?: readonly { label: string; value: string }[]; writeLabel?: string; writeTo?: string }) {
-  return <SharedBoardToolbar count={count} onSearchChange={onSearchChange} onSortChange={onSortChange} onWrite={onWrite} search={search} searchIcon={communitySearch} showWrite={showWrite} sort={sort} sortIcon={communityChevronDown} sortOptions={sortOptions} writeLabel={writeLabel} writeTo={writeTo} />
+export function BoardToolbar({ count, onSearchChange, onSearchSubmit, onSortChange, onWrite, search = '', showWrite = false, sort = 'latest', sortOptions, writeLabel, writeTo }: { count: number; onSearchChange: (value: string) => void; onSearchSubmit?: (value: string) => void; onSortChange: (value: string) => void; onWrite?: () => void; search?: string; showWrite?: boolean; sort?: string; sortOptions?: readonly { label: string; value: string }[]; writeLabel?: string; writeTo?: string }) {
+  return <SharedBoardToolbar count={count} onSearchChange={onSearchChange} onSearchSubmit={onSearchSubmit} onSortChange={onSortChange} onWrite={onWrite} search={search} searchIcon={communitySearch} showWrite={showWrite} sort={sort} sortIcon={communityChevronDown} sortOptions={sortOptions} writeLabel={writeLabel} writeTo={writeTo} />
 }
 
 export function Stars({ tone = 'gold', value }: { tone?: string; value: number }) {

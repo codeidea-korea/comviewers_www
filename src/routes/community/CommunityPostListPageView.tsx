@@ -6,7 +6,6 @@ import { Checkbox } from '../../components/ui/CheckboxControl'
 import communityBubble from '../../assets/figma/community-bubble.svg'
 import attachmentIcon from '../../assets/figma/community-company/support-attachment.svg'
 import { usePostPage } from '@/routes/community/-components/hooks/useContent'
-import { useDebouncedValue } from '@/routes/community/-components/hooks/useDebouncedValue'
 import { BoardToolbar, CommunityShell, CommunityTabs } from './CommunityComponentsView'
 import { BOARD_SEARCH_MAX_LENGTH } from '../../components/community/BoardToolbarControl'
 import { useSession } from '@/app/session/SessionProvider'
@@ -18,7 +17,7 @@ export function CommunityPostListPage() {
   const [params, setParams] = useSearchParams()
   const initialSort = ['latest', 'views', 'comments'].includes(params.get('sort') ?? '') ? params.get('sort')! : 'latest'
   const [search, setSearch] = useState((params.get('keyword') ?? '').slice(0, BOARD_SEARCH_MAX_LENGTH))
-  const debouncedSearch = useDebouncedValue(search.trim())
+  const [appliedSearch, setAppliedSearch] = useState(search.trim())
   const [mineOnly, setMineOnly] = useState(params.get('mineOnly') === 'true')
   const [sort, setSort] = useState(initialSort)
   const [currentPage, setCurrentPage] = useState(() => {
@@ -30,10 +29,10 @@ export function CommunityPostListPage() {
   const navigate = useNavigate()
   const session = useSession()
   const communityWriteAllowed = session.status !== 'authenticated' || (session.capabilityStatus === 'ready' && session.customerSession?.myPageOnly !== true)
-  const result = usePostPage({ page: currentPage, size: 10, keyword: debouncedSearch || undefined, mineOnly, sort })
+  const result = usePostPage({ page: currentPage, size: 10, keyword: appliedSearch || undefined, mineOnly, sort })
   const posts = result.data?.items ?? []
   const writeParams = new URLSearchParams()
-  if (search.trim()) writeParams.set('keyword', search.trim())
+  if (appliedSearch) writeParams.set('keyword', appliedSearch)
   if (mineOnly) writeParams.set('mineOnly', 'true')
   if (sort !== 'latest') writeParams.set('sort', sort)
   if (currentPage > 1) writeParams.set('page', String(currentPage))
@@ -65,15 +64,23 @@ export function CommunityPostListPage() {
     if (nextSort !== 'latest') next.set('sort', nextSort)
     setParams(next, { replace: true })
   }
+  const submitSearch = (value: string) => {
+    const keyword = value.trim().slice(0, BOARD_SEARCH_MAX_LENGTH)
+    setSearch(keyword)
+    setAppliedSearch(keyword)
+    setCurrentPage(1)
+    updateListState(keyword, sort, mineOnly)
+    if (keyword === appliedSearch && currentPage === 1) void result.refetch()
+  }
   return (
     <CommunityShell>
       <div className={`board-page content-container${stateOnly ? ' board-page--empty' : ''}`} ref={boardRef}>
         <CommunityTabs active="posts" />
-        <BoardToolbar count={result.data?.totalCount ?? 0} onSearchChange={(value) => { setSearch(value); setCurrentPage(1); updateListState(value, sort, mineOnly) }} onSortChange={(value) => { setSort(value); setCurrentPage(1); updateListState(search, value, mineOnly) }} onWrite={session.status === 'authenticated' ? undefined : () => setLoginRequired(true)} search={search} showWrite={communityWriteAllowed} sort={sort} sortOptions={[{ label: '최신순', value: 'latest' }, { label: '조회순', value: 'views' }, { label: '댓글순', value: 'comments' }]} writeLabel="글쓰기" writeTo={writePath} />
-        <AsyncContentState className="board-empty" emptyMessage={mineOnly ? '작성한 게시글이 없습니다.' : search.trim() ? '검색 조건에 해당하는 게시글이 없습니다.' : '등록된 게시글이 없습니다.'} errorMessage="게시글을 불러오지 못했습니다." loadingClassName="route-loading--compact" loadingLabel="게시글을 불러오는 중입니다." onRetry={() => void result.refetch()} status={contentStatus} />
+        <BoardToolbar count={result.data?.totalCount ?? 0} onSearchChange={setSearch} onSearchSubmit={submitSearch} onSortChange={(value) => { setSort(value); setCurrentPage(1); updateListState(appliedSearch, value, mineOnly) }} onWrite={session.status === 'authenticated' ? undefined : () => setLoginRequired(true)} search={search} showWrite={communityWriteAllowed} sort={sort} sortOptions={[{ label: '최신순', value: 'latest' }, { label: '조회순', value: 'views' }, { label: '댓글순', value: 'comments' }]} writeLabel="글쓰기" writeTo={writePath} />
+        <AsyncContentState className="board-empty" emptyMessage={mineOnly ? '작성한 게시글이 없습니다.' : appliedSearch ? '검색 조건에 해당하는 게시글이 없습니다.' : '등록된 게시글이 없습니다.'} errorMessage="게시글을 불러오지 못했습니다." loadingClassName="route-loading--compact" loadingLabel="게시글을 불러오는 중입니다." onRetry={() => void result.refetch()} status={contentStatus} />
         {contentStatus === null ? <div className="post-list">{visiblePosts.map((post) => <Link key={post.id} to={`/community/posts/${post.postId}${detailSuffix}`}><span className="post-list__number">{post.number}</span><span className="post-list__main"><strong>{post.isMine ? <em className="post-list__badge">내 글</em> : null}<span>{post.title}</span>{post.attachments.length ? <img alt="첨부파일 있음" className="post-list__document" src={attachmentIcon} /> : null}</strong><small>{post.author} <i aria-hidden="true" /> 조회 {post.views} <i aria-hidden="true" /> <img alt="" src={communityBubble} /> {post.comments}</small></span><time>{post.date}</time></Link>)}</div> : null}
         <div className="board-page__footer">
-          {session.status === 'authenticated' ? <label className="board-mine-toggle"><Checkbox checked={mineOnly} onChange={(event) => { const checked = event.target.checked; setMineOnly(checked); setCurrentPage(1); updateListState(search, sort, checked) }} role="switch" variant="switch" /> 내 글만 보기</label> : null}
+          {session.status === 'authenticated' ? <label className="board-mine-toggle"><Checkbox checked={mineOnly} onChange={(event) => { const checked = event.target.checked; setMineOnly(checked); setCurrentPage(1); updateListState(appliedSearch, sort, checked) }} role="switch" variant="switch" /> 내 글만 보기</label> : null}
           <Pagination currentPage={page} onPageChange={changePage} totalPages={totalPages} />
         </div>
         <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginRequired} onClose={() => setLoginRequired(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(writePath)}`)} title="로그인이 필요합니다."><p>게시글을 작성하려면 로그인해 주세요.</p></Modal>
