@@ -46,15 +46,16 @@ export function InquiryRefundApplication({ api, initialRentalIds = [], triggerLa
   if (!triggerEnabled && !open) return null
   return <section className="refund-application-trigger">
     {triggerEnabled ? <button className="button button--small button--secondary" ref={triggerRef} type="button" onClick={() => setOpen(true)}>{triggerLabel}</button> : null}
-    {open ? <ApplicationDialog api={api} initialRentalIds={initialRentalIds} onClose={() => setOpen(false)} returnFocusRef={triggerRef}/> : null}
+    {open ? <InquiryRefundApplicationDialog api={api} initialRentalIds={initialRentalIds} onClose={() => setOpen(false)} returnFocusRef={triggerRef}/> : null}
   </section>
 }
 
-function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
+export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose, onComplete, returnFocusRef }: {
   api: InquiryReadServices
   initialRentalIds: readonly number[]
   onClose: () => void
-  returnFocusRef: RefObject<HTMLElement | null>
+  onComplete?: () => void
+  returnFocusRef?: RefObject<HTMLElement | null>
 }) {
   const client = useQueryClient()
   const [selected, setSelected] = useState<number[]>([])
@@ -104,6 +105,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
         client.invalidateQueries({ queryKey: ['refund-application-candidates', api.organizationId] }),
         client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] }),
         client.invalidateQueries({ queryKey: ['my-account'] }),
+        client.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] }),
       ])
     },
   })
@@ -143,7 +145,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
       : current.length < 20 ? [...current, orderItemId] : current)
   }
 
-  if (submit.isSuccess) return <Modal className="modal--refund-complete" isOpen title="해지 신청이 완료되었습니다." closeLabel="확인" onClose={onClose} returnFocusRef={returnFocusRef}>
+  if (submit.isSuccess) return <Modal className="modal--refund-complete" isOpen title="해지 신청이 완료되었습니다." closeLabel="확인" onClose={onComplete ?? onClose} returnFocusRef={returnFocusRef}>
     <p>접수, 처리 중 상태에서는 해지 요청을 철회할 수 있으며, 철회 시 RCPC를 그대로 이용하실 수 있습니다.</p>
   </Modal>
 

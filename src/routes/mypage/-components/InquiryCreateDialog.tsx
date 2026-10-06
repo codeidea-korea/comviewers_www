@@ -9,6 +9,7 @@ import { sortInquiryChoices, type InquiryChoice } from './inquiryChoice'
 import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { inquiryTypes } from './InquiryPresentation'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
+import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
 
 type Props = {
   api: InquiryReadServices
@@ -25,7 +26,8 @@ const requestCodes = ['as_request', 'setup_change', 'refund_cancel', 'inquiry'] 
 export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, fixedTarget = false, onClose, onCreated }: Props) {
   const session = useSession()
   const hasFixedTarget = fixedTarget && initialIds.length > 0 && initialIds.length <= 20
-  const [step, setStep] = useState<'product' | 'type' | 'write'>(hasFixedTarget ? 'type' : 'product')
+  const [step, setStep] = useState<'product' | 'type' | 'write' | 'refund'>(hasFixedTarget ? 'type' : 'product')
+  const [refundRentalIds, setRefundRentalIds] = useState<number[]>([])
   const [selectedIds, setSelectedIds] = useState<readonly number[]>(initialIds)
   const [typeIndex, setTypeIndex] = useState<number | null>(null)
   const [typeNotice, setTypeNotice] = useState('')
@@ -48,7 +50,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const selectedCode = typeIndex === null ? undefined : codes[typeIndex]
   const create = useMutation({
     mutationFn: () => {
-      if (!selectedCode || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
+      if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
       if (hasFixedTarget && selectedProducts.length !== initialIds.length) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
       return api.create({
         requestType: selectedCode,
@@ -100,6 +102,18 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
           setTypeNotice('해지 신청 문의를 접수할 수 있는 권한이 없습니다.')
           return
         }
+        if (selectedCode === 'refund_cancel') {
+          const targetIds = new Set(selectedProducts.map(item => Number(item.rcpcId)))
+          const rentalIds = [...new Set((rcpcs.data ?? []).filter(item => targetIds.has(item.pcAssetId)).map(item => item.rentalId))]
+          if (!rentalIds.length) {
+            setTypeNotice('문의 대상 RCPC의 렌탈 정보를 확인할 수 없습니다. 상품을 다시 선택해 주세요.')
+            return
+          }
+          setRefundRentalIds(rentalIds)
+          setTypeNotice('')
+          setStep('refund')
+          return
+        }
         setTypeNotice('')
         setStep('write')
       }}
@@ -108,6 +122,8 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       selectedIndex={typeIndex}
     />
   </InquiryTypeChoicePopup>
+
+  if (step === 'refund') return <InquiryRefundApplicationDialog api={api} initialRentalIds={refundRentalIds} onClose={() => setStep('type')} onComplete={close} />
 
   return <InquiryWritePopup backdropClassName="inquiry-preview-layer inquiry-preview-layer--write" onClose={close}>
     <InquiryWriteContent
