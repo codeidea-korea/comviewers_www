@@ -70,6 +70,7 @@ export function useProductList() {
     setParams((previous) => {
       const nextQuery = { ...readQuery(previous, defaultInstantOnly), priceBasis: query.priceBasis, ...changes, ...(resetPage ? { page: 1 } : {}) }
       const next = new URLSearchParams(previous)
+      if (changes.rooms !== undefined || changes.categoryCode !== undefined) next.delete('couponProducts')
       next.set('page', String(nextQuery.page))
       next.set('instantOnly', String(nextQuery.instantOnly))
       next.delete('room')
@@ -98,6 +99,7 @@ export function useProductList() {
     filterMetadata: metadata.data,
     filterMetadataPending: metadata.isPending, filterMetadataError: metadata.isError, refetchFilterMetadata: metadata.refetch,
     catalogSelections: query,
+    isCouponProductList: params.get('couponProducts') === 'true' && query.categoryCode === 'rcpc',
     setCatalogSelections: (changes: Partial<ProductListQuery>) => updateQuery(changes),
     ...result, errorMessage: result.error instanceof UnsupportedProductFilterError ? result.error.message : '상품 목록을 불러오지 못했습니다.',
     visibleProducts: result.data?.items ?? [], resultTotal: result.data?.total ?? 0,

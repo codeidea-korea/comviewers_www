@@ -230,7 +230,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
   })
   const productLink = (serverRoomId: string | null) =>
     !serverRoomId || products.capabilities?.rooms
-      ? <RelativeLink to={serverRoomId ? `/products?room=${encodeURIComponent(serverRoomId)}&instantOnly=false` : '/products'}>적용 상품 보러가기</RelativeLink>
+      ? <RelativeLink to={serverRoomId ? `/products?room=${encodeURIComponent(serverRoomId)}&instantOnly=false&couponProducts=true` : '/products?couponProducts=true'}>적용 상품 보러가기</RelativeLink>
       : <span>서버실 상품 확인 필요</span>
   const listContent = <>
     <nav aria-label="쿠폰 내역 구분" className="mypage-tabs mypage-tabs--buttons">
