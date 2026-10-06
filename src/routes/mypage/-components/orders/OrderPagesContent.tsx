@@ -345,11 +345,17 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     return () => window.clearInterval(timer)
   }, [pending, refetch])
   const paymentMethods: Record<string, string> = { card: t('checkout.card'), virtual_account: t('checkout.virtualAccount'), payco: '페이코', kakao_pay: '카카오페이', naver_pay: '네이버페이', bank_transfer: '계좌이체', internal_zero: '0원 내부 정산' }
+  const paymentMethod = payment?.method ?? order?.paymentMethod
+  const formatPaymentAmount = (amount: number) => t('money.krwAmount', { amount: amount.toLocaleString('ko-KR') })
   const paymentRows: readonly (readonly [string, string])[] = order ? [
     ['주문번호', order.orderNo],
     ['주문일시', accountDate(order.orderedAt).slice(0, 19)],
-    ['결제방식', payment ? paymentMethods[payment.method] ?? payment.method : '-'],
-    ['결제금액', t('money.krwAmount', { amount: order.finalAmount.toLocaleString('ko-KR') })],
+    ['상품금액', formatPaymentAmount(order.subtotalAmount)],
+    ...(order.setupFeeAmount > 0 ? [['세팅비', formatPaymentAmount(order.setupFeeAmount)]] as const : []),
+    ['적립금 사용', formatPaymentAmount(order.pointUsedAmount)],
+    ['쿠폰 할인', formatPaymentAmount(order.couponDiscountAmount)],
+    ['결제방식', paymentMethod ? paymentMethods[paymentMethod] ?? paymentMethod : '-'],
+    ['결제금액', formatPaymentAmount(order.finalAmount)],
     ['결제상태', display && rowStatusKeys[display.label] ? t(rowStatusKeys[display.label]) : display?.label ?? accountStatus(order.paymentStatus)],
     ...(payment?.method === 'virtual_account' && display?.waitingForDeposit ? [
       ['입금은행', payment.bankName ?? '-'],
