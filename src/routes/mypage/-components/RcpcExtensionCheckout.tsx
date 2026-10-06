@@ -9,6 +9,13 @@ import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServi
 import { OrderPaymentContinuation } from './orders/OrderPaymentContinuation'
 import { extensionResultText } from './rcpcExtensionPresentation'
 import { Button } from '@/components/ui/ButtonControl'
+import { Checkbox } from '@/components/ui/CheckboxControl'
+import { TextField } from '@/components/ui/TextFieldControl'
+import { NativeSelect } from '@/components/ui/SelectControl'
+import './rcpc/extension-checkout.css'
+
+const money = (amount: number | null | undefined) => amount == null ? '—' : `${amount.toLocaleString('ko-KR')}원`
+const dateTime = (value: string | null) => value?.replace('T', ' ') ?? '—'
 
 export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialDays = 30, offerIds, pageMode = false, initialSelection, triggerLabel }: { api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; offerIds?: number[]; pageMode?: boolean; initialSelection?: ExtensionSelection; triggerLabel?: string }) {
   const session = useSession()
@@ -40,7 +47,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   const current = quote.data
   const create = useMutation({ mutationFn: () => {
     if (!draft.current) {
-      if (!selection.success || !current?.eligible || !orderConfirmed) {
+      if (!selection.success || !current?.eligible || quote.isFetching || quote.isError || !orderConfirmed) {
         throw new Error('연장 주문 내용을 확인해 주세요.')
       }
       draft.current = { key: crypto.randomUUID(), body: { selection: selection.data, quoteHash: current.quoteHash, offerIds,
@@ -52,51 +59,86 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   const canRevise = create.error?.name === 'ZodError' || (create.error instanceof ApiClientError && [400, 422].includes(create.error.status ?? 0))
   const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
   if (!owner || !session.customerSession?.commerceAvailable || rentalIds.length === 0) return null
-  const content = <>
-      <h3>기간 연장 · {rentalIds.length}대</h3>
-      <p>같은 일수만큼 연장하거나 만료일을 같은 날짜로 맞출 수 있습니다. 각 상품은 최대 90일까지 연장할 수 있습니다.</p>
-      <fieldset disabled={locked || quote.isFetching}><legend>연장 방법</legend>
-        <label><input type="radio" disabled={!!offerIds?.length} checked={mode === 'days'} onChange={() => setMode('days')}/>기간 지정</label>
-        <label><input type="radio" disabled={!!offerIds?.length} checked={mode === 'date'} onChange={() => setMode('date')}/>동일 만료일</label>
-        {mode === 'days' ? <div aria-label="연장 기간">{[['30', '1개월'], ['60', '2개월'], ['90', '3개월']].map(([value, label]) => <button aria-pressed={days === value} disabled={!!offerIds?.length} key={value} onClick={() => setDays(value)} type="button">{label}</button>)}</div>
-          : <label>만료일 (한국 시간)<input type="date" value={date} onChange={event => setDate(event.target.value)}/></label>}
-      </fieldset>
-      {quote.data?.benefits && <fieldset disabled={locked || quote.isFetching}><legend>쿠폰·포인트</legend>
-        <label>쿠폰<select value={coupon} onChange={event => setCoupon(event.target.value)}><option value="">사용 안 함</option>
-          {quote.data.benefits.coupons.map(item => <option key={item.userCouponId} value={item.userCouponId}>{item.name} · {item.discountAmount.toLocaleString('ko-KR')}원 할인</option>)}
-        </select></label>
-        <label>포인트 (보유 {quote.data.benefits.availablePoints.toLocaleString('ko-KR')}P)<input type="number" min={0} max={quote.data.benefits.availablePoints} step={1} value={points} onChange={event => setPoints(event.target.value)}/></label>
-      </fieldset>}
-      {quote.isFetching && <p role="status">연장 견적을 확인하고 있습니다.</p>}
-      {quote.error && <p role="alert">{quote.error.message}</p>}
-      {current && <><div style={{ maxHeight: '45vh', overflow: 'auto' }}><table><thead><tr><th>상품 / 서버실 / 사양</th><th>현재 만료</th><th>연장 일수</th><th>예상 연장 종료</th><th>금액</th><th>확인</th></tr></thead><tbody>
-        {current.items.map(item => <tr key={item.rentalId}><td>{item.productNo} {item.title}<br/>{item.serverRoomName} / {item.spec}</td>
-          <td>{item.previousEnd?.replace('T', ' ') ?? '-'}</td><td>{item.addedDays ?? '-'}일</td><td>{item.targetEnd?.replace('T', ' ') ?? '-'}</td>
-          <td>{item.amount?.toLocaleString('ko-KR') ?? '-'}원</td><td>{item.eligible ? '연장 가능' : extensionResultText(item)}</td></tr>)}
-      </tbody></table></div><p>만료 후 결제가 승인되면 실제 연장 기간은 승인 시각부터 계산되어 예상 종료 시각과 달라질 수 있습니다.</p><p>합계 {current.totalAmount.toLocaleString('ko-KR')}원</p>
-      {current.benefits && <p>쿠폰 −{current.benefits.couponDiscountAmount.toLocaleString('ko-KR')}원 · 포인트 −{current.benefits.pointUsedAmount.toLocaleString('ko-KR')}P · 최종 결제 {current.benefits.finalAmount.toLocaleString('ko-KR')}원{current.benefits.finalAmount === 0 ? ' (외부 결제 없이 내부 승인)' : ''}</p>}
-      <p>30일 상품의 연장 금액은 (월 렌탈료 ÷ 30) × 연장 일수로 계산한 뒤, 상품별 금액의 소수점 이하를 반올림합니다. 최종 결제금액은 반올림한 금액을 합산하고 쿠폰·포인트를 차감합니다.</p>
-      {!current.eligible && <p role="alert">연장할 수 없는 행을 확인하고 선택 대상 또는 기간을 수정해 주세요.</p>}
-      {!pageMode && current.eligible && selection.success ? <Link to="/mypage/extension-checkout" state={{ selection: selection.data, offerIds }}>연장 결제하기 · 주문서 작성</Link> : null}
-      {!pageMode && !current.eligible ? <button type="button" disabled>연장 결제하기</button> : null}
-      {pageMode ? <form onSubmit={event => { event.preventDefault(); create.mutate() }}>
-        <fieldset disabled={locked}><legend>주문자 정보</legend>
-          <label>이름<input required maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)}/></label>
-          <label>이메일<input required type="email" maxLength={255} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)}/></label>
-          <label>연락처<input required type="tel" maxLength={30} autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)}/></label>
-          <label><input type="checkbox" checked={orderConfirmed} onChange={event => setOrderConfirmed(event.target.checked)}/>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</label>
+  const content = <section aria-label="연장 주문서" className="extension-checkout">
+    <p className="extension-checkout__intro">선택한 RCPC의 연장 기간과 금액을 확인하고 주문자 정보를 입력해 주세요.</p>
+    <form className="extension-checkout__layout" onSubmit={event => { event.preventDefault(); create.mutate() }}>
+      <div className="extension-checkout__main">
+        <fieldset className="extension-checkout__section" disabled={locked || quote.isFetching}>
+          <legend>연장 방법</legend>
+          <p className="extension-checkout__help">같은 일수만큼 연장하거나 만료일을 같은 날짜로 맞출 수 있습니다. 상품별 최대 90일까지 연장할 수 있습니다.</p>
+          <div className="extension-checkout__modes">
+            <label><input type="radio" name="extension-checkout-mode" disabled={!!offerIds?.length} checked={mode === 'days'} onChange={() => setMode('days')}/>기간 지정</label>
+            <label><input type="radio" name="extension-checkout-mode" disabled={!!offerIds?.length} checked={mode === 'date'} onChange={() => setMode('date')}/>동일 만료일</label>
+          </div>
+          {mode === 'days' ? <div aria-label="연장 기간" className="extension-checkout__periods">{[['30', '1개월'], ['60', '2개월'], ['90', '3개월']].map(([value, label]) => <Button aria-pressed={days === value} variant={days === value ? 'primary' : 'secondary'} disabled={!!offerIds?.length} key={value} onClick={() => setDays(value)}>{label}</Button>)}</div>
+            : <TextField appearance="box" label="만료일 (한국 시간)" type="date" value={date} onChange={event => setDate(event.target.value)}/>}
+          {!selection.success && <p className="extension-checkout__error" role="alert">연장 기간과 쿠폰·포인트 입력값을 확인해 주세요.</p>}
         </fieldset>
-        <p>확인한 금액으로 연장 주문을 만든 뒤 결제를 진행합니다. 결제 완료 후 기간이 반영됩니다.</p>
-        <button type="submit" disabled={create.isPending || create.isSuccess || !current.eligible || !orderConfirmed}>{create.isError ? '같은 주문 다시 확인' : create.isPending ? '주문 생성 중…' : '연장 주문 생성'}</button>
-      </form> : null}</>}
-      {create.error && <p role="alert">{create.error.message} <Link to="/mypage/orders">주문 내역 확인</Link></p>}
-      {canRevise && <button type="button" onClick={() => { draft.current = null; create.reset(); void quote.refetch() }}>입력 수정 후 견적 다시 확인</button>}
-      {create.data && <div role="status"><p>연장 주문이 생성되었습니다. 결제 기한: {create.data.paymentDueAt.replace('T', ' ')}</p>
-        <Link to={`/mypage/orders/${encodeURIComponent(create.data.orderNo)}`}>연장 주문 상세</Link>
-        <OrderPaymentContinuation orderNo={create.data.orderNo} orderStatus="payment_pending" paymentStatus="pending"/>
-      </div>}
-    </>
-  return pageMode ? <section aria-label="연장 주문서">{content}<Link to={offerIds?.length ? '/mypage/storage' : '/mypage/rcpc'}>목록으로</Link></section> : <section aria-label="RCPC 기간 연장">
+        <section aria-label="연장 상품" className="extension-checkout__section" aria-busy={quote.isFetching}>
+          <h3>연장 상품 <span>{rentalIds.length}대</span></h3>
+          {quote.isFetching && <p className="extension-checkout__notice" role="status">연장 견적을 확인하고 있습니다.</p>}
+          {quote.error && <p className="extension-checkout__error" role="alert">{quote.error.message}</p>}
+          <div className="extension-checkout__products">
+            {current?.items.map(item => <article className="extension-checkout__product" key={item.rentalId}>
+              <header><strong>품번 {item.productNo ?? '—'}</strong><span className={item.eligible ? 'extension-checkout__badge' : 'extension-checkout__error'}>{item.eligible ? '연장 가능' : '연장 불가'}</span></header>
+              {item.title && item.title !== item.productNo ? <p>{item.title}</p> : null}
+              <p className="extension-checkout__spec">{[item.serverRoomName, item.spec].filter(Boolean).join(' / ') || '사양 정보가 없습니다.'}</p>
+              <dl className="extension-checkout__period-info">
+                <div><dt>현재 만료</dt><dd>{dateTime(item.previousEnd)}</dd></div>
+                <div><dt>예상 연장 종료</dt><dd>{dateTime(item.targetEnd)}</dd></div>
+                <div><dt>연장 기간</dt><dd>{item.addedDays == null ? '—' : `${item.addedDays}일`}</dd></div>
+                <div><dt>결제 예정금액</dt><dd><strong>{money(item.amount)}</strong></dd></div>
+              </dl>
+              {!item.eligible && <p className="extension-checkout__error">{extensionResultText(item)}</p>}
+            </article>)}
+          </div>
+          <p className="extension-checkout__help">30일 상품은 (월 렌탈료 ÷ 30) × 연장 일수로 계산한 뒤, 상품별 금액의 소수점 이하를 반올림합니다.</p>
+          <p className="extension-checkout__help">만료 후 결제가 승인되면 실제 연장 기간은 승인 시각부터 계산되어 예상 종료 시각과 달라질 수 있습니다.</p>
+        </section>
+        {current?.benefits && <fieldset className="extension-checkout__section" disabled={locked || quote.isFetching}>
+          <legend>쿠폰·포인트</legend>
+          <div className="extension-checkout__fields">
+            <label className="extension-checkout__select-label">쿠폰<NativeSelect value={coupon} onChange={event => setCoupon(event.target.value)}><option value="">사용 안 함</option>
+              {current.benefits.coupons.map(item => <option key={item.userCouponId} value={item.userCouponId}>{item.name} · {money(item.discountAmount)} 할인</option>)}
+            </NativeSelect></label>
+            <TextField appearance="box" label={`포인트 (보유 ${current.benefits.availablePoints.toLocaleString('ko-KR')}P)`} type="number" min={0} max={current.benefits.availablePoints} step={1} value={points} onChange={event => setPoints(event.target.value)}/>
+          </div>
+        </fieldset>}
+        <fieldset className="extension-checkout__section" disabled={locked}>
+          <legend>주문자 정보</legend>
+          <div className="extension-checkout__fields">
+            <TextField appearance="box" label="이름" required maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)}/>
+            <TextField appearance="box" label="이메일" required type="email" maxLength={255} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)}/>
+            <TextField appearance="box" label="연락처" required type="tel" maxLength={30} autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)}/>
+          </div>
+        </fieldset>
+      </div>
+      <aside aria-label="결제 요약" className="extension-checkout__summary">
+        <h3>결제 예정금액</h3>
+        <dl>
+          <div><dt>연장 상품 {rentalIds.length}대</dt><dd>{money(current?.totalAmount)}</dd></div>
+          <div><dt>쿠폰 할인</dt><dd>{current ? `−${money(current.benefits?.couponDiscountAmount ?? 0)}` : '—'}</dd></div>
+          <div><dt>포인트 사용</dt><dd>{current ? `−${(current.benefits?.pointUsedAmount ?? 0).toLocaleString('ko-KR')}P` : '—'}</dd></div>
+          <div className="extension-checkout__total"><dt>최종 결제금액</dt><dd>{money(current?.benefits?.finalAmount ?? current?.totalAmount)}</dd></div>
+        </dl>
+        {current?.benefits?.finalAmount === 0 && <p className="extension-checkout__help">전액 할인되어 별도의 결제 없이 완료됩니다.</p>}
+        <Checkbox className="extension-checkout__agreement" visualClassName="" checked={orderConfirmed} disabled={locked} onChange={event => setOrderConfirmed(event.target.checked)}>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</Checkbox>
+        {current && !current.eligible && <p className="extension-checkout__error" role="alert">연장할 수 없는 상품이나 기간을 확인해 주세요.</p>}
+        <Button fullWidth size="large" type="submit" disabled={create.isPending || create.isSuccess || !selection.success || quote.isFetching || quote.isError || !current?.eligible || !orderConfirmed}>{create.isError ? '같은 주문 다시 확인' : create.isPending ? '주문 생성 중…' : '연장 주문 생성'}</Button>
+        <p className="extension-checkout__help">주문 생성 후 결제를 진행하며, 결제 완료 후 이용 기간이 연장됩니다.</p>
+      </aside>
+    </form>
+    {create.error && <div className="extension-checkout__feedback"><p className="extension-checkout__error" role="alert">{create.error.message}</p><Link to="/mypage/orders">주문 내역 확인</Link>
+      {canRevise && <Button variant="secondary" onClick={() => { draft.current = null; create.reset(); void quote.refetch() }}>입력 수정 후 견적 다시 확인</Button>}
+    </div>}
+    {create.data && <section aria-label="연장 주문 완료" className="extension-checkout__feedback">
+      <h3>연장 주문이 생성되었습니다.</h3><p role="status">결제 기한: {dateTime(create.data.paymentDueAt)}</p>
+      <Link to={`/mypage/orders/${encodeURIComponent(create.data.orderNo)}`}>연장 주문 상세</Link>
+      <OrderPaymentContinuation orderNo={create.data.orderNo} orderStatus="payment_pending" paymentStatus="pending"/>
+    </section>}
+    <div className="extension-checkout__back"><Button as={Link} variant="secondary" to={offerIds?.length ? '/mypage/storage' : '/mypage/rcpc'}>목록으로</Button></div>
+  </section>
+  return pageMode ? content : <section aria-label="RCPC 기간 연장">
     <Button size="small" onClick={() => setOpen(true)}>{triggerLabel ?? `선택 ${rentalIds.length}대 기간 연장`}</Button>
     {open ? <RcpcExtensionSurface action={!quote.isFetching && !quote.error && current?.eligible && selection.success ? <Link to="/mypage/extension-checkout" state={{ selection: selection.data, offerIds }}>연장 결제하기</Link> : <button disabled type="button">연장 결제하기</button>}
       busy={quote.isFetching} dateValue={date} error={quote.error?.message} extensionMode={mode === 'days' ? 'period' : 'date'} itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
