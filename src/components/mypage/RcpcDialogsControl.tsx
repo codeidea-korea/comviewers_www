@@ -121,5 +121,5 @@ export function RcpcSurfaceSwitch({ activePopup, onClose, rcpc, returnFocusRef }
 }
 
 export function RcpcRebootSurface({ confirmDisabled = false, confirmLabel = '재부팅', isOpen, onClose, onConfirm = () => {}, rcpc, returnFocusRef }: RcpcRebootSurfaceProps) {
-  return <Modal closeLabel="취소" confirmDisabled={confirmDisabled} confirmLabel={confirmLabel} isOpen={isOpen} onClose={onClose} onConfirm={onConfirm} returnFocusRef={returnFocusRef} title="RCPC 를 재부팅하시겠습니까?"><div className="popup-copy"><strong>품번 {rcpc?.rcpcId}</strong><p>재부팅하면 현재 <u>실행 중인 프로그램이 종료</u>되며,<br />저장하지 않은 작업이 손실될 수 있습니다.</p><small>* 재부팅 명령 전송 후에는 취소할 수 없습니다.</small></div></Modal>
+  return <Modal className="modal--rcpc-reboot" closeLabel="취소" confirmDisabled={confirmDisabled} confirmLabel={confirmLabel} isOpen={isOpen} onClose={onClose} onConfirm={onConfirm} returnFocusRef={returnFocusRef} title="RCPC 를 재부팅하시겠습니까?"><div className="popup-copy"><strong>품번 {rcpc?.rcpcId}</strong><p>재부팅하면 현재 <u>실행 중인 프로그램이 종료</u>되며,<br />저장하지 않은 작업이 손실될 수 있습니다.</p><small>* 재부팅 명령 전송 후에는 취소할 수 없습니다.</small></div></Modal>
 }

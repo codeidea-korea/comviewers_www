@@ -536,6 +536,16 @@
     gap: 4px;
     grid-template-columns: 1fr 1fr;
   }
+  .favorites-table > article.mobile-scrap-card:has(.rcpc-reboot-control > small) {
+    grid-template-rows: 18px 11px 40px 40px 40px 82px 40px 12px minmax(86px, auto);
+    height: auto;
+    min-height: 395px;
+  }
+  .favorites-table > article.mobile-scrap-card > .rcpc-list__actions:has(.rcpc-reboot-control > small) {
+    grid-template-rows: minmax(41px, auto) 41px;
+    height: auto;
+    min-height: 86px;
+  }
   .favorites-table > article.mobile-scrap-card > .rcpc-list__actions button,
   .favorites-table > article.mobile-scrap-card > .rcpc-list__actions a,
   .favorites-table > article.mobile-scrap-card > .rcpc-list__actions .is-disabled {

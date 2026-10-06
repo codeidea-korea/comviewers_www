@@ -37,14 +37,16 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
       key.current = crypto.randomUUID()
       await client.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] })
     } })
-  return <><Button size="small" variant="secondary" disabled={!canRequest || !status.data?.available || status.data.pending || request.isPending} onClick={() => setOpen(true)}>재부팅</Button>
-    {status.data?.pending && <span role="status">명령 접수 · 장치 재통신 대기 중</span>}
-    {status.data?.status === 'communication_resumed' && <span role="status">장치 통신 재개 확인</span>}
-    {(status.data?.status === 'failed' || status.data?.status === 'expired') && <span role="status">이전 요청 실패 또는 기한 만료</span>}
-    {status.error && <span>재부팅 권한 또는 상태를 확인할 수 없습니다.</span>}
+  return <><span className="rcpc-reboot-control"><Button size="small" variant="secondary" disabled={!canRequest || !status.data?.available || status.data.pending || request.isPending} onClick={() => setOpen(true)}>재부팅</Button>
+    {status.data?.pending && <small role="status">명령 접수 · 장치 재통신 대기 중</small>}
+    {status.data?.status === 'communication_resumed' && <small role="status">장치 통신 재개 확인</small>}
+    {(status.data?.status === 'failed' || status.data?.status === 'expired') && <small role="status">이전 요청 실패 또는 기한 만료</small>}
+    {status.error && <small>재부팅 권한 또는 상태를 확인할 수 없습니다.</small>}
+    {request.error && <small role="alert">재부팅을 요청하지 못했습니다. 다시 시도해 주세요.</small>}
+    </span>
     <RcpcRebootSurface isOpen={open} rcpc={{ rcpcId: item.productNo }} confirmLabel={request.isPending ? '요청 중…' : '재부팅'}
       confirmDisabled={request.isPending || !status.data?.available} onClose={() => { if (!request.isPending) setOpen(false) }} onConfirm={() => request.mutate()} />
-    {request.error && <span role="alert">재부팅을 요청하지 못했습니다. 다시 시도해 주세요.</span>}</>
+    </>
 }
 
 export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { api: MyRcpcReadServices; item: MyRcpcItem; compact?: boolean; autoReveal?: boolean }) {

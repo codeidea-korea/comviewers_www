@@ -86,6 +86,7 @@
   .mobile-rcpc-card .mobile-rcpc-card__connection { min-height: 82px; }
   .mobile-rcpc-card__connection dd > * { width: 100%; }
   .mobile-rcpc-card > footer { display: flex; flex-direction: column; gap: 4px; height: 86px; justify-content: flex-end; margin-top: 12px; }
+  .mobile-rcpc-card > footer:has(.rcpc-reboot-control > small) { height: auto; min-height: 86px; }
   .mobile-rcpc-card > footer span { display: grid; gap: 4px; grid-template-columns: 1fr 1fr; }
   .mobile-rcpc-card > footer button,
   .mobile-rcpc-card > footer a,
