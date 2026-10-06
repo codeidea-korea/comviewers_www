@@ -438,22 +438,22 @@
 .review-detail-modal__scroll { letter-spacing: -.32px; }
 
 /* The editor's attachment list is intentionally content-sized: it must not reserve rows that are not selected. */
-.post-editor--edit { height: auto; min-height: 0; padding: 60px 0 120px; position: static; }
-.post-editor--edit > h1 { height: auto; position: static; width: auto; }
-.post-editor--edit > label,.post-editor--edit > label:nth-of-type(1),.post-editor--edit > .post-editor__editor-field { height: auto; left: auto; position: static; top: auto; width: 720px; }
-.post-editor--edit > label:nth-of-type(1) { margin-top: 60px; }.post-editor--edit > .post-editor__editor-field { margin-top: 20px; }
-.post-editor--edit .post-files { height: auto; left: auto; margin-top: 40px; position: static; top: auto; width: 720px; }
-.post-editor--edit .post-files > p { height: auto; position: static; top: auto; }
-.post-editor--edit .post-files .file-select { margin: 12px 0; position: static; top: auto; }
-.post-editor--edit .post-files--error { height: auto; }
-.post-editor--edit .post-files__error { margin: 0 0 12px; position: static; }
-.post-editor--edit .post-files > div,.post-editor--edit .post-files > div:nth-of-type(1),.post-editor--edit .post-files > div:nth-of-type(2),.post-editor--edit .post-files > div:nth-of-type(3) { height: 50px; left: auto; position: static; top: auto; width: 720px; }
-.post-editor--edit .post-editor__actions { height: auto; left: auto; margin: 54px 0 0; position: static; top: auto; width: 714px; }
-.post-editor--edit:has(.post-files--error) { height: auto; }
-.post-editor--edit:has(.post-files--error) .post-editor__actions { top: auto; }
+.post-editor--flow { height: auto; min-height: 0; padding: 60px 0 120px; position: static; }
+.post-editor--flow > h1 { height: auto; position: static; width: auto; }
+.post-editor--flow > label,.post-editor--flow > label:nth-of-type(1),.post-editor--flow > .post-editor__editor-field { height: auto; left: auto; position: static; top: auto; width: 720px; }
+.post-editor--flow > label:nth-of-type(1) { margin-top: 60px; }.post-editor--flow > .post-editor__editor-field { margin-top: 20px; }
+.post-editor--flow .post-files { height: auto; left: auto; margin-top: 40px; position: static; top: auto; width: 720px; }
+.post-editor--flow .post-files > p { height: auto; position: static; top: auto; }
+.post-editor--flow .post-files .file-select { margin: 12px 0; position: static; top: auto; }
+.post-editor--flow .post-files--error { height: auto; }
+.post-editor--flow .post-files__error { margin: 0 0 12px; position: static; }
+.post-editor--flow .post-files > div,.post-editor--flow .post-files > div:nth-of-type(1),.post-editor--flow .post-files > div:nth-of-type(2),.post-editor--flow .post-files > div:nth-of-type(3) { height: 50px; left: auto; position: static; top: auto; width: 720px; }
+.post-editor--flow .post-editor__actions { height: auto; left: auto; margin: 54px 0 0; position: static; top: auto; width: 714px; }
+.post-editor--flow:has(.post-files--error) { height: auto; }
+.post-editor--flow:has(.post-files--error) .post-editor__actions { top: auto; }
 .post-editor__field-error { color: var(--color-system-error); display: block; font-size: 12px; left: 0; line-height: 18px; margin: 0; position: absolute; top: 100%; }
 .post-editor__submit-error { color: var(--color-system-error); font-size: 13px; left: 0; line-height: 20px; margin: 0; position: absolute; text-align: center; top: 1045px; width: 100%; }
-.post-editor--edit .post-editor__field-error,.post-editor--edit .post-editor__submit-error { margin-top: 6px; position: static; }
+.post-editor--flow .post-editor__field-error,.post-editor--flow .post-editor__submit-error { margin-top: 6px; position: static; }
 
 /* Original Figma document asset: do not recreate its folded corner with CSS. */
 .post-list img.post-list__document { border: 0; border-radius: 0; display: block; flex: 0 0 auto; height: 13.3333px; margin-left: 8px; position: static; width: 10.6667px; }

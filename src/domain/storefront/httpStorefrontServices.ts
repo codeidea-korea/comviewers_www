@@ -86,7 +86,7 @@ export function createHttpStorefrontServices(client: ApiClient, authenticated: b
           return id
         }))
         const linkedIds = [...new Set([...attachmentIds, ...richAttachmentIds(body.richContent)])]
-        if (linkedIds.length > 3) throw new Error('본문 이미지와 첨부파일은 합계 3개까지 등록할 수 있습니다.')
+        if (linkedIds.length > 3) throw new Error('첨부 가능한 파일 개수를 초과했습니다.')
         return { ...body, attachmentIds: linkedIds }
       }
       let pending = idempotencyKey && !value ? preparedPosts.get(idempotencyKey) : undefined
