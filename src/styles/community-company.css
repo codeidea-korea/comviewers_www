@@ -461,13 +461,21 @@
 .post-avatar img.post-avatar__mark { background: transparent; box-shadow: none; display: block; filter: brightness(0) invert(1); height: 16px; transform: none; width: 16px; }
 
 /* Company value cards follow the Figma hover expansion instead of snapping content into the layout. */
-.company-catalog-benefits article { overflow: hidden; transition: background-color .45s ease,color .45s ease; }
-.company-catalog-benefits article > button { transition: background-color .45s ease,color .45s ease; }
-.company-catalog-benefits article > p { box-sizing: border-box; display: block; height: auto; margin: 0; max-height: 0; opacity: 0; overflow: hidden; padding: 0 70px; transition: max-height .5s ease,opacity .35s ease,padding .5s ease; white-space: pre-line; }
+.company-catalog-benefits article { overflow: hidden; transition: background-color .7s ease,color .7s ease; }
+.company-catalog-benefits article:last-child { border-bottom: 0; }
+.company-catalog-benefits article > button { background: transparent; color: inherit; text-decoration: none; }
+.company-catalog-benefits article > button strong { text-decoration: none; }
+.company-catalog-benefits article > button strong img { transition: filter .7s ease; }
+.company-catalog-benefits article > p { box-sizing: border-box; display: block; height: auto; margin: 0; max-height: 0; opacity: 0; overflow: hidden; padding: 0 70px; transition: max-height .8s ease,opacity .6s ease,padding .8s ease; white-space: pre-line; }
 .company-catalog-benefits article:hover,.company-catalog-benefits article.is-open { background: var(--color-black); border-radius: 12px; color: white; }
-.company-catalog-benefits article:hover button,.company-catalog-benefits article.is-open button { background: transparent; color: white; height: 89px; }
+.company-catalog-benefits article:hover button,.company-catalog-benefits article.is-open button { background: transparent; color: inherit; height: 89px; }
 .company-catalog-benefits article:hover button strong img,.company-catalog-benefits article.is-open button strong img { filter: brightness(0) invert(1); }
 .company-catalog-benefits article:hover > p,.company-catalog-benefits article.is-open > p { color: #ddd; max-height: 138px; opacity: 1; padding: 0 70px 30px; }
+@media (prefers-reduced-motion: reduce) {
+  .company-catalog-benefits article,
+  .company-catalog-benefits article > button strong img,
+  .company-catalog-benefits article > p { transition: none; }
+}
 
 /* Fixed support notices are visually emphasized. */
 .support-list > a > strong.is-pinned-title { font-weight: 700; }
