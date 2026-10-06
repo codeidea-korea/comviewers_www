@@ -157,7 +157,8 @@
 .company-catalog-cta { height: 608px; margin-top: 4px; }
 .company-catalog-cta > div { height: 608px; }
 .company-catalog-cta h2 { font-size: 32px; line-height: normal; }
-.company-catalog-cta a { align-items: center; display: inline-flex; height: 50px; margin-top: 60px; padding: 0 16px; }
+.company-catalog-cta a { align-items: center; display: inline-flex; gap: 16px; height: 50px; justify-content: center; line-height: 24px; margin-top: 60px; padding: 0 16px; }
+.company-catalog-cta a > span { align-items: center; display: inline-flex; }
 .community-hero--support::after { background: none; }
 .company-catalog-hero h1 { font-family: "Pretendard Variable","Pretendard",sans-serif; white-space: nowrap; }
 .support-page { height: auto; padding: 50px 0 120px; }
