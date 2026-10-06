@@ -15,6 +15,7 @@ function ManagersContent() {
   const [dialog, setDialog] = useState<ManagerDialog>({ kind: 'closed' })
   const [openMenuRow, setOpenMenuRow] = useState<string | null>(null)
   const [selectedManagerId, setSelectedManagerId] = useState('')
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
   const { message: notice, setMessage: setNotice, toastKey } = useToastMessage()
   const [error, setError] = useState('')
   const [permissionBusy, setPermissionBusy] = useState(false)
@@ -54,6 +55,7 @@ function ManagersContent() {
       if (dialog.kind === 'delete') await account.remove.mutateAsync(dialog.id)
       else if (dialog.kind === 'assign' || dialog.kind === 'unassign') await account.assign.mutateAsync({ managerId: dialog.kind === 'assign' ? selectedManagerId : null, rcpcIds: dialog.ids })
       else return
+      if (assignmentAction) setSelectedRows([])
       setNotice(dialog.kind === 'delete' ? '담당자를 삭제했습니다.' : dialog.kind === 'assign' ? '담당자를 배정했습니다.' : '선택한 RCPC의 담당자 배정을 해제했습니다.')
       setDialog({ kind: 'closed' })
     } catch (cause) {
@@ -66,7 +68,7 @@ function ManagersContent() {
     return managers.some(manager => manager.assignedRcpcIds.includes(id) || (rcpc ? manager.assignedRcpcIds.includes(rcpc.rcpcId) : false))
   }) ? '담당자 변경' : '담당자 설정'
   return <>
-    <ManagerCatalog onCreate={() => open({ kind: 'create' })} onEdit={(id) => open({ kind: 'edit', id })} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} onCloseMenu={() => setOpenMenuRow(null)} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} />
+    <ManagerCatalog selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onCreate={() => open({ kind: 'create' })} onEdit={(id) => open({ kind: 'edit', id })} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} onCloseMenu={() => setOpenMenuRow(null)} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} />
     <Toast message={notice} toastKey={toastKey} />
     {(dialog.kind === 'create' || dialog.kind === 'edit') && <PopupLayer isOpen className="manager-preview manager-preview--create" dialogClassName="manager-modal manager-modal--register manager-modal--permissions" onClose={close} showTitle={false} title={dialog.kind === 'create' ? '담당자 등록' : '담당자 수정'}>
       {dialog.kind === 'edit' && !target ? <p role="alert">담당자를 찾을 수 없습니다.</p> : <ManagerEditorForm key={target?.id ?? 'new'} manager={target} pending={pending} onBusyChange={setPermissionBusy} checkLogin={account.checkLogin} onClose={close} onDelete={target ? () => open({ kind: 'delete', id: target.id }) : undefined} onSave={async (draft) => { await account.save.mutateAsync({ id: target?.id, draft }); setNotice('담당자 정보를 저장했습니다.'); setDialog({ kind: 'closed' }) }} />}

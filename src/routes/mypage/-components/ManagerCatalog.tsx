@@ -2,6 +2,7 @@ import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { isActiveManager } from '@/domain/myAccount/managerServices'
 import { useSession } from '@/app/session/SessionProvider'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import moreIcon from '../../../assets/figma/comment-more-fill.svg'
 import addIcon from '../../../assets/figma/icon-add.svg'
 import linkIcon from '../../../assets/figma/icon-link.svg'
@@ -13,7 +14,8 @@ import { useManagerWorkspace } from './hooks/useManagerWorkspace'
 import { MyPageLayout } from '../MypageComponentsView'
 import { managerCatalogRowMatches } from './managerCatalogSearch'
 
-export function ManagerCatalog({ onCreate, onEdit, onAssign, onUnassign, onCloseMenu, onToggleMenu, openMenuRow = null }: {
+export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelectedRows, onCreate, onEdit, onAssign, onUnassign, onCloseMenu, onToggleMenu, openMenuRow = null }: {
+  selectedRows: string[]; onSelectedRowsChange: Dispatch<SetStateAction<string[]>>;
   onCreate: () => void; onEdit: (id: string) => void;
   onAssign: (ids: string[]) => void; onUnassign: (ids: string[]) => void;
   onCloseMenu: () => void; onToggleMenu: (id: string) => void; openMenuRow?: string | null;
@@ -27,7 +29,6 @@ export function ManagerCatalog({ onCreate, onEdit, onAssign, onUnassign, onClose
   })
   const [search, setSearch] = useState('')
   const [managerFilter, setManagerFilter] = useState<string | 'unassigned' | null>(null)
-  const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
   const [mobileGroupsOpen, setMobileGroupsOpen] = useState(false)
