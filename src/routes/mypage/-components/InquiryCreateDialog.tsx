@@ -73,7 +73,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onClose={close}
       onEmpty={() => { setSelectedIds([]); setTypeIndex(null); setTypeNotice(''); setStep('type') }}
       onNext={() => { setTypeIndex(null); setTypeNotice(''); setStep('type') }}
-      onSelectedChange={(indexes) => setSelectedIds(indexes.slice(0, 20)
+      onSelectedChange={(indexes) => setSelectedIds(indexes
         .map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger))}
       products={products}
       selectedIndexes={selectedIndexes}

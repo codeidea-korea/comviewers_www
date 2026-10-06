@@ -909,8 +909,7 @@
   .inquiry-preview-layer .inquiry-chat > footer input { min-width: 0; width: 100%; }
   .inquiry-preview-layer .inquiry-chat__menu { left: 20px; top: 54px; z-index: 2; }
   .inquiry-preview-layer > .inquiry-product-choice { padding: 20px; width: calc(100% - 32px); }
-  .inquiry-preview-layer .inquiry-product-choice footer { grid-template-columns: minmax(0, 1fr) 120px; left: 20px; right: 20px; }
-  .inquiry-preview-layer .inquiry-product-choice > div { max-height: calc(100% - 200px); }
+  .inquiry-preview-layer .inquiry-product-choice footer { grid-template-columns: 1fr; }
   .inquiry-preview-layer .inquiry-product-choice__row { grid-template-columns: 18px minmax(0, 1fr); grid-template-rows: auto auto auto auto; }
   .inquiry-preview-layer .inquiry-product-choice__row > span { flex-wrap: wrap; grid-column: 2; }
   .inquiry-preview-layer .inquiry-product-choice__row > em { grid-column: 2; margin: 6px; }

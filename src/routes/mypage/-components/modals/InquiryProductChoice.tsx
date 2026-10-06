@@ -16,17 +16,23 @@ export function ProductChoiceRow({ checked = false, onCheckedChange = () => {}, 
   )
 }
 
-export function ProductChoiceContent({ actionLabel = '다음', allowEmpty = true, notice, onClose, onEmpty, onNext, onSelectedChange, selectedIndexes, products }: { actionLabel?: string; allowEmpty?: boolean; notice?: ReactNode; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (indexes: number[]) => void; selectedIndexes: number[]; products: InquiryChoice[] }) {
+export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, maxSelection = 20, notice, onClose, onEmpty, onNext, onSelectedChange, selectedIndexes, products }: { actionLabel?: string; allowEmpty?: boolean; maxSelection?: number; notice?: ReactNode; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (indexes: number[]) => void; selectedIndexes: number[]; products: InquiryChoice[] }) {
   const selectedCount = selectedIndexes.length
+  const allSelected = products.length > 0 && products.every((_, index) => selectedIndexes.includes(index))
+  const overLimit = selectedCount > maxSelection
   const changeOne = (index: number, checked: boolean) => onSelectedChange(checked
     ? [...selectedIndexes, index].filter((value, position, values) => values.indexOf(value) === position)
     : selectedIndexes.filter((value) => value !== index))
   return (
     <section aria-modal="true" className={`inquiry-preview-dialog inquiry-product-choice${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role="dialog" tabIndex={-1}>
       <header><h2>상품 선택</h2><button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button></header>
-      {allowEmpty ? <button className="inquiry-product-choice__empty" onClick={() => { onSelectedChange([]); (onEmpty ?? onNext)() }} type="button">선택안함</button> : null}
-      <div>{notice}{products.map((product, index) => <ProductChoiceRow checked={selectedIndexes.includes(index)} key={product.selectionId} onCheckedChange={(checked) => changeOne(index, checked)} product={product} />)}</div>
-      <footer><span>선택 상품 <b>{selectedCount}개</b></span><button disabled={!selectedCount} onClick={onNext} type="button">{actionLabel}</button></footer>
+      <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={!products.length} indeterminate={selectedCount > 0 && !allSelected} onChange={event => onSelectedChange(event.target.checked ? products.map((_, index) => index) : [])} /><span>모두선택</span></label>
+      <div className="inquiry-product-choice__products">{notice}{products.map((product, index) => <ProductChoiceRow checked={selectedIndexes.includes(index)} key={product.selectionId} onCheckedChange={(checked) => changeOne(index, checked)} product={product} />)}</div>
+      <footer>
+        {overLimit ? <p className="inquiry-product-choice__limit" role="alert">최대 {maxSelection}대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요.</p> : null}
+        {allowEmpty ? <button onClick={() => { onSelectedChange([]); (onEmpty ?? onNext)() }} type="button">선택안함</button> : null}
+        <button disabled={!selectedCount || overLimit} onClick={onNext} type="button"><span aria-live="polite">{selectedCount ? <><b>{selectedCount}대</b> {actionLabel}</> : '다음'}</span></button>
+      </footer>
     </section>
   )
 }

@@ -64,12 +64,13 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
       <ProductChoiceContent
         actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '선택'}
         allowEmpty={false}
+        maxSelection={Math.max(0, 20 - total)}
         notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
         onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }}
         onNext={submit}
         onSelectedChange={(indexes) => {
           attempt.current = null
-          setSelected(indexes.slice(0, Math.max(0, 20 - total)).map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger))
+          setSelected(indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger))
         }}
         products={products}
         selectedIndexes={selectedIndexes}
