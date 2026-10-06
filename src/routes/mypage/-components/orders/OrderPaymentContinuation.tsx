@@ -25,12 +25,14 @@ export function OrderPaymentContinuation({ orderNo, orderStatus, paymentStatus }
     let status: string
     try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
-    if (status === 'cancelled') {
+    if (status === 'cancelled' || status === 'failed') {
       setCancelled(true)
       unresolvedCustomerCancellation.current = false
     }
     await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(query => client.invalidateQueries({ queryKey: [query] })))
-    throw new Error(status === 'cancelled'
+    throw new Error(status === 'failed'
+      ? '결제에 실패했습니다. 장바구니에서 다시 주문해 주세요.'
+      : status === 'cancelled'
       ? '결제가 취소되어 재고와 혜택이 복원되었습니다. 장바구니에서 다시 주문해 주세요.'
       : status === 'approved' ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
         : '결제 상태를 확인 중입니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.')

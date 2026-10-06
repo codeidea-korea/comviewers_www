@@ -35,6 +35,7 @@ function CheckoutPaymentResult() {
     }, retry: false })
   const failedCallbackValid = returned.failed && Boolean(checkout.abandon) && /^[A-Za-z0-9_-]{6,64}$/.test(returned.orderId)
   const abandonPayment = abandon.mutate
+  const paymentAttemptEnded = abandon.data?.status === 'cancelled' || abandon.data?.status === 'failed'
   useEffect(() => {
     if (failedCallbackValid && !abandonmentStarted.current) {
       abandonmentStarted.current = true
@@ -107,11 +108,12 @@ function CheckoutPaymentResult() {
           {returned.failed && <>
             <p role="alert">{abandon.isPending ? '결제 상태를 확인하고 있습니다.'
               : abandon.data?.status === 'cancelled' ? '결제를 취소했습니다. 장바구니에서 다시 주문할 수 있습니다.'
+                : abandon.data?.status === 'failed' ? '결제에 실패했습니다. 장바구니에서 다시 주문할 수 있습니다.'
                 : abandon.data?.status === 'approved' ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
                   : '결제 종료 여부를 확인하지 못했습니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.'}</p>
-            {failedCallbackValid && !abandon.isPending && abandon.data?.status !== 'cancelled' && <button type="button" onClick={() => abandon.mutate()}>결제 상태 다시 확인</button>}
-            {abandon.data?.status !== 'cancelled' && <a href="/mypage/orders">주문내역 확인</a>}
-            {abandon.data?.status === 'cancelled' && <a href="/cart">장바구니로 이동</a>}
+            {failedCallbackValid && !abandon.isPending && !paymentAttemptEnded && <button type="button" onClick={() => abandon.mutate()}>결제 상태 다시 확인</button>}
+            {!paymentAttemptEnded && <a href="/mypage/orders">주문내역 확인</a>}
+            {paymentAttemptEnded && <a href="/cart">장바구니로 이동</a>}
           </>}
           {confirm.isPending && <p aria-busy="true">결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.</p>}
           {confirm.isError && <><p role="alert">결제 승인 결과를 확인하지 못했습니다.</p><button type="button" onClick={requestConfirmation} disabled={confirm.isPending}>승인 결과 다시 확인</button></>}

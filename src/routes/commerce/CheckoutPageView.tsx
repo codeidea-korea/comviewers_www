@@ -74,12 +74,12 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     let status: string
     try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
-    if (status === 'cancelled') {
+    if (status === 'cancelled' || status === 'failed') {
       attemptRef.current = null
       setAttempt(null)
       setUnresolvedOrderId(null)
       unresolvedCustomerCancellation.current = false
-      setPaymentNotice('결제를 취소했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.')
+      setPaymentNotice(status === 'failed' ? '결제에 실패했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.' : '결제를 취소했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.')
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
       return
     }
