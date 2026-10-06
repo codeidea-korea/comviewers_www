@@ -799,7 +799,9 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .points-history .benefit-table > div strong,.points-history .benefit-table > p span,.coupons-available .benefit-table > div strong,.coupons-available .benefit-table > p span,.coupons-history .benefit-table > div strong,.coupons-history .benefit-table > p span { font-size: 14px; }
 .points-history .mypage-empty,.coupons-available .mypage-empty,.coupons-history .mypage-empty { align-items: center; color: var(--color-gray-500); display: flex; justify-content: center; min-height: 120px; }
 .benefit-policy-link { display: block; margin-top: 24px; text-align: right; }
-.coupons-available,.coupons-available > section:first-child { height: auto; }
+.coupons-available,.coupons-available > section:first-child,.coupons-history { height: auto; }
+.coupons-history__filter button { gap: 12px; max-width: 100%; width: auto; }
+.coupons-history__filter button img { flex-shrink: 0; }
 .coupon-download { height: auto; margin-top: 42px; }
 .coupon-download > div { display: grid; gap: 12px; grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 18px; }
 .coupon-download article { height: auto; }

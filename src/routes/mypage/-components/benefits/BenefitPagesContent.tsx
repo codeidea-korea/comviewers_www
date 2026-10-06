@@ -5,7 +5,7 @@ import { useServices } from '@/app/ServiceProvider'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import { BenefitTable } from '../../BenefitTableView'
-import { MyPageLayout, PeriodFilter } from '../../MypageComponentsView'
+import { MyPageLayout } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import { accountDateRange } from '../shared/AccountDatePresets'
 import { MyPagePeriodDialog } from '../shared/MyPagePeriodDialog'
@@ -252,11 +252,12 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
         </button>
       ))}
     </nav>
-    {status === 'used' ? <div className="coupons-history__filter"><button aria-expanded={periodOpen} onClick={() => setPeriodOpen((current) => !current)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button></div> : null}
-    {status === 'used' && periodOpen ? <PeriodFilter dates={dates} open onApply={(from, to) => {
-      setDates({ from, to })
+    {status === 'used' ? <div className="coupons-history__filter"><button aria-expanded={periodOpen} aria-haspopup="dialog" onClick={() => setPeriodOpen(true)} type="button">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}<img alt="" src={periodChevronIcon} /></button></div> : null}
+    {status === 'used' && periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
+      setDates(nextDates)
       setPage(0)
-    }} /> : null}
+      setPeriodOpen(false)
+    }} onClose={() => setPeriodOpen(false)} /> : null}
     <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
     {result.data ? <>
       <BenefitTable
