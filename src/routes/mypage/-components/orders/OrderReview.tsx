@@ -17,7 +17,9 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
   const allowed = Boolean(sourceId && eligible.data?.some((rental) => rental.id === sourceId))
   const save = useMutation({ mutationFn: async ({ draft, rentalId }: { draft: { rating: number; body: string }; rentalId: string }) => {
     if (!allowed || !sourceId || rentalId !== sourceId) throw new Error('후기 작성 가능한 구매 상품을 확인해 주세요.')
-    return reviews.create(item.productNo, sourceId, reviewDraftSchema.parse(draft))
+    const parsed = reviewDraftSchema.safeParse(draft)
+    if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? '후기 내용을 확인해 주세요.')
+    return reviews.create(item.productNo, sourceId, parsed.data)
   }, onSuccess: async () => {
     setOpen(false)
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] }), client.invalidateQueries({ queryKey: ['productReviews', item.productNo] })])
