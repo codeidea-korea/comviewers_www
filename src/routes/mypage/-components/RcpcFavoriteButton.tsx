@@ -7,6 +7,7 @@ import starEmpty from '@/assets/figma/review-star-empty.svg'
 import starFilled from '@/assets/figma/review-star-filled.svg'
 import { FavoritesSettingsDialog, NewFavoritesGroupDialog, type FavoriteGroupOption } from './modals/FavoritesGroupDialogs'
 import { favoriteUngroupedCountQuery } from './favoritesAccess'
+import { orderFavoriteGroups } from './favorites/orderFavoriteGroups'
 
 export function RcpcFavoriteButton({ api, mutations, item, compact = false }: { api: MyRcpcReadServices; mutations: ReturnType<typeof createCustomerRcpcMutations>; item: MyRcpcItem; compact?: boolean }) {
   const [open, setOpen] = useState(false), [creating, setCreating] = useState(false)
@@ -15,7 +16,7 @@ export function RcpcFavoriteButton({ api, mutations, item, compact = false }: { 
   const unclassified = useQuery({ queryKey: ['my-rcpcs', api.organizationId, 'favorite-unclassified-count'], queryFn: ({ signal }) => api.list(favoriteUngroupedCountQuery, signal), enabled: open })
   const visualGroups: FavoriteGroupOption[] = [
     { id: 'unclassified', label: '미분류', parentId: null, count: unclassified.data?.totalElements },
-    ...(groups.data ?? []).flatMap(root => [
+    ...orderFavoriteGroups(groups.data ?? []).flatMap(root => [
       { id: String(root.id), label: root.name, parentId: null, count: root.rcpcCount + root.children.reduce((total, child) => total + child.rcpcCount, 0) },
       ...root.children.map(child => ({ id: String(child.id), label: child.name, parentId: String(root.id), count: child.rcpcCount })),
     ]),

@@ -19,6 +19,7 @@ import { endedRental, extensionBlocked, extensionTarget } from '../rcpcPresentat
 import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
 import { useSession } from '@/app/session/SessionProvider'
 import { canManageFavorites, FavoritesManageOnly } from '../favoritesAccess'
+import { orderFavoriteGroups } from './orderFavoriteGroups'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type GroupSelection = 'all' | 'unclassified' | number
@@ -27,12 +28,6 @@ const groupQueryKey = (organizationId: string) => ['my-rcpc-groups', organizatio
 
 function flattenGroups(groups: readonly SavedRcpcGroup[]): SavedRcpcGroup[] {
   return groups.flatMap((group) => [group, ...group.children])
-}
-
-function orderGroups(groups: readonly SavedRcpcGroup[]): SavedRcpcGroup[] {
-  return [...groups]
-    .sort((left, right) => left.displayOrder - right.displayOrder || left.id - right.id)
-    .map(group => ({ ...group, children: orderGroups(group.children) }))
 }
 
 function mutationMessage(error: Error | null): string | null {
@@ -67,7 +62,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     }, signal),
   })
   const accessDenied = isAccountReadDenied(groups.error) || isAccountReadDenied(rows.error) || isAccountReadDenied(available.error)
-  const groupsData = accessDenied ? [] : groups.data ? orderGroups(groups.data) : undefined
+  const groupsData = accessDenied ? [] : groups.data ? orderFavoriteGroups(groups.data) : undefined
   const rowsData: Awaited<ReturnType<MyRcpcReadServices['list']>> | undefined = accessDenied
     ? { items: [], page: 0, size: filters.size ?? 20, totalElements: 0, totalPages: 0 }
     : rows.data
@@ -194,33 +189,20 @@ function MobileFavoriteGroupPicker({ groups, isOpen, onClose, onSelect, selected
 }
 
 function LiveGroupManager({ groups, mutations, onChanged, onDeleted, onSaved, unclassifiedCount }: { groups: readonly SavedRcpcGroup[]; mutations: RcpcMutations; onChanged: () => Promise<void>; onDeleted: (groupId: number) => void; onSaved: () => void; unclassifiedCount: number | null }) {
-  const [draggedId, setDraggedId] = useState<number | null>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
   const baseGroups = flattenGroups(groups)
   const [drafts, setDrafts] = useState(() => baseGroups.map(group => ({ ...group })))
   useEffect(() => setDrafts(flattenGroups(groups).map(group => ({ ...group }))), [groups])
   const allGroups = drafts
-  const stage = ({ sourceId, targetId }: { sourceId: number; targetId: number }) => {
-    const source = allGroups.find((group) => group.id === sourceId)
-    const target = allGroups.find((group) => group.id === targetId)
-    if (!source || !target || source.parentGroupId !== target.parentGroupId) return
-    const siblings = allGroups.filter((group) => group.parentGroupId === source.parentGroupId)
-    const withoutSource = siblings.filter((group) => group.id !== sourceId)
-    const targetIndex = withoutSource.findIndex((group) => group.id === targetId)
-    const ordered = [...withoutSource.slice(0, targetIndex), source, ...withoutSource.slice(targetIndex)]
-    let position = 0
-    setDrafts(allGroups.map(group => group.parentGroupId === source.parentGroupId ? ordered[position++] : group))
-  }
   const save = useMutation({ mutationFn: async () => {
     if (allGroups.some(group => group.name.trim().length < 1 || group.name.trim().length > 30)) throw new Error('그룹명은 1~30자로 입력해 주세요.')
     const changed = allGroups.filter(group => {
       const original = baseGroups.find(candidate => candidate.id === group.id)
-      const displayOrder = allGroups.filter(candidate => candidate.parentGroupId === group.parentGroupId).findIndex(candidate => candidate.id === group.id)
-      return !original || original.name !== group.name.trim() || original.displayOrder !== displayOrder
+      return !original || original.name !== group.name.trim()
     })
     const results = await Promise.allSettled(changed.map(group => mutations.updateGroup(group.id, {
       name: group.name.trim(),
-      displayOrder: allGroups.filter(candidate => candidate.parentGroupId === group.parentGroupId).findIndex(candidate => candidate.id === group.id),
+      displayOrder: group.displayOrder,
     })))
     if (results.some(result => result.status === 'rejected')) throw new Error('일부 그룹 설정을 저장하지 못했습니다. 목록을 새로 확인해 주세요.')
   }, onSuccess: async () => { await onChanged(); onSaved() } })
@@ -233,9 +215,6 @@ function LiveGroupManager({ groups, mutations, onChanged, onDeleted, onSaved, un
       mutations={mutations}
       onChanged={onChanged}
       onDeleted={onDeleted}
-      onDragEnd={() => setDraggedId(null)}
-      onDragStart={() => setDraggedId(group.id)}
-      onDrop={() => { if (draggedId !== null && draggedId !== group.id && !save.isPending) stage({ sourceId: draggedId, targetId: group.id }); setDraggedId(null) }}
       onEdit={() => setEditingId(group.id)}
       onNameChange={name => setDrafts(current => current.map(candidate => candidate.id === group.id ? { ...candidate, name } : candidate))}
       onStopEdit={() => setEditingId(null)}
@@ -247,14 +226,13 @@ function LiveGroupManager({ groups, mutations, onChanged, onDeleted, onSaved, un
   </form>
 }
 
-function LiveEditableGroupRow({ editing, group, mutations, onChanged, onDeleted, onDragEnd, onDragStart, onDrop, onEdit, onNameChange, onStopEdit, pending }: { editing: boolean; group: SavedRcpcGroup; mutations: RcpcMutations; onChanged: () => Promise<void>; onDeleted: (groupId: number) => void; onDragEnd: () => void; onDragStart: () => void; onDrop: () => void; onEdit: () => void; onNameChange: (name: string) => void; onStopEdit: () => void; pending: boolean }) {
+function LiveEditableGroupRow({ editing, group, mutations, onChanged, onDeleted, onEdit, onNameChange, onStopEdit, pending }: { editing: boolean; group: SavedRcpcGroup; mutations: RcpcMutations; onChanged: () => Promise<void>; onDeleted: (groupId: number) => void; onEdit: () => void; onNameChange: (name: string) => void; onStopEdit: () => void; pending: boolean }) {
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false)
   const remove = useMutation({ mutationFn: () => mutations.deleteGroup(group.id), onSuccess: async () => { onDeleted(group.id); await onChanged() } })
-  return <div className={group.parentGroupId === null ? 'favorites-group-editor__row' : 'favorites-group-editor__row is-child'} onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); onDrop() }}>
+  return <div className={group.parentGroupId === null ? 'favorites-group-editor__row' : 'favorites-group-editor__row is-child'}>
     {editing ? <input aria-label={`${group.name} 그룹명`} autoFocus maxLength={30} onBlur={onStopEdit} onChange={event => onNameChange(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onStopEdit() } }} value={group.name}/>
       : <button className="favorites-group-editor__name" type="button" onDoubleClick={onEdit} onKeyDown={event => { if (event.key === 'Enter' || event.key === 'F2') onEdit() }}>{group.parentGroupId === null ? group.name : `└ ${group.name}`}</button>}
     <button aria-label={`${group.name} 삭제`} className="favorites-group-editor__delete" disabled={remove.isPending || pending} onClick={() => setRemoveConfirmOpen(true)} type="button">×</button>
-    <button aria-label={`${group.name} 순서 이동`} className="favorites-group-editor__drag" draggable={!pending} disabled={pending} onDragEnd={onDragEnd} onDragStart={onDragStart} type="button">⠿</button>
     <Modal isOpen={removeConfirmOpen} title="즐겨찾기 그룹을 삭제하시겠습니까?" closeLabel="취소" confirmLabel={remove.isPending ? '삭제 중…' : '삭제'} confirmDisabled={remove.isPending} onClose={() => { if (!remove.isPending) setRemoveConfirmOpen(false) }} onConfirm={() => remove.mutate()}><p>{group.parentGroupId ? `${group.name} 그룹을 삭제하고 RCPC를 상위 그룹으로 이동합니다.` : `${group.name}과 하위 그룹을 삭제하고 RCPC를 미분류로 이동합니다.`}</p></Modal>
     {mutationMessage(remove.error) ? <p role="alert">{mutationMessage(remove.error)}</p> : null}
   </div>

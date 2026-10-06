@@ -300,14 +300,12 @@
 .favorites-page .favorites-groups > div:first-child a,.favorites-page .favorites-groups > div:first-child button { width: 48px; }
 .favorites-group-editor { display: block; }
 .favorites-groups .favorites-groups__tree:has(.favorites-group-editor) { min-height: 0; padding: 8px 12px 0; }
-.favorites-group-editor__row { align-items: center; display: grid; grid-template-columns: minmax(0,1fr) 24px 24px; min-height: 40px; }
+.favorites-group-editor__row { align-items: center; display: grid; grid-template-columns: minmax(0,1fr) 24px; min-height: 40px; }
 .favorites-group-editor__row.is-child { padding-left: 10px; }
 .favorites-groups .favorites-group-editor__row > button { background: transparent; border: 0; height: 28px; min-height: 28px; padding: 0; width: 24px; }
 .favorites-groups .favorites-group-editor__row > .favorites-group-editor__name { font-size: 13px; min-width: 0; overflow: hidden; padding: 0 4px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
 .favorites-group-editor__row > input { border: 1px solid var(--color-gray-200); border-radius: 3px; font: inherit; font-size: 13px; height: 32px; min-width: 0; padding: 0 6px; width: 100%; }
 .favorites-group-editor__delete { color: var(--color-gray-500); font-size: 18px; }
-.favorites-group-editor__drag { color: var(--color-gray-500); cursor: grab; font-size: 16px; }
-.favorites-group-editor__drag:active { cursor: grabbing; }
 .favorites-group-editor__unclassified { align-items: center; display: flex; font-size: 13px; height: 40px; justify-content: space-between; padding: 0 4px; }
 .favorites-group-editor > p { background: var(--color-gray-50); color: var(--color-gray-500); font-size: 11px; line-height: 16px; margin: 8px -12px 0; min-height: 80px; padding: 12px; }
 .favorites-group-editor > p[role='alert'] { color: var(--color-system-danger); min-height: 0; }
