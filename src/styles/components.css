@@ -164,6 +164,10 @@
 .popup-form > p { margin-bottom: 34px; }.popup-form--stacked { display: flex; flex-direction: column; gap: 20px; }.popup-form .text-field__message { font-size: 14px; }.popup-form .text-field__control { margin-top: 2px; }
 .modal--password-reset .modal__content { padding-top: 40px; }
 .modal--password-reset .text-field__control { margin-top: 0; }
+.modal.modal--required-password-change { display: flex; flex-direction: column; height: auto; max-height: calc(100dvh - 48px); }
+.modal--required-password-change > .modal__content { min-height: 0; overflow-y: auto; overflow-wrap: anywhere; }
+.modal--required-password-change > .modal__content > p { margin-bottom: 24px; }
+.modal--required-password-change > .modal__actions { flex-shrink: 0; }
 .modal--password-confirm .popup-form > p { margin-bottom: 40px; }
 .modal--password-confirm .text-field__control { margin-top: 0; }
 

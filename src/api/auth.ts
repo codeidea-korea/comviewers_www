@@ -9,6 +9,11 @@ const idSchema = z.union([z.string(), z.number().int().positive().safe()]).trans
 const stringIdSchema = z.string()
   .refine((id) => /^[1-9]\d{0,18}$/.test(id) && BigInt(id) <= 9223372036854775807n)
 const tokenSchema = z.string().min(1).regex(/^[A-Za-z0-9._~+/=-]+$/)
+const requiredPasswordChangeSchema = z.object({
+  username: z.string().trim().min(1).max(50),
+  currentPassword: z.string().min(1).max(100),
+  newPassword: z.string().regex(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/),
+})
 const loginResponseSchema = z.object({
   userId: idSchema, role: z.enum(['USER', 'C_MANAGER']), status: z.literal('ACTIVE'), passwordChangeRequired: z.boolean(),
   accessToken: tokenSchema.nullish(), tokenType: z.literal('Bearer').nullish(), expiresInMs: z.number().int().nonnegative().safe(),
@@ -80,6 +85,13 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
       if (!parsed.success) throw new ApiClientError('request')
       if (restoreInFlight) await restoreInFlight.catch(() => undefined)
       return establishResult(await post('/api/auth/login', parsed.data), true, 'USER')
+    },
+    async changeRequiredPassword(input) {
+      const parsed = requiredPasswordChangeSchema.safeParse(input)
+      if (!parsed.success) throw new ApiClientError('request')
+      const result = await post('/api/auth/password/change-required', parsed.data)
+      try { return await establishResult(result, false, 'USER') }
+      catch { throw new Error('비밀번호는 변경되었지만 로그인 정보를 불러오지 못했습니다. 팝업을 닫고 새 비밀번호로 다시 로그인해 주세요.') }
     },
     async managerLogin(organizationCode, input) {
       const parsed = loginCredentialsSchema.safeParse({ ...input, autoLogin: false })

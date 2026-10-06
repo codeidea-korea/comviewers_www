@@ -10,6 +10,7 @@ import { restoreRememberedLoginId } from '../../domain/auth/loginCredentials'
 import type { FormEvent } from 'react'
 import { AuthHeading, AuthLinks, AuthPage, AuthPanel, Checkbox, PasswordField, SocialLoginButtons } from './AuthComponentsView'
 import { clearSocialLink } from './socialLinkIntent'
+import { RequiredPasswordChangeModal } from './-components/modals/RequiredPasswordChangeModal'
 
 const rememberedIdKey = 'comviewers.login.remembered-id'
 function readRememberedId() {
@@ -35,7 +36,15 @@ export function LoginPage() {
   const [rememberId, setRememberId] = useState(Boolean(savedId))
   const [loginError, setLoginError] = useState('')
   const [socialError, setSocialError] = useState('')
+  const [requiredCredentials, setRequiredCredentials] = useState<{ username: string; currentPassword: string } | null>(null)
   useEffect(() => { clearSocialLink() }, [])
+
+  function rememberLoginId(username: string) {
+    try {
+      if (rememberId) localStorage.setItem(rememberedIdKey, username)
+      else localStorage.removeItem(rememberedIdKey)
+    } catch { /* Browser storage restrictions must not prevent an authenticated login. */ }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -46,11 +55,11 @@ export function LoginPage() {
     try {
       const status = await auth.login(loginId, password, autoLogin)
       if (status === 'authenticated') {
-        try {
-          if (rememberId) localStorage.setItem(rememberedIdKey, loginId.trim())
-          else localStorage.removeItem(rememberedIdKey)
-        } catch { /* Browser storage restrictions must not prevent an authenticated login. */ }
+        rememberLoginId(loginId.trim())
         navigate(returnPath, { replace: true })
+      } else {
+        // Keep the verified temporary credential only in this mounted login flow.
+        setRequiredCredentials({ username: loginId.trim(), currentPassword: password })
       }
     } catch { setLoginError('아이디 또는 비밀번호가 일치하지 않습니다.') }
     finally { setPassword(''); setPending(false) }
@@ -62,10 +71,11 @@ export function LoginPage() {
   return (
     <AuthPage>
       <AuthPanel>
-        <AuthHeading title="로그인" /><SessionNotice />
+        <AuthHeading title="로그인" />{!requiredCredentials ? <SessionNotice /> : null}
         <form className="auth-form auth-form--login" noValidate onSubmit={submit}>
           <TextField
             autoComplete="username"
+            disabled={pending}
             helperText="3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다."
             label="아이디"
             maxLength={20}
@@ -76,6 +86,7 @@ export function LoginPage() {
           />
           <PasswordField
             autoComplete="current-password"
+            disabled={pending}
             helperText="8~16자의 영문, 숫자, 특수문자(!, @, #, $, %, )만 사용할 수 있습니다."
             label="비밀번호"
             displayAsText={false}
@@ -101,6 +112,11 @@ export function LoginPage() {
         }} />
         {socialError ? <p aria-live="polite" className="auth-notice">{socialError}</p> : null}
       </AuthPanel>
+      {requiredCredentials && session.status === 'password-change-required' ? <RequiredPasswordChangeModal
+        username={requiredCredentials.username} currentPassword={requiredCredentials.currentPassword}
+        onClose={() => { setRequiredCredentials(null); void auth.logout() }}
+        onComplete={() => { rememberLoginId(requiredCredentials.username); setRequiredCredentials(null); navigate(returnPath, { replace: true }) }}
+      /> : null}
     </AuthPage>
   )
 }

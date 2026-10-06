@@ -2,6 +2,7 @@ import type { CustomerSessionRequest } from '@/api/customerSession'
 import { ApiClientError } from '@/api/httpClient'
 import { loginCredentialsSchema } from '@/domain/auth/loginCredentials'
 import type { SessionOrganization } from './sessionStore'
+import { z } from 'zod'
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useSession, useSessionStore } from './SessionProvider'
 
@@ -16,9 +17,11 @@ export interface SocialSignupInput {
   termsAgreements: readonly { termsPolicyVersionId: number; agreed: boolean }[]
 }
 export interface AuthResult { response: unknown; receivedAt: number; organizationIds?: readonly string[]; organizations?: readonly SessionOrganization[] }
+export interface RequiredPasswordChangeInput { username: string; currentPassword: string; newPassword: string }
 export interface AuthAdapter {
   /** Return the server response with its original receipt timestamp and verified active membership IDs; never invent credentials. */
   login(input: { username: string; password: string; autoLogin: boolean }): Promise<AuthResult>
+  changeRequiredPassword?(input: RequiredPasswordChangeInput): Promise<AuthResult>
   managerLogin?(organizationCode: string, input: { username: string; password: string }): Promise<AuthResult>
   restore?(options?: { background?: boolean }): Promise<AuthResult>
   socialLoginUrl?(provider: SocialAuthProvider): string
@@ -33,6 +36,7 @@ interface AuthController {
   logoutNotice: string
   socialLoginAvailable: boolean
   login(username: string, password: string, autoLogin?: boolean): Promise<'authenticated' | 'password-change-required'>
+  changeRequiredPassword(input: RequiredPasswordChangeInput): Promise<void>
   managerLogin(organizationCode: string, username: string, password: string): Promise<void>
   startSocialLogin(provider: SocialAuthProvider): void
   loadSocialSignupContext(): Promise<SocialSignupContext>
@@ -41,6 +45,10 @@ interface AuthController {
   logout(): Promise<void>
 }
 const AuthContext = createContext<AuthController | null>(null)
+const changedPasswordIdentitySchema = z.object({
+  userId: z.union([z.string(), z.number().int().positive().safe()]).transform(String),
+  role: z.literal('USER'), status: z.literal('ACTIVE'), passwordChangeRequired: z.literal(false),
+})
 const AUTHENTICATION_ERROR_CODES = new Set(['A001', 'A002', 'A003'])
 function isAuthenticationFailure(error: unknown): boolean {
   return error instanceof ApiClientError
@@ -125,6 +133,21 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       const session = store.getSnapshot()
       if (session.status === 'anonymous') throw new Error('로그인하지 못했습니다.')
       return session.status
+    },
+    async changeRequiredPassword(input) {
+      const current = store.getSnapshot()
+      if (current.status !== 'password-change-required' || current.role !== 'USER' || !adapter?.changeRequiredPassword) {
+        throw new Error('로그인부터 다시 진행해 주세요.')
+      }
+      const result = await adapter.changeRequiredPassword(input)
+      if (store.getSnapshot().revision !== current.revision) throw new Error('이전 로그인 요청입니다. 새 비밀번호로 다시 로그인해 주세요.')
+      const identity = changedPasswordIdentitySchema.safeParse(result.response)
+      if (!identity.success || identity.data.userId !== current.userId) {
+        store.logout()
+        await adapter.logout?.({ accessToken: null })
+        throw new Error('로그인 상태를 확인할 수 없습니다. 새 비밀번호로 다시 로그인해 주세요.')
+      }
+      store.establishFromVerifiedResponse(result.response, { expectedRevision: current.revision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
     },
     async managerLogin(organizationCode, username, password) {
       if (restoring) throw new Error('로그인 상태를 확인하고 있습니다. 잠시 후 다시 시도해 주세요.')
