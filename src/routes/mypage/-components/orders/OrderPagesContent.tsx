@@ -100,7 +100,7 @@ const rentalStatusIcons: Record<string, string> = {
   using: serverOnIcon,
   replacement_using: serverOnIcon,
   extension_waiting: serverWaitingIcon,
-  server_ended: serverDisabledIcon,
+  server_ended: serverOffIcon,
   replacement_completed: serverDisabledIcon,
   needs_attention: serverOffIcon,
 }
