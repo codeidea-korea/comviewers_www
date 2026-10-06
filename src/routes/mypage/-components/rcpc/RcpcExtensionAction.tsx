@@ -10,7 +10,7 @@ export function RcpcExtensionAction({ api, canExtend, item }: { api: MyRcpcReadS
   const session = useSession()
   const cManager = session.status === 'authenticated' && session.customerSession?.memberRole === 'c_manager'
   if (cManager) {
-    if (extensionBlocked(item)) return <Button disabled size="small">기간연장 요청</Button>
+    if (extensionBlocked(item)) return <Button disabled size="small">기간연장 조회</Button>
     return <CManagerExtensionRequestAction api={api} item={item}/>
   }
   if (!canExtend) return null

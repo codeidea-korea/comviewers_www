@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import type { MyRcpcItem } from '@/api/myRcpc'
 import { Button } from '@/components/ui/ButtonControl'
 import { Modal } from '@/components/ui/ModalControl'
@@ -41,27 +41,20 @@ export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadS
     queryFn: ({ signal }) => api.extensionRequests(item.rentalId, signal),
     retry: false,
   })
-  const request = useMutation({
-    mutationFn: () => api.requestExtension(item.rentalId, parsedUnits),
-    onSuccess: () => void history.refetch(),
-  })
   const current = quote.data
 
   return <>
-    <Button size="small" onClick={() => setOpen(true)}>기간연장 요청</Button>
+    <Button size="small" onClick={() => setOpen(true)}>기간연장 조회</Button>
     <Modal
       closeLabel="닫기"
-      confirmDisabled={!validUnits || !current || quote.isFetching || request.isPending}
-      confirmLabel={request.isPending ? '요청 중…' : '연장 요청'}
       isOpen={open}
-      onClose={() => { if (!request.isPending) setOpen(false) }}
-      onConfirm={() => request.mutate()}
-      title="기간연장 요청"
+      onClose={() => setOpen(false)}
+      title="기간연장 조회"
     >
-      <p>배정된 RCPC의 기간연장 견적을 확인한 뒤 관리자에게 요청합니다. 결제와 최종 반영은 관리자 처리 대상입니다.</p>
+      <p>담당자는 배정된 RCPC의 기간연장 견적과 요청 내역을 조회할 수 있습니다. 연장 신청과 결제는 대표관리자에게 문의해 주세요.</p>
       <p>{item.preference.alias ? `${item.preference.alias} · ` : ''}품번 {item.productNo} · 현재 만료일 {item.serviceEndExclusiveDate ?? '-'}</p>
       <label>추가 단위
-        <input min={1} max={10000} step={1} type="number" value={units} onChange={event => { setUnits(event.target.value); request.reset() }}/>
+        <input min={1} max={10000} step={1} type="number" value={units} onChange={event => setUnits(event.target.value)}/>
       </label>
       {quote.isFetching ? <p role="status">연장 견적을 확인하고 있습니다.</p> : null}
       {quote.error ? <p role="alert">{quote.error.message}</p> : null}
@@ -71,8 +64,6 @@ export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadS
         <dt>연장 만료일</dt><dd>{dateTime(current.quotedServiceEndsAt)}</dd>
         <dt>예정 금액</dt><dd>{current.quotedAmount.toLocaleString('ko-KR')}원</dd>
       </dl> : null}
-      {request.data ? <p role="status">{request.data.requestNo} 요청이 접수되었습니다.</p> : null}
-      {request.error ? <p role="alert">{request.error.message}</p> : null}
       <h3>기간연장 요청 내역</h3>
       {history.isPending ? <p role="status">요청 내역을 불러오고 있습니다.</p> : null}
       {history.error ? <p role="alert">{history.error.message}</p> : null}
