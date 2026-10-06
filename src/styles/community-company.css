@@ -275,9 +275,9 @@
 .post-detail__author small i { background: var(--color-gray-300); height: 8px; margin-right: 8px; width: 1px; }
 .post-detail__author small b { font-weight: 500; }
 .post-detail__image { height: 894.035px; margin: 20px 0 0; object-fit: cover; width: 720px; }
-.post-detail__body { height: 121px; padding: 29px 0 20px; }
+.post-detail__body { min-height: 121px; padding: 29px 0 20px; }
 .post-detail__body p { line-height: 24px; margin: 0; }
-.post-detail .attachment-list { border: 0; height: 86px; margin-top: 60px; padding: 0; }
+.post-detail .attachment-list { border: 0; height: auto; margin-top: 60px; padding: 0; }
 .post-detail .attachment-list h2 { height: 24px; line-height: 24px; }
 .post-detail .attachment-list h2 b { color: var(--color-black); }
 .post-detail .attachment-list :is(a, button) { background: var(--color-gray-50); height: 50px; margin-top: 12px; padding: 0 16px; }
