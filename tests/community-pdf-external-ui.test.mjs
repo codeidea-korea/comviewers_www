@@ -9,7 +9,7 @@ function source(relativePath) {
   return readFileSync(`${projectRoot}${relativePath}`, 'utf8')
 }
 
-test('U52 login popup keeps only the PDF login notice and return path', () => {
+test('[source contract] U52 login popup keeps only the PDF login notice and return path', () => {
   const view = source('src/routes/community/CommunityPostListPageView.tsx')
 
   assert.match(view, /title="로그인이 필요합니다\."/)
@@ -18,14 +18,14 @@ test('U52 login popup keeps only the PDF login notice and return path', () => {
   assert.doesNotMatch(view, /로그인 후 글쓰기를 계속할 수 있습니다\./)
 })
 
-test('U54 arbitrary post images do not expose the publishing sample as alt text', () => {
+test('[source contract] U54 arbitrary post images do not expose the publishing sample as alt text', () => {
   const view = source('src/routes/community/CommunityPostDetailPageView.tsx')
 
   assert.match(view, /post\.image \? <img alt=\{displayTitle\}/)
   assert.doesNotMatch(view, /Windows 네트워크 연결 오류 화면/)
 })
 
-test('U57 detail renders persisted body without an inferred empty-body sentence', () => {
+test('[source contract] U57 detail renders persisted body without an inferred empty-body sentence', () => {
   const view = source('src/routes/support/SupportPagesView.tsx')
 
   const renderer = view.match(/<RichContentRenderer\b[^>]*\/>/)?.[0]
@@ -37,7 +37,7 @@ test('U57 detail renders persisted body without an inferred empty-body sentence'
   assert.doesNotMatch(view, /등록된 내용이 없습니다\./)
 })
 
-test('U47 and U54-U57 preserve PDF-visible metadata and the publishing list structure', () => {
+test('[source contract] U47 and U54-U57 preserve PDF-visible metadata and the publishing list structure', () => {
   const manager = source('src/routes/mypage/ManagerPagesView.tsx')
   const managerCatalog = source('src/routes/mypage/-components/ManagerCatalog.tsx')
   const postDetail = source('src/routes/community/CommunityPostDetailPageView.tsx')

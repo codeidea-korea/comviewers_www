@@ -10,9 +10,12 @@
     "dev": "vite --host 127.0.0.1 --port 5301",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 5301",
-    "test:unit": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:unit": "node --experimental-strip-types --test --test-concurrency=1 --test-skip-pattern=\"\\[(source contract|browser)\\]\" tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"src/**/*.{ts,tsx}\""
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "test:contracts": "node --experimental-strip-types --test --test-concurrency=1 --test-name-pattern=\"\\[source contract\\]\" tests/*.test.mjs",
+    "test:all": "node --experimental-strip-types --test --test-concurrency=1 tests/*.test.mjs",
+    "test:browser": "node --experimental-strip-types --test --test-concurrency=1 --test-name-pattern=\"\\[browser\\]\" tests/*.test.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",

@@ -127,18 +127,14 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
             <>
               <BenefitTable
                 ariaLabel="포인트 내역"
-                headers={[
-                  { label: '일자', sortable: true },
-                  { label: '내용', sortable: true },
-                  { label: '구분', sortable: true },
-                  { label: '포인트', sortable: true },
+                columns={[
+                  { key: 'occurredAt', label: '일자', sortValue: item => Date.parse(item.occurredAt), renderCell: item => accountDate(item.occurredAt).slice(0, 10) },
+                  { key: 'reason', label: '내용', sortValue: item => pointReasonLabel(item.reason, item.amount), renderCell: item => pointReasonLabel(item.reason, item.amount) },
+                  { key: 'type', label: '구분', sortValue: item => item.amount >= 0 ? '적립' : '사용', renderCell: item => item.amount >= 0 ? '적립' : '사용' },
+                  { key: 'amount', label: '포인트', sortValue: item => item.amount, renderCell: item => `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P` },
                 ]}
-                rows={result.data.items.map((item) => [
-                  accountDate(item.occurredAt).slice(0, 10),
-                  pointReasonLabel(item.reason, item.amount),
-                  item.amount >= 0 ? '적립' : '사용',
-                  `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P`,
-                ])}
+                rows={result.data.items}
+                rowKey={item => item.id}
               />
               {result.data.items.length === 0 ? (
                 <p className="mypage-empty">
@@ -229,14 +225,18 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
     {result.data ? <>
       <BenefitTable
         ariaLabel={status === 'held' ? '보유 쿠폰' : '쿠폰 사용 내역'}
-        headers={status === 'held'
-          ? [{ label: '쿠폰명' }, { label: '사용기한' }, { label: '혜택' }, { label: '적용 상품' }]
-          : [{ label: '사용일', sortable: true }, { label: '쿠폰명' }, { label: '할인 금액' }, { label: '주문번호' }]}
-        rows={result.data.items.map((item) => status === 'held'
-          ? [item.name, couponExpiry(item), couponBenefit(item), productLink(item.serverRoomId)]
-          : [accountDate(item.usedAt).slice(0, 10), item.name, accountMoney(item.usedDiscountAmount), item.usedOrderNo
-            ? <RelativeLink to={`/mypage/orders/${encodeURIComponent(item.usedOrderNo)}`}>{item.usedOrderNo}</RelativeLink>
-            : '-'])}
+        columns={status === 'held'
+          ? [{ key: 'name', label: '쿠폰명', renderCell: item => item.name },
+            { key: 'expiry', label: '사용기한', renderCell: couponExpiry },
+            { key: 'benefit', label: '혜택', renderCell: couponBenefit },
+            { key: 'product', label: '적용 상품', renderCell: item => productLink(item.serverRoomId) }]
+          : [{ key: 'usedAt', label: '사용일', sortValue: item => item.usedAt ? Date.parse(item.usedAt) : null, renderCell: item => accountDate(item.usedAt).slice(0, 10) },
+            { key: 'name', label: '쿠폰명', renderCell: item => item.name },
+            { key: 'amount', label: '할인 금액', renderCell: item => accountMoney(item.usedDiscountAmount) },
+            { key: 'order', label: '주문번호', renderCell: item => item.usedOrderNo
+              ? <RelativeLink to={`/mypage/orders/${encodeURIComponent(item.usedOrderNo)}`}>{item.usedOrderNo}</RelativeLink> : '-' }]}
+        rows={result.data.items}
+        rowKey={item => item.userCouponId}
       />
       {result.data.items.length === 0 ? <p className="mypage-empty">쿠폰 내역이 없습니다.</p> : null}
       <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} />

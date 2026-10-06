@@ -11,6 +11,7 @@ import { accountDate, accountKstDate, accountMoney } from '@/lib/accountFormat'
 import { PageTitle } from './CommerceComponents'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { confirmAttemptKey } from './-components/checkout/confirmAttemptKey'
+import { useInvalidateProductCatalog } from './-components/hooks/useInvalidateProductCatalog'
 
 export function CheckoutCompletePage() {
   return <CheckoutPaymentResult />
@@ -20,6 +21,7 @@ function CheckoutPaymentResult() {
   const { checkout, myAccount } = useServices()
   const [params, setParams] = useSearchParams()
   const client = useQueryClient()
+  const invalidateCatalog = useInvalidateProductCatalog()
   // Keep paymentKey in memory only; the retry helper stores only the opaque orderId and UUID.
   const [returned] = useState(() => ({ paymentKey: params.get('paymentKey') ?? '', orderId: params.get('orderId') ?? '', amount: Number(params.get('amount')), failed: params.has('code'),
     customerCancelled: ['PAY_PROCESS_CANCELED', 'USER_CANCEL', 'PAYMENT_REQUEST_ABORTED'].includes(params.get('code') ?? '') }))
@@ -29,25 +31,27 @@ function CheckoutPaymentResult() {
   const abandonmentStarted = useRef(false)
   const abandon = useMutation({ mutationFn: () => checkout.abandon!(returned.orderId, returned.customerCancelled),
     onSuccess: async () => {
-      await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(key => client.invalidateQueries({ queryKey: [key] })))
+      await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
     }, retry: false })
   const failedCallbackValid = returned.failed && Boolean(checkout.abandon) && /^[A-Za-z0-9_-]{6,64}$/.test(returned.orderId)
+  const abandonPayment = abandon.mutate
   useEffect(() => {
     if (failedCallbackValid && !abandonmentStarted.current) {
       abandonmentStarted.current = true
-      abandon.mutate()
+      abandonPayment()
     }
-  }, [failedCallbackValid, abandon.mutate])
+  }, [failedCallbackValid, abandonPayment])
   const confirm = useMutation({ mutationFn: () => checkout.confirm!({ paymentKey: returned.paymentKey, orderId: returned.orderId, amount: returned.amount }, key),
     onSuccess: async value => {
       setParams({ paymentId: String(value.paymentId) }, { replace: true })
-      await Promise.all(['my-account', 'cart', 'products'].map(key => client.invalidateQueries({ queryKey: [key] })))
+      await Promise.all([invalidateCatalog(), ...['my-account', 'cart'].map(key => client.invalidateQueries({ queryKey: [key] }))])
     }, retry: false })
+  const confirmPayment = confirm.mutate
   const requestConfirmation = useCallback(() => {
     if (confirmInFlight.current) return
     confirmInFlight.current = true
-    confirm.mutate(undefined, { onSettled: () => { confirmInFlight.current = false } })
-  }, [confirm.mutate])
+    confirmPayment(undefined, { onSettled: () => { confirmInFlight.current = false } })
+  }, [confirmPayment])
   const callbackValid = Boolean(checkout.confirm) && !returned.failed && returned.paymentKey.length > 0 && returned.paymentKey.length <= 200
     && /^[A-Za-z0-9_-]{6,64}$/.test(returned.orderId) && Number.isSafeInteger(returned.amount) && returned.amount > 0
   useEffect(() => {
@@ -70,6 +74,7 @@ function CheckoutPaymentResult() {
         await Promise.all(['checkout', 'my-account'].map(queryKey => client.invalidateQueries({ queryKey: [queryKey] })))
       }
     }, retry: false })
+  const refreshAccount = accountRefresh.mutate
   useEffect(() => {
     const providerOrderId = payment?.providerOrderId
     if (!checkout.refresh || !providerOrderId || !virtual || confirm.data?.virtualAccount
@@ -77,9 +82,9 @@ function CheckoutPaymentResult() {
       || !order.data || !orderPaymentDisplay(order.data, Date.now()).waitingForDeposit
       || accountRefreshStarted.current === providerOrderId) return
     accountRefreshStarted.current = providerOrderId
-    accountRefresh.mutate(providerOrderId)
+    refreshAccount(providerOrderId)
   }, [checkout.refresh, virtual, confirm.data?.virtualAccount, payment?.paymentId, payment?.providerOrderId,
-    order.data, accountRefresh.mutate])
+    order.data, refreshAccount])
   const refreshedAccount = accountRefresh.data?.paymentId === paymentId && accountRefresh.data.status === 'WAITING_FOR_DEPOSIT'
     ? accountRefresh.data.virtualAccount : null
   const accountRefreshProviderOrderId = accountRefresh.isError && !confirm.data?.virtualAccount && checkout.refresh

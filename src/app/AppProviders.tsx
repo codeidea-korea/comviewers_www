@@ -1,10 +1,11 @@
 import { AuthProvider, type AuthAdapter } from './session/AuthProvider'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ServiceProvider, type Services } from './ServiceProvider'
 import { createSessionStore, type SessionState, type SessionStore } from './session/sessionStore'
 import { SessionProvider, useSession, useSessionStore } from './session/SessionProvider'
 import { PublicCatalogQueryProvider } from './PublicCatalogQueryProvider'
+import { createServiceScope } from './session/serviceScope'
 
 export interface ServiceScope {
   readonly session: SessionState
@@ -22,15 +23,18 @@ export interface AppProvidersProps {
 function ScopedProviders({ children, createServices, snapshot, store }: {
   children: ReactNode; createServices: ServiceFactory; snapshot: SessionState; store: SessionStore
 }) {
-  const [scope] = useState(() => {
+  const capabilityStatus = snapshot.status === 'authenticated' ? snapshot.capabilityStatus : null
+  const customerSession = snapshot.status === 'authenticated' ? snapshot.customerSession : null
+  // Read a new service snapshot only when authority changes, not when credentials rotate.
+  const scope = useMemo(() => {
     const client = new QueryClient({ defaultOptions: {
       queries: { retry: false, staleTime: 30_000, refetchOnWindowFocus: false }, mutations: { retry: false },
     } })
-    const services = createServices({ session: snapshot, getAccessToken: () =>
-      store.getSnapshot().revision === snapshot.revision ? store.getAccessToken() : null,
-      logout: () => { if (store.getSnapshot().revision === snapshot.revision) store.logout() } })
+    const services = createServices(createServiceScope(store, store.getSnapshot()))
     return { client, services }
-  })
+    // Authority changes intentionally invalidate this snapshot; credential revision does not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createServices, store, capabilityStatus, customerSession])
   useEffect(() => () => {
     void scope.client.cancelQueries()
     scope.client.clear()
@@ -42,7 +46,7 @@ function ScopedProviders({ children, createServices, snapshot, store }: {
 function SessionScope({ children, createServices }: { children: ReactNode; createServices: ServiceFactory }) {
   const snapshot = useSession()
   const store = useSessionStore()
-  return <ScopedProviders key={snapshot.revision} snapshot={snapshot} store={store} createServices={createServices}>
+  return <ScopedProviders key={snapshot.scopeRevision} snapshot={snapshot} store={store} createServices={createServices}>
     {children}
   </ScopedProviders>
 }

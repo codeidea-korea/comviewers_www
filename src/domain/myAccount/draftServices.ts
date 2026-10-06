@@ -13,9 +13,3 @@ export const inquiryDraftSchema = z.object({
 })
 export type ProfileDraft = z.infer<typeof profileDraftSchema>
 export type InquiryDraft = z.infer<typeof inquiryDraftSchema>
-export interface AccountDraftServices {
-  getProfileDraft(): Promise<ProfileDraft | null>
-  saveProfileDraft(input: ProfileDraft): Promise<ProfileDraft>
-  listInquiryDrafts(): Promise<InquiryDraft[]>
-  saveInquiryDraft(input: InquiryDraft): Promise<InquiryDraft>
-}

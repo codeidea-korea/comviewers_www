@@ -18,6 +18,7 @@ import { ApiClientError } from '@/api/httpClient'
 import type { CheckoutQuote, CheckoutSubmission } from '@/domain/checkout/checkoutRepository'
 import { CommerceCartState } from './-components/CommerceCartState'
 import { PageTitle } from './CommerceComponents'
+import { useInvalidateProductCatalog } from './-components/hooks/useInvalidateProductCatalog'
 
 type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote }
 
@@ -25,6 +26,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const { checkout, myAccount } = useServices()
   const navigate = useNavigate()
   const client = useQueryClient()
+  const invalidateCatalog = useInvalidateProductCatalog()
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const unresolvedCustomerCancellation = useRef(false)
   const [couponId, setCouponId] = useState<number | null>(null)
@@ -73,7 +75,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
       setAttempt(null)
       setUnresolvedOrderId(null)
       unresolvedCustomerCancellation.current = false
-      await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(key => client.invalidateQueries({ queryKey: [key] })))
+      await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
       throw new Error('결제가 취소되어 재고와 혜택이 복원되었습니다. 주문내역에서 취소 내역을 확인하고 다시 주문할 수 있습니다.')
     }
     throw new Error(status === 'approved'
@@ -89,7 +91,11 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     try { payment = await checkout.start(current.input) }
     catch { throw new Error('주문 또는 결제 준비를 완료하지 못했습니다. 다시 시도하거나 주문내역을 확인해 주세요.') }
     if (controller.signal.aborted) return
-    if (payment.paymentStatus === 'approved') { navigate(`/checkout/complete?paymentId=${payment.paymentId}`); return }
+    if (payment.paymentStatus === 'approved') {
+      await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
+      if (!controller.signal.aborted) navigate(`/checkout/complete?paymentId=${payment.paymentId}`)
+      return
+    }
     try { await openTossPaymentWindow(payment, controller.signal) }
     catch (error) {
       // Navigation/unmount is not evidence of a cancelled payment.

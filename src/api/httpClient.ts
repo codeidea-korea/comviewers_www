@@ -229,6 +229,11 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
   const base = parseBase(baseUrl)
   const send = fetchOverride ?? globalThis.fetch?.bind(globalThis)
   if (!send) throw new ApiClientError('configuration')
+  const authenticationFailureFor = (headers: Headers) => () => {
+    const sent = headers.get('Authorization')
+    // A late failure for a superseded token must not invalidate refreshed credentials.
+    if (sent && sent === `Bearer ${getAccessToken?.() ?? ''}`) onAuthenticationFailure?.()
+  }
 
   return {
     async request<T>(path: string, schema: z.ZodType<T>, options: ApiRequestOptions = {}): Promise<T> {
@@ -252,7 +257,7 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
       try {
         response = await send(url, { method, headers, body, signal: options.signal, credentials: options.includeCredentials ? 'include' : 'omit', cache: 'no-store', redirect: 'error' })
       } catch (error) { return rethrowTransportError(error, options.signal) }
-      return readResponse(response, schema, options.signal, onAuthenticationFailure)
+      return readResponse(response, schema, options.signal, authenticationFailureFor(headers))
     },
     async download(path: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<Blob> {
       options.signal?.throwIfAborted()
@@ -262,7 +267,7 @@ export function createApiClient({ baseUrl, getAccessToken, onAuthenticationFailu
       try {
         response = await send(url, { method: 'GET', headers, signal: options.signal, credentials: options.includeCredentials ? 'include' : 'omit', cache: 'no-store', redirect: 'error' })
       } catch (error) { return rethrowTransportError(error, options.signal) }
-      return readBlobResponse(response, options.signal, onAuthenticationFailure)
+      return readBlobResponse(response, options.signal, authenticationFailureFor(headers))
     },
     eventStream(path: string, options: ApiEventStreamOptions): () => void {
       const controller = new AbortController()

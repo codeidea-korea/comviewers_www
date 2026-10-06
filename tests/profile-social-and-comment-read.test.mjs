@@ -14,7 +14,7 @@ after(() => server.close())
 const { profileResponseSchema } = await server.ssrLoadModule('/src/api/myAccountSchemas.ts')
 const { getProfileFieldErrors } = await server.ssrLoadModule('/src/routes/mypage/-components/profile/profileEditorModel.ts')
 
-test('U49 social-only profile response selects the password-reset notice branch', () => {
+test('[source contract] U49 social-only profile response selects the password-reset notice branch', () => {
   const profile = profileResponseSchema.parse({
     username: 'social_generated_id',
     socialLoginOnly: true,
@@ -39,7 +39,7 @@ test('U49 social-only profile response selects the password-reset notice branch'
   assert.match(view, /navigate\('\/account\/find-password'\)/)
 })
 
-test('U55 comment refresh uses the comment resource and does not reopen post detail', async () => {
+test('[source contract] U55 comment refresh uses the comment resource and does not reopen post detail', async () => {
   const requests = []
   const client = createApiClient({
     baseUrl: 'https://api.example.test',

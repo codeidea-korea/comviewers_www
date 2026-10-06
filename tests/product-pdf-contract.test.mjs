@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 
-test('U15/U16 실제 상품 필터는 PDF 문구와 선택 태그 규칙을 따른다', async () => {
+test('[source contract] U15/U16 실제 상품 필터는 PDF 문구와 선택 태그 규칙을 따른다', async () => {
   const [list, filters, fallback, fallbackDetail] = await Promise.all([
     readFile(new URL('../src/routes/commerce/ProductListView.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/routes/commerce/-components/ProductCatalogFilterControls.tsx', import.meta.url), 'utf8'),
@@ -26,7 +26,7 @@ test('U15/U16 실제 상품 필터는 PDF 문구와 선택 태그 규칙을 따�
   assert.match(fallbackDetail, /label: '고사양', min: 80000, max: 150000, percent: 65/)
 })
 
-test('U17 장바구니 확인 팝업은 저장 완료 후 PDF 구성으로 열린다', async () => {
+test('[source contract] U17 장바구니 확인 팝업은 저장 완료 후 PDF 구성으로 열린다', async () => {
   const [list, detail, addToCart] = await Promise.all([
     readFile(new URL('../src/routes/commerce/ProductListView.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/routes/commerce/ProductDetailView.tsx', import.meta.url), 'utf8'),
@@ -47,14 +47,14 @@ test('U17 장바구니 확인 팝업은 저장 완료 후 PDF 구성으로 열�
   assert.match(addToCart, /isError: mutation\.isError/)
 })
 
-test('U18 후기 목록은 PDF 필드만 표시하고 4건 이상일 때만 페이지를 나눈다', async () => {
+test('[source contract] U18 후기 목록은 PDF 필드만 표시하고 4건 이상일 때만 페이지를 나눈다', async () => {
   const reviews = await readFile(new URL('../src/routes/commerce/-components/ProductReviewSection.tsx', import.meta.url), 'utf8')
 
   assert.match(reviews, /reviewPageCount > 1 \? <Pagination/)
   assert.doesNotMatch(reviews, />수정됨</)
 })
 
-test('U22/U23 완료 화면은 PDF 밖 장식과 결제 결과 우회 링크를 표시하지 않는다', async () => {
+test('[source contract] U22/U23 완료 화면은 PDF 밖 장식과 결제 결과 우회 링크를 표시하지 않는다', async () => {
   const [complete, payment, styles] = await Promise.all([
     readFile(new URL('../src/routes/commerce/-components/CheckoutCompletePresentation.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/routes/commerce/CheckoutCompleteView.tsx', import.meta.url), 'utf8'),

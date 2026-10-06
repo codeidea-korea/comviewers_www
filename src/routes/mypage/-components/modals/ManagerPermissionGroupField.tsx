@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { cManagerFeatureCodes, type CManagerPermissionGroupInput, type CManagerPermissionGroupSummaryDto, type CManagerPermissionRuleDto } from '@/api/cManagers'
 import { Button } from '@/components/ui/ButtonControl'
+import { managerWorkspaceKey } from '../hooks/useManagerWorkspace'
 import './managerPermissionGroups.css'
 
 const featureLabels = { rcpc: 'RCPC 조회·재부팅', 'rcpc.preference': '즐겨찾기', 'rcpc.group': 'RCPC 그룹', 'rcpc.remote_access': '원격 접속정보', operation_request: '문의' }
@@ -44,7 +45,7 @@ export function ManagerPermissionGroupField({ value, onChange, onReady, onBusyCh
       const saved = editor.id ? await api.updatePermissionGroup(editor.id, editor.draft) : await api.createPermissionGroup(editor.draft)
       client.setQueryData<CManagerPermissionGroupSummaryDto[]>(key, previous => [...(previous ?? []).filter(group => group.id !== saved.id), { ...saved, assignedMemberCount: previous?.find(group => group.id === saved.id)?.assignedMemberCount ?? 0 }])
       onChange(saved.id); setEditor(null)
-      void client.invalidateQueries({ queryKey: ['my-account', 'snapshot'] })
+      void client.invalidateQueries({ queryKey: managerWorkspaceKey })
       void client.invalidateQueries({ queryKey: key })
     } catch {
       void client.invalidateQueries({ queryKey: key })

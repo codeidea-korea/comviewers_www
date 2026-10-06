@@ -2,7 +2,6 @@ import type { MyAccountReadServices } from './httpServices'
 import type { createCustomerProfileMutations } from '@/api/customerProfileMutations'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import type { CManagersApi } from '@/api/cManagers'
-import type { AccountDraftServices } from './draftServices'
 import type { InquiryReadServices, MyRcpcReadServices } from './rcpcInquiryReadServices'
 import type { ManagerServices } from './managerServices'
 import { z } from 'zod'
@@ -40,7 +39,8 @@ export type CouponOffer = z.infer<typeof couponOfferSchema>
 export type StorageItem = z.infer<typeof storageItemSchema>
 export type FavoriteGroup = z.infer<typeof favoriteGroupSchema>
 export type MyAccountSnapshot = z.infer<typeof myAccountSchema>
-export interface MyAccountServices extends ManagerServices, AccountDraftServices {
+export interface MyAccountServices {
+  managers?: ManagerServices
   rcpcApi?: MyRcpcReadServices
   inquiryApi?: InquiryReadServices
   readApi?: MyAccountReadServices
@@ -48,9 +48,4 @@ export interface MyAccountServices extends ManagerServices, AccountDraftServices
   rcpcMutations?: ReturnType<typeof createCustomerRcpcMutations>
   managerApi?: CManagersApi
   withdrawalApi?: CustomerWithdrawalApi
-  read(): Promise<MyAccountSnapshot>
-  removeStorage(ids: readonly string[]): Promise<void>
-  changeStorageQuantity(id: string, quantity: number): Promise<void>
-  addFavoriteGroup(label: string, parentId: string | null): Promise<void>
-  moveFavorites(rcpcIds: readonly string[], groupId: string): Promise<void>
 }
