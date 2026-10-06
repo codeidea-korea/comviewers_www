@@ -407,6 +407,13 @@
   .mypage-shell .mypage-home-summary,
   .mypage-shell .mypage-home-columns,
   .mypage-shell .mypage-home-section--rcpc > .mypage-home-heading { display: none; }
+  .mypage-shell .mypage-home-columns:has(.mypage-home-posts) {
+    display: block;
+    margin-top: 24px;
+  }
+  .mypage-shell .mypage-home-columns:has(.mypage-home-posts) > div:first-child,
+  .mypage-shell .mypage-home-columns > div:last-child > section:not(.mypage-home-posts) { display: none; }
+  .mypage-shell .mypage-home-posts { margin-top: 0; }
   .mypage-shell .mypage-home-section--rcpc {
     height: auto;
     margin: 0 0 34px;
