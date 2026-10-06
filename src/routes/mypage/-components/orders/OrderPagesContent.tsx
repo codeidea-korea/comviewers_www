@@ -251,6 +251,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 const finalItemAmount = Math.max(0, item.amount - discountAmount)
                 const status = rowStatus(item, order, now)
                 const terminal = ['환불완료', '취소완료', '결제실패', '결제기한 만료'].includes(status)
+                const showRentalStatus = Boolean(item.rentalId) || (!terminal && Boolean(item.pcAssetId) && item.customerRentalStatus === 'awaiting')
                 const orderDetail = orderDetailByNo.get(order.orderNo)
                 return (
                   <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}`} key={item.orderItemId}>
@@ -276,7 +277,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         {!item.imageUrl || !/^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? <img src={windowsLogo} alt="" aria-hidden="true" /> : null}
                       </div>
                       <div>
-                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.serverRoomName ?? '-'}</small>{item.rentalId ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} src={rentalStatusIcons[item.customerRentalStatus] ?? serverOffIcon} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} src={rentalStatusIcons[item.customerRentalStatus] ?? serverOffIcon} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         {item.billingUnit !== 'unit' ? (
                           <span className="order-catalog-item__period"><img src={dateRangeIcon} alt="" />{displayOrderDate(item.serviceStartedAt)}~{displayOrderDate(item.serviceEndsAt)}</span>
