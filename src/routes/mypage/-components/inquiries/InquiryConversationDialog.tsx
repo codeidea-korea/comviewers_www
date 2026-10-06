@@ -37,6 +37,8 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   const [refundOpen, setRefundOpen] = useState(false)
   const lastRead = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const composerRef = useRef<HTMLTextAreaElement>(null)
+  const restoreComposerFocus = useRef(false)
   const chatKey = useMemo(() => ['operation-requests', api.organizationId, 'chat', id] as const, [api.organizationId, id])
   // The stream only wakes the cached REST query. A minute fallback covers intermediaries that
   // silently drop long-lived SSE connections without exposing chat content in the stream itself.
@@ -72,7 +74,18 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
     client.setQueryData(chatKey, response)
     await client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
   } })
-  const submit = () => { if ((message.trim() || files.length) && !closed && !send.isPending && !attachmentBusy) send.mutate() }
+  useLayoutEffect(() => {
+    if (!restoreComposerFocus.current || send.isPending || (!send.isSuccess && !send.isError)) return
+    restoreComposerFocus.current = false
+    if (!closed && !productConversation && !refundOpen) composerRef.current?.focus({ preventScroll: true })
+  }, [send.isPending, send.isSuccess, send.isError, closed, productConversation, refundOpen])
+  const submit = () => {
+    if ((message.trim() || files.length) && !closed && !send.isPending && !attachmentBusy) {
+      restoreComposerFocus.current = true
+      composerRef.current?.focus({ preventScroll: true })
+      send.mutate()
+    }
+  }
   const close = onClose
   const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : '문의'
   return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title="문의 상세">
@@ -119,7 +132,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
       {chat.data && requestInfo.data ? (closed ? <footer className="inquiry-chat__closed" role="status">처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
         <div className="inquiry-chat__attachments"><InquiryAttachments api={api} requestId={id} files={files} disabled={send.isPending} onBusy={setAttachmentBusy} onChange={(next) => { setFiles(next); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }}/></div>
         <p className="inquiry-chat__attachment-guidance">첨부파일 ({files.length}/5) · 파일당 최대 10MB</p>
-        <label><span className="sr-only">새 메시지</span><textarea aria-label="새 메시지" disabled={send.isPending || attachmentBusy} maxLength={4000} placeholder="메시지를 입력해 주세요." value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
+        <label><span className="sr-only">새 메시지</span><textarea aria-label="새 메시지" ref={composerRef} readOnly={send.isPending || attachmentBusy} maxLength={4000} placeholder="메시지를 입력해 주세요." value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
         <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? '전송 중…' : send.isError ? '재전송' : '전송'}</Button>
         {send.isError ? <p role="alert">{send.error.message}</p> : null}
       </form>) : null}
