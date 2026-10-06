@@ -9,8 +9,7 @@ import mouseIcon from '../../../assets/figma/mouse.svg'
 import keyboardIcon from '../../../assets/figma/keyboard.svg'
 import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
 import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
-import addIcon from '../../../assets/figma/icon-add.svg'
-import removeIcon from '../../../assets/figma/icon-remove.svg'
+import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import defaultProductImage from '../../../assets/figma/product-detail-89023.png'
 import defaultPartProductImage from '../../../assets/figma/cart-product-partner.png'
 
@@ -55,13 +54,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
             {!part && <p><b>적립 포인트</b><strong>{product.pointRate === null ? '정보 없음' : <><span>렌탈금액의</span> {product.pointRate}%</>}</strong></p>}
           </div>
           {canSelectPeriod ? <p className="product-detail-notice">{part ? '수량은' : '이용기간은'} <b>{part ? '1개' : periodDescription} 단위</b>로 {minimum}~{maximum}{unitLabel}까지 선택할 수 있습니다.</p> : <p>단가 또는 선택 가능한 {part ? '수량' : '이용기간'}을 확인할 수 없어 장바구니에 담을 수 없습니다.</p>}
-          <div className="quantity-control">
-            <span>{part ? '수량' : '이용기간'}</span>
-            <button aria-label={part ? '수량 줄이기' : '이용기간 줄이기'} disabled={!canSelectPeriod || quantity === minimum} onClick={() => { if (quantity !== null && minimum !== null) setQuantity(Math.max(minimum, quantity - 1)) }} type="button"><img alt="" src={removeIcon} /></button>
-            <strong>{quantity ?? '—'}</strong>
-            <button aria-label={part ? '수량 늘리기' : '이용기간 늘리기'} disabled={!canSelectPeriod || quantity === maximum} onClick={() => { if (quantity !== null && maximum !== null) setQuantity(Math.min(maximum, quantity + 1)) }} type="button"><img alt="" src={addIcon} /></button>
-            <span>{unitLabel}</span>
-          </div>
+          <QuantityStepper label={part ? '수량' : '이용기간'} value={quantity} minimum={minimum} maximum={maximum} unit={unitLabel} disabled={!canSelectPeriod} onChange={setQuantity} />
           <div className="product-detail-total"><span>총 금액</span><strong><b>{safeTotalAmount === null ? '계산 불가' : safeTotalAmount.toLocaleString('ko-KR')}</b><small>원</small></strong></div>
           <div className="product-detail-actions">
             <button aria-label="장바구니 담기" className="product-detail-favorite" disabled={cartPending || !canSelectPeriod || safeTotalAmount === null || product.saleAvailability === 'SOLD_OUT'} onClick={() => { if (quantity !== null && safeTotalAmount !== null) onCart(quantity) }} type="button"><img alt="" src={shoppingBag} /></button>

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { AccountStorageItem } from '@/api/myAccountSchemas'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import { Modal } from '@/components/ui/ModalControl'
+import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { accountMoney } from '../shared/AccountReadCommon'
 import { useMixedStorageSelection, type StorageSelectedGroup } from './MixedStorageCheckout'
 
@@ -51,7 +52,7 @@ export function StorageSelectionCheckout({ api, items }: { api: MyAccountReadSer
     <header><label><input type="checkbox" disabled={move.isPending || Boolean(attempt)||shared?.locked} checked={selected.includes(item.id)} onChange={event => setSelected(previous => event.target.checked ? [...previous, item.id] : previous.filter(id => id !== item.id))}/><strong>품번 {item.productNo ?? '-'}</strong><span>{item.serverRoomName ?? '-'}</span></label></header>
     <div><div className="storage-catalog-product__image">{item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl)?<img src={item.imageUrl} alt={item.productTitle ?? '예약 상품'}/>:<span>img</span>}</div><section><span className="storage-catalog-product__column-title">상품 정보</span><strong>{item.productTitle ?? '상품명 미등록'}</strong><p>{item.instantAvailable ? '결제 후 바로 접속 가능합니다.' : '접속 준비 상태를 확인해 주세요.'}<br/>{item.specSummary ?? '등록된 PC 사양 정보가 없습니다.'}</p></section><dl><dt className="storage-catalog-product__column-title">주문정보</dt>
       <div><dt>세팅비</dt><dd>{accountMoney(item.setupFee)}</dd></div><div><dt>{item.pricingType==='rental'?'월 렌탈료':'상품금액'}</dt><dd>{accountMoney(item.unitPrice)}</dd></div>
-      <div><dt>{item.pricingType==='rental'?'이용기간':'수량'}</dt><dd>{item.pricingType==='rental'?<label><input aria-label={`${item.productTitle ?? item.productNo ?? '보관 상품'} 이용기간`} type="number" min={item.minUnits??1} max={item.maxUnits??undefined} value={duration(item)} disabled={move.isPending||Boolean(attempt)||shared?.locked} onChange={event=>setUnits(previous=>({...previous,[item.id]:Number(event.target.value)}))}/>{item.billingUnit==='thirty_day'?'개월':item.billingUnit}</label>:'1개'}</dd></div>
+      <div className="storage-catalog-product__quantity"><dt>{item.pricingType==='rental'?'이용기간':'수량'}</dt><dd>{item.pricingType==='rental'?<QuantityStepper label={`${item.productNo ?? '보관 상품'} 이용기간`} showLabel={false} value={duration(item)} minimum={item.minUnits} maximum={item.maxUnits} unit={item.billingUnit==='thirty_day'?'개월':item.billingUnit==='day'?'일':item.billingUnit==='hour'?'시간':''} disabled={move.isPending||Boolean(attempt)||shared?.locked} onChange={value=>setUnits(previous=>({...previous,[item.id]:value}))}/>: '1개'}</dd></div>
     </dl><footer><span className="storage-catalog-product__column-title">소계</span><strong>{accountMoney(base(item)+(item.setupFee??0))}</strong><em>포인트 적립 {item.pricingType==='rental'?Math.floor(base(item)/100).toLocaleString():0}점</em></footer></div>
   </article>)}
     {!shared&&<button type="button" disabled={move.isPending || (!attempt && !valid)} onClick={() => { if (!attempt) { setAttempt(selectedItems.map(item => ({ itemId: Number(item.id), durationUnits: item.pricingType === 'rental' ? duration(item) : null }))); key.current = crypto.randomUUID() } setOpen(true) }}>선택 상품 주문서 작성</button>}

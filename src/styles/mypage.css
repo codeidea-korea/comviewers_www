@@ -845,6 +845,11 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .storage-catalog .storage-catalog-product > div > dl div { display: flex; font-size: 12px; justify-content: space-between; }
 .storage-catalog .storage-catalog-product > div > dl dd { margin: 0; }
 .storage-catalog .storage-catalog-product > div > dl input { border: 1px solid var(--color-gray-200); height: 28px; text-align: center; width: 42px; }
+.storage-catalog .storage-catalog-product > div > dl .storage-catalog-product__quantity { align-items: flex-start; flex-direction: column; gap: 6px; }
+.storage-catalog .storage-catalog-product > div > dl .quantity-control { align-items: center; justify-content: flex-start; }
+.storage-catalog .storage-catalog-product .quantity-control button { flex-shrink: 0; height: 32px; padding: 0; width: 32px; }
+.storage-catalog .storage-catalog-product .quantity-control strong { flex-shrink: 0; height: 32px; width: 42px; }
+.storage-catalog .storage-catalog-product .quantity-control > span { white-space: nowrap; }
 .storage-catalog .storage-catalog-product > div > footer { align-items: flex-end; display: flex; flex-direction: column; gap: 7px; margin: 0; position: static; }
 .storage-catalog .storage-catalog-product > div > footer strong { color: var(--color-primary-500); font-size: 18px; }
 .storage-catalog .storage-catalog-product > div > footer em { color: var(--color-gray-600); font-size: 11px; }
