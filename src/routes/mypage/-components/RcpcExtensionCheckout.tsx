@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useSession } from '@/app/session/SessionProvider'
+import { useServices } from '@/app/ServiceProvider'
 import { extensionSelectionSchema, type ExtensionCheckoutInput, type ExtensionSelection } from '@/api/extensionCheckout'
 import { RcpcExtensionSurface, type RcpcDialogTarget } from '@/components/mypage/RcpcDialogsControl'
 import { ApiClientError } from '@/api/httpClient'
@@ -21,13 +22,29 @@ const dateTime = (value: string | null) => value?.replace('T', ' ') ?? '—'
 
 export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialDays = 30, offerIds, pageMode = false, initialSelection, triggerLabel }: { api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; offerIds?: number[]; pageMode?: boolean; initialSelection?: ExtensionSelection; triggerLabel?: string }) {
   const session = useSession()
+  const readApi = useServices().myAccount.readApi
+  const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
+  const profile = useQuery({
+    queryKey: ['my-account', 'read', 'profile'],
+    enabled: pageMode && owner && !!readApi,
+    queryFn: ({ signal }) => {
+      if (!readApi) throw new Error('회원정보를 불러올 수 없습니다.')
+      return readApi.profile(signal)
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  })
   const [open, setOpen] = useState(pageMode)
   const [mode, setMode] = useState<'days' | 'date'>(initialSelection?.targetEndDate ? 'date' : 'days')
   const [days, setDays] = useState(String(initialSelection?.addedDays ?? initialDays))
   const [date, setDate] = useState(initialSelection?.targetEndDate ?? '')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
+  // Undefined means untouched; even an intentionally cleared field must stay edited.
+  const [editedName, setName] = useState<string>()
+  const [editedEmail, setEmail] = useState<string>()
+  const [editedPhone, setPhone] = useState<string>()
+  const name = editedName ?? profile.data?.name ?? ''
+  const email = editedEmail ?? profile.data?.email ?? ''
+  const phone = editedPhone ?? profile.data?.phone ?? ''
   const [coupon, setCoupon] = useState(initialSelection?.userCouponId ? String(initialSelection.userCouponId) : '')
   const [points, setPoints] = useState(String(initialSelection?.pointAmount ?? 0))
   const quoteScope = JSON.stringify([api.organizationId, rentalIds])
@@ -81,7 +98,6 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   } })
   const locked = create.isPending || create.isSuccess || create.isError
   const canRevise = create.error?.name === 'ZodError' || (create.error instanceof ApiClientError && [400, 422].includes(create.error.status ?? 0))
-  const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
   if (!owner || !session.customerSession?.commerceAvailable || rentalIds.length === 0) return null
   const content = <section aria-label="연장 주문서" className="extension-checkout">
     <p className="extension-checkout__intro">선택한 RCPC의 연장 기간과 금액을 확인하고 주문자 정보를 입력해 주세요.</p>
@@ -130,6 +146,8 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
         </fieldset>}
         <fieldset className="extension-checkout__section" disabled={locked}>
           <legend>주문자 정보</legend>
+          {profile.isFetching && !profile.data && <p className="extension-checkout__help" role="status">회원정보를 불러오고 있습니다.</p>}
+          {profile.isError && <div className="extension-checkout__error" role="alert"><p>회원정보를 불러오지 못했습니다. 다시 조회하거나 직접 입력해 주세요.</p><Button size="small" variant="secondary" disabled={locked || profile.isFetching} onClick={() => void profile.refetch()}>회원정보 다시 불러오기</Button></div>}
           <div className="extension-checkout__fields">
             <TextField appearance="box" label="이름" required maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)}/>
             <TextField appearance="box" label="이메일" required type="email" maxLength={255} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)}/>
