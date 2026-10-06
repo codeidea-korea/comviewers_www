@@ -200,13 +200,14 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
   const [periodOpen, setPeriodOpen] = useState(false)
   const from = status === 'used' ? dates.from : ''
   const to = status === 'used' ? dates.to : ''
+  const pageSize = status === 'held' ? 4 : 20
   const result = useAccountRead(
-    ['coupons', status, page, from, to],
+    ['coupons', status, page, pageSize, from, to],
     (signal) => status === 'held'
-      ? api.coupons({ page, size: 20, status: 'held' }, signal)
+      ? api.coupons({ page, size: pageSize, status: 'held' }, signal)
       : api.coupons({
         page,
-        size: 20,
+        size: pageSize,
         status: 'used',
         from: from || undefined,
         to: to || undefined,
