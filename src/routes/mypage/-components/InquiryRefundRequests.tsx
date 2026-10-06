@@ -25,7 +25,12 @@ export function RefundDetail({ api, requestId, onClose }: { api: InquiryReadServ
   const detail = useQuery({ queryKey: ['my-refund-requests', api.organizationId, 'detail', requestId], queryFn: ({ signal }) => api.refundDetail(requestId, signal) })
   const cancel = useMutation({ mutationFn: () => api.cancelRefund(requestId), onSuccess: async (response) => {
     client.setQueryData(['my-refund-requests', api.organizationId, 'detail', requestId], response)
-    await client.invalidateQueries({ queryKey: ['my-refund-requests', api.organizationId] })
+    await Promise.all([
+      client.invalidateQueries({ queryKey: ['my-refund-requests', api.organizationId] }),
+      client.invalidateQueries({ queryKey: ['refund-application-candidates', api.organizationId] }),
+      client.invalidateQueries({ queryKey: ['my-account'] }),
+      client.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] }),
+    ])
   } })
   return <Modal className="modal--refund-detail" isOpen title="환불 신청 상세" onClose={() => { if (!cancel.isPending) onClose() }} closeLabel="닫기"><AccountQueryState pending={detail.isPending} error={detail.error} retry={detail.refetch}/>
     {detail.data ? <><p>{detail.data.request.orderNo} · {refundStatuses[detail.data.request.status] ?? detail.data.request.status}</p>

@@ -69,17 +69,21 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
   const initializedRentalKey = useRef('')
   const initialRentalKey = useMemo(() => [...new Set(initialRentalIds)].sort((a, b) => a - b).join(','), [initialRentalIds])
   const selectFromCandidates = !initialRentalKey
-  const targets = useQuery({ queryKey: ['refund-application-candidates', api.organizationId], queryFn: ({ signal }) => api.refundApplicationCandidates(signal) })
+  const targets = useQuery({ queryKey: ['refund-application-candidates', api.organizationId], queryFn: ({ signal }) => api.refundApplicationCandidates(signal), refetchOnMount: 'always' })
+  const targetsReady = targets.isSuccess && !targets.isFetching
 
   useEffect(() => {
-    if (!targets.data?.length || !initialRentalKey || initializedRentalKey.current === initialRentalKey) return
+    if (!targetsReady || !targets.data?.length || !initialRentalKey || initializedRentalKey.current === initialRentalKey) return
     const initial = new Set(initialRentalKey.split(',').filter(Boolean).map(Number))
     const values = targets.data.filter(item => initial.has(item.rentalId)).map(item => item.orderItemId).slice(0, 20)
-    initializedRentalKey.current = initialRentalKey
-    if (values.length) setSelected(values)
-  }, [initialRentalKey, targets.data])
+    if (values.length) {
+      initializedRentalKey.current = initialRentalKey
+      setSelected(values)
+    }
+  }, [initialRentalKey, targets.data, targetsReady])
 
   const selectedTargets = (targets.data ?? []).filter(item => selected.includes(item.orderItemId))
+  const hasAvailableTargets = (targets.data ?? []).some(item => selectFromCandidates || initialRentalIds.includes(item.rentalId))
   const contactPhone = phone ?? selectedTargets[0]?.contactPhone ?? ''
   const quoteInput: RefundDirectQuoteRequest = {
     method,
@@ -148,7 +152,7 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
   const dailyRate = Math.max(0, ...(quote.data?.items.map(item => item.dailyQuantityRateBasisPoints) ?? [])) / 100
   const dailyDeduction = quote.data?.items.reduce((total, item) => total + item.dailyQuantityDeduction, 0) ?? 0
   const beforeBulkRefundTotal = quote.data?.items.reduce((total, item) => total + (method === 'point' ? item.pointAmount : item.cashAmount) + item.dailyQuantityDeduction, 0) ?? 0
-  const selectedCount = selected.length
+  const selectedCount = selectedTargets.length
   const methodChoices = <fieldset className="refund-application__method"><legend>환불 방법 선택</legend><div>
     <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>포인트 적립</strong><small>최종 환불금이 포인트로 즉시 적립되며, 상품 구매에 이용하실 수 있습니다.</small></span></label>
     <label><input type="radio" name="refund-method" checked={method === 'original'} onChange={() => changeMethod('original')}/><span><strong>결제수단 환불</strong><small>기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.</small></span></label>
@@ -157,13 +161,13 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
   return <Modal className={`modal--refund-application modal--refund-step-${step}`} isOpen title="중도해지 및 환불 신청" closeLabel="취소" onClose={close} returnFocusRef={returnFocusRef} showClose={false}>
     {step === 1 ? <form className="refund-application refund-application--select" onSubmit={(event) => {
       event.preventDefault()
-      if (!selectedCount || !reason) return
+      if (!targetsReady || !selectedCount || !reason) return
       setStep(2)
       requestQuote()
     }}>
       <p className="refund-application__count">신청 품목 <strong>{selectedCount}개</strong></p>
-      <AccountQueryState pending={targets.isPending} error={targets.error} retry={targets.refetch}/>
-      <fieldset className="refund-application__candidates" disabled={locked}>
+      <AccountQueryState pending={targets.isPending || targets.isFetching} error={targets.error} retry={targets.refetch}/>
+      <fieldset className="refund-application__candidates" disabled={locked || !targetsReady}>
         <legend className="sr-only">해지 신청 상품</legend>
         {selectFromCandidates ? (targets.data ?? []).map(item => {
           const checked = selected.includes(item.orderItemId)
@@ -172,13 +176,13 @@ function ApplicationDialog({ api, initialRentalIds, onClose, returnFocusRef }: {
             <CandidateSummary item={item}/>
           </label></article>
         }) : selectedTargets.map(item => <article key={`${item.operationRequestTargetId}:${item.orderItemId}`}><CandidateSummary item={item}/></article>)}
-        {targets.data && (selectFromCandidates ? targets.data.length === 0 : selectedTargets.length === 0) ? <p className="refund-application__empty">선택한 상품 중 해지 신청 가능한 이용 중 상품이 없습니다.</p> : null}
+        {targetsReady && !hasAvailableTargets ? <p className="refund-application__empty">선택한 상품 중 해지 신청 가능한 이용 중 상품이 없습니다.</p> : null}
       </fieldset>
       <label className="refund-application__reason"><span><b>*</b> 환불 사유</span><select required value={reason} onBlur={() => setReasonTouched(true)} onChange={(event) => { setReasonTouched(true); setReason(event.target.value) }}>
         <option value="">환불 사유를 선택해 주세요.</option>
         {reasonOptions.map(value => <option key={value} value={value}>{value}</option>)}
       </select>{reasonTouched && !reason ? <small role="alert">환불 사유를 선택해 주세요.</small> : null}</label>
-      <footer><button type="button" onClick={close}>취소</button><button type="submit" disabled={!selectedCount || !reason || locked}>다음</button></footer>
+      <footer><button type="button" onClick={close}>취소</button><button type="submit" disabled={!targetsReady || !selectedCount || !reason || locked}>다음</button></footer>
     </form> : <form className="refund-application refund-application--quote" onSubmit={(event) => {
       event.preventDefault()
       if (!submit.isPending && (attempt.current || quoteCurrent)) submit.mutate()
