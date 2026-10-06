@@ -120,17 +120,6 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
       if (!parsed.success) throw new ApiClientError('contract')
       return parsed.data
     },
-    async startSocialLink(provider, accessToken) {
-      const parsed = socialProviderSchema.parse(provider)
-      const result = await post(`/api/auth/social/link/${parsed}/authorization`, { confirmed: true }, accessToken)
-      const data = z.object({ authorizationUrl: z.url() }).safeParse(result.data)
-      if (!data.success) throw new ApiClientError('contract')
-      const destination = new URL(data.data.authorizationUrl)
-      if (destination.protocol !== 'https:' || !['accounts.google.com', 'kauth.kakao.com', 'nid.naver.com'].includes(destination.hostname)) {
-        throw new ApiClientError('contract')
-      }
-      return destination.href
-    },
     async logout({ accessToken }) {
       // Let an in-flight rotation settle before clearing its cookie.
       if (restoreInFlight) await restoreInFlight.catch(() => undefined)

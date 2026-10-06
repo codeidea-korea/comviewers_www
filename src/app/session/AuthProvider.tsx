@@ -25,7 +25,6 @@ export interface AuthAdapter {
   socialSignupContext?(): Promise<SocialSignupContext>
   completeSocialSignup?(input: SocialSignupInput): Promise<AuthResult>
   linkedSocialProviders?(accessToken: string): Promise<SocialAuthProvider[]>
-  startSocialLink?(provider: SocialAuthProvider, accessToken: string): Promise<string>
   customerSession?(request: CustomerSessionRequest): Promise<unknown>
   logout?(input: { accessToken: string | null }): Promise<void>
 }
@@ -39,7 +38,6 @@ interface AuthController {
   loadSocialSignupContext(): Promise<SocialSignupContext>
   completeSocialSignup(input: SocialSignupInput): Promise<void>
   linkedSocialProviders(): Promise<SocialAuthProvider[]>
-  startSocialLink(provider: SocialAuthProvider): Promise<void>
   logout(): Promise<void>
 }
 const AuthContext = createContext<AuthController | null>(null)
@@ -164,12 +162,6 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       const accessToken = store.getAccessToken()
       if (!accessToken || !adapter?.linkedSocialProviders) throw new Error('연결된 로그인 수단을 확인할 수 없습니다.')
       return adapter.linkedSocialProviders(accessToken)
-    },
-    async startSocialLink(provider) {
-      const accessToken = store.getAccessToken()
-      if (!accessToken || !adapter?.startSocialLink) throw new Error('로그인 후 다시 시도해 주세요.')
-      const url = await adapter.startSocialLink(provider, accessToken)
-      window.location.assign(url)
     },
     async logout() {
       const accessToken = store.getAccessToken()
