@@ -1,5 +1,5 @@
 import { useServices } from '@/app/ServiceProvider'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { RelativeLink as Link } from '../../components/navigation/RelativeLinkView'
 import supportHero from '../../assets/figma/community-company/support-04.png'
@@ -15,7 +15,6 @@ import { AttachmentList } from '../../components/ui/AttachmentListControl'
 import { RichContentRenderer } from '../../components/ui/RichContentRendererControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
 import { useArticlePage, useArticle } from '@/routes/community/-components/hooks/useContent'
-import { useDebouncedValue } from '@/routes/community/-components/hooks/useDebouncedValue'
 import { supportReturnTo } from './supportNavigation'
 
 const supportSortOptions = [
@@ -38,14 +37,17 @@ export function SupportListPage() {
   const [params, setParams] = useSearchParams()
   const sort = supportSort(params.get('sort'))
   const search = (params.get('keyword') ?? '').slice(0, BOARD_SEARCH_MAX_LENGTH)
-  const debouncedSearch = useDebouncedValue(search.trim())
+  const [searchDraft, setSearchDraft] = useState(search)
   const requestedPage = Number(params.get('page'))
   const currentPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
   const pageRef = useRef<HTMLElement>(null)
-  const result = useArticlePage({ page: currentPage, size: 10, keyword: debouncedSearch || undefined, sort })
+  const result = useArticlePage({ page: currentPage, size: 10, keyword: search.trim() || undefined, sort })
   const visibleArticles = result.data?.items ?? []
   const totalPages = result.data?.totalPages ?? 0
   const page = totalPages > 0 ? Math.min(currentPage, totalPages) : 1
+  useEffect(() => {
+    setSearchDraft(search)
+  }, [search])
   useEffect(() => {
     if (!result.data || totalPages === 0 || currentPage <= totalPages) return
     setParams((current) => { const next = new URLSearchParams(current); next.set('page', String(totalPages)); return next }, { replace: true })
@@ -55,6 +57,12 @@ export function SupportListPage() {
     Object.entries(values).forEach(([key, value]) => { if (value) next.set(key, value); else next.delete(key) })
     return next
   })
+  const submitSearch = (value: string) => {
+    const keyword = value.trim().slice(0, BOARD_SEARCH_MAX_LENGTH)
+    setSearchDraft(keyword)
+    updateParams({ keyword, page: '' })
+    if (keyword === search.trim() && currentPage === 1) void result.refetch()
+  }
   const listParams = new URLSearchParams()
   if (search) listParams.set('keyword', search)
   if (sort !== 'latest') listParams.set('sort', sort)
@@ -65,7 +73,7 @@ export function SupportListPage() {
     <AppShell className="support-shell">
       <SupportHero />
       <section className="support-page content-container" ref={pageRef}>
-        <BoardToolbar className="support-toolbar" count={result.data?.totalCount ?? 0} onSearchChange={(value) => updateParams({ keyword: value, page: '' })} onSortChange={(value) => updateParams({ sort: value, page: '' })} search={search} searchIcon={searchIcon} sort={sort} sortIcon={chevronDown} sortOptions={supportSortOptions} />
+        <BoardToolbar className="support-toolbar" count={result.data?.totalCount ?? 0} onSearchChange={setSearchDraft} onSearchSubmit={submitSearch} onSortChange={(value) => updateParams({ sort: value, page: '' })} search={searchDraft} searchIcon={searchIcon} sort={sort} sortIcon={chevronDown} sortOptions={supportSortOptions} />
         <div className="support-list">{result.isPending ? <LoadingState label="안내를 불러오는 중입니다." /> : result.isError ? <p role="alert">안내를 불러오지 못했습니다. <button type="button" onClick={() => void result.refetch()}>다시 시도</button></p> : !visibleArticles.length ? <div className="board-empty">{search ? '검색 조건에 해당하는 게시글이 없습니다.' : '등록된 게시글이 없습니다.'}</div> : null}{visibleArticles.map((article) => <Link key={article.id} to={`/support/${article.articleId}?returnTo=${encodeURIComponent(listPath)}`}><span className={article.pinned ? 'is-pinned' : ''}>{article.pinned ? <img alt="고정 공지" src={keepIcon} /> : article.number}</span><strong className={article.pinned ? 'is-pinned-title' : undefined}>{article.title}{article.attachmentCount > 0 ? <img alt="첨부파일 있음" src={attachmentIcon} /> : null}</strong><time>{article.date}</time></Link>)}</div>
         <Pagination currentPage={page} onPageChange={(nextPage) => { updateParams({ page: String(nextPage) }); pageRef.current?.scrollIntoView({ block: 'start' }) }} totalPages={totalPages} />
       </section>
