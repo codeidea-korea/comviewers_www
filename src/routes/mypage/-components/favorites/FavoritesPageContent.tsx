@@ -165,14 +165,16 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
             <button type="button" disabled={accessDenied} aria-pressed={!accessDenied && selectedGroup === 'unclassified'} onClick={() => { setSelectedGroup('unclassified'); setPage(0); setSelectedRentals(new Set()) }}>미분류 ({unclassifiedCount ?? '-'})</button></>}
       </section>
     </aside> : null}
-    {rowsData ? <section aria-label="즐겨찾기 RCPC 목록" className="favorites-results" id="favorites-results">
+    <section aria-label="즐겨찾기 RCPC 목록" className="favorites-results" id="favorites-results">
       <header className="favorites-results__toolbar"><label><Checkbox aria-label="전체 RCPC 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>모두선택</label><nav className="rcpc-list-bulk-actions"><FavoritesManageOnly allowed={canManage}><button type="button" disabled={assignment.isPending || selectedRentals.size === 0} onClick={openAssignment}>그룹 변경</button></FavoritesManageOnly><InquiryAction key={`${api.organizationId}:${accessDenied}`} appearance="text" disabled={inquiryTargets.length === 0} fixedTarget initialIds={inquiryTargets.map(item => item.pcAssetId)} />{canExtend ? inquiryTargets.length ? <RcpcExtensionCheckout key={inquiryTargets.map(item => item.rentalId).join(',')} api={api} rentalIds={inquiryTargets.map(item => item.rentalId)} displayTargets={inquiryTargets.map(extensionTarget)} triggerLabel="기간연장"/> : <button type="button" disabled>기간연장</button> : null}</nav></header>
       <div className="favorites-results__filters"><label>서버 위치<select disabled={accessDenied} value={accessDenied ? '' : filters.region ?? ''} onChange={event => updateFilters({ region: event.target.value || undefined, serverRoomId: undefined })}><option value="">전체</option>{locations.map(value => <option key={value}>{value}</option>)}</select></label><label>서버실<select disabled={accessDenied} value={accessDenied ? '' : filters.serverRoomId ?? ''} onChange={event => updateFilters({ serverRoomId: event.target.value ? Number(event.target.value) : undefined })}><option value="">전체</option>{rooms.map(item => <option key={item.id} value={item.id}>{item.name ?? String(item.id)}</option>)}</select></label></div>
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
+      {rowsData ? <>
       <p className="rcpc-list-count">총 <b>{rowsData.totalElements}</b>개 상품</p>
       <RcpcDashboardTable api={api} canEditAlias={owner} canExtend={canExtend} className="favorites-table" items={rowsData.items} selected={visibleSelection} onSelectedChange={setSelectedRentals} sortConfig={{ key: filters.sort ?? 'favoriteEdited', direction: filters.sortDirection ?? 'desc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} mobileVariant="favorites" onAliasSaved={() => rows.refetch()}/>
       {rowsData.totalPages > 1 ? <Pagination currentPage={rowsData.page + 1} totalPages={rowsData.totalPages} onPageChange={(nextPage) => { setPage(nextPage - 1); setSelectedRentals(new Set()) }}/> : null}
-    </section> : null}
+      </> : null}
+    </section>
     </div></div>
   </MyPageLayout>
 }
