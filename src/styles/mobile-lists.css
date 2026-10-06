@@ -153,7 +153,9 @@
   .manager-catalog__menu { display: none; }
 
   .mobile-manager-groups-backdrop { align-items: flex-end; background: rgba(0,0,0,.4); display: flex; inset: 0; position: fixed; z-index: 1200; }
-  .mobile-manager-groups-sheet { background: white; border-radius: 28px 28px 0 0; display: flex; flex-direction: column; height: 312px; overflow: hidden; padding: 12px; width: 100%; }
+  .mobile-manager-groups-sheet { background: white; border-radius: 28px 28px 0 0; display: flex; flex-direction: column; max-height: min(80dvh, 600px); overflow-y: auto; overscroll-behavior: contain; padding: 12px; width: 100%; }
+  .mobile-manager-groups-sheet__row { display: flex; flex-shrink: 0; gap: 12px; }
+  .mobile-manager-groups-sheet__name { flex: 1; min-width: 0; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
   .mobile-manager-groups-sheet__handle { align-self: center; background: var(--color-gray-300); border-radius: 99px; height: 4px; margin-bottom: 8px; width: 48px; }
   .mobile-manager-groups-sheet button { background: white; border: 0; border-bottom: 1px solid var(--color-gray-200); font-size: 14px; min-height: 60px; padding-left: 0; text-align: left; }
   .mobile-manager-groups-sheet button.is-selected { color: var(--color-blue-500); padding-left: 24px; position: relative; }
