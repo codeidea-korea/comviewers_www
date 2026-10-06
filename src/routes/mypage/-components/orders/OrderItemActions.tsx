@@ -97,7 +97,7 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
   const { myAccount } = useServices()
 
   const paid = paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
-  const active = paid && !item.purchaseConfirmedAt && !item.refundPending && ['using', 'replacement_using'].includes(item.customerRentalStatus)
+  const active = paid && !item.refundPending && ['using', 'replacement_using'].includes(item.customerRentalStatus)
     && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)

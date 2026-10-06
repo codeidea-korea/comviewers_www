@@ -71,7 +71,6 @@ const rowStatusKeys: Record<string, TranslationKey> = {
 
 const canApplyDirectRefund = (item: AccountOrderItem, paymentStatus: string, orderStatus: string) =>
   Boolean(item.rentalId)
-  && !item.purchaseConfirmedAt
   && !item.refundPending
   && paymentStatus === 'approved'
   && ['paid', 'completed'].includes(orderStatus)
