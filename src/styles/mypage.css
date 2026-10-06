@@ -69,7 +69,7 @@
 .mypage-home-summary > a > span { font-size: 16px; font-weight: 600; }
 .mypage-home-summary > a > strong { font-size: 24px; line-height: 18px; }
 .mypage-home-summary small { font-size: 14px; font-weight: 400; margin-left: 3px; }
-.mypage-home-section--rcpc { height: 579px; margin-top: 60px; }
+.mypage-home-section--rcpc { height: auto; margin-top: 60px; }
 .mypage-home-heading { align-items: center; display: flex; height: 19px; justify-content: space-between; }
 .mypage-home-heading h2 { font-size: 20px; line-height: 24px; }
 .mypage-home-heading > a { align-items: center; color: var(--color-gray-500); display: flex; font-size: 16px; gap: 2px; }
@@ -129,7 +129,7 @@
 .mypage-home-text-list > .inquiry-action-link > span { flex: 1; min-width: 0; }
 .mypage-home-text-list time { flex: 0 0 auto; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .mypage-home-text-list__title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.mypage-home-text-list__comments { align-items: center; color: var(--color-gray-700); display: flex; font-size: 14px; gap: 4px; }.mypage-home-text-list__comments i { background: var(--color-gray-300); height: 8px; width: 1px; }.mypage-home-text-list__comments img { height: 16px; width: 16px; }
-.mypage-home.is-manager { height: 1332px; }.mypage-home.is-manager .mypage-home-summary { grid-template-columns: 1fr; }.mypage-home-columns.is-manager { height: 535px; margin-top: 60px; }.mypage-layout:has(.mypage-home.is-manager) { padding-bottom: 166px; }
+.mypage-home.is-manager { height: auto; }.mypage-home.is-manager .mypage-home-summary { grid-template-columns: 1fr; }.mypage-home-columns.is-manager { height: 535px; margin-top: 60px; }.mypage-layout:has(.mypage-home.is-manager) { padding-bottom: 166px; }
 
 /* The publishing DOM is also the API-backed surface, so its sections grow with real data. */
 .mypage-home { height: auto; min-height: 0; }
@@ -958,19 +958,8 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .favorites-results .mypage-home-rcpc { height: auto; }
 .mypage-home-rcpc > article { height: auto; min-height: 160px; }
 
-/* Keep the dashboard favorite preview inside its original section height. */
+/* Fit dashboard columns while allowing all preview rows to grow with the page. */
 @media (min-width: 1200px) {
-  .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc {
-    height: 540px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-  }
-  .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc__head {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
   .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc__head,
   .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc > article {
     grid-template-columns: 150px 100px 100px 100px minmax(0, 1fr) 80px 223px;
