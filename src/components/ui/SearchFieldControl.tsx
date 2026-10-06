@@ -27,7 +27,7 @@ export function SearchField({
   const handleSubmit = () => onSubmit?.(inputProps.value ?? '')
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     inputProps.onKeyDown?.(event)
-    if (event.key === 'Enter' && onSubmit && !event.defaultPrevented) {
+    if (event.key === 'Enter' && onSubmit && !event.defaultPrevented && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) {
       event.preventDefault()
       handleSubmit()
     }

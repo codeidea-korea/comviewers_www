@@ -13,6 +13,7 @@ import searchIcon from '@/assets/figma/mypage-search.svg'
 import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 import { managerScopedPath } from './-components/managerPortalPath'
+import { productNoSearchSchema } from '@/api/productNo'
 import { TranslatedText, type TranslationKey } from '../../i18n/translation'
 import { ManualTranslationControls } from '../../components/layout/GoogleTranslateTrial'
 
@@ -110,6 +111,7 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [mobileSearchValue, setMobileSearchValue] = useState('')
+  const [mobileSearchError, setMobileSearchError] = useState('')
   useMobileOverlay(mobileMenuOpen, () => setMobileMenuOpen(false))
 
   useEffect(() => {
@@ -118,8 +120,13 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
   }, [pathname])
 
   const submitMobileSearch = () => {
-    const productNumber = mobileSearchValue.trim()
+    const productNumber = mobileSearchValue.trim().toUpperCase()
     if (!productNumber) return
+    if (!productNoSearchSchema.safeParse(productNumber).success) {
+      setMobileSearchError('품번은 영문과 숫자로 입력해 주세요.')
+      return
+    }
+    setMobileSearchError('')
     setMobileSearchOpen(false)
     navigate(managerScopedPath(`/mypage/rcpc?productNo=${encodeURIComponent(productNumber)}`, pathname))
   }
@@ -181,11 +188,16 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
           className="mypage-mobile-search"
           controlClassName="mypage-mobile-search__control"
           label="품번 검색"
-          onChange={(event) => setMobileSearchValue(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16))}
+          maxLength={16}
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
+          onChange={(event) => { setMobileSearchValue(event.target.value); setMobileSearchError('') }}
           onSubmit={submitMobileSearch}
           placeholder="품번 검색"
           value={mobileSearchValue}
         />
+        {mobileSearchError ? <p className="mypage-sidebar__search-notice" role="alert">{mobileSearchError}</p> : null}
         <button className="mypage-mobile-search__submit" disabled={!mobileSearchValue.trim()} onClick={submitMobileSearch} type="button">조회</button>
       </MobileBottomSheet>
     </AppShell>
