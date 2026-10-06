@@ -407,7 +407,9 @@
 .auth-page .profile-image-preview img:not([alt=""]) { height: 104px; object-fit: cover; width: 104px; }
 .auth-page .profile-image-field label { justify-self: auto; padding: 0 16px; }
 .mypage-layout:has(.points-catalog) { padding-bottom: 120.891px; }
-.points-history .mypage-tabs--buttons button { border-radius: 0; }
+.points-history .mypage-tabs--buttons button,
+.coupons-available .mypage-tabs--buttons button,
+.coupons-history .mypage-tabs--buttons button { border-radius: 0; }
 .point-carousel { height: auto; overflow: visible; }
 .point-carousel .point-carousel__viewport { display: block; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding-bottom: 8px; scrollbar-width: thin; width: 100%; }
 .point-carousel__previous,.point-carousel__next { align-items: center; background: white; border: 1px solid var(--color-gray-300); border-radius: 50%; display: flex; height: 40px; justify-content: center; padding: 0; position: absolute; top: 44px; width: 40px; z-index: 1; }
