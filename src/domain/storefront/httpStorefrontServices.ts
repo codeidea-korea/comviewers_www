@@ -24,6 +24,7 @@ function richContent(value: unknown) { if (typeof value !== 'string') return val
 const toPost = (row: CommunityPostDto | CommunityDetailDto, baseUrl: string): Post => ({ id: String(row.id), postId: String(row.id), number: row.id,
   boardName: row.boardName, title: row.title, author: row.author, authorProfileImageUrl: row.authorProfileImageUrl ?? null, date: date(row.createdAt), dateTime: contentDateTime(row.createdAt), views: row.viewCount,
   comments: 'comments' in row ? row.comments.filter((comment) => comment.status !== 'hidden').length : row.commentCount, isMine: row.mine,
+  attachmentCount: 'attachmentCount' in row ? row.attachmentCount : row.attachments.length,
   content: paragraphs(row.content), richContent: richContent(row.richContent), attachments: 'attachments' in row ? row.attachments.map((file) => toPublicAttachment(file, baseUrl)) : [] })
 const toArticle = (row: CommunityPostDto | CommunityDetailDto, baseUrl: string): Article => ({
   id: String(row.id), articleId: String(row.id), number: row.pinned ? '공지' : row.id, title: row.title, date: date(row.createdAt), dateTime: contentDateTime(row.createdAt), pinned: row.pinned,
