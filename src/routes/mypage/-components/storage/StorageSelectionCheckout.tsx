@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { AccountStorageItem } from '@/api/myAccountSchemas'
@@ -19,6 +19,7 @@ export function StorageSelectionCheckout({ api, items }: { api: MyAccountReadSer
   const client = useQueryClient()
   const available = useMemo(() => items.filter(item => item.status === 'stored' && (!item.paymentDueAt || new Date(`${item.paymentDueAt}+09:00`).getTime() > Date.now())), [items])
   const selectedItems = useMemo(() => available.filter(item => selected.includes(item.id)), [available, selected])
+  const selectAll = useCallback((checked: boolean) => setSelected(checked ? available.map(item => item.id) : []), [available])
   const duration = (item: AccountStorageItem) => units[item.id] ?? item.minUnits ?? 1
   const valid = selectedItems.length > 0 && selectedItems.every(item => item.unitPrice !== null && item.setupFee !== null
     && (item.pricingType === 'one_time' || (item.pricingType === 'rental' && item.minUnits !== null && item.maxUnits !== null
@@ -32,8 +33,8 @@ export function StorageSelectionCheckout({ api, items }: { api: MyAccountReadSer
   const reportValue = useMemo<StorageSelectedGroup>(() => ({
     items: selectedItems.map(item => ({ id: Number(item.id), units: item.pricingType === 'rental' ? (units[item.id] ?? item.minUnits ?? 1) : null, label: [item.productTitle, item.productNo].filter(Boolean).join(' · '), unitLabel: ({ thirty_day: '개월', day: '일', hour: '시간' } as Record<string, string>)[item.billingUnit ?? ''] ?? '개' })),
     amount: total, rentalAmount, setupFeeAmount, points,
-    valid: selectedItems.length === 0 || valid, availableCount: available.length, state: 'ready',
-  }), [selectedItems, units, total, rentalAmount, setupFeeAmount, points, valid, available.length])
+    valid: selectedItems.length === 0 || valid, availableCount: available.length, state: 'ready', selectAll,
+  }), [selectedItems, units, total, rentalAmount, setupFeeAmount, points, valid, available.length, selectAll])
   useEffect(() => { report?.('rentals', reportValue) }, [report, reportValue])
   useEffect(()=>()=>{report?.('rentals',{items:[],amount:0,rentalAmount:0,setupFeeAmount:0,points:0,valid:true,availableCount:0,state:'ready'})},[report])
   const move = useMutation({ mutationFn: () => {
@@ -48,7 +49,7 @@ export function StorageSelectionCheckout({ api, items }: { api: MyAccountReadSer
   } })
   const allSelected=available.length>0&&selectedItems.length===available.length
   if (!available.length && shared?.hasParts) return null
-  return <section className="storage-selection"><div className="storage-catalog__toolbar"><label><input checked={allSelected} disabled={!available.length||move.isPending||Boolean(attempt)||shared?.locked} onChange={event=>setSelected(event.target.checked?available.map(item=>item.id):[])} type="checkbox"/> 상품 정보</label><span>주문정보</span><span>소계</span></div>{available.map(item => <article className="storage-catalog-product" key={item.id}>
+  return <section className="storage-selection">{!shared&&<div className="storage-catalog__toolbar"><label><input checked={allSelected} disabled={!available.length||move.isPending||Boolean(attempt)} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> 상품 정보</label><span>주문정보</span><span>소계</span></div>}{available.map(item => <article className="storage-catalog-product" key={item.id}>
     <header><label><input type="checkbox" disabled={move.isPending || Boolean(attempt)||shared?.locked} checked={selected.includes(item.id)} onChange={event => setSelected(previous => event.target.checked ? [...previous, item.id] : previous.filter(id => id !== item.id))}/><strong>품번 {item.productNo ?? '-'}</strong><span>{item.serverRoomName ?? '-'}</span></label></header>
     <div><div className="storage-catalog-product__image">{item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl)?<img src={item.imageUrl} alt={item.productTitle ?? '예약 상품'}/>:<span>img</span>}</div><section><span className="storage-catalog-product__column-title">상품 정보</span><strong>{item.productTitle ?? '상품명 미등록'}</strong><p>{item.instantAvailable ? '결제 후 바로 접속 가능합니다.' : '접속 준비 상태를 확인해 주세요.'}<br/>{item.specSummary ?? '등록된 PC 사양 정보가 없습니다.'}</p></section><dl><dt className="storage-catalog-product__column-title">주문정보</dt>
       <div><dt>세팅비</dt><dd>{accountMoney(item.setupFee)}</dd></div><div><dt>{item.pricingType==='rental'?'월 렌탈료':'상품금액'}</dt><dd>{accountMoney(item.unitPrice)}</dd></div>

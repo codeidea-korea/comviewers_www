@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
@@ -24,6 +24,7 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
   const availableRows = useMemo(() => rows.filter(row => row.status === 'stored'), [rows])
   const selectedIds = useMemo(() => selected ?? availableRows.map(row => row.id), [selected, availableRows])
   const selectedRows = useMemo(() => availableRows.filter(row => selectedIds.includes(row.id)), [availableRows, selectedIds])
+  const selectAll = useCallback((checked: boolean) => setSelected(checked ? availableRows.map(row => row.id) : []), [availableRows])
   const quantity = (row: typeof rows[number]) => quantities[row.id] ?? row.minimumQuantity
   const valid = selectedRows.length > 0 && new Set(selectedRows.map(row => row.productNo)).size === selectedRows.length
     && selectedRows.every(row => Number.isInteger(quantity(row)) && quantity(row) >= row.minimumQuantity && quantity(row) <= Math.min(row.maximumQuantity,row.availableQuantity))
@@ -33,8 +34,8 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
     items: selectedRows.map(row => ({ id: row.id, units: quantities[row.id] ?? row.minimumQuantity, label: `${row.title} · ${row.productNo}`, unitLabel: '개' })),
     amount: Number.isSafeInteger(total) ? total : 0, rentalAmount: 0, setupFeeAmount: 0, points: 0,
     valid: selectedRows.length === 0 || (valid && Number.isSafeInteger(total)), availableCount: availableRows.length,
-    state: offers.isPending ? 'pending' : offers.isError ? 'error' : 'ready',
-  }), [selectedRows, quantities, total, valid, availableRows.length, offers.isPending, offers.isError])
+    state: offers.isPending ? 'pending' : offers.isError ? 'error' : 'ready', selectAll,
+  }), [selectedRows, quantities, total, valid, availableRows.length, offers.isPending, offers.isError, selectAll])
   useEffect(() => { report?.('parts', reportValue) }, [report, reportValue])
   useEffect(()=>()=>{report?.('parts',{items:[],amount:0,rentalAmount:0,setupFeeAmount:0,points:0,valid:true,availableCount:0,state:'pending'})},[report])
   const move = useMutation({ mutationFn: () => { if(!attempt) throw new Error('선택 수량을 확인해 주세요.'); return api.movePartStorageBatch(attempt,key.current) },
