@@ -69,7 +69,7 @@ export function App() {
       <Route index element={<HomePage />} />
       <Route path="login" element={<LoginPage />} />
       <Route path="manager/:organizationCode/mypage" element={<ManagerPortalGate />}>
-        <Route index element={<RcpcListPage />} />
+        <Route index element={<MypageHomePage />} />
         <Route path="rcpc" element={<RcpcListPage />} />
         <Route path="rcpc/:rcpcId" element={<RcpcDetailPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
