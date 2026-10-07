@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useSession, useSessionStore } from './SessionProvider'
 import { useAuthentication } from './AuthProvider'
+import { useSessionProfileImage } from './useSessionProfileImage'
 import type { SessionRole } from './sessionStore'
 import { Modal } from '../../components/ui/ModalControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
@@ -35,6 +36,7 @@ export function OrganizationSelector() {
 export function SessionControls({ loginLabel = '로그인' }: { loginLabel?: string } = {}) {
   const session = useSession()
   const auth = useAuthentication()
+  const profileImage = useSessionProfileImage()
   const [error, setError] = useState('')
   const menuRef = useRef<HTMLDetailsElement>(null)
   useEffect(() => {
@@ -61,7 +63,7 @@ export function SessionControls({ loginLabel = '로그인' }: { loginLabel?: str
   const displayName = session.customerSession?.displayName?.trim() || '회원'
   return <span className="session-controls">
     <details className="session-user-menu" ref={menuRef}>
-      <summary><img alt="" aria-hidden="true" src={userIcon} /><span>{displayName}</span></summary>
+      <summary><img key={profileImage || 'default'} alt="" aria-hidden="true" src={profileImage || userIcon} onError={event => { if (profileImage && event.currentTarget.getAttribute('src') !== userIcon) event.currentTarget.src = userIcon }} /><span>{displayName}</span></summary>
       <div>
         <OrganizationSelector />
         <Link to="/mypage"><TranslatedText id="nav.myPage" /></Link>
