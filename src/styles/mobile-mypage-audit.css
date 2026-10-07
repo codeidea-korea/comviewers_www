@@ -1,0 +1,65 @@
+@media (max-width: 767px) {
+  .mypage-shell .mypage-layout:has(:is(.orders-catalog-list, .storage-catalog, .points-catalog, .coupons-available, .coupons-history, .profile-settings-page, .extension-checkout)) .mypage-title {
+    display: block;
+    font-size: 18px;
+    font-weight: 500;
+    height: auto;
+    line-height: 24px;
+    margin: 0 0 20px;
+  }
+
+  .mypage-shell .mypage-layout:has(.storage-catalog) .mypage-page-heading { display: block; }
+  .mypage-shell .mypage-layout:has(.storage-catalog) .mypage-page-back { display: none; }
+
+  .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-table > div[role='row'] {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+  .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-table > p[role='row'] {
+    border: 1px solid var(--color-gray-200);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    margin: 0 0 10px;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-table > p[role='row'] > span[role='cell'] {
+    align-items: start;
+    display: grid;
+    font-size: 14px;
+    gap: 10px;
+    grid-template-columns: 80px minmax(0, 1fr);
+    justify-content: start;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 8px 0;
+    width: 100%;
+  }
+  .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-table > p[role='row'] > span[role='cell'] + span[role='cell'] {
+    border-top: 1px solid var(--color-gray-100);
+  }
+  .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-table > p[role='row'] > span[role='cell']::before {
+    color: var(--color-gray-600);
+    content: attr(data-label);
+    font-size: 13px;
+  }
+
+  .mypage-shell .orders-list-toolbar > span {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mypage-shell .orders-list-toolbar > span button {
+    min-height: 40px;
+    padding-left: 0;
+    white-space: nowrap;
+  }
+
+  .mypage-shell .manager-catalog__tools > span > button:last-child { display: none; }
+}

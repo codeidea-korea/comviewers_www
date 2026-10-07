@@ -27,7 +27,7 @@ export function BenefitTable<T>({ ariaLabel = '혜택 내역', columns, rows, ro
       {column.sortValue ? <SortButton icon={sortIcon} label={column.label} onSort={sort} sortConfig={sortConfig} sortKey={column.key}>{column.label}</SortButton> : column.label}
     </strong>)}</div>
     {sortedRows.map(row => <p data-row-id={rowKey(row)} key={rowKey(row)} role="row" style={columnStyle}>
-      {columns.map(column => <span key={column.key} role="cell">{column.renderCell(row)}</span>)}
+      {columns.map(column => <span data-label={column.label} key={column.key} role="cell">{column.renderCell(row)}</span>)}
     </p>)}
   </div>
 }
