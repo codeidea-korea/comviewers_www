@@ -4,6 +4,7 @@ import { loginIdSchema, passwordSchema, nameSchema, nicknameSchema, emailSchema,
 import { focusSignupField } from '../focusSignupField'
 import userProfileIcon from '@/assets/figma/user-profile.svg'
 import { getPublicAccountApi, NicknameUnavailableError } from '@/api/publicAccount'
+import { signupRegistrationErrorMessage } from '@/domain/auth/signupRegistrationError'
 import { loadSignupAgreements } from '../signupDraft'
 import { useSignupCoordinator } from '../SignupCoordinator'
 
@@ -151,6 +152,11 @@ export function useProfileForm() {
     setBusy(true); setError('')
     const submittedRevision = formRevision.current
     try {
+      const nicknameAvailability = await api.nicknameAvailability(result.data.nickname)
+      if (formRevision.current !== submittedRevision) return
+      if (!nicknameAvailability.available) {
+        throw new NicknameUnavailableError(signupRegistrationErrorMessage('U005') ?? '이미 사용 중인 닉네임입니다.')
+      }
       if (profileImage) {
         setProfileImageError('')
         try { await api.preflightProfileImage(profileImage) }
