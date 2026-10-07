@@ -227,6 +227,7 @@
   }
   .mypage-shell .mypage-content { min-width: 0; width: 100%; }
   .mypage-shell .mypage-title { display: none; }
+  .mypage-shell .mypage-page-heading { display: none; }
 
   .mypage-mobile-filter-trigger {
     align-items: center;

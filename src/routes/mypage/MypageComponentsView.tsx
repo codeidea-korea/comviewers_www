@@ -16,6 +16,7 @@ import { managerScopedPath } from './-components/managerPortalPath'
 import { productNoSearchSchema } from '@/api/productNo'
 import { TranslatedText, type TranslationKey } from '../../i18n/translation'
 import { ManualTranslationControls } from '../../components/layout/GoogleTranslateTrial'
+import { PageBackButton } from './-components/PageBackButton'
 
 interface MyPageMenuItem { id: string; label: string; href: string; disabled?: boolean }
 interface MyPageMenuGroup { id: string; label: string; href?: string; disabled?: boolean; opensPasswordGate?: boolean; items: readonly MyPageMenuItem[] }
@@ -93,7 +94,7 @@ export function MyPageMobileHeader({ menuOpen = false, onBack, onMenuToggle, onS
   )
 }
 
-export function MyPageLayout({ children, title }: { children: ReactNode; title?: string }) {
+export function MyPageLayout({ backTo, children, title }: { backTo?: string; children: ReactNode; title?: string }) {
   const { pathname, search, hash, state } = useLocation()
   const profileEntryState = pathname === '/mypage/profile' ? state : { openProfilePasswordGate: true, returnTo: `${pathname}${search}${hash}` }
   const navigate = useNavigate()
@@ -139,7 +140,11 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
     <AppShell className="mypage-shell" showHeader={!isManager}>
       <MyPageMobileHeader
         menuOpen={mobileMenuOpen}
-        onBack={() => navigate(-1)}
+        onBack={() => {
+          const index = (window.history.state as { idx?: number } | null)?.idx
+          if (backTo && !(typeof index === 'number' && index > 0)) navigate(backTo)
+          else navigate(-1)
+        }}
         onMenuToggle={() => { setMobileSearchOpen(false); setMobileMenuOpen((current) => !current) }}
         onSearchOpen={() => { setMobileMenuOpen(false); setMobileSearchOpen(true) }}
       />
@@ -178,7 +183,9 @@ export function MyPageLayout({ children, title }: { children: ReactNode; title?:
           </nav>
         </aside>
         <div className="mypage-content">
-          {title ? <h1 className="mypage-title">{title}</h1> : null}
+          {title ? backTo
+            ? <div className="mypage-page-heading"><PageBackButton fallbackTo={backTo} label={`${title} 뒤로가기`}/><h1 className="mypage-title">{title}</h1></div>
+            : <h1 className="mypage-title">{title}</h1> : null}
           {children}
         </div>
       </div>

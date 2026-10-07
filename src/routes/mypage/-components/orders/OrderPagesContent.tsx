@@ -27,6 +27,7 @@ import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
+import { PageBackButton } from '../PageBackButton'
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
   awaiting: 'rental.awaiting',
@@ -364,7 +365,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
       ['입금기한', accountKstDate(payment.depositDueAt)],
     ] as const : []),
   ] : []
-  return <AppShell className="order-full-shell"><main className="order-full-detail content-container"><h1><TranslatedText id="order.details" /></h1><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
+  return <AppShell className="order-full-shell"><main className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label="주문내역으로 뒤로가기"/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
     <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.map(item => <article key={item.orderItemId}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [['상품', item.title], ['수량', t('unit.quantity', { count: item.quantity })]] : [['PC사양', item.specSummary ?? '기록 없음'], ['이용기간', `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
     <section className="order-full-section"><h2><TranslatedText id="order.paymentInformation" /></h2><AccountInfo rows={paymentRows}/></section>
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
