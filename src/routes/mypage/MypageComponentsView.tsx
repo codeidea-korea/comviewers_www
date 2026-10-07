@@ -88,7 +88,7 @@ export function MyPageMobileHeader({ exitLabel = '쇼핑몰', menuOpen = false, 
           <span>{title}</span>
         </button>}
       <div className="mypage-mobile-header__actions">
-        {onExit ? <button className="mypage-mobile-header__exit" onClick={onExit} type="button">{exitLabel}</button> : <Link className="mypage-mobile-header__exit" to="/">{exitLabel}</Link>}
+        {onExit ? <button className="mypage-mobile-header__exit" onClick={onExit} type="button">{exitLabel}</button> : <Link aria-label="쇼핑몰 홈으로 이동" className="mypage-mobile-header__exit mypage-mobile-header__exit--home" to="/"><svg aria-hidden="true" fill="none" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3V10Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg></Link>}
         {showSearch && !menuOpen ? <button aria-controls="mypage-mobile-search" aria-label="품번 검색 열기" className="mobile-icon-button" onClick={onSearchOpen} type="button"><img alt="" src={searchIcon} /></button> : null}
         {showMenu ? <button aria-controls="mypage-mobile-menu" aria-expanded={menuOpen} aria-label={menuOpen ? '마이페이지 메뉴 닫기' : '마이페이지 메뉴 열기'} className={`mypage-mobile-menu-toggle${menuOpen ? ' is-open' : ''}`} onClick={onMenuToggle} type="button">{menuOpen ? <img alt="" src={closeIcon} /> : <><span /><span /><span /></>}</button> : null}
       </div>
