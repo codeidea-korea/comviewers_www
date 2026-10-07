@@ -85,6 +85,9 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
 
   const selectedTargets = (targets.data ?? []).filter(item => selected.includes(item.orderItemId))
   const hasAvailableTargets = (targets.data ?? []).some(item => selectFromCandidates || initialRentalIds.includes(item.rentalId))
+  const unavailableSelectionCount = targetsReady && initialRentalKey
+    ? [...new Set(initialRentalIds)].filter(id => !(targets.data ?? []).some(item => item.rentalId === id)).length
+    : 0
   const contactPhone = phone ?? selectedTargets[0]?.contactPhone ?? ''
   const quoteInput: RefundDirectQuoteRequest = {
     method,
@@ -168,6 +171,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
       requestQuote()
     }}>
       <p className="refund-application__count">신청 품목 <strong>{selectedCount}개</strong></p>
+      {unavailableSelectionCount > 0 && hasAvailableTargets ? <p className="refund-application__count" role="status">선택한 RCPC 중 해지 신청이 불가능한 {unavailableSelectionCount}대는 제외했습니다.</p> : null}
       <AccountQueryState pending={targets.isPending || targets.isFetching} error={targets.error} retry={targets.refetch}/>
       <fieldset className="refund-application__candidates" disabled={locked || !targetsReady}>
         <legend className="sr-only">해지 신청 상품</legend>

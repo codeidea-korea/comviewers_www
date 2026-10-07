@@ -163,8 +163,13 @@
 .rcpc-list--table > .mypage-table__empty,
 .mobile-rcpc-list > .mypage-table__empty { align-items: center; border-bottom: 1px solid var(--color-gray-200); color: var(--color-gray-500); display: flex; justify-content: center; margin: 0; min-height: 150px; padding: 24px; text-align: center; }
 .rcpc-list__header,.rcpc-list--table > article { display: grid; grid-template-columns: 150px 100px 100px 100px 223px 80px 223px; }
-.rcpc-list__bulk-actions { align-items: center; display: flex; gap: 12px; justify-content: flex-end; margin: 12px 0; }
-.rcpc-list__bulk-actions > span { color: var(--color-gray-600); font-size: 13px; }
+.rcpc-list__bulk-actions { align-items: center; display: flex; height: 56px; justify-content: space-between; margin: 0; }
+.rcpc-list__bulk-select { align-items: center; display: inline-flex; font-size: 16px; font-weight: 700; gap: 8px; }
+.rcpc-list__bulk-select .checkbox__input { height: 18px; margin: 0; width: 18px; }
+.rcpc-list__bulk-action-buttons { align-items: center; display: flex; gap: 12px; }
+.rcpc-list__bulk-divider { background: var(--color-gray-300); height: 8px; width: 1px; }
+.rcpc-list__bulk-action-buttons button { background: transparent; border: 0; color: var(--color-black); font-size: 14px; padding: 0; text-decoration: underline; }
+.rcpc-list__bulk-action-buttons button:disabled { color: var(--color-gray-400); cursor: not-allowed; }
 .rcpc-list__select-all { align-items: center; display: inline-flex; gap: 4px; }
 .rcpc-list__product > input[type="checkbox"] { align-self: center; margin: 0; }
 .mobile-rcpc-card > header > input[type="checkbox"] { flex: 0 0 auto; margin: 0 6px 0 0; }
