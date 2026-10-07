@@ -25,7 +25,7 @@ const pcSpec = z.object({
 }).nullable()
 export const myRcpcItemSchema = z.object({
   rentalId: id, pcAssetId: id, productNo: productNoResponseSchema, managementNo: text, serverRoomId: id.nullable(), serverRoomName: text,
-  productTitle: text, orderedAt: instant, serviceStartedAt: instant,
+  productTitle: text, orderedAt: instant, serviceStartedAt: instant, serviceEndsAt: instant.optional(),
   serverRoomRegion: text, serverStatus: z.enum(['needs_attention', 'format_waiting', 'extension_waiting', 'running', 'ended']),
   usageStatus: z.enum(['using', 'extension_waiting', 'ended', 'other']), rentalStatus: status, serviceEndExclusiveDate: z.iso.date().nullable(), connectionStatus: z.string(),
   presenceLastSeenAt: instant, secondsSinceLastSeen: count.nullable(), trafficCounterEpoch: count.nullable(),

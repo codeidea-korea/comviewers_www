@@ -100,11 +100,34 @@ function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelected
     <RcpcProduct api={api} canEditAlias={canEditAlias} item={item} mutations={mutations}/>
     <div role="cell">{item.serverRoomRegion ?? '-'}<br/>{item.serverRoomName ?? '-'}</div>
     <RcpcState item={item}/>
-    <div role="cell"><strong><RcpcPeriodLabel item={item}/></strong></div>
+    <div className="rcpc-list__period" role="cell"><RcpcTablePeriod item={item}/></div>
     <div className="rcpc-list__connect" role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>
     <div role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
     <RcpcActions api={api} canExtend={canExtend} item={item}/>
   </article>
+}
+
+function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
+  const endDate = item.serviceEndExclusiveDate ?? item.serviceEndsAt?.slice(0, 10)
+  if (!endDate) return <span>-</span>
+
+  const todayParts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date()).map(part => [part.type, part.value]))
+  const today = `${todayParts.year}-${todayParts.month}-${todayParts.day}`
+  const days = Math.max(0, Math.round((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000))
+  const endParts = item.serviceEndsAt ? Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date(item.serviceEndsAt)).map(part => [part.type, part.value])) : null
+  const displayDate = endParts ? `${endParts.year}-${endParts.month}-${endParts.day}` : endDate
+  const displayTime = endParts ? `${endParts.hour}:${endParts.minute}:${endParts.second}` : null
+  const ended = item.usageStatus === 'ended' || item.serverStatus === 'ended' || item.serverStatus === 'format_waiting'
+
+  return <>
+    <strong>{ended ? '이용종료' : `${days}일 남음`}</strong>
+    <small>{displayDate}{displayTime ? <><br/>{displayTime} 까지</> : null}</small>
+  </>
 }
 
 function RcpcProduct({ api, canEditAlias, item, mutations }: {
