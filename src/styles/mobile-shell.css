@@ -29,12 +29,16 @@
   }
   .site-header .mobile-cart-button {
     align-items: center;
+    background: transparent;
+    border: 0;
     color: var(--color-black);
+    cursor: pointer;
     display: flex;
-    height: 24px;
+    height: 32px;
     justify-content: center;
+    padding: 0;
     position: relative;
-    width: 24px;
+    width: 32px;
   }
   .site-header .mobile-cart-button > img {
     height: 24px;
@@ -53,13 +57,19 @@
     font-weight: 500;
     height: 20px;
     justify-content: center;
-    left: 12px;
     letter-spacing: -.02em;
     min-width: 20px;
     padding-inline: 4px;
     position: absolute;
-    top: -3px;
+    right: -6px;
+    top: -4px;
   }
+  .site-header .mobile-cart-button:focus-visible {
+    border-radius: 4px;
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
   .site-header .mobile-menu-toggle,
   .mypage-mobile-menu-toggle {
     align-items: center;
