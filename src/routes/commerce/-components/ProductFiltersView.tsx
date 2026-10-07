@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from 'react'
-import type { DetailSelections, ProductPage } from '../../../domain/products/types'
+import type { DetailSelections, ProductListQuery, ProductPage } from '../../../domain/products/types'
 import type { CatalogFilterMetadata } from '@/api/catalog'
 import type { useProductList } from './hooks/useProductList'
 type FilterId = keyof DetailSelections
@@ -327,6 +327,23 @@ interface ProductFilterProps {
 
 export function ProductFilter({ controls, detailSelections = {}, drawer = false, facets, filterRef, mobile = false, onClose, onDetailSelectionChange = () => {}, variant = 'product' }: ProductFilterProps) {
   const sections = variant === 'component-library' ? componentFilterSections : productFilterSections
+  const [draftCatalogSelections, setDraftCatalogSelections] = useState<ProductListQuery | null>(() => mobile && drawer && controls ? controls.catalogSelections : null)
+  useEffect(() => {
+    if (!mobile || !drawer) {
+      setDraftCatalogSelections(null)
+    } else if (controls && !draftCatalogSelections) {
+      setDraftCatalogSelections(controls.catalogSelections)
+    }
+  }, [controls, draftCatalogSelections, drawer, mobile])
+  const activeControls = controls && mobile && drawer && draftCatalogSelections ? {
+    ...controls,
+    catalogSelections: draftCatalogSelections,
+    setCatalogSelections: (changes: Partial<ProductListQuery>) => setDraftCatalogSelections(current => current ? { ...current, ...changes } : controls.catalogSelections),
+  } : controls
+  const applyMobileFilters = () => {
+    if (controls && draftCatalogSelections) controls.setCatalogSelections(draftCatalogSelections)
+    onClose?.()
+  }
   const [expandedMenus, setExpandedMenus] = useState(() => new Set(['monthly-fee', 'os', 'cpu-type', 'cpu-clock', 'cpu-core', 'ram-spec', 'ram-size', 'disk-type', 'disk-size', 'gpu-type', 'gpu-memory', 'peripheral', 'game']))
   const toggleMenu = (id: FilterId) => setExpandedMenus((current) => {
     const next = new Set(current)
@@ -336,7 +353,7 @@ export function ProductFilter({ controls, detailSelections = {}, drawer = false,
   })
   const filterContent = <>
       <p className="product-filter__caption">상세 필터</p>
-      {controls ? <CatalogFilterSections controls={controls} /> : sections.map((section) => (
+      {activeControls ? <CatalogFilterSections controls={activeControls} /> : sections.map((section) => (
         <section className="product-filter__section" key={section.title}>
           <h2>{section.title}</h2>
           {section.menus.map((menu) => <FilterMenu facetCounts={facets === null ? null : facets ? (facets[menu.id] ?? {}) : undefined} isOpen={expandedMenus.has(menu.id)} key={menu.id} menu={menu} onSelectionChange={(values) => onDetailSelectionChange(menu.id, values)} onToggle={() => toggleMenu(menu.id)} selectedValues={detailSelections[menu.id] ?? []} />)}
@@ -346,7 +363,12 @@ export function ProductFilter({ controls, detailSelections = {}, drawer = false,
   return (
     <aside aria-label="상세 상품 필터" aria-modal={drawer || undefined} className={`product-filter${drawer ? ' product-filter--drawer' : ''}`} ref={filterRef} role={drawer ? 'dialog' : undefined} tabIndex={drawer ? -1 : undefined}>
       {mobile ? <header className="product-filter-mobile-header"><button aria-label="상세 필터 닫기" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /></button><strong>상세 필터</strong></header> : null}
-      {!drawer && variant === 'product' ? <div aria-label="상세 필터 항목" className="product-filter__scroll" role="region" tabIndex={0}>{filterContent}</div> : filterContent}
+      {drawer && mobile ? <div aria-label="상세 필터 항목" className="product-filter__mobile-scroll" role="region" tabIndex={0}>{filterContent}</div>
+        : !drawer && variant === 'product' ? <div aria-label="상세 필터 항목" className="product-filter__scroll" role="region" tabIndex={0}>{filterContent}</div> : filterContent}
+      {drawer && mobile && controls ? <footer className="product-filter__mobile-actions">
+        <button className="product-filter__mobile-dismiss" onClick={onClose} type="button">닫기</button>
+        <button className="product-filter__mobile-apply" onClick={applyMobileFilters} type="button">적용하기</button>
+      </footer> : null}
       <button className="product-filter__close" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /><span className="sr-only">필터 닫기</span></button>
     </aside>
   )
