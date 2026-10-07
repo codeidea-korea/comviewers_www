@@ -70,6 +70,21 @@
     outline-offset: 2px;
   }
 
+  .home-hero { height: clamp(600px, 100svh, 740px); }
+  .home-hero__image {
+    bottom: 72px;
+    height: auto;
+    left: auto;
+    right: -30%;
+    top: auto;
+    width: max(760px, 150vw);
+  }
+  .home-hero__shade { background: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 90%) 29%, transparent 80%); }
+  .home-hero__content { box-sizing: border-box; padding: 136px 16px 24px; }
+  .home-hero h1 { font-size: clamp(24px, 7vw, 32px); }
+  .home-hero p { font-size: 14px; line-height: 1.5; margin: 16px 0 24px; }
+  .home-hero p br { display: none; }
+
   .site-header .mobile-menu-toggle,
   .mypage-mobile-menu-toggle {
     align-items: center;
