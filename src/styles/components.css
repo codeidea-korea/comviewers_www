@@ -1,4 +1,4 @@
-.site-header { position: relative; z-index: 10; }
+.site-header { position: sticky; top: 0; z-index: 10; }
 .site-header--sub { background: var(--color-white); box-shadow: inset 0 -1px var(--color-gray-300); }
 .site-header--main { background: transparent; color: var(--color-white); }
 .site-header__utility { border-bottom: 1px solid var(--color-gray-300); height: 34px; }

@@ -1,6 +1,6 @@
 import { SessionControls } from '../../app/session/SessionControls'
 import { useSession } from '../../app/session/SessionProvider'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import logoPrimary from '../../assets/figma/logo-primary.png'
 import logoWhite from '../../assets/figma/logo-white.png'
@@ -39,7 +39,15 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
   const visibleUtilityItems = utilityMenuItems.filter(item => item.id !== 'signup' || session.status === 'anonymous')
   const isMain = state === 'main'
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const mobileToggleRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const updateScrolled = () => setScrolled(window.scrollY > 0)
+    updateScrolled()
+    window.addEventListener('scroll', updateScrolled, { passive: true })
+    return () => window.removeEventListener('scroll', updateScrolled)
+  }, [])
 
   useMobileOverlay(mobileOpen, () => {
     setMobileOpen(false)
@@ -53,7 +61,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
   }
 
   return (
-    <header className={`site-header site-header--${state}`}>
+    <header className={`site-header site-header--${state}${scrolled ? ' site-header--scrolled' : ''}`}>
       <div className="site-header__utility">
         <div className="site-header__inner">
           <p>게임부터 작업까지, 원하는 PC 환경을 RCPC로 간편하게</p>

@@ -1,5 +1,5 @@
 * { box-sizing: border-box; }
-html { background: var(--color-white); scrollbar-width: none; }
+html { background: var(--color-white); scroll-padding-top: var(--layout-header-height); scrollbar-width: none; }
 html::-webkit-scrollbar { display: none; }
 body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }

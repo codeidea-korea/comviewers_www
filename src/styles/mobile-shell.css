@@ -6,6 +6,7 @@
 .mypage-home-mobile-heading { display: none; }
 
 @media (max-width: 767px) {
+  html { scroll-padding-top: 56px; }
   body.mobile-overlay-open { overflow: hidden; }
 
   .site-header .site-header__primary { height: 56px; }
@@ -165,7 +166,8 @@
     height: 56px;
     justify-content: space-between;
     padding: 10px 12px;
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 32;
   }
   .mypage-mobile-header__back {

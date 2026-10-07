@@ -145,6 +145,7 @@
 }
 
 @media (max-width: 1024px) {
+  html { scroll-padding-top: 72px; }
   .site-header__utility { display: none; }
   .site-header__primary { height: 72px; }
   .site-logo,

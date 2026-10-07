@@ -1,4 +1,5 @@
-.app-shell--home .site-header { color: var(--color-white); left: 0; position: absolute; right: 0; top: 0; }
+.app-shell--home .site-header { color: var(--color-white); left: 0; position: fixed; right: 0; top: 0; }
+.app-shell--home .site-header--scrolled { background: #090909; }
 .home-hero { color: var(--color-white); height: 691px; overflow: hidden; position: relative; }
 .home-hero__image { height: 113.17%; left: -.16%; max-width: none; position: absolute; top: -1.71%; width: 100.42%; }
 .home-hero__shade { background: linear-gradient(180deg,#000 14.543%,transparent 70.603%); inset: 0; position: absolute; }

@@ -56,6 +56,7 @@ export function ProductListPage() {
     cartAddition.add(String(product.productId), 1)
   }
   const resultsToolbarRef = useRef<HTMLDivElement>(null)
+  const scrollRegionRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLElement>(null)
   const filterTriggerRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -77,6 +78,9 @@ export function ProductListPage() {
   useEffect(() => {
     if (cartAddition.isSuccess || cartAddition.isError) setCartPopupOpen(true)
   }, [cartAddition.isError, cartAddition.isSuccess])
+  useEffect(() => {
+    scrollRegionRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [productList.catalogSelections.categoryCode])
   const closeFilter = useCallback(() => {
     setFilterOpen(false)
     requestAnimationFrame(() => filterTriggerRef.current?.focus({ preventScroll: true }))
@@ -95,12 +99,12 @@ export function ProductListPage() {
     requestAnimationFrame(() => resultsToolbarRef.current?.scrollIntoView({ block: 'start' }))
   }
   return (
-    <AppShell className="commerce-shell">
+    <AppShell className="commerce-shell commerce-shell--products" scrollBelowHeader scrollRegionRef={scrollRegionRef}>
       <section aria-label={categoryTitle} className={`products-hero${filterOpen && !filterDrawer ? ' products-hero--filter-open' : ''}`}>
         <h1 className={['products-hero__title', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>{categoryTitle}</h1>
       </section>
       <div className={`products-body${filterOpen && !filterDrawer ? ' products-body--filter-open' : ''}${catalogIsEmpty ? ' products-body--empty' : ''}${isError ? ' products-body--error' : ''}`}>
-        {showCatalogControls && !filterOpen && !mobileViewport ? <button disabled={productList.filterMetadataPending} className={import.meta.env.DEV ? 'notranslate product-filter-trigger product-filter-trigger--desktop' : 'product-filter-trigger product-filter-trigger--desktop'} translate={import.meta.env.DEV ? 'no' : undefined} aria-label={t('filter.open')} onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterChevronBackwardIcon} /></button> : null}
+        {showCatalogControls && !filterOpen && !mobileViewport ? <div className="product-filter-trigger-rail"><button disabled={productList.filterMetadataPending} className={import.meta.env.DEV ? 'notranslate product-filter-trigger product-filter-trigger--desktop' : 'product-filter-trigger product-filter-trigger--desktop'} translate={import.meta.env.DEV ? 'no' : undefined} aria-label={t('filter.open')} onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterChevronBackwardIcon} /></button></div> : null}
         {filterOpen && filterDrawer ? (
           <DialogLayer
             asChild
