@@ -58,7 +58,24 @@
     padding-inline: 0;
     white-space: nowrap;
   }
-  .rcpc-list-page .mypage-toolbar { height: 40px; }
+  .rcpc-list-page .mypage-toolbar {
+    gap: 12px;
+    height: auto;
+    padding: 12px 0 16px;
+  }
+  .rcpc-list-page .mypage-toolbar > div {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .rcpc-list-page .mypage-toolbar select {
+    box-sizing: border-box;
+    height: 40px;
+    min-width: 0;
+    padding-inline: 8px;
+    width: 100%;
+  }
 
   .mobile-rcpc-card,
   .mobile-inquiry-card,

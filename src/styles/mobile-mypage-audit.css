@@ -25,6 +25,14 @@
     height: auto;
   }
 
+  .mypage-shell .rcpc-list__bulk-actions,
+  .mypage-shell .manager-catalog__select,
+  .mypage-shell .inquiry-catalog__filters,
+  .mypage-shell .order-search-filter,
+  .mypage-shell .benefit-filter-row {
+    margin-bottom: 16px;
+  }
+
   .mypage-shell .mypage-layout:has(:is(.orders-catalog-list, .storage-catalog, .points-catalog, .coupons-available, .coupons-history, .profile-settings-page, .extension-checkout)) .mypage-title {
     display: block;
     font-size: 18px;
