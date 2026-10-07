@@ -21,6 +21,7 @@ const verificationConfirmation = z.object({ verificationProof: z.string().min(1)
 const registration = z.object({ userId: id, username: z.string().min(1), name: z.string().min(1), email: z.email() })
 
 export type SignupTerm = z.infer<typeof signupTerm>
+export class NicknameUnavailableError extends Error {}
 export interface RegistrationInput {
   username: string
   password: string
@@ -55,14 +56,22 @@ export function createPublicAccountApi(baseUrl: string) {
         method: 'POST', body: { username: z.string().regex(/^[A-Za-z0-9_]{3,20}$/).parse(username) },
       })
     },
+    nicknameAvailability(nickname: string) {
+      return client.request('/api/auth/signup/nickname-availability', z.object({ available: z.boolean() }), {
+        method: 'POST', body: { nickname: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/).parse(nickname) },
+      })
+    },
     async signupTerms(signal?: AbortSignal) {
       const response = await client.request('/api/auth/signup/terms', z.object({ terms: signupTerm.array().min(1) }), { signal })
       return response.terms
     },
-    async requestEmailVerification(email: string) {
+    async requestEmailVerification(email: string, nickname: string) {
       try {
-        return await client.request('/api/auth/email-verifications', verificationRequest, { method: 'POST', body: { email } })
+        return await client.request('/api/auth/email-verifications', verificationRequest, { method: 'POST', body: { email, nickname } })
       } catch (cause) {
+        if (cause instanceof ApiClientError && cause.code === 'U005') {
+          throw new NicknameUnavailableError(signupRegistrationErrorMessage(cause.code) ?? '이미 사용 중인 닉네임입니다.')
+        }
         const message = cause instanceof ApiClientError ? signupRegistrationErrorMessage(cause.code) : undefined
         if (message) throw new Error(message)
         throw cause

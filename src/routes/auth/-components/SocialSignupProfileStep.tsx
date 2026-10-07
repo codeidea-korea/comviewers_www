@@ -16,6 +16,7 @@ import userProfileIcon from '@/assets/figma/user-profile.svg'
 import { useSessionStore } from '@/app/session/SessionProvider'
 import { createApiClient } from '@/api/httpClient'
 import { createCustomerProfileMutations } from '@/api/customerProfileMutations'
+import { getPublicAccountApi } from '@/api/publicAccount'
 
 const formSchema = z.object({
   name: z.string().trim().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.'),
@@ -45,11 +46,13 @@ export function SocialSignupProfileStep() {
   const [messengerType, setMessengerType] = useState('')
   const [messengerId, setMessengerId] = useState('')
   const [error, setError] = useState('')
+  const [nicknameError, setNicknameError] = useState('')
   const [busy, setBusy] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState(userProfileIcon)
   const [signedUp, setSignedUp] = useState(false)
   const uploadedImage = useRef<{ file: File; attachmentId: number } | null>(null)
+  const nicknameRevision = useRef(0)
 
   async function saveImage() {
     if (!imageFile) return
@@ -75,17 +78,31 @@ export function SocialSignupProfileStep() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
+    const form = event.currentTarget
     const parsed = formSchema.safeParse({ name, nickname, phone1, phone2, phone3, messengerType, messengerId })
     const focusField = (name: string) => {
-      const field = event.currentTarget.elements.namedItem(name)
-        ?? (name === 'phone2' ? event.currentTarget.elements.namedItem('phone-middle') : null)
+      const field = form.elements.namedItem(name)
+        ?? (name === 'phone2' ? form.elements.namedItem('phone-middle') : null)
       if (field instanceof HTMLElement) { field.focus(); field.scrollIntoView({ block: 'center' }) }
     }
     if (!parsed.success) { const issue = parsed.error.issues[0]; setError(issue?.message ?? '입력값을 확인해 주세요.'); focusField(String(issue?.path[0] ?? 'name')); return }
     const termsAgreements = loadSignupAgreements()
     if (termsAgreements.length === 0) { setError('약관 동의 단계부터 다시 진행해 주세요.'); return }
     setBusy(true); setError('')
+    setNicknameError('')
+    const submittedNicknameRevision = nicknameRevision.current
     try {
+      const accountApi = getPublicAccountApi()
+      if (!accountApi) throw new Error('닉네임 중복 확인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+      let nicknameAvailable: boolean
+      try { nicknameAvailable = (await accountApi.nicknameAvailability(parsed.data.nickname)).available }
+      catch { throw new Error('닉네임 중복 확인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.') }
+      if (nicknameRevision.current !== submittedNicknameRevision) return
+      if (!nicknameAvailable) {
+        setNicknameError('이미 사용 중이거나 가입 요청 중인 닉네임입니다. 다른 닉네임을 입력해 주세요.')
+        focusField('nickname')
+        return
+      }
       const phone = parsed.data.phone2 || parsed.data.phone3
         ? `${parsed.data.phone1}-${parsed.data.phone2}-${parsed.data.phone3}`
         : ''
@@ -115,7 +132,7 @@ export function SocialSignupProfileStep() {
       <ProfileImagePicker alt="선택한 프로필 이미지" disabled={busy} value={imagePreview} variant="auth"
         onSelect={(source, file) => { setImagePreview(source); setImageFile(file); setError('') }}/>
       <TextField label="이름" name="name" maxLength={18} onChange={(event) => setName(event.target.value)} placeholder="이름 입력" required value={name} />
-      <TextField label="닉네임" name="nickname" maxLength={18} onChange={(event) => setNickname(event.target.value)} required value={nickname} />
+      <TextField error={nicknameError} label="닉네임" name="nickname" maxLength={18} onChange={(event) => { nicknameRevision.current += 1; setNickname(event.target.value); setNicknameError('') }} required value={nickname} />
       <fieldset className="email-field"><legend><span className="required-mark">*</span>E-mail</legend><div className="email-field__row"><input aria-label="이메일 아이디" readOnly value={context.data.email.split('@')[0] ?? ''} /><span>@</span><input aria-label="이메일 도메인" readOnly value={context.data.email.split('@')[1] ?? ''} /><NativeSelect aria-label="이메일 도메인 선택" disabled value={context.data.email.split('@')[1] ?? ''}><option>{context.data.email.split('@')[1] ?? ''}</option></NativeSelect></div></fieldset>
       <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" name="phone-prefix" onChange={event => setPhone1(event.target.value)} value={phone1}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" maxLength={4} name="phone-middle" onChange={event => setPhone2(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" maxLength={4} name="phone-last" onChange={event => setPhone3(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone3} /></div></fieldset>
       <fieldset className="split-field split-field--messenger"><legend>메신저 ID</legend><div><NativeSelect aria-label="메신저 선택" name="messengerType" value={messengerType} onChange={event => setMessengerType(event.target.value)}><option value="">메신저 선택</option>{messengerOptions.map(option => <option key={option} value={option}>{messengerOptionLabel(option)}</option>)}</NativeSelect><input aria-label="메신저 아이디" maxLength={100} name="messengerId" onChange={event => setMessengerId(event.target.value)} value={messengerId}/></div></fieldset>

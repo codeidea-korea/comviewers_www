@@ -1,9 +1,9 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { z } from 'zod'
 import { loginIdSchema, passwordSchema, nameSchema, nicknameSchema, emailSchema, profileInputSchema } from '../profileValidation'
 import { focusSignupField } from '../focusSignupField'
 import userProfileIcon from '@/assets/figma/user-profile.svg'
-import { getPublicAccountApi } from '@/api/publicAccount'
+import { getPublicAccountApi, NicknameUnavailableError } from '@/api/publicAccount'
 import { loadSignupAgreements } from '../signupDraft'
 import { useSignupCoordinator } from '../SignupCoordinator'
 
@@ -78,11 +78,13 @@ export function useProfileForm() {
   const [checkedUsername, setCheckedUsername] = useState('')
   const [usernameFeedback, setUsernameFeedback] = useState<UsernameFeedback>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const formRevision = useRef(0)
   const email = `${profile.emailId}@${profile.emailDomain}`
   const complete = Boolean(profile.loginId && profile.password && profile.password === profile.passwordConfirm && profile.name && profile.nickname && profile.emailId && profile.emailDomain)
     && !Object.values(fieldErrors).some(Boolean)
 
   function setFieldValue(name: keyof typeof emptyProfile, value: string) {
+    formRevision.current += 1
     if (signupCoordinator.awaitingEmail) setNotice('회원정보가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
     else if (name === 'loginId') setNotice('')
     signupCoordinator.cancel()
@@ -147,16 +149,20 @@ export function useProfileForm() {
     const agreements = loadSignupAgreements()
     if (!api || agreements.length === 0) { setError('약관 동의 단계부터 다시 진행해 주세요.'); return }
     setBusy(true); setError('')
+    const submittedRevision = formRevision.current
     try {
       if (profileImage) {
         setProfileImageError('')
         try { await api.preflightProfileImage(profileImage) }
         catch (cause) {
+          if (formRevision.current !== submittedRevision) return
           setProfileImageError(cause instanceof Error ? cause.message : '프로필 이미지 업로드 준비 상태를 확인하지 못했습니다.')
           return
         }
       }
-      const requested = await api.requestEmailVerification(email)
+      if (formRevision.current !== submittedRevision) return
+      const requested = await api.requestEmailVerification(email, result.data.nickname)
+      if (formRevision.current !== submittedRevision) return
       signupCoordinator.begin(requested.requestId, email, {
         image: profileImage,
         registration: {
@@ -172,12 +178,19 @@ export function useProfileForm() {
         },
       })
     } catch (cause) {
+      if (formRevision.current !== submittedRevision) return
       signupCoordinator.cancel()
+      if (cause instanceof NicknameUnavailableError) {
+        setFieldErrors((current) => ({ ...current, nickname: cause.message }))
+        focusInvalidField('nickname')
+        return
+      }
       setError(cause instanceof Error ? cause.message : '인증 메일을 보내지 못했습니다.'); return
     } finally { setBusy(false) }
     setNotice('이메일 인증을 완료하면 회원가입이 자동으로 완료됩니다.')
   }
   function selectProfileImage(file: File | null) {
+    formRevision.current += 1
     if (signupCoordinator.awaitingEmail) setNotice('프로필 이미지가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
     signupCoordinator.cancel(); setProfileImageError(''); setProfileImage(file)
   }
