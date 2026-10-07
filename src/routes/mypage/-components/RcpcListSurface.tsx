@@ -116,8 +116,8 @@ function RcpcProduct({ api, canEditAlias, item, mutations, onSelectedChange, sel
 }) {
   const alias = item.preference.alias?.trim()
   return <div className="rcpc-list__product" role="cell">
-    <input aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionFull && !selected} onChange={event => onSelectedChange(event.target.checked)} type="checkbox" />
     <strong>
+      <input aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionFull && !selected} onChange={event => onSelectedChange(event.target.checked)} type="checkbox" />
       {mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}
       {alias ? <span>{alias}</span> : null}
       {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
