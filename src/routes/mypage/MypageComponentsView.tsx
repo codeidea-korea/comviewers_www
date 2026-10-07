@@ -1,4 +1,5 @@
 import { useSession } from '@/app/session/SessionProvider'
+import { useAuthentication } from '@/app/session/AuthProvider'
 import { currentKstDate, dateRangeError, quickAccountDates } from './-components/accountDates'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -77,7 +78,7 @@ export function MyPageMobileFilterSheet({ items = ['RCPC', '서버 위치', '서
   )
 }
 
-export function MyPageMobileHeader({ menuOpen = false, onBack, onMenuToggle, onSearchOpen, showMenu = true, showSearch = true, title = 'MYPAGE' }: { menuOpen?: boolean; onBack?: () => void; onMenuToggle?: () => void; onSearchOpen?: () => void; showMenu?: boolean; showSearch?: boolean; title?: string }) {
+export function MyPageMobileHeader({ exitLabel = '쇼핑몰', menuOpen = false, onBack, onExit, onMenuToggle, onSearchOpen, showMenu = true, showSearch = true, title = 'MYPAGE' }: { exitLabel?: string; menuOpen?: boolean; onBack?: () => void; onExit?: () => void; onMenuToggle?: () => void; onSearchOpen?: () => void; showMenu?: boolean; showSearch?: boolean; title?: string }) {
   return (
     <header className={`mypage-mobile-header${menuOpen ? ' is-menu-open' : ''}`}>
       {menuOpen
@@ -87,6 +88,7 @@ export function MyPageMobileHeader({ menuOpen = false, onBack, onMenuToggle, onS
           <span>{title}</span>
         </button>}
       <div className="mypage-mobile-header__actions">
+        {onExit ? <button className="mypage-mobile-header__exit" onClick={onExit} type="button">{exitLabel}</button> : <Link className="mypage-mobile-header__exit" to="/">{exitLabel}</Link>}
         {showSearch && !menuOpen ? <button aria-controls="mypage-mobile-search" aria-label="품번 검색 열기" className="mobile-icon-button" onClick={onSearchOpen} type="button"><img alt="" src={searchIcon} /></button> : null}
         {showMenu ? <button aria-controls="mypage-mobile-menu" aria-expanded={menuOpen} aria-label={menuOpen ? '마이페이지 메뉴 닫기' : '마이페이지 메뉴 열기'} className={`mypage-mobile-menu-toggle${menuOpen ? ' is-open' : ''}`} onClick={onMenuToggle} type="button">{menuOpen ? <img alt="" src={closeIcon} /> : <><span /><span /><span /></>}</button> : null}
       </div>
@@ -98,6 +100,7 @@ export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?:
   const { pathname, search, hash, state } = useLocation()
   const profileEntryState = pathname === '/mypage/profile' ? state : { openProfilePasswordGate: true, returnTo: `${pathname}${search}${hash}` }
   const navigate = useNavigate()
+  const auth = useAuthentication()
   const session = useSession()
   const capability = session.status === 'authenticated' ? session.customerSession : null
   const isManager = capability?.myPageOnly === true
@@ -135,21 +138,31 @@ export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?:
     const scopedHref = managerScopedPath(href, pathname)
     return pathname === scopedHref || pathname.startsWith(`${scopedHref}/`)
   }
+  const myPageHome = managerScopedPath('/mypage', pathname)
+  const exitMyPage = () => { void auth.logout().then(() => navigate('/')).catch(() => navigate('/')) }
 
   return (
     <AppShell className="mypage-shell" showHeader={!isManager}>
       <MyPageMobileHeader
+        exitLabel={isManager ? '로그아웃' : '쇼핑몰'}
         menuOpen={mobileMenuOpen}
         onBack={() => {
+          if (pathname === myPageHome) {
+            if (isManager) exitMyPage()
+            else navigate('/')
+            return
+          }
           const index = (window.history.state as { idx?: number } | null)?.idx
-          if (backTo && !(typeof index === 'number' && index > 0)) navigate(backTo)
-          else navigate(-1)
+          if (typeof index === 'number' && index > 0) navigate(-1)
+          else navigate(backTo ? managerScopedPath(backTo, pathname) : myPageHome)
         }}
+        onExit={isManager ? exitMyPage : undefined}
         onMenuToggle={() => { setMobileSearchOpen(false); setMobileMenuOpen((current) => !current) }}
         onSearchOpen={() => { setMobileMenuOpen(false); setMobileSearchOpen(true) }}
       />
       {mobileMenuOpen ? <nav aria-label="모바일 마이페이지 메뉴" className="mypage-mobile-menu" id="mypage-mobile-menu">
         <ManualTranslationControls />
+        {isManager ? <button className="mypage-mobile-menu__exit" onClick={exitMyPage} type="button">로그아웃</button> : <Link className="mypage-mobile-menu__exit" onClick={() => setMobileMenuOpen(false)} to="/">쇼핑몰 홈으로 이동</Link>}
         {menu.map((group) => (
           <section className={group.items.length ? 'has-children' : ''} key={group.id}>
             <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link onClick={() => setMobileMenuOpen(false)} className={isCurrentMenuPath(group.href) ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>

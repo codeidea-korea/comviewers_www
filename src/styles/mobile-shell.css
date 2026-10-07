@@ -264,7 +264,20 @@
   .mypage-mobile-header__actions {
     align-items: center;
     display: flex;
-    gap: 12px;
+    gap: 8px;
+  }
+  .mypage-mobile-header__exit {
+    align-items: center;
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 4px;
+    color: var(--color-black);
+    display: inline-flex;
+    font-size: 12px;
+    height: 32px;
+    justify-content: center;
+    min-width: 48px;
+    padding: 0 6px;
   }
   .mypage-mobile-header__title {
     color: #212121;
@@ -328,6 +341,18 @@
     padding: 0 12px 40px;
     position: fixed;
     z-index: 31;
+  }
+  .mypage-mobile-menu__exit {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-gray-200);
+    color: var(--color-black);
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 20px 0;
+    text-align: left;
+    width: 100%;
   }
   .mypage-mobile-menu section {
     border-bottom: 1px solid #eee;
