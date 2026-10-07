@@ -65,10 +65,10 @@ type CatalogFilterGroup = CatalogFilterMetadata['groups'][number]
 
 const PRICE_RANGE_INITIAL_PERCENT = 60
 const PRICE_RANGE_PRESETS = [
-  { label: '전체', percent: PRICE_RANGE_INITIAL_PERCENT },
-  { label: '일반 사양', min: 30000, max: 70000, percent: 34.2857142857 },
-  { label: '고사양', min: 80000, max: 150000, percent: 65 },
-  { label: '전문가용', min: 160000, max: 500000, percent: 100 },
+  { label: '전체' },
+  { label: '일반 사양', min: 30000, max: 70000 },
+  { label: '고사양', min: 80000, max: 150000 },
+  { label: '전문가용', min: 160000, max: 500000 },
 ]
 
 function priceFromRangePercent(percent: number) {
@@ -98,7 +98,7 @@ function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'mo
     ? Math.max(0, Math.min(100, (amount - unitMin) / (unitMax - unitMin) * 100))
     : Math.max(0, Math.min(100, amount <= 100000 ? (amount - 30000) / 70000 * 60 : 60 + (amount - 100000) / 400000 * 40))
   const selectedMinPercent = selectedMinAmount === undefined ? 0 : percentFromAmount(selectedMinAmount)
-  const selectedMaxPercent = selectedMaxAmount === undefined ? (priceBasis === 'unit' || selectedMinAmount !== undefined ? 100 : PRICE_RANGE_INITIAL_PERCENT) : percentFromAmount(selectedMaxAmount)
+  const selectedMaxPercent = selectedMaxAmount === undefined ? 100 : percentFromAmount(selectedMaxAmount)
   const [draftRange, setDraftRange] = useState<{ min: number; max: number } | null>(null)
   useEffect(() => { setDraftRange(null) }, [selectedMaxAmount, selectedMinAmount, priceBasis])
   const minPercent = draftRange?.min ?? selectedMinPercent
@@ -108,12 +108,18 @@ function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'mo
     : priceFromRangePercent(value)
   const minAmount = amountFromPercent(minPercent)
   const maxAmount = amountFromPercent(maxPercent)
-  const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && preset.min === selectedMinAmount && preset.max === selectedMaxAmount)?.label ?? '전체'
+  const activePreset = selectedValues.length === 0 ? '전체' : PRICE_RANGE_PRESETS.find((preset) => preset.label !== '전체' && preset.min === selectedMinAmount && preset.max === selectedMaxAmount)?.label
   const commitRange = (handle: 'min' | 'max', percent: number) => {
     if (draftRange === null) return
-    const nextMin = amountFromPercent(handle === 'min' ? percent : draftRange.min)
-    const nextMax = amountFromPercent(handle === 'max' ? percent : draftRange.max)
+    const nextMinPercent = handle === 'min' ? percent : draftRange.min
+    const nextMaxPercent = handle === 'max' ? percent : draftRange.max
     setDraftRange(null)
+    if (nextMinPercent === 0 && nextMaxPercent === 100) {
+      onSelectionChange([])
+      return
+    }
+    const nextMin = amountFromPercent(nextMinPercent)
+    const nextMax = amountFromPercent(nextMaxPercent)
     onSelectionChange([String(Math.min(nextMin, nextMax)), String(Math.max(nextMin, nextMax))])
   }
 
@@ -212,7 +218,7 @@ function FilterMenu({ menu, isOpen, onToggle, selectedValues, onSelectionChange,
     : selectedValues.filter((value) => value !== label))
 
   return (
-    <ProductFilterMenuFrame count={selectedCount} id={menu.id} isOpen={isOpen} label={menu.label} onSelectAll={(checked) => onSelectionChange(checked ? (isRange ? ['100000'] : optionLabels) : [])} onToggle={onToggle} selected={selected}>
+    <ProductFilterMenuFrame count={selectedCount} id={menu.id} isOpen={isOpen} label={menu.label} onSelectAll={(checked) => onSelectionChange(checked && !isRange ? optionLabels : [])} onToggle={onToggle} selected={selected}>
       {menu.type === 'range' ? (
         <ProductPriceRange onSelectionChange={onSelectionChange} selectedValues={selectedValues} />
       ) : (
@@ -280,7 +286,7 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
     {controls.filterMetadataError ? <p role="alert">검색 조건을 불러오지 못했습니다. <button className="product-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}>다시 시도</button></p> : null}
     <section className="product-filter__section"><h2>이용 조건</h2>
       <ProductFilterMenuFrame count={Number(selected.minPrice !== undefined || selected.maxPrice !== undefined)} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
-        onSelectAll={(checked) => update({ priceBasis, minPrice: undefined, maxPrice: checked ? (priceBasis === 'unit' ? unitBounds?.max ?? 500000 : 100000) : undefined })}
+        onSelectAll={() => update({ priceBasis, minPrice: undefined, maxPrice: undefined })}
         onToggle={() => toggleMenu(priceMenuId)} selected={selected.minPrice !== undefined || selected.maxPrice !== undefined}>
         <ProductPriceRange priceBasis={priceBasis} unitBounds={unitBounds} selectedValues={selected.minPrice === undefined && selected.maxPrice === undefined ? [] : [selected.minPrice === undefined ? '' : String(selected.minPrice), selected.maxPrice === undefined ? '' : String(selected.maxPrice)]}
           onSelectionChange={(values) => update({ priceBasis, minPrice: values.length > 1 ? priceSelectionValue(values[0]) : undefined, maxPrice: values.length > 1 ? priceSelectionValue(values[1]) : priceSelectionValue(values[0]) })} />
