@@ -18,6 +18,7 @@ import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
 import { InquiryDialog } from './InquiryDialog'
 import { InquiryConversationDialog } from './InquiryConversationDialog'
 import { InquiryAction } from './InquiryAction'
+import { useMobileInquiryViewport } from './inquiryViewport'
 import { inquiryTypes, inquiryTypeLabel } from '../InquiryPresentation'
 
 const statuses = [
@@ -82,8 +83,10 @@ export function InquiryDetailContent({ api, rcpcApi }: { api: InquiryReadService
   const { inquiryId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const mobile = useMobileInquiryViewport()
   const id = Number(inquiryId)
   const valid = /^[1-9]\d*$/.test(inquiryId ?? '') && Number.isSafeInteger(id)
   if (!valid) return <MyPageLayout title="문의 상세"><p>올바른 문의 주소가 아닙니다.</p></MyPageLayout>
+  if (mobile) return <main className="inquiry-mobile-page"><InquiryConversationDialog api={api} id={id} standalone onClose={() => { void navigate(managerScopedPath('/mypage/inquiries', location.pathname)) }}/></main>
   return <InquiryListContent api={api} rcpcApi={rcpcApi} detailId={id} onCloseDetail={() => { void navigate(managerScopedPath('/mypage/inquiries', location.pathname)) }}/>
 }

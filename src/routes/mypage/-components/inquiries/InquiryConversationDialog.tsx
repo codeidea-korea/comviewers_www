@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { DialogLayer } from '@/components/ui/DialogLayerControl'
 import { Button } from '@/components/ui/ButtonControl'
 import { useSession } from '@/app/session/SessionProvider'
 import modalClose from '@/assets/figma/inquiry-modal-close.svg'
+import backChevron from '@/assets/figma/chevron-left.svg'
 import moreVertical from '@/assets/figma/comment-more-fill.svg'
 import productThumb from '@/assets/figma/windows-card-render.png'
 import { AccountQueryState } from '../AccountQueryState'
@@ -13,6 +15,7 @@ import { inquiryTypeLabel } from '../InquiryPresentation'
 import { InquiryTargetAddition } from '../InquiryTargetAddition'
 import { InquiryAttachments, InquiryAttachmentDownload, type InquiryDraftAttachment } from '../InquiryAttachments'
 import { RefundDetail } from '../InquiryRefundRequests'
+import { managerScopedPath } from '../managerPortalPath'
 
 const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
 
@@ -27,11 +30,17 @@ function InquiryChatProduct({ target, onSelect }: { target: ChatTarget; onSelect
   </article>
 }
 
-export function InquiryConversationDialog({ api, id, onClose }: { api: InquiryReadServices; id: number; onClose: () => void }) {
+export function InquiryConversationDialog({ api, id, onClose, standalone = false }: { api: InquiryReadServices; id: number; onClose: () => void; standalone?: boolean }) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [activeId, setActiveId] = useState(id)
-  return <InquiryChat key={`${api.organizationId}:${activeId}`} api={api} id={activeId} onClose={onClose} onSelectInquiry={setActiveId} />
+  const selectInquiry = (nextId: number) => {
+    if (standalone) navigate(managerScopedPath(`/mypage/inquiries/${nextId}`, location.pathname), { replace: true })
+    else setActiveId(nextId)
+  }
+  return <InquiryChat key={`${api.organizationId}:${standalone ? id : activeId}`} api={api} id={standalone ? id : activeId} onClose={onClose} onSelectInquiry={selectInquiry} standalone={standalone} />
 }
-function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadServices; id: number; onClose: () => void; onSelectInquiry: (id: number) => void }) {
+function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: InquiryReadServices; id: number; onClose: () => void; onSelectInquiry: (id: number) => void; standalone: boolean }) {
   const session = useSession()
   const isManager = session.status === 'authenticated' && session.role === 'C_MANAGER'
   const client = useQueryClient()
@@ -112,13 +121,13 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
   }
   const close = onClose
   const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : '문의'
-  return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title="문의 상세">
-    <section aria-modal="true" className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role="dialog" tabIndex={-1}>
+  const conversation = <section aria-label={standalone ? '문의 상세' : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>
+        {standalone ? <button aria-label="문의 목록으로" onClick={close} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}
         {chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap((target) => target.pcAssetId === null ? [] : [target.pcAssetId])} total={chat.data.operationRequest.targets.length} closed={closed}/> : <span/>}
         <h2>[{chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] {type}</h2>
         <button aria-expanded={productMenuOpen} aria-label="문의 상품 보기" className="inquiry-chat__products-trigger" disabled={!chat.data?.operationRequest.targets.length} onClick={() => setProductMenuOpen((open) => !open)} type="button"><img alt="" src={moreVertical}/></button>
-        <button aria-label="닫기" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
+        {!standalone ? <button aria-label="닫기" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button> : null}
       </header>
       {productMenuOpen && chat.data ? <div className="inquiry-chat__products-menu" role="menu"><strong>문의 상품 {chat.data.operationRequest.targets.length}개</strong>{chat.data.operationRequest.targets.map((target, index) => <button disabled={!target.productNo} key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} onClick={() => { if (target.productNo) { setProductMenuOpen(false); setProductConversation(target.productNo) } }} role="menuitem" type="button"><span>{target.productNo ? `${target.alias ? `${target.alias}·` : ''}${target.productNo}` : '상품 정보 없음'}</span><small>{target.serverRoomName ?? '서버실 정보 없음'}</small></button>)}</div> : null}
       <div className="inquiry-chat__scroll" ref={scrollRef}>
@@ -161,5 +170,5 @@ function InquiryChat({ api, id, onClose, onSelectInquiry }: { api: InquiryReadSe
         {send.isError ? <p role="alert">{send.error.message}</p> : null}
       </form>) : null}
     </section>
-  </DialogLayer>
+  return standalone ? conversation : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title="문의 상세">{conversation}</DialogLayer>
 }
