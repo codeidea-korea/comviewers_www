@@ -1,4 +1,30 @@
 @media (max-width: 767px) {
+  .mypage-shell .mypage-layout {
+    padding-block: 24px 64px;
+  }
+
+  .mypage-shell .mypage-tabs {
+    height: auto;
+    min-height: 48px;
+    overflow: visible;
+    width: 100%;
+  }
+  .mypage-shell .mypage-tabs > :is(a, button) {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    line-height: 1.4;
+    min-height: 48px;
+    min-width: 0;
+    padding: 8px 4px;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .mypage-shell .manager-catalog--mypage,
+  .mypage-shell .manager-catalog--mypage .manager-catalog__body {
+    height: auto;
+  }
+
   .mypage-shell .mypage-layout:has(:is(.orders-catalog-list, .storage-catalog, .points-catalog, .coupons-available, .coupons-history, .profile-settings-page, .extension-checkout)) .mypage-title {
     display: block;
     font-size: 18px;
