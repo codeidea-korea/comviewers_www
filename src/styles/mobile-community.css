@@ -1,0 +1,70 @@
+@media (max-width: 767px) {
+  .community-shell .community-hero:not(.community-hero--support) {
+    border-bottom-width: 4px;
+    box-sizing: border-box;
+    height: clamp(160px, 44vw, 210px);
+    min-height: 0;
+  }
+
+  .community-shell .community-hero:not(.community-hero--support) > .content-container { transform: none; }
+  .community-shell .community-hero:not(.community-hero--support) h1 { font-size: 26px; line-height: 1.25; }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container {
+    padding-top: 24px;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .community-tabs {
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar {
+    align-items: center;
+    display: grid;
+    gap: 16px 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar > span {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar__controls { display: contents; }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar__sort {
+    grid-column: 2;
+    grid-row: 1;
+    height: 40px;
+    width: 124px;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar__sort select {
+    font-size: 16px;
+    height: 39px;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar__sort img { top: 16px; }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar__search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: 44px;
+    width: 100%;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar__search input {
+    font-size: 16px;
+    height: 43px;
+  }
+
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar .board-write-button {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    height: 44px;
+    width: 100%;
+  }
+}

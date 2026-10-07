@@ -12,6 +12,7 @@
 @import './mobile-lists.css';
 @import './mobile-flows.css';
 @import './mobile-inquiry-chat.css';
+@import './mobile-community.css';
 
 /* Dialogs are portalled to document.body. Let fixed positioning resolve
    every edge from the real viewport instead of a dynamic viewport unit. */
