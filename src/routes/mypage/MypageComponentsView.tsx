@@ -94,7 +94,7 @@ export function MyPageMobileHeader({ menuOpen = false, onBack, onMenuToggle, onS
   )
 }
 
-export function MyPageLayout({ backTo, children, title }: { backTo?: string; children: ReactNode; title?: string }) {
+export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?: string; children: ReactNode; title?: string; wideHeader?: ReactNode }) {
   const { pathname, search, hash, state } = useLocation()
   const profileEntryState = pathname === '/mypage/profile' ? state : { openProfilePasswordGate: true, returnTo: `${pathname}${search}${hash}` }
   const navigate = useNavigate()
@@ -161,6 +161,7 @@ export function MyPageLayout({ backTo, children, title }: { backTo?: string; chi
           </section>
         ))}
       </nav> : null}
+      {wideHeader ? <div className="mypage-wide-header content-container">{wideHeader}</div> : null}
       <div className="mypage-layout content-container">
         <aside className="mypage-sidebar">
           <Link className="mypage-sidebar__eyebrow" to="/mypage">MYPAGE</Link>

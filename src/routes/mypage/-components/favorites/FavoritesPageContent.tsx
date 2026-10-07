@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { InquiryAction } from '../inquiries/InquiryAction'
 import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -20,6 +20,10 @@ import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
 import { useSession } from '@/app/session/SessionProvider'
 import { canManageFavorites, FavoritesManageOnly } from '../favoritesAccess'
 import { orderFavoriteGroups } from './orderFavoriteGroups'
+import groupUnfoldIcon from '@/assets/figma/favorites-group-unfold.svg'
+import groupSettingsIcon from '@/assets/figma/favorites-group-settings.svg'
+import groupCheckIcon from '@/assets/figma/favorites-group-check.svg'
+import groupChevronUpIcon from '@/assets/figma/favorites-group-chevron-up.svg'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type GroupSelection = 'all' | 'unclassified' | number
@@ -28,6 +32,10 @@ const groupQueryKey = (organizationId: string) => ['my-rcpc-groups', organizatio
 
 function flattenGroups(groups: readonly SavedRcpcGroup[]): SavedRcpcGroup[] {
   return groups.flatMap((group) => [group, ...group.children])
+}
+
+function groupFavoriteCount(group: SavedRcpcGroup): number {
+  return group.rcpcCount + group.children.reduce((total, child) => total + child.rcpcCount, 0)
 }
 
 function mutationMessage(error: Error | null): string | null {
@@ -81,7 +89,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       id: String(group.id),
       label: group.name,
       parentId: group.parentGroupId === null ? null : String(group.parentGroupId),
-      count: group.parentGroupId === null ? group.rcpcCount + group.children.reduce((total, child) => total + child.rcpcCount, 0) : group.rcpcCount,
+      count: group.parentGroupId === null ? groupFavoriteCount(group) : group.rcpcCount,
     })),
   ]
   const inquiryTargets = (rowsData?.items ?? []).filter(item => visibleSelection.has(item.rentalId) && !endedRental(item.rentalStatus)).slice(0, 20)
@@ -132,32 +140,31 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   const openNewGroup = () => { assignment.reset(); createGroup.reset(); setAssigning(false); setCreating(true) }
   const closeNewGroup = () => { if (!createGroup.isPending) { createGroup.reset(); setCreating(false) } }
 
-  return <MyPageLayout title="즐겨찾기">
+  const selectGroup = (groupId: GroupSelection) => {
+    setSelectedGroup(groupId)
+    setPage(0)
+    setSelectedRentals(new Set())
+  }
+
+  return <MyPageLayout wideHeader={<FavoritesGroupToolbar canManage={canManage} groups={groupsData ?? []} onSelect={selectGroup} onSettings={() => setEditing(true)} selectedGroup={selectedGroup} selectedGroupLabel={selectedGroupLabel} unclassifiedCount={unclassifiedCount ?? null} />}>
     {accessDenied ? <AccountReadDeniedDialog key={api.organizationId} resource="즐겨찾기" /> : <AccountQueryState pending={groups.isPending || rows.isPending} error={groups.error ?? rows.error} retry={() => { void groups.refetch(); void rows.refetch() }} />}
     {!accessDenied && available.error ? <p role="alert">서버 위치·미분류 수량을 조회하지 못했습니다. <button type="button" onClick={() => void available.refetch()}>다시 시도</button></p> : null}
     <div className="favorites-page">
     {groupsData && canManage && editing ? <section className="favorites-mobile-settings">
       <div className="favorites-mobile-settings__actions"><button form="favorite-groups-editor" type="submit">저장</button><button type="button" onClick={openNewGroup}>추가</button></div>
       <div className="favorites-mobile-settings__tree">
-        {groupsData.map(group => <section key={group.id}><strong>{group.name}<small>{group.rcpcCount + group.children.reduce((total, child) => total + child.rcpcCount, 0)}</small></strong>{group.children.map(child => <span className={selectedGroup === child.id ? 'is-active' : undefined} key={child.id}>{child.name}<small>{child.rcpcCount}</small></span>)}</section>)}
+        {groupsData.map(group => <section key={group.id}><strong>{group.name}<small>{groupFavoriteCount(group)}</small></strong>{group.children.map(child => <span className={selectedGroup === child.id ? 'is-active' : undefined} key={child.id}>{child.name}<small>{child.rcpcCount}</small></span>)}</section>)}
         <section><strong>미분류<small>{unclassifiedCount ?? '-'}</small></strong></section>
       </div>
       <p>즐겨찾기 그룹을 추가·수정·삭제할 수 있습니다. 삭제된 그룹에 있던 RCPC는 미분류로 이동합니다.</p>
     </section> : groupsData ? <div className="favorites-mobile-group-control"><strong>즐겨찾기 그룹</strong><span><button disabled={accessDenied} aria-expanded={!accessDenied && mobileGroupOpen} aria-haspopup="dialog" onClick={() => setMobileGroupOpen(true)} type="button">{selectedGroupLabel}</button><button aria-label="즐겨찾기 그룹 설정" disabled={!canManage} onClick={() => setEditing(true)} type="button">설정</button></span></div> : null}
-    {!accessDenied && groupsData ? <MobileFavoriteGroupPicker groups={groupsData} isOpen={mobileGroupOpen} selectedGroup={selectedGroup} unclassifiedCount={unclassifiedCount ?? null} onClose={() => setMobileGroupOpen(false)} onSelect={(groupId) => { setSelectedGroup(groupId); setPage(0); setSelectedRentals(new Set()); setMobileGroupOpen(false) }}/> : null}
+    {!accessDenied && groupsData ? <MobileFavoriteGroupPicker groups={groupsData} isOpen={mobileGroupOpen} selectedGroup={selectedGroup} unclassifiedCount={unclassifiedCount ?? null} onClose={() => setMobileGroupOpen(false)} onSelect={(groupId) => { selectGroup(groupId); setMobileGroupOpen(false) }}/> : null}
     {canManage ? <NewFavoritesGroupDialog error={mutationMessage(createGroup.error) ?? undefined} groups={visualGroups} isOpen={creating} onAdd={(name, parentId) => createGroup.mutate({ name, parentId })} onClose={closeNewGroup} pending={createGroup.isPending} /> : null}
     <div className="favorites-layout">
-    {groupsData ? <aside className="favorites-groups">
-      <div><strong>그룹</strong><FavoritesManageOnly allowed={canManage}><span>{editing
-        ? <button form="favorite-groups-editor" type="submit">저장</button>
-        : <Link onClick={() => setEditing(true)} to="/mypage/favorites/settings">편집</Link>}<button type="button" onClick={openNewGroup}>추가</button></span></FavoritesManageOnly></div>
+    {groupsData && canManage && editing ? <aside className="favorites-groups">
+      <div><strong>그룹</strong><span><button form="favorite-groups-editor" type="submit">저장</button><button type="button" onClick={openNewGroup}>추가</button></span></div>
       <section aria-label="즐겨찾기 그룹 선택" className="favorites-groups__tree">
-        {canManage && editing ? <LiveGroupManager groups={groupsData} mutations={mutations} onDeleted={(groupId) => { if (selectedGroup === groupId || groupsData?.find(group => group.id === groupId)?.children.some(child => child.id === selectedGroup)) setSelectedGroup('all') }} onChanged={refresh} onSaved={() => setEditing(false)} unclassifiedCount={unclassifiedCount ?? null}/>
-          : <>{groupsData.map((group) => <div key={group.id}>
-              <button aria-pressed={selectedGroup === group.id} onClick={() => { setSelectedGroup(group.id); setPage(0); setSelectedRentals(new Set()) }} type="button">{group.name} ({group.rcpcCount + group.children.reduce((total, child) => total + child.rcpcCount, 0)})</button>
-              {group.children.map((child) => <button aria-pressed={selectedGroup === child.id} key={child.id} onClick={() => { setSelectedGroup(child.id); setPage(0); setSelectedRentals(new Set()) }} type="button">└ {child.name} ({child.rcpcCount})</button>)}
-            </div>)}
-            <button type="button" disabled={accessDenied} aria-pressed={!accessDenied && selectedGroup === 'unclassified'} onClick={() => { setSelectedGroup('unclassified'); setPage(0); setSelectedRentals(new Set()) }}>미분류 ({unclassifiedCount ?? '-'})</button></>}
+        <LiveGroupManager groups={groupsData} mutations={mutations} onDeleted={(groupId) => { if (selectedGroup === groupId || groupsData?.find(group => group.id === groupId)?.children.some(child => child.id === selectedGroup)) selectGroup('all') }} onChanged={refresh} onSaved={() => setEditing(false)} unclassifiedCount={unclassifiedCount ?? null}/>
       </section>
     </aside> : null}
     <section aria-label="즐겨찾기 RCPC 목록" className="favorites-results" id="favorites-results">
@@ -174,14 +181,67 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   </MyPageLayout>
 }
 
+function FavoritesGroupToolbar({ canManage, groups, onSelect, onSettings, selectedGroup, selectedGroupLabel, unclassifiedCount }: { canManage: boolean; groups: readonly SavedRcpcGroup[]; onSelect: (groupId: GroupSelection) => void; onSettings: () => void; selectedGroup: GroupSelection; selectedGroupLabel: string; unclassifiedCount: number | null }) {
+  const [open, setOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState<ReadonlySet<number>>(() => new Set())
+  const toolbarRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !toolbarRef.current?.contains(event.target)) setOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [open])
+
+  const choose = (groupId: GroupSelection) => {
+    onSelect(groupId)
+    setOpen(false)
+  }
+  const toggle = (groupId: number) => setCollapsed(current => {
+    const next = new Set(current)
+    if (next.has(groupId)) next.delete(groupId)
+    else next.add(groupId)
+    return next
+  })
+  const totalCount = groups.reduce((total, group) => total + groupFavoriteCount(group), unclassifiedCount ?? 0)
+
+  return <div className="favorites-group-toolbar" ref={toolbarRef}>
+    <h1>즐겨찾기 그룹</h1>
+    <div className="favorites-group-toolbar__picker">
+      <button aria-controls="favorites-group-menu" aria-expanded={open} aria-haspopup="true" className="favorites-group-toolbar__trigger" onClick={() => setOpen(current => !current)} type="button">{selectedGroupLabel}<img alt="" src={groupUnfoldIcon} /></button>
+      {open ? <div aria-label="즐겨찾기 그룹 선택" className="favorites-group-menu" id="favorites-group-menu">
+        <button aria-pressed={selectedGroup === 'all'} className="favorites-group-menu__root" onClick={() => choose('all')} type="button"><span>전체 ({totalCount})</span>{selectedGroup === 'all' ? <img alt="" className="favorites-group-menu__check" src={groupCheckIcon} /> : null}</button>
+        {groups.map(group => <section className="favorites-group-menu__section" key={group.id}>
+          <div className="favorites-group-menu__parent">
+            <button aria-pressed={selectedGroup === group.id} onClick={() => choose(group.id)} type="button"><span>{group.name} ({groupFavoriteCount(group)})</span>{selectedGroup === group.id ? <img alt="" className="favorites-group-menu__check" src={groupCheckIcon} /> : null}</button>
+            {group.children.length ? <button aria-label={`${group.name} 하위 그룹 ${collapsed.has(group.id) ? '펼치기' : '접기'}`} aria-expanded={!collapsed.has(group.id)} className={`favorites-group-menu__expand${collapsed.has(group.id) ? ' is-collapsed' : ''}`} onClick={() => toggle(group.id)} type="button"><img alt="" src={groupChevronUpIcon} /></button> : null}
+          </div>
+          {!collapsed.has(group.id) && group.children.length ? <div className="favorites-group-menu__children">{group.children.map(child => <button aria-pressed={selectedGroup === child.id} key={child.id} onClick={() => choose(child.id)} type="button"><span>{child.name} ({child.rcpcCount})</span>{selectedGroup === child.id ? <img alt="" className="favorites-group-menu__check" src={groupCheckIcon} /> : null}</button>)}</div> : null}
+        </section>)}
+        <button aria-pressed={selectedGroup === 'unclassified'} className="favorites-group-menu__root" onClick={() => choose('unclassified')} type="button"><span>미분류 ({unclassifiedCount ?? '-'})</span>{selectedGroup === 'unclassified' ? <img alt="" className="favorites-group-menu__check" src={groupCheckIcon} /> : null}</button>
+      </div> : null}
+    </div>
+    {canManage ? <Link className="favorites-group-toolbar__settings" onClick={onSettings} to="/mypage/favorites/settings">그룹 설정<img alt="" src={groupSettingsIcon} /></Link> : null}
+  </div>
+}
+
 function MobileFavoriteGroupPicker({ groups, isOpen, onClose, onSelect, selectedGroup, unclassifiedCount }: { groups: readonly SavedRcpcGroup[]; isOpen: boolean; onClose: () => void; onSelect: (groupId: GroupSelection) => void; selectedGroup: GroupSelection; unclassifiedCount: number | null }) {
   if (!isOpen) return null
   return <div className="favorites-mobile-picker-layer" role="presentation" onClick={onClose}>
     <section aria-label="즐겨찾기 그룹 선택" aria-modal="true" className="favorites-mobile-picker" role="dialog" onClick={event => event.stopPropagation()}>
       <span className="favorites-mobile-picker__handle" aria-hidden="true"/>
       <div className="favorites-mobile-picker__list">
-        <section><button className={selectedGroup === 'all' ? 'is-selected' : undefined} onClick={() => onSelect('all')} type="button">전체<b>{groups.reduce((total, group) => total + group.rcpcCount + group.children.reduce((childTotal, child) => childTotal + child.rcpcCount, 0), unclassifiedCount ?? 0)}</b></button></section>
-        {groups.map(group => <section key={group.id}><button className={selectedGroup === group.id ? 'is-selected' : undefined} onClick={() => onSelect(group.id)} type="button">{group.name}<b>{group.rcpcCount + group.children.reduce((total, child) => total + child.rcpcCount, 0)}</b></button>{group.children.length ? <div>{group.children.map(child => <button className={selectedGroup === child.id ? 'is-selected' : undefined} key={child.id} onClick={() => onSelect(child.id)} type="button">└ {child.name} ({child.rcpcCount})</button>)}</div> : null}</section>)}
+        <section><button className={selectedGroup === 'all' ? 'is-selected' : undefined} onClick={() => onSelect('all')} type="button">전체<b>{groups.reduce((total, group) => total + groupFavoriteCount(group), unclassifiedCount ?? 0)}</b></button></section>
+        {groups.map(group => <section key={group.id}><button className={selectedGroup === group.id ? 'is-selected' : undefined} onClick={() => onSelect(group.id)} type="button">{group.name}<b>{groupFavoriteCount(group)}</b></button>{group.children.length ? <div>{group.children.map(child => <button className={selectedGroup === child.id ? 'is-selected' : undefined} key={child.id} onClick={() => onSelect(child.id)} type="button">└ {child.name} ({child.rcpcCount})</button>)}</div> : null}</section>)}
         <section><button className={selectedGroup === 'unclassified' ? 'is-selected' : undefined} onClick={() => onSelect('unclassified')} type="button">미분류<b>{unclassifiedCount ?? '-'}</b></button></section>
       </div>
     </section>
