@@ -1,3 +1,7 @@
+/* The list keeps its desktop controls in place while mobile uses the list edges. */
+.board-page--community-posts .board-mine-toggle--mobile,
+.board-page--community-posts .board-write-button--mobile { display: none; }
+
 @media (max-width: 767px) {
   .community-shell .community-hero:not(.community-hero--support) {
     border-bottom-width: 4px;
@@ -61,10 +65,20 @@
     height: 43px;
   }
 
-  .community-shell:has(.community-hero:not(.community-hero--support)) .board-toolbar .board-write-button {
-    grid-column: 1 / -1;
-    grid-row: 3;
+  .board-page--community-posts .board-mine-toggle--mobile {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 16px auto;
+  }
+
+  .board-page--community-posts .board-mine-toggle--desktop,
+  .board-page--community-posts .board-toolbar .board-write-button { display: none; }
+
+  .board-page--community-posts .board-page__footer .board-write-button--mobile {
+    display: flex;
     height: 44px;
+    margin: 24px 0 0;
+    position: static;
     width: 100%;
   }
 }
