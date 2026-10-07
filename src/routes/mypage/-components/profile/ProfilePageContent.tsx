@@ -12,6 +12,7 @@ import { TextField } from '@/components/ui/TextFieldControl'
 import { ProfileEditor } from './ProfileEditor'
 import { useAuthentication, type SocialAuthProvider } from '@/app/session/AuthProvider'
 import { SocialLoginButtons } from '@/routes/auth/AuthComponentsView'
+import { consumeSocialProfileReauthEntry } from '@/routes/auth/socialProfileReauthEntry'
 
 type ProfileMutations = ReturnType<typeof createCustomerProfileMutations>
 
@@ -29,15 +30,17 @@ export function ProfilePageContent({ api, mutations, withdrawal }: { api: Pick<M
 function SocialProfileGate({ mutations, profile, withdrawal }: { mutations: ProfileMutations; profile: AccountProfileRead; withdrawal?: CustomerWithdrawalApi }) {
   const navigate = useNavigate()
   const auth = useAuthentication()
-  const status = useQuery({ queryKey: ['my-account', 'social-reauth-status', profile.username], queryFn: mutations.socialReauthStatus, refetchOnMount: 'always' })
-  const linked = useQuery({ queryKey: ['my-account', 'social-providers', profile.username], queryFn: () => auth.linkedSocialProviders(), enabled: status.data?.confirmed === false })
+  const [returnedFromSocialAuth] = useState(consumeSocialProfileReauthEntry)
+  const status = useQuery({ queryKey: ['my-account', 'social-reauth-status', profile.username], queryFn: mutations.socialReauthStatus, enabled: returnedFromSocialAuth, refetchOnMount: 'always' })
+  const offerReauth = !returnedFromSocialAuth || status.data?.confirmed === false || status.isError
+  const linked = useQuery({ queryKey: ['my-account', 'social-providers', profile.username], queryFn: () => auth.linkedSocialProviders(), enabled: offerReauth })
   const start = useMutation({ mutationFn: (provider: SocialAuthProvider) => mutations.startSocialReauth(provider), onSuccess: ({ authorizationUrl }) => window.location.assign(authorizationUrl) })
-  if (status.data?.confirmed && !status.isFetching) return <ConfirmedProfilePage profile={profile} mutations={mutations} withdrawal={withdrawal} currentPassword=""/>
+  if (returnedFromSocialAuth && status.data?.confirmed && !status.isFetching) return <ConfirmedProfilePage profile={profile} mutations={mutations} withdrawal={withdrawal} currentPassword=""/>
   return <Modal className="modal--social-reauth" isOpen title="간편 로그인으로 본인 확인" closeLabel="닫기" onClose={() => void navigate('/mypage')}><div className="popup-form"><p>회원님의 정보를 안전하게 보호하기 위해 가입한 간편 로그인 수단으로 다시 인증해 주세요.</p>
-    {status.isPending || status.isFetching || (status.data?.confirmed === false && linked.isPending) ? <p role="status">로그인 수단을 확인하고 있습니다.</p> : null}
+    {(returnedFromSocialAuth && (status.isPending || status.isFetching)) || linked.isPending ? <p role="status">로그인 수단을 확인하고 있습니다.</p> : null}
     {status.isError || linked.isError ? <p role="alert">본인 확인 정보를 불러오지 못했습니다. 다시 시도해 주세요.</p> : null}
-    {linked.data?.length === 0 ? <p role="alert">연결된 간편 로그인 수단이 없습니다.</p> : null}
-    {linked.data?.length ? <SocialLoginButtons allowedProviders={linked.data} onSelect={provider => { if (!start.isPending) start.mutate(provider) }} title="가입한 계정으로 인증"/> : null}
+    {offerReauth && linked.data?.length === 0 ? <p role="alert">연결된 간편 로그인 수단이 없습니다.</p> : null}
+    {offerReauth && linked.data?.length ? <SocialLoginButtons allowedProviders={linked.data} onSelect={provider => { if (!start.isPending) start.mutate(provider) }} title="가입한 계정으로 인증"/> : null}
     {start.isError ? <p role="alert">간편 로그인 인증을 시작하지 못했습니다. 다시 시도해 주세요.</p> : null}
   </div></Modal>
 }

@@ -1,11 +1,24 @@
-import { Navigate } from 'react-router'
-import { useEffect } from 'react'
+import { Navigate, useNavigate } from 'react-router'
+import { useEffect, useRef } from 'react'
 import { useAuthentication } from '@/app/session/AuthProvider'
 import { useSession } from '@/app/session/SessionProvider'
 import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import { AuthHeading, AuthPage, AuthPanel } from './AuthComponentsView'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { clearSocialLink } from './socialLinkIntent'
+import { markSocialProfileReauthEntry } from './socialProfileReauthEntry'
+
+function SocialProfileReauthReturn() {
+  const navigate = useNavigate()
+  const redirected = useRef(false)
+  useEffect(() => {
+    if (redirected.current) return
+    redirected.current = true
+    markSocialProfileReauthEntry()
+    void navigate('/mypage/profile', { replace: true })
+  }, [navigate])
+  return <LoadingState className="route-loading--compact" label="본인 확인을 완료하고 있습니다." />
+}
 
 export function SocialLoginCallbackPage() {
   const auth = useAuthentication()
@@ -18,7 +31,7 @@ export function SocialLoginCallbackPage() {
     return <Navigate replace to="/mypage" />
   }
   if (result === 'reauth_success' && !auth.restoring && session.status === 'authenticated') {
-    return <Navigate replace to="/mypage/profile" />
+    return <SocialProfileReauthReturn />
   }
 
   const waiting = (result === 'login' || result === 'reauth_success') && auth.restoring
