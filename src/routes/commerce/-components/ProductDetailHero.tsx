@@ -33,7 +33,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const specs = [['OS', product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
-        <div className="product-detail-visual"><img alt={product.image ? (product.title ?? `${product.os ?? ''} RCPC`) : part ? '기본 파트 상품 이미지' : '기본 RCPC 상품 이미지'} src={product.image ?? (part ? defaultPartProductImage : defaultProductImage)} />{!part && product.os?.includes("Windows") ? <img alt="Windows" src={windowsLogo} /> : null}</div>
+        <div className="product-detail-visual"><img alt={product.image ? (product.title ?? `${product.os ?? ''} RCPC`) : part ? '기본 파트 상품 이미지' : '기본 RCPC 상품 이미지'} src={product.image ?? (part ? defaultPartProductImage : defaultProductImage)} />{!part && product.os?.includes('Windows 11') ? <img alt="Windows 11" src={windowsLogo} /> : null}</div>
         <div className="product-detail-buy">
           <h1><span><span>품번</span><b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
           {part && <h2>{product.title ?? product.productId}</h2>}

@@ -183,7 +183,7 @@
 .product-detail-hero { display: grid; gap: 60px; grid-template-columns: 640px 500px; height: auto; min-height: 675px; margin-top: 20px; padding: 0; }
 .product-detail-visual { align-items: center; border-radius: 8px; display: flex; height: 342px; justify-content: center; overflow: hidden; position: relative; width: 640px; }
 .product-detail-visual > img:first-child { height: 100%; object-fit: cover; width: 100%; }
-.product-detail-visual > img:last-child { left: 50%; position: absolute; top: 50%; transform: translate(-50%,-50%); width: 305px; }
+.product-detail-visual > img + img { left: 50%; position: absolute; top: 50%; transform: translate(-50%,-50%); width: 305px; }
 .product-detail-buy { height: auto; min-height: 675px; position: relative; }
 .product-detail-buy h1 { align-items: flex-start; display: flex; flex-wrap: wrap; gap: 8px; height: auto; line-height: normal; margin: 0; min-height: 31px; }.product-detail-buy h1 > span { align-items: baseline; display: inline-flex; flex: 0 1 auto; font-size: clamp(14px, 2vw, 24px); font-weight: 400; gap: 8px; max-width: 100%; min-width: 0; overflow-x: auto; white-space: nowrap; }.product-detail-buy h1 > span b { flex: 0 0 auto; font-size: clamp(14px, 2vw, 26px); font-weight: 600; }.product-detail-buy h1 small { background: var(--color-gray-50); border-radius: 4px; color: var(--color-gray-600); flex: 0 1 auto; font-size: 14px; font-weight: 500; line-height: 17px; max-width: 100%; overflow-wrap: anywhere; padding: 4px 6px; }
 .product-detail-availability { align-items: center; color: var(--color-black); display: flex; font-size: 14px; gap: 6px; height: auto; line-height: 24px; margin: 6px 0 40px; min-height: 24px; }
