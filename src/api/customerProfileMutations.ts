@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { ApiClient } from './httpClient'
+import type { SocialAuthProvider } from '@/app/session/AuthProvider'
 
 // Image bytes are uploaded separately; this patch links only an owned clean attachment.
 export const customerProfilePatchSchema = z.object({
@@ -34,7 +35,17 @@ export function createCustomerProfileMutations(client: ApiClient) {
     },
     patch(input: CustomerProfilePatch) {
       return client.request('/api/v1/my/profile', savedCustomerProfileSchema, {
-        authenticated: true, method: 'PATCH', body: customerProfilePatchSchema.parse(input),
+        authenticated: true, includeCredentials: true, method: 'PATCH', body: customerProfilePatchSchema.parse(input),
+      })
+    },
+    socialReauthStatus() {
+      return client.request('/api/v1/my/social-reauth/status', z.object({ confirmed: z.boolean() }), {
+        authenticated: true, includeCredentials: true,
+      })
+    },
+    startSocialReauth(provider: SocialAuthProvider) {
+      return client.request(`/api/v1/my/social-reauth/${provider}`, z.object({ authorizationUrl: z.url() }), {
+        authenticated: true, includeCredentials: true, method: 'POST',
       })
     },
     confirmPassword(currentPassword: string) {
@@ -47,9 +58,9 @@ export function createCustomerProfileMutations(client: ApiClient) {
         .refine((value) => value.newPassword === value.newPasswordConfirm, { path: ['newPasswordConfirm'] }).parse(input)
       return client.request('/api/v1/my/password', z.undefined(), { authenticated: true, method: 'POST', body })
     },
-    requestEmailChange(input: { newEmail: string; currentPassword: string }) {
+    requestEmailChange(input: { newEmail: string; currentPassword?: string }) {
       return client.request('/api/v1/my/email-change/verifications', z.object({ requestId: z.string(), expiresAt: z.iso.datetime({ local: true }) }), {
-        authenticated: true, method: 'POST', body: z.object({ newEmail: z.email().max(255), currentPassword: z.string().min(1).max(100) }).parse(input),
+        authenticated: true, includeCredentials: true, method: 'POST', body: z.object({ newEmail: z.email().max(255), currentPassword: z.string().min(1).max(100).optional() }).parse(input),
       })
     },
     confirmEmailChange(verificationProof: string) {

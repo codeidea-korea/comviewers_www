@@ -20,7 +20,7 @@ const loginResponseSchema = z.object({
 }).refine((value) => value.passwordChangeRequired || Boolean(value.accessToken && value.tokenType === 'Bearer' && value.expiresInMs > 0))
 const organizationsSchema = z.array(z.object({ id: stringIdSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']), organizationNo: z.string().optional() }))
   .refine((values) => new Set(values.map((value) => value.id)).size === values.length)
-const socialSignupContextSchema = z.object({ provider: z.enum(['google', 'naver', 'kakao']), email: z.email().max(100), name: z.string().max(100).nullable() })
+const socialSignupContextSchema = z.object({ provider: z.enum(['google', 'naver', 'kakao']), email: z.email().max(100) })
 const socialProviderSchema = z.enum(['google', 'naver', 'kakao'])
 const socialSignupInputSchema = z.object({
   name: z.string().trim().min(1).max(18),

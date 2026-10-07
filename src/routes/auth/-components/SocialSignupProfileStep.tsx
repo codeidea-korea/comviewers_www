@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { z } from 'zod'
@@ -50,10 +50,6 @@ export function SocialSignupProfileStep() {
   const [imagePreview, setImagePreview] = useState(userProfileIcon)
   const [signedUp, setSignedUp] = useState(false)
   const uploadedImage = useRef<{ file: File; attachmentId: number } | null>(null)
-
-  useEffect(() => {
-    if (context.data?.name && !name) setName(context.data.name)
-  }, [context.data?.name, name])
 
   async function saveImage() {
     if (!imageFile) return
@@ -118,7 +114,7 @@ export function SocialSignupProfileStep() {
       <h2>회원정보 입력</h2>
       <ProfileImagePicker alt="선택한 프로필 이미지" disabled={busy} value={imagePreview} variant="auth"
         onSelect={(source, file) => { setImagePreview(source); setImageFile(file); setError('') }}/>
-      <TextField label="이름" name="name" maxLength={18} onChange={(event) => setName(event.target.value)} placeholder={context.data.name ?? '이름 입력'} required value={name} />
+      <TextField label="이름" name="name" maxLength={18} onChange={(event) => setName(event.target.value)} placeholder="이름 입력" required value={name} />
       <TextField label="닉네임" name="nickname" maxLength={18} onChange={(event) => setNickname(event.target.value)} required value={nickname} />
       <fieldset className="email-field"><legend><span className="required-mark">*</span>E-mail</legend><div className="email-field__row"><input aria-label="이메일 아이디" readOnly value={context.data.email.split('@')[0] ?? ''} /><span>@</span><input aria-label="이메일 도메인" readOnly value={context.data.email.split('@')[1] ?? ''} /><NativeSelect aria-label="이메일 도메인 선택" disabled value={context.data.email.split('@')[1] ?? ''}><option>{context.data.email.split('@')[1] ?? ''}</option></NativeSelect></div></fieldset>
       <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" name="phone-prefix" onChange={event => setPhone1(event.target.value)} value={phone1}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" maxLength={4} name="phone-middle" onChange={event => setPhone2(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" maxLength={4} name="phone-last" onChange={event => setPhone3(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone3} /></div></fieldset>

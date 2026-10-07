@@ -7,7 +7,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useSession, useSessionStore } from './SessionProvider'
 
 export type SocialAuthProvider = 'google' | 'naver' | 'kakao'
-export interface SocialSignupContext { provider: SocialAuthProvider; email: string; name: string | null }
+export interface SocialSignupContext { provider: SocialAuthProvider; email: string }
 export interface SocialSignupInput {
   name: string
   nickname: string

@@ -3,13 +3,13 @@
   padding: 0 140px;
 }
 
-.auth-page .social-login__buttons {
+.social-login--stacked .social-login__buttons {
   align-items: stretch;
   flex-direction: column;
   gap: 8px;
 }
 
-.auth-page .social-button {
+.social-login--stacked .social-button {
   border-radius: var(--radius-sm);
   flex-direction: row;
   font-size: 16px;
@@ -18,23 +18,23 @@
   padding: 0 16px;
 }
 
-.auth-page .social-button img {
+.social-login--stacked .social-button img {
   height: 20px;
   object-fit: contain;
   width: 20px;
 }
 
-.auth-page .social-button--google {
+.social-login--stacked .social-button--google {
   background: var(--color-black);
   color: var(--color-white);
 }
 
-.auth-page .social-button--naver {
+.social-login--stacked .social-button--naver {
   background: #03cf5d;
   color: var(--color-white);
 }
 
-.auth-page .social-button--kakao {
+.social-login--stacked .social-button--kakao {
   background: #fee500;
   color: var(--color-black);
 }

@@ -90,14 +90,14 @@ export function EmailAddressField({ domain, domainPlaceholder = '직접 입력',
   )
 }
 
-export function SocialLoginButtons({ disabledProvider, onSelect }: { disabledProvider?: SocialAuthProvider | null; onSelect: (provider: SocialAuthProvider) => void }) {
+export function SocialLoginButtons({ allowedProviders, disabledProvider, onSelect, title = '간편 로그인/회원가입' }: { allowedProviders?: readonly SocialAuthProvider[]; disabledProvider?: SocialAuthProvider | null; onSelect: (provider: SocialAuthProvider) => void; title?: string }) {
   return (
-    <div className="social-login">
-      <h2>간편 로그인/회원가입</h2>
+    <div className="social-login social-login--stacked">
+      <h2>{title}</h2>
       <div className="social-login__buttons">
-        <button className="social-button social-button--google" disabled={disabledProvider === 'google'} onClick={() => onSelect('google')} type="button"><img alt="" src={googleIcon} />Google 계정으로 로그인</button>
-        <button className="social-button social-button--naver" disabled={disabledProvider === 'naver'} onClick={() => onSelect('naver')} type="button"><img alt="" src={naverIcon} />네이버 계정으로 로그인</button>
-        <button className="social-button social-button--kakao" disabled={disabledProvider === 'kakao'} onClick={() => onSelect('kakao')} type="button"><img alt="" src={kakaoIcon} />카카오 계정으로 로그인</button>
+        {(!allowedProviders || allowedProviders.includes('google')) && <button className="social-button social-button--google" disabled={disabledProvider === 'google'} onClick={() => onSelect('google')} type="button"><img alt="" src={googleIcon} />Google 계정으로 로그인</button>}
+        {(!allowedProviders || allowedProviders.includes('naver')) && <button className="social-button social-button--naver" disabled={disabledProvider === 'naver'} onClick={() => onSelect('naver')} type="button"><img alt="" src={naverIcon} />네이버 계정으로 로그인</button>}
+        {(!allowedProviders || allowedProviders.includes('kakao')) && <button className="social-button social-button--kakao" disabled={disabledProvider === 'kakao'} onClick={() => onSelect('kakao')} type="button"><img alt="" src={kakaoIcon} />카카오 계정으로 로그인</button>}
       </div>
     </div>
   )
