@@ -66,7 +66,7 @@
 .step-tabs span { align-items: center; background: var(--color-gray-300); color: var(--color-white); display: flex; font-size: 12px; height: 27px; justify-content: center; padding: 0 2px; text-align: center; }
 .step-tabs span:first-child { border-radius: 4px 0 0; }
 .step-tabs span:last-child { border-radius: 0 12px 0 0; }
-.step-tabs .is-active { background: var(--color-primary-500); border-radius: 4px 12px 0 0; font-weight: 700; height: 35px; padding: 0 2px; }
+.step-tabs span.is-active { background: var(--color-primary-500); border-radius: 4px 12px 0 0; font-weight: 700; height: 35px; padding: 0 2px; }
 .steps-grid article > div:last-child { align-items: center; border: 1px solid var(--color-gray-200); border-radius: 0 8px 8px; display: flex; flex-direction: column; height: 242px; min-height: 242px; padding: 40px; text-align: center; }
 .steps-grid img { height: 70px; width: 70px; }
 .steps-grid h3 { font-size: 20px; margin: 20px 0 4px; }
