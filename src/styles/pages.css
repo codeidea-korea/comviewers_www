@@ -186,9 +186,8 @@
 .file-button input { height: 1px; overflow: hidden; position: absolute; width: 1px; }
 .profile-image-field small { color: var(--color-gray-500); line-height: 24px; white-space: nowrap; }
 .profile-image-field__error { color: var(--color-system-error); font-size: 14px; line-height: 20px; margin-top: -12px; }
-.field-with-action { position: relative; }
-.field-with-action > button { background: var(--color-white); border: 1px solid var(--color-gray-300); color: var(--color-blue-500); cursor: pointer; font-size: 14px; font-weight: 700; min-height: 30px; padding: 4px 12px; position: absolute; right: 0; top: 0; }
-.field-with-action > button:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: not-allowed; }
+.field-with-action .text-field__control > button { background: var(--color-gray-200); border: 1px solid var(--color-gray-500); border-radius: var(--radius-sm); color: var(--color-gray-800); cursor: pointer; flex-shrink: 0; font-size: 14px; font-weight: 500; margin-left: 8px; min-height: 30px; padding: 4px 12px; }
+.field-with-action .text-field__control > button:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: not-allowed; }
 .field-success { color: var(--color-system-success); font-size: 14px; margin-top: -16px; }
 .email-field, .split-field { border: 0; margin: 0; padding: 0; }
 .email-field legend, .split-field legend { color: var(--color-gray-600); font-size: 14px; padding: 0; }
