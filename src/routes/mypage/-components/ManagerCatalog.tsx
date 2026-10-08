@@ -109,11 +109,6 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
-      <select aria-label="담당자 선택" className="manager-catalog__group-select" onChange={(event) => chooseGroup(event.target.value || null)} value={managerFilter ?? ''}>
-        <option value="">전체 담당자</option>
-        {managers.map((manager) => <option key={manager.id} value={manager.id}>{manager.name}</option>)}
-        <option value="unassigned">미배정</option>
-      </select>
       {managers.map((manager) => <div className={`manager-catalog__group-row${managerFilter === manager.id ? ' is-active' : ''}`} key={manager.id}>
         <button aria-label={`${manager.name} 담당자 정보`} className="manager-catalog__group-name" onClick={() => onEdit(manager.id)} type="button">{manager.name}</button>
         <button aria-label={`${manager.name} RCPC 현황 ${manager.assignedRcpcIds.length}대`} aria-pressed={managerFilter === manager.id} className="manager-catalog__group-count" onClick={() => chooseGroup(manager.id)} type="button">RCPC {manager.assignedRcpcIds.length}</button>
