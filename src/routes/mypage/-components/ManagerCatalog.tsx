@@ -31,7 +31,6 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
   const [managerFilter, setManagerFilter] = useState<string | 'unassigned' | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
-  const [mobileGroupsOpen, setMobileGroupsOpen] = useState(false)
   const openMenuContainerRef = useRef<HTMLSpanElement | null>(null)
   const filteredRows = managerRows.filter((row) => (managerFilter === null || (managerFilter === 'unassigned' ? !row.managerIds.length : row.managerIds.includes(managerFilter)))
     && managerCatalogRowMatches(row, search))
@@ -83,11 +82,9 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     }
   }, [onCloseMenu, openMenuRow])
   const unassignedCount = managerRows.filter((row) => !row.managerIds.length).length
-  const currentGroupLabel = managerFilter === null ? '전체 담당자' : managerFilter === 'unassigned' ? '미배정' : managers.find((manager) => manager.id === managerFilter)?.name ?? '전체 담당자'
   const chooseGroup = (groupId: string | 'unassigned' | null) => {
     setManagerFilter(groupId)
     setCurrentPage(1)
-    setMobileGroupsOpen(false)
   }
   return <MyPageLayout title="RCPC 담당자 관리"><section className="manager-catalog manager-catalog--mypage">
     <h1 className="manager-catalog__mobile-title">RCPC 담당자 관리</h1>
@@ -95,7 +92,11 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     <div className="manager-catalog__tools"><label><input aria-label="담당자 검색" onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명을 검색해 주세요." value={search} /><img alt="" src={searchIcon} /></label><span><button onClick={copyAccessLink} type="button">접속 링크복사 <img alt="" src={linkIcon} /></button><button onClick={onCreate} type="button">담당자 등록 <img alt="" src={addIcon} /></button></span></div>
     <div className="manager-catalog__mobile-tools">
       <div className="manager-catalog__mobile-actions">
-        <button aria-haspopup="dialog" type="button" onClick={() => setMobileGroupsOpen(true)}>{currentGroupLabel}</button>
+        <select aria-label="담당자 선택" onChange={(event) => chooseGroup(event.target.value || null)} value={managerFilter ?? ''}>
+          <option value="">전체 담당자</option>
+          {managers.map((manager) => <option key={manager.id} value={manager.id}>{manager.name}</option>)}
+          <option value="unassigned">미배정</option>
+        </select>
         <button type="button" onClick={onCreate}>담당자 등록</button>
         <button type="button" onClick={copyAccessLink}>접속 링크복사</button>
       </div>
@@ -104,10 +105,15 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
         <input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명 검색" type="search" value={search}/>
         <img alt="" src={searchIcon}/>
       </label>
+      {managerFilter && managerFilter !== 'unassigned' ? <button className="manager-catalog__mobile-manager-info" onClick={() => onEdit(managerFilter)} type="button">선택한 담당자 정보 보기</button> : null}
     </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
-      <button aria-pressed={managerFilter === null} className={managerFilter === null ? 'is-active' : ''} onClick={() => chooseGroup(null)} type="button"><b>전체 담당자</b></button>
+      <select aria-label="담당자 선택" className="manager-catalog__group-select" onChange={(event) => chooseGroup(event.target.value || null)} value={managerFilter ?? ''}>
+        <option value="">전체 담당자</option>
+        {managers.map((manager) => <option key={manager.id} value={manager.id}>{manager.name}</option>)}
+        <option value="unassigned">미배정</option>
+      </select>
       {managers.map((manager) => <div className={`manager-catalog__group-row${managerFilter === manager.id ? ' is-active' : ''}`} key={manager.id}>
         <button aria-label={`${manager.name} 담당자 정보`} className="manager-catalog__group-name" onClick={() => onEdit(manager.id)} type="button">{manager.name}</button>
         <button aria-label={`${manager.name} RCPC 현황 ${manager.assignedRcpcIds.length}대`} aria-pressed={managerFilter === manager.id} className="manager-catalog__group-count" onClick={() => chooseGroup(manager.id)} type="button">RCPC {manager.assignedRcpcIds.length}</button>
@@ -126,9 +132,5 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
       </dl>
       <footer><button type="button" onClick={() => onAssign([row.id])}>{row.managerIds.length ? '담당자 변경' : '담당자 설정'}</button>{row.managerIds.length ? <button type="button" onClick={() => onUnassign([row.id])}>담당자 해제</button> : <button type="button" disabled>담당자 해제</button>}</footer>
     </article>)}{visibleRows.length ? null : <p className="manager-catalog__empty">{search.trim() ? '검색 조건에 해당하는 담당자 또는 RCPC가 없습니다.' : managerFilter && managerFilter !== 'unassigned' ? '담당자에게 배정된 RCPC가 없습니다.' : '등록된 RCPC가 없습니다.'}</p>}</div>{totalPages ? <Pagination currentPage={safePage} onPageChange={setCurrentPage} totalPages={totalPages} /> : null}</div></div>
-    {mobileGroupsOpen ? <div className="mobile-manager-groups-backdrop" role="presentation" onClick={() => setMobileGroupsOpen(false)}><div aria-modal="true" className="mobile-manager-groups-sheet" role="dialog" aria-label="담당자 목록" onClick={(event) => event.stopPropagation()}><span className="mobile-manager-groups-sheet__handle"/><button className={managerFilter === null ? 'is-selected' : ''} type="button" onClick={() => chooseGroup(null)}>전체 담당자</button>{managers.map((manager) => <div className="mobile-manager-groups-sheet__row" key={manager.id}>
-      <button aria-label={`${manager.name} 담당자 정보`} className="mobile-manager-groups-sheet__name" onClick={() => { setMobileGroupsOpen(false); onEdit(manager.id) }} type="button">{manager.name}</button>
-      <button aria-label={`${manager.name} RCPC 현황 ${manager.assignedRcpcIds.length}대`} aria-pressed={managerFilter === manager.id} className={managerFilter === manager.id ? 'is-selected' : ''} type="button" onClick={() => chooseGroup(manager.id)}>RCPC {manager.assignedRcpcIds.length}</button>
-    </div>)}<button className={managerFilter === 'unassigned' ? 'is-selected' : ''} type="button" onClick={() => chooseGroup('unassigned')}>미배정 ({unassignedCount})</button></div></div> : null}
   </section></MyPageLayout>
 }
