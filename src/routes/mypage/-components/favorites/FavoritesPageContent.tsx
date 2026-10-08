@@ -6,7 +6,7 @@ import type { createCustomerRcpcMutations, SavedRcpcGroup } from '@/api/customer
 import { ApiClientError } from '@/api/httpClient'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { Pagination } from '@/components/ui/PaginationControl'
-import { MyPageLayout } from '../../MypageComponentsView'
+import { MyPageLayout, MyPageMobileFilterSheet } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import { isAccountReadDenied } from '../accountReadAccess'
 import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
@@ -32,6 +32,18 @@ import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type GroupSelection = 'all' | 'unclassified' | number
+type SortKey = NonNullable<MyRcpcQuery['sort']>
+
+const mobileSortLabels: Partial<Record<SortKey, string>> = {
+  productNo: 'RCPC',
+  serverRoom: '서버 위치',
+  serverStatus: '서버 상태',
+  servicePeriod: '이용 기간',
+  traffic: '트래픽 사용량',
+  favoriteEdited: '즐겨찾기 변경순',
+}
+const mobileSortByLabel = Object.fromEntries(Object.entries(mobileSortLabels).map(([sort, label]) => [label, sort])) as Record<string, SortKey>
+const mobileSortItems = Object.values(mobileSortLabels)
 
 const groupQueryKey = (organizationId: string) => ['my-rcpc-groups', organizationId] as const
 
@@ -57,7 +69,8 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   const [selectedGroup, setSelectedGroup] = useState<GroupSelection>('all')
   const [selectedRentals, setSelectedRentals] = useState<ReadonlySet<number>>(() => new Set())
   const [page, setPage] = useState(0)
-  const [filters, setFilters] = useState<MyRcpcQuery>({ size: 20, sort: 'favoriteEdited', sortDirection: 'desc' })
+  const [filters, setFilters] = useState<MyRcpcQuery>({ size: 20, sort: 'serverStatus', sortDirection: 'asc' })
+  const [mobileSortOpen, setMobileSortOpen] = useState(false)
   const [creating, setCreating] = useState(false), [editing, setEditing] = useState(false), [assigning, setAssigning] = useState(false)
   const [groupEditMode, setGroupEditMode] = useState(false)
   const [mobileGroupOpen, setMobileGroupOpen] = useState(false)
@@ -169,16 +182,18 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     {canManage ? <NewFavoritesGroupDialog error={mutationMessage(createGroup.error) ?? undefined} groups={visualGroups} isOpen={creating} onAdd={(name, parentId) => createGroup.mutate({ name, parentId })} onClose={closeNewGroup} pending={createGroup.isPending} /> : null}
     <div className="favorites-layout">
     <section aria-label="즐겨찾기 RCPC 목록" className="favorites-results" id="favorites-results">
+      <div className="favorites-mobile-sort-control"><button aria-expanded={!accessDenied && mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">정렬: {mobileSortLabels[filters.sort ?? 'serverStatus'] ?? '서버 상태'} <span aria-hidden="true">↕</span></button></div>
       <header className="favorites-results__toolbar"><label><Checkbox aria-label="전체 RCPC 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>모두선택</label><nav className="rcpc-list-bulk-actions"><FavoritesManageOnly allowed={canManage}><button type="button" disabled={assignment.isPending || selectedRentals.size === 0} onClick={openAssignment}>그룹 변경</button></FavoritesManageOnly><InquiryAction key={`${api.organizationId}:${accessDenied}`} appearance="text" disabled={inquiryTargets.length === 0} fixedTarget initialIds={inquiryTargets.map(item => item.pcAssetId)} />{canExtend ? inquiryTargets.length ? <RcpcExtensionCheckout key={inquiryTargets.map(item => item.rentalId).join(',')} api={api} rentalIds={inquiryTargets.map(item => item.rentalId)} displayTargets={inquiryTargets.map(extensionTarget)} triggerLabel="기간연장"/> : <button type="button" disabled>기간연장</button> : null}</nav></header>
       <div className="favorites-results__filters"><label>서버 위치<select disabled={accessDenied} value={accessDenied ? '' : filters.region ?? ''} onChange={event => updateFilters({ region: event.target.value || undefined, serverRoomId: undefined })}><option value="">전체</option>{locations.map(value => <option key={value}>{value}</option>)}</select></label><label>서버실<select disabled={accessDenied} value={accessDenied ? '' : filters.serverRoomId ?? ''} onChange={event => updateFilters({ serverRoomId: event.target.value ? Number(event.target.value) : undefined })}><option value="">전체</option>{rooms.map(item => <option key={item.id} value={item.id}>{item.name ?? String(item.id)}</option>)}</select></label></div>
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
       {rowsData ? <>
       <p className="rcpc-list-count">총 <b>{rowsData.totalElements}</b>개 상품</p>
-      <RcpcDashboardTable api={api} canEditAlias={owner} canExtend={canExtend} className="favorites-table" items={rowsData.items} selected={visibleSelection} onSelectedChange={setSelectedRentals} sortConfig={{ key: filters.sort ?? 'favoriteEdited', direction: filters.sortDirection ?? 'desc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} mobileVariant="favorites" onAliasSaved={() => rows.refetch()}/>
+      <RcpcDashboardTable api={api} canEditAlias={owner} canExtend={canExtend} className="favorites-table" items={rowsData.items} selected={visibleSelection} onSelectedChange={setSelectedRentals} sortConfig={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} mobileVariant="favorites" onAliasSaved={() => rows.refetch()}/>
       {rowsData.totalPages > 1 ? <Pagination currentPage={rowsData.page + 1} totalPages={rowsData.totalPages} onPageChange={(nextPage) => { setPage(nextPage - 1); setSelectedRentals(new Set()) }}/> : null}
       </> : null}
     </section>
     </div></div>
+    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => { const sort = mobileSortByLabel[label]; if (sort) updateFilters({ sort, sortDirection: sort === 'favoriteEdited' ? 'desc' : 'asc' }) }} open={!accessDenied && mobileSortOpen}/>
   </MyPageLayout>
 }
 

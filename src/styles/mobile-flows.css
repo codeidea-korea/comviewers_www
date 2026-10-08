@@ -1,4 +1,5 @@
 .favorites-mobile-group-control,
+.favorites-mobile-sort-control,
 .favorites-mobile-settings,
 .favorites-table--mobile,
 .rcpc-extension-mobile-results,
@@ -54,6 +55,8 @@
   .favorites-table--mobile { display: grid; }
   .favorites-table > article:nth-of-type(n + 5) { display: none; }
   .favorites-mobile-group-control { display: flex; }
+  .favorites-mobile-sort-control { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .favorites-mobile-sort-control button { background: transparent; border: 0; color: var(--color-gray-500); font-size: 14px; padding: 0; }
   .favorites-mobile-settings,.rcpc-extension-mobile-results { display: flex; }
   .favorites-mobile-group-control { flex-direction: column; gap: 12px; margin-bottom: 30px; }
   .favorites-mobile-group-control > strong { font-size: 18px; font-weight: 400; }
