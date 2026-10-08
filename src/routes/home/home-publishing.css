@@ -85,7 +85,8 @@
 .store-popup-card__footer { align-items: center; display: flex; gap: 12px; min-height: 42px; }
 .store-popup-card--image .store-popup-card__footer { padding: 0 20px; }
 .store-popup-card__footer label { align-items: center; color: var(--color-gray-600); cursor: pointer; display: inline-flex; font-size: 13px; gap: 8px; white-space: nowrap; }
-.store-popup-card__footer input { accent-color: var(--color-black); height: 16px; margin: 0; width: 16px; }
+.store-popup-card__footer .checkbox__input { border-color: var(--color-gray-300); flex-basis: 16px; height: 16px; width: 16px; }
+.store-popup-card__footer .checkbox__input:checked { background-color: var(--color-black); border-color: var(--color-black); }
 .store-popup-card__footer a,.store-popup-card__footer button { background: transparent; border: 0; color: var(--color-gray-600); cursor: pointer; font: inherit; font-size: 13px; padding: 0; text-decoration: underline; }
 .store-popup-card__footer a { margin-left: auto; }
 .store-popup-card__footer button { margin-left: auto; white-space: nowrap; }

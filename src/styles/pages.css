@@ -1,5 +1,5 @@
 .app-shell--home .site-header { color: var(--color-white); left: 0; position: fixed; right: 0; top: 0; }
-.app-shell--home .site-header--scrolled { background: #090909; }
+.app-shell--home .site-header--scrolled { background: var(--color-white); color: var(--color-black); }
 .home-hero { color: var(--color-white); height: 691px; overflow: hidden; position: relative; }
 .home-hero__image { height: 113.17%; left: -.16%; max-width: none; position: absolute; top: -1.71%; width: 100.42%; }
 .home-hero__shade { background: linear-gradient(180deg,#000 14.543%,transparent 70.603%); inset: 0; position: absolute; }
@@ -14,7 +14,8 @@
 .home-section-heading { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 60px; }
 .home-section-heading h2 { font-family: "NanumSquare Neo", "Pretendard Variable", sans-serif; font-size: 30px; font-weight: 900; letter-spacing: -.03em; }
 .home-section-heading p { color: var(--color-gray-600); font-size: 18px; line-height: 24px; margin-top: 16px; max-width: 900px; }
-.home-section-heading > a { color: var(--color-gray-500); font-size: 16px; }
+.home-section-heading > a { align-items: center; color: var(--color-gray-500); display: inline-flex; font-size: 16px; gap: 2px; }
+.home-section-heading > a img { height: 16px; width: 16px; }
 .intro-grid { display: grid; gap: 30px; grid-template-columns: repeat(3, 1fr); }
 .intro-section .home-section-heading p { color: var(--color-gray-700); font-weight: 400; letter-spacing: -.02em; max-width: 765px; width: 765px; }
 .intro-grid__image { aspect-ratio: 362 / 231; border-radius: var(--radius-md); overflow: hidden; position: relative; width: 100%; }
@@ -65,7 +66,7 @@
 .step-tabs span { align-items: center; background: var(--color-gray-300); color: var(--color-white); display: flex; font-size: 12px; height: 27px; justify-content: center; padding: 0 2px; text-align: center; }
 .step-tabs span:first-child { border-radius: 4px 0 0; }
 .step-tabs span:last-child { border-radius: 0 12px 0 0; }
-.step-tabs .is-active { background: var(--color-primary-500); font-weight: 700; height: 35px; padding: 0 2px; }
+.step-tabs .is-active { background: var(--color-primary-500); border-radius: 4px 12px 0 0; font-weight: 700; height: 35px; padding: 0 2px; }
 .steps-grid article > div:last-child { align-items: center; border: 1px solid var(--color-gray-200); border-radius: 0 8px 8px; display: flex; flex-direction: column; height: 242px; min-height: 242px; padding: 40px; text-align: center; }
 .steps-grid img { height: 70px; width: 70px; }
 .steps-grid h3 { font-size: 20px; margin: 20px 0 4px; }

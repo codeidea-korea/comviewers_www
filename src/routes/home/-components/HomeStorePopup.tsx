@@ -1,5 +1,6 @@
 import type { StorefrontPopup } from '@/domain/storefront/services'
 import { PopupLayer } from '@/components/ui/PopupLayerControl'
+import { Checkbox } from '@/components/ui/CheckboxControl'
 import { useState } from 'react'
 
 function safeLink(value: string | null) {
@@ -24,7 +25,7 @@ export function HomeStorePopup({ popup, onClose, onHideToday }: { popup: Storefr
     {image && <div className="store-popup-card__media">{link ? <a href={link} rel="noopener noreferrer" target="_blank">{image}</a> : image}</div>}
     {!image && popup.content && <p className="store-popup-card__content">{popup.content}</p>}
     <div className="store-popup-card__footer">
-      <label><input checked={hideToday} onChange={event => setHideToday(event.target.checked)} type="checkbox"/>오늘 다시 보지 않기</label>
+      <label><Checkbox checked={hideToday} onChange={event => setHideToday(event.target.checked)} />오늘 다시 보지 않기</label>
       {link && !image && <a href={link} rel="noopener noreferrer" target="_blank">자세히 보기</a>}
       <button onClick={close} type="button">닫기</button>
     </div>

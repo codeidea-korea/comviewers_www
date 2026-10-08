@@ -80,7 +80,7 @@
 /* 4-06 exact root coordinates: the header overlays the 691px hero in Figma. */
 .company-catalog-shell { position: relative; }
 .company-catalog-shell .site-header { background: transparent; left: 0; position: fixed; top: 0; width: 100%; z-index: 10; }
-.company-catalog-shell .site-header--scrolled { background: #090909; }
+.company-catalog-shell .site-header--scrolled { background: var(--color-white); color: var(--color-black); }
 .company-catalog-shell main { height: 4846px; }
 .company-catalog-hero { background: #090909; height: 691px; overflow: hidden; position: relative; }
 .company-catalog-hero__art { inset: 0; overflow: hidden; position: absolute; }

@@ -83,7 +83,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
       <div className="site-header__primary">
         <div className="site-header__inner">
           <Link className="site-logo" to={restricted ? '/mypage/rcpc' : '/'}>
-            <img alt="ComViewers" src={isMain ? logoWhite : logoPrimary} />
+            <img alt="ComViewers" src={isMain && !scrolled ? logoWhite : logoPrimary} />
           </Link>
           <nav aria-label="주 메뉴" className="main-menu">
             {visibleMenuItems.map((item) => <Link key={item.id} to={item.href}><MenuLabel item={item} /></Link>)}
