@@ -107,6 +107,7 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
+      <button aria-pressed={managerFilter === null} className={managerFilter === null ? 'is-active' : ''} onClick={() => chooseGroup(null)} type="button"><b>전체 담당자</b></button>
       {managers.map((manager) => <div className={`manager-catalog__group-row${managerFilter === manager.id ? ' is-active' : ''}`} key={manager.id}>
         <button aria-label={`${manager.name} 담당자 정보`} className="manager-catalog__group-name" onClick={() => onEdit(manager.id)} type="button">{manager.name}</button>
         <button aria-label={`${manager.name} RCPC 현황 ${manager.assignedRcpcIds.length}대`} aria-pressed={managerFilter === manager.id} className="manager-catalog__group-count" onClick={() => chooseGroup(manager.id)} type="button">RCPC {manager.assignedRcpcIds.length}</button>
