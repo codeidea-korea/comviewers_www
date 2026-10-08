@@ -146,19 +146,14 @@
   .manager-catalog.content-container { height: auto; margin: 0; max-width: none; padding: 28px 12px 80px; width: 100%; }
   .manager-catalog__mobile-title { display: block; }
   .manager-catalog > h1 { font-size: 18px; height: auto; }
-  .manager-catalog__tools { margin-top: 0; position: absolute; right: 12px; top: 24px; }
-  .manager-catalog__tools > label { display: none; }
-  .manager-catalog__tools > span { gap: 12px; }
-  .manager-catalog__tools span button,
-  .manager-catalog__tools span a { border: 0; color: var(--color-blue-500); font-size: 14px; height: 24px; padding: 0; width: auto; }
-  .manager-catalog__tools span img { display: none; }
-  .manager-catalog__mobile-tools { align-items: center; display: flex; justify-content: space-between; margin-top: 12px; position: relative; z-index: 2; }
-  .manager-catalog__mobile-tools button { background: #eaf3ff; border: 0; border-radius: 4px; color: #3d8bfd; font-size: 14px; height: 40px; padding: 0 10px; }
-  .manager-catalog__mobile-tools img { height: 24px; width: 24px; }
-  .manager-catalog__mobile-tools .manager-catalog__mobile-search-button { background: transparent; padding: 0; }
-  .manager-catalog__mobile-search { flex: 1 0 100%; }
-  .manager-catalog__mobile-search input { border: 0; border-bottom: 1px solid var(--color-black); font-size: 14px; height: 40px; width: 100%; }
-  .manager-catalog__mobile-tools { flex-wrap: wrap; }
+  .manager-catalog__tools { display: none; }
+  .manager-catalog__mobile-tools { display: grid; gap: 12px; margin-top: 16px; position: relative; z-index: 2; }
+  .manager-catalog__mobile-actions { display: grid; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .manager-catalog__mobile-actions button { background: #eaf3ff; border: 0; border-radius: 4px; color: #3d8bfd; font-size: 13px; line-height: 18px; min-height: 44px; min-width: 0; padding: 6px 4px; width: 100%; }
+  .manager-catalog__mobile-search { display: block; position: relative; width: 100%; }
+  .manager-catalog__mobile-search input { background: white; border: 1px solid var(--color-gray-300); border-radius: 4px; box-sizing: border-box; font: inherit; font-size: 14px; height: 44px; padding: 0 40px 0 12px; width: 100%; }
+  .manager-catalog__mobile-search input:focus-visible { border-color: var(--color-black); outline: 0; }
+  .manager-catalog__mobile-search img { height: 20px; pointer-events: none; position: absolute; right: 12px; top: 12px; width: 20px; }
   .manager-catalog__body { display: block; height: auto; margin-top: 12px; }
   .manager-catalog__body aside { display: none; }
   .manager-catalog__select { align-items: center; height: 36px; }

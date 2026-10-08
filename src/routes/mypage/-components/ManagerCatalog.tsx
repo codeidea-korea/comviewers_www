@@ -32,7 +32,6 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
   const [currentPage, setCurrentPage] = useState(1)
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
   const [mobileGroupsOpen, setMobileGroupsOpen] = useState(false)
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const openMenuContainerRef = useRef<HTMLSpanElement | null>(null)
   const filteredRows = managerRows.filter((row) => (managerFilter === null || (managerFilter === 'unassigned' ? !row.managerIds.length : row.managerIds.includes(managerFilter)))
     && managerCatalogRowMatches(row, search))
@@ -95,10 +94,16 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     <AccountQueryState pending={account.isPending} error={account.error} retry={account.refetch}/>
     <div className="manager-catalog__tools"><label><input aria-label="담당자 검색" onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명을 검색해 주세요." value={search} /><img alt="" src={searchIcon} /></label><span><button onClick={copyAccessLink} type="button">접속 링크복사 <img alt="" src={linkIcon} /></button><button onClick={onCreate} type="button">담당자 등록 <img alt="" src={addIcon} /></button></span></div>
     <div className="manager-catalog__mobile-tools">
-      <button type="button" onClick={() => setMobileGroupsOpen(true)}>{currentGroupLabel}</button>
-      <button type="button" onClick={onCreate}>담당자 등록</button>
-      <button aria-expanded={mobileSearchOpen} aria-label="담당자 검색 열기" className="manager-catalog__mobile-search-button" type="button" onClick={() => setMobileSearchOpen((open) => !open)}><img alt="" src={searchIcon}/></button>
-      {mobileSearchOpen ? <label className="manager-catalog__mobile-search"><span className="sr-only">담당자 검색</span><input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명" value={search}/></label> : null}
+      <div className="manager-catalog__mobile-actions">
+        <button aria-haspopup="dialog" type="button" onClick={() => setMobileGroupsOpen(true)}>{currentGroupLabel}</button>
+        <button type="button" onClick={onCreate}>담당자 등록</button>
+        <button type="button" onClick={copyAccessLink}>접속 링크복사</button>
+      </div>
+      <label className="manager-catalog__mobile-search">
+        <span className="sr-only">담당자 검색</span>
+        <input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명 검색" type="search" value={search}/>
+        <img alt="" src={searchIcon}/>
+      </label>
     </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
     <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
