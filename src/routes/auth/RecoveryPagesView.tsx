@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/ModalControl'
 import { TextField } from '@/components/ui/TextFieldControl'
 import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField } from './AuthComponentsView'
 import { LoginPage } from './LoginPageView'
-import { formatPasswordResetCountdown as countdown, passwordResetCountdownLabel, readPasswordResetRetryAt, resolvePasswordResetRateLimit, resolvePasswordResetRetryAt, writePasswordResetRetryAt } from './passwordResetCooldown'
+import { formatPasswordResetCountdown as countdown, formatPasswordResetRetryTime, passwordResetCountdownLabel, readPasswordResetRetryAt, resolvePasswordResetRateLimit, resolvePasswordResetRetryAt, writePasswordResetRetryAt } from './passwordResetCooldown'
 
 const idRecoveryResultKey = 'comviewers.id-recovery.result'
 const passwordResetRequestKey = 'comviewers.password-reset.request'
@@ -172,7 +172,7 @@ function PasswordSentPage() {
     {state?.email ? <dl><div><dt>Email</dt><dd>{state.email}</dd></div></dl> : null}
     <hr />
     <p><strong>비밀번호 재설정 메일을 받지 못하셨나요?</strong><br />스팸메일함을 확인하거나 메일을 다시 보내 주세요.</p>
-    {state?.username && state.email && cooldown.remaining > 0 ? <p aria-label={passwordResetCountdownLabel(cooldown.remaining)} aria-live="off" className="resend-timer" role="timer">남은 시간 {countdown(cooldown.remaining)}</p> : null}
+    {state?.username && state.email && cooldown.remaining > 0 ? <p aria-label={passwordResetCountdownLabel(cooldown.remaining)} aria-live="off" className="resend-timer" role="timer"><b>{formatPasswordResetRetryTime(cooldown.retryAt)}</b>부터 메일을 다시 보낼 수 있습니다. 남은 시간 <strong>{countdown(cooldown.remaining)}</strong></p> : null}
     {notice ? <p role="status">{notice}</p> : null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
   </div><div className="result-actions">{state?.username && state.email ? <Button disabled={busy || cooldown.remaining > 0 || !api} onClick={() => { void resend() }} size="large" type="button" variant="secondary">{busy ? '요청 중' : '메일 다시 보내기'}</Button> : <Button as={Link} size="large" to="/account/find-password" variant="secondary">다시 요청</Button>}<Button as={Link} size="large" to="/login">로그인하기</Button></div></AuthPanel></AuthPage>

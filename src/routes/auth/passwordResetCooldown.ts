@@ -37,4 +37,9 @@ export function writePasswordResetRetryAt(storage: CooldownStorage, retryAt: num
 
 export const formatPasswordResetCountdown = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 
+export function formatPasswordResetRetryTime(retryAt: number): string {
+  const date = new Date(retryAt)
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
 export const passwordResetCountdownLabel = (seconds: number) => `메일 다시 보내기까지 ${formatPasswordResetCountdown(seconds)} 남음`

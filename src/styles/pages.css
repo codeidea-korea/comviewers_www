@@ -223,6 +223,7 @@
 .single-result dt { white-space: nowrap; }
 .result-actions { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
 .result-copy > p.resend-timer { color: var(--color-gray-500); font-size: 13px; }
+.resend-timer b { color: var(--color-gray-800); font-weight: 700; }
 .resend-timer strong { color: var(--color-blue-500); }
 .auth-page--password-sent .result-copy { gap: 0; }
 .auth-page--password-sent .result-copy > p:first-child { line-height: 28px; margin-bottom: 12px; }
