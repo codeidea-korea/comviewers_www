@@ -1317,3 +1317,54 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .rcpc-popup-layer--extension .rcpc-extension-results-scroll { order: 6; }
 
 .rcpc-popup-layer--extension .rcpc-extension-total { order: 7; }
+
+/* Favorites group settings and editing: Figma 1368:27763. */
+.favorites-page .favorites-results__summary .favorites-results__filters { display: none; }
+.favorites-page .rcpc-bulk-actions > button:not(:disabled),
+.favorites-page .rcpc-bulk-actions > section > button:not(:disabled) { color: var(--color-black); text-decoration: none; }
+.favorites-group-management { position: relative; width: 500px; height: min(800px, calc(100dvh - 48px)); }
+.favorites-group-management__header h2 { font-size: 24px; letter-spacing: -.03em; line-height: 29px; }
+.favorites-group-management__root > strong,
+.favorites-group-management__root > b { font-size: 16px; font-weight: 600; letter-spacing: -.02em; line-height: 24px; }
+.favorites-group-management__hint { color: var(--color-gray-600); font-size: 12px; letter-spacing: -.03em; line-height: 14px; padding: 12px; }
+.favorites-group-editor,
+.favorites-group-editor__row { min-width: 0; width: 100%; }
+.favorites-group-editor__row > .favorites-group-editor__name,
+.favorites-group-editor__row > input { box-sizing: border-box; font-size: 16px; font-weight: 400; letter-spacing: -.02em; min-width: 0; width: 100%; }
+.favorites-group-editor__row:not(.is-child) > .favorites-group-editor__name,
+.favorites-group-editor__row:not(.is-child) > input,
+.favorites-group-editor__count { font-size: 16px; font-weight: 600; }
+.favorites-group-editor__unclassified { align-items: center; display: flex; font-size: 16px; font-weight: 600; justify-content: space-between; min-height: 36px; }
+.favorites-group-editor__unclassified small { font: inherit; }
+.favorites-group-management:has(.favorites-group-editor__actions) { padding-bottom: 110px; }
+.favorites-group-management .favorites-group-editor__actions { bottom: 30px; left: 30px; margin: 0; position: absolute; right: 30px; }
+.favorites-group-management .favorites-group-editor__actions button { font-size: 16px; font-weight: 500; min-height: 50px; width: 100%; }
+.favorites-table .mypage-home-rcpc__head input[type='checkbox'] { appearance: none; background: var(--color-white); border: 1px solid var(--color-gray-300); border-radius: 2px; flex-shrink: 0; height: 18px; margin: 0; width: 18px; }
+.favorites-table .mypage-home-rcpc__head input[type='checkbox']:checked,
+.favorites-table .mypage-home-rcpc__head input[type='checkbox']:indeterminate { background: var(--color-black) url('../assets/figma/auth-checkbox-check.svg') center / 8px 6px no-repeat; border-color: var(--color-black); }
+.favorites-table .mypage-home-rcpc__head input[type='checkbox']:focus-visible { outline: 2px solid var(--color-blue-500); outline-offset: 2px; }
+
+/* The existing checked radio controls which extension input is visible. */
+.rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row { border: 1px solid var(--color-gray-200); border-radius: 4px; padding: 12px; }
+.rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row:not(:has(input[type='radio']:checked)) > fieldset,
+.rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row:not(:has(input[type='radio']:checked)) > input[type='date'] { display: none; }
+.rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row input[type='radio'] { flex-shrink: 0; }
+.rcpc-popup-layer--extension .rcpc-extension-total { box-sizing: border-box; gap: 8px; height: auto; padding: 12px; }
+
+@media (min-width: 1200px) {
+  .mypage-layout:has(.favorites-page) { padding-top: 66px; }
+  .mypage-layout:has(.favorites-page) > .mypage-sidebar { margin-top: 81px; }
+  .favorites-page > .favorites-group-toolbar { margin-bottom: 40px; margin-left: -224px; width: calc(100% + 224px); }
+}
+@media (min-width: 768px) {
+  .favorites-table .mypage-home-rcpc__connection .rcpc-remote-access--compact article.rcpc-remote-provider--compact { grid-template-columns: 80px minmax(0, 1fr); }
+  .favorites-table .mypage-home-rcpc__connection .rcpc-remote-provider--compact h4 { box-sizing: border-box; display: block; line-height: 20px; margin: 0; overflow: hidden; padding-left: 24px; position: relative; text-overflow: ellipsis; width: 100%; }
+  .favorites-table .mypage-home-rcpc__connection .rcpc-remote-provider--compact h4 img { height: 20px; left: 0; position: absolute; top: 0; width: 20px; }
+  .favorites-table .mypage-home-rcpc__connection .rcpc-remote-provider__line > span:first-child { flex: 1 1 auto; min-width: 0; }
+  .favorites-table .mypage-home-rcpc__connection .rcpc-remote-provider__line > button,
+  .favorites-table .mypage-home-rcpc__connection .rcpc-remote-provider__actions { flex-shrink: 0; }
+}
+@media (max-width: 767px) {
+  .favorites-group-management:has(.favorites-group-editor__actions) { padding-bottom: 100px; }
+  .favorites-group-management .favorites-group-editor__actions { bottom: 22px; left: 18px; right: 18px; }
+}
