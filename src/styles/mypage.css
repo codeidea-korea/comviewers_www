@@ -916,9 +916,12 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .order-full-detail .order-full-detail__body { height: auto; }
 .order-full-detail .order-full-products,
 .order-full-detail .order-full-section { height: auto; }
-.order-full-detail .order-full-products article { height: auto; min-height: 210px; }
+.order-full-detail .order-full-products article { height: auto; min-height: 0; }
 .order-full-detail .order-full-products article + article { margin-top: 20px; }
-.order-full-detail dl > div { height: auto; min-height: 64px; }
+.order-full-detail dl { margin: 0; }
+.order-full-detail dl > div { height: auto; min-height: 0; padding-block: 20px; }
+.order-full-detail dl > div:last-child { border-bottom: 0; }
+.order-full-detail dt,.order-full-detail dd { line-height: 24px; min-width: 0; overflow-wrap: anywhere; }
 .order-full-detail .order-full-section { margin-top: 60px; }
 .order-full-detail .order-full-section--refund dl + dl { margin-top: 24px; }
 
@@ -1274,9 +1277,9 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 @media (min-width: 768px) {
   /* Figma 534:17255: desktop RCPC filters, tabs and connection cells. */
   .rcpc-list-page .rcpc-list__state img { background: var(--color-gray-100); border-radius: 999px; box-sizing: border-box; height: 24px; object-fit: scale-down; padding: 2px; width: 24px; }
-  .rcpc-list-page .rcpc-list__state img[src*='icon-server-on'] { background: var(--color-surface-success-soft); }
-  .rcpc-list-page .rcpc-list__state img[src*='icon-server-off'],
-  .rcpc-list-page .rcpc-list__state img[src*='icon-server-waiting'] { background: var(--color-surface-error-soft); }
+  .rcpc-list-page .rcpc-list__state img[data-status='on'] { background: var(--color-surface-success-soft); }
+  .rcpc-list-page .rcpc-list__state img[data-status='off'],
+  .rcpc-list-page .rcpc-list__state img[data-status='waiting'] { background: var(--color-surface-error-soft); }
   .rcpc-list-page .rcpc-list__connect .rcpc-wan-ip--compact b,
   .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider--compact h4 { color: var(--color-black); font-size: 14px; font-weight: 400; letter-spacing: -.03em; margin: 0; }
   .rcpc-list-page .rcpc-list__connect .rcpc-wan-ip--compact b img,
@@ -1317,6 +1320,40 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .rcpc-popup-layer--extension .rcpc-extension-results-scroll { order: 6; }
 
 .rcpc-popup-layer--extension .rcpc-extension-total { order: 7; }
+
+.order-catalog-item__confirm > .order-catalog-item__points-tooltip { gap: 4px; }
+.order-catalog-item__points-icon { align-items: center; display: inline-flex; flex: 0 0 20px; height: 20px; justify-content: center; }
+.order-catalog-item__points-icon img { display: block; filter: brightness(0) invert(1); }
+
+/* Order history desktop typography and controls: Figma 586:27477. */
+@media (min-width: 768px) {
+  .orders-catalog-list .mypage-tabs--buttons button { border-radius: 0; color: var(--color-gray-600); font-size: 16px; font-weight: 500; line-height: 24px; }
+  .orders-catalog-list .mypage-tabs--buttons button[aria-pressed='true'] { border-radius: 0; color: var(--color-black); font-weight: 500; }
+  .orders-catalog-list .orders-list-toolbar { border-bottom: 1px solid var(--color-gray-200); }
+  .orders-catalog-list .orders-list-toolbar select,
+  .orders-catalog-list .orders-list-toolbar button { appearance: none; background: var(--color-white) url('../assets/figma/selector-chevron-down.svg') right 4px center / 12px 8px no-repeat; border: 0; border-radius: 0; color: var(--color-gray-700); font-size: 14px; font-weight: 500; letter-spacing: -.03em; padding: 0 24px 0 0; }
+  .orders-catalog-list .orders-select-all__actions button { color: var(--color-black); font-weight: 500; letter-spacing: -.02em; text-decoration: none; }
+  .orders-catalog-list .orders-select-all__actions button:disabled { color: var(--color-gray-400); }
+  .orders-catalog-list .order-catalog-item__action-primary > button,
+  .orders-catalog-list .order-catalog-item__action-primary > section > button,
+  .orders-catalog-list .order-catalog-item__action-support > button,
+  .orders-catalog-list .order-catalog-item__action-support > section > button { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; box-sizing: border-box; font-size: 14px; font-weight: 500; height: 41px; line-height: 20px; min-height: 41px; min-width: 0; padding: 0 12px; text-decoration: none; width: 100%; }
+  .orders-catalog-list .order-catalog-item__action-support button:not(:disabled) { color: var(--color-black); }
+  .orders-catalog-list .order-catalog-item__action-support button:disabled { background: var(--color-gray-100); color: var(--color-gray-500); }
+  .orders-catalog-list .order-catalog-item__state img { background: var(--color-gray-100); border-radius: 999px; box-sizing: border-box; height: 24px; object-fit: scale-down; padding: 2px; width: 24px; }
+  .orders-catalog-list .order-catalog-item__state img[data-status='on'] { background: var(--color-surface-success-soft); }
+  .orders-catalog-list .order-catalog-item__state img[data-status='off'],
+  .orders-catalog-list .order-catalog-item__state img[data-status='waiting'] { background: var(--color-surface-error-soft); }
+  .orders-catalog-list .order-catalog-item__product > div:not(.order-catalog-item__image) { display: flex; flex-direction: column; gap: 8px; }
+  .orders-catalog-list .order-catalog-item__summary { display: flex; flex-direction: column; gap: 4px; }
+  .orders-catalog-list .order-catalog-item__spec { height: auto; line-height: 16px; margin: 0; }
+  .orders-catalog-list .order-catalog-item__totals { height: auto; line-height: 24px; margin: 0; }
+  .orders-catalog-list .order-catalog-item header strong,
+  .orders-catalog-list .order-catalog-item__heading > strong,
+  .orders-catalog-list .orders-by-date > h2,
+  .orders-catalog-list .orders-select-all label { font-weight: 600; }
+  .orders-catalog-list .order-catalog-item__heading > strong > span { font-weight: 400; }
+}
 
 /* Favorites group settings and editing: Figma 1368:27763. */
 .favorites-page .favorites-results__summary .favorites-results__filters { display: none; }

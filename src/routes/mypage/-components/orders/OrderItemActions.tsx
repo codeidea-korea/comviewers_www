@@ -74,7 +74,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
       {confirmedAt
         ? t('order.confirmedDate', { date: accountDate(confirmedAt).slice(0, 10) })
         : `${t('order.purchaseConfirmation')}${item.automaticConfirmationAt ? ` (${t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})` : ''}`}
-      {canConfirm && item.expectedPoints !== null ? <span>◉ {item.expectedPoints.toLocaleString('ko-KR')}P 받기<i aria-hidden="true" /></span> : null}
+      {canConfirm && item.expectedPoints !== null ? <span className="order-catalog-item__points-tooltip"><span className="order-catalog-item__points-icon" aria-hidden="true"><img alt="" src="/assets/figma-tooltip.svg" /></span>포인트 받기<i aria-hidden="true" /></span> : null}
     </button>}
     <div className="order-catalog-item__actions">
       {!cManager && <div className="order-catalog-item__action-primary">
