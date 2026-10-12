@@ -949,6 +949,7 @@
 .checkout-page--service .order-summary__amounts,
 .checkout-page--service .order-summary__benefits dl,
 .checkout-page--service .order-summary__agreements { display: flex; flex-direction: column; gap: 12px; }
+.checkout-page--service .order-summary__benefits { display: flex; flex-direction: column; gap: 16px; }
 .checkout-page--service .order-summary__box > .order-summary__rule { height: 1px; flex-shrink: 0; }
 .checkout-page--service .order-summary__amounts > div.sub { padding-left: 12px; }
 .checkout-page--service .order-summary__agreement span { min-width: 0; }
