@@ -8,7 +8,7 @@ import { RcpcAliasSurface, RcpcSpecSurface } from '@/components/mypage/RcpcDialo
 import { Modal } from '@/components/ui/ModalControl'
 import editIcon from '@/assets/figma/scrap-edit.svg'
 import { AccountQueryState } from './AccountQueryState'
-import { rentalDaysRemaining, rentalEndDate, rentalOperationalStatus } from './rcpcPresentation'
+import { rentalEndDate, rentalPeriodText } from './rcpcPresentation'
 
 export function RcpcAliasButton({ api, item, mutations, compact = false, onAliasSaved }: { api: MyRcpcReadServices; item: MyRcpcItem; mutations?: ReturnType<typeof createCustomerRcpcMutations>; compact?: boolean; onAliasSaved?: () => void | Promise<unknown> }) {
   const session = useSession()
@@ -42,12 +42,6 @@ export function RcpcSpecButton({ api, item, compact = false }: { api: MyRcpcRead
 }
 
 export function RcpcPeriodLabel({ item }: { item: MyRcpcItem }) {
-  const state = rentalOperationalStatus(item)
   const endDate = rentalEndDate(item) ?? '-'
-  if (state === 'termination_waiting') return <>종료대기 · {endDate}</>
-  if (state === 'extension_waiting') return <>연장대기 · {endDate}</>
-  if (state === 'rental_waiting') return <>이용대기 · {endDate}</>
-  if (state === 'terminated' || state === 'refunded') return <>이용종료 · {endDate}</>
-  const days = rentalDaysRemaining(item)
-  return days === null ? <>-</> : <>{endDate} · {Math.max(0, days)}일 남음</>
+  return endDate === '-' ? <>-</> : <>{endDate} · {rentalPeriodText(item)}</>
 }

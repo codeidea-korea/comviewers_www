@@ -10,7 +10,7 @@ import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, rentalDaysRemaining, rentalEndDate, rentalOperationalStatus, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, rentalEndDate, rentalPeriodText, totalTraffic } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
 import { useRcpcDateBoundary } from './rcpc/useRcpcDateBoundary'
@@ -113,19 +113,14 @@ function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
   const endDate = rentalEndDate(item)
   if (!endDate) return <span>-</span>
 
-  const days = Math.max(0, rentalDaysRemaining(item) ?? 0)
   const endParts = item.serviceEndsAt ? Object.fromEntries(new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
   }).formatToParts(new Date(item.serviceEndsAt)).map(part => [part.type, part.value])) : null
   const displayDate = endParts ? `${endParts.year}-${endParts.month}-${endParts.day}` : endDate
   const displayTime = endParts ? `${endParts.hour}:${endParts.minute}:${endParts.second}` : null
-  const state = rentalOperationalStatus(item)
-  const label = state === 'termination_waiting' ? '종료대기' : state === 'extension_waiting' ? '연장대기'
-    : state === 'rental_waiting' ? '이용대기' : state === 'terminated' || state === 'refunded' ? '이용종료' : `${days}일 남음`
-
   return <>
-    <strong>{label}</strong>
+    <strong>{rentalPeriodText(item)}</strong>
     <small>{displayDate}{displayTime ? <><br/>{displayTime} 까지</> : null}</small>
   </>
 }
