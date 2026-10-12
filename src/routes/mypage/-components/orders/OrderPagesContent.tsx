@@ -80,6 +80,28 @@ const canApplyDirectRefund = (item: AccountOrderItem, paymentStatus: string, ord
   && item.rentalStatus === 'active'
   && ['paid', 'active', 'completed'].includes(item.itemStatus)
 
+const currentOrderPcAssetId = (item: AccountOrderItem) => {
+  if (item.customerRentalStatus === 'replacement_completed') return null
+  if (item.customerRentalStatus === 'replacement_using') return item.currentPcAssetId ?? item.pcAssetId
+  return item.pcAssetId
+}
+
+type DisplayOrderItem = AccountOrderItem & { replacementSourceProductNo?: string }
+
+// A completed device replacement keeps the original order item; the current asset is a view of that same order.
+const displayOrderItems = (item: AccountOrderItem): DisplayOrderItem[] => {
+  if (!item.currentReplacementUsing || !item.currentPcAssetId || !item.currentProductNo) return [item]
+  return [item, {
+    ...item,
+    productNo: item.currentProductNo,
+    pcAssetId: item.currentPcAssetId,
+    customerRentalStatus: 'replacement_using',
+    replacementSourceProductNo: item.productNo,
+  }]
+}
+
+const displaySelectionId = (item: DisplayOrderItem) => `${item.orderItemId}:${item.pcAssetId ?? ''}`
+
 const rowStatus = (item: AccountOrderItem, order: AccountOrderPage['items'][number], now: number) => {
   const { orderStatus, paymentStatus } = order
   if (item.refundPending) return '환불 접수'
@@ -122,7 +144,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const [dates, setDates] = useState(initialDates)
   const [periodOpen, setPeriodOpen] = useState(false)
   const [rentalStatus, setRentalStatus] = useState<AccountOrderQuery['rentalStatus']>()
-  const [inquiryOpen, setInquiryOpen] = useState(false)
+  const [inquiryTargets, setInquiryTargets] = useState<readonly number[] | null>(null)
 
   const result = useAccountRead(
     ['orders', category ?? 'all', page, rentalStatus ?? '', dates.from, dates.to],
@@ -150,19 +172,23 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const orderDetailByNo = new Map(orders.map((order, index) => [order.orderNo, orderDetails[index]]))
   const visibleItems = orders.flatMap((order) =>
     order.items
+      .flatMap(displayOrderItems)
       .filter((item) => !rentalStatus || item.customerRentalStatus === rentalStatus)
       .map((item) => ({ item, order })),
   )
   const selectableIds = visibleItems
-    .map(({ item }) => item.pcAssetId)
-    .filter((id): id is string => Boolean(id))
-  const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.includes(id))
-  const selectedInquiryIds = [...new Set(selected.map(Number).filter(Number.isSafeInteger))].slice(0, 20)
-  const selectedRefundRentalIds = visibleItems
-    .filter(({ item, order }) => item.pcAssetId
-      && selected.includes(item.pcAssetId)
+    .filter(({ item }) => Boolean(item.rentalId && currentOrderPcAssetId(item)))
+    .map(({ item }) => displaySelectionId(item))
+  const selectableBulkIds = selectableIds.slice(0, 20)
+  const allSelected = selectableBulkIds.length > 0 && selectableBulkIds.every((id) => selected.includes(id))
+  const selectedInquiryIds = [...new Set(visibleItems
+    .filter(({ item }) => selected.includes(displaySelectionId(item)) && item.rentalId && currentOrderPcAssetId(item))
+    .map(({ item }) => Number(currentOrderPcAssetId(item)))
+    .filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 20)
+  const selectedRefundRentalIds = [...new Set(visibleItems
+    .filter(({ item, order }) => selected.includes(displaySelectionId(item))
       && canApplyDirectRefund(item, order.paymentStatus, order.orderStatus))
-    .map(({ item }) => Number(item.rentalId))
+    .map(({ item }) => Number(item.rentalId)))]
   const visibleGroups = Array.from(visibleItems.reduce((groups, row) => {
     const date = displayOrderDate(row.order.orderedAt)
     groups.set(date, [...(groups.get(date) ?? []), row])
@@ -233,13 +259,13 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 <label>
                   <input
                     checked={allSelected}
-                    onChange={(event) => setSelected(event.target.checked ? selectableIds.slice(0, 20) : [])}
+                    onChange={(event) => setSelected(event.target.checked ? selectableBulkIds : [])}
                     type="checkbox"
                   />
-                  모두선택
+                  {selectableIds.length > 20 ? '최대 20개 선택' : '모두선택'}
                 </label>
                 <div className="orders-select-all__actions">
-                  <button disabled={selected.length === 0} onClick={() => setInquiryOpen(true)} type="button">문의</button>
+                  <button disabled={selectedInquiryIds.length === 0 || !myAccount.inquiryApi || !myAccount.rcpcApi} onClick={() => setInquiryTargets(selectedInquiryIds)} type="button">문의</button>
                   {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel={t('order.terminationRequest')} /> : null}
                   {selectedRefundRentalIds.length === 0 || !myAccount.inquiryApi ? <button disabled type="button"><TranslatedText id="order.terminationRequest" /></button> : null}
                 </div>
@@ -247,7 +273,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
             {visibleGroups.map(([date, rows]) => <section className="orders-by-date" key={date}>
               <h2>{date}</h2>
               {rows.map(({ item, order }) => {
-                const selectedId = item.pcAssetId
+                const selectedId = item.rentalId && currentOrderPcAssetId(item) ? displaySelectionId(item) : null
                 const discountAmount = item.couponDiscountAmount + item.pointUsedAmount
                 const finalItemAmount = Math.max(0, item.amount - discountAmount)
                 const status = rowStatus(item, order, now)
@@ -255,7 +281,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 const showRentalStatus = Boolean(item.rentalId) || (!terminal && Boolean(item.pcAssetId) && item.customerRentalStatus === 'awaiting')
                 const orderDetail = orderDetailByNo.get(order.orderNo)
                 return (
-                  <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}`} key={item.orderItemId}>
+                  <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}`} key={displaySelectionId(item)}>
                     <header>
                       <label>
                         {selectedId ? (
@@ -279,13 +305,13 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </div>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} src={rentalStatusIcons[item.customerRentalStatus] ?? serverOffIcon} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} src={rentalStatusIcons[item.customerRentalStatus] ?? serverOffIcon} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (
                           <span className="order-catalog-item__period"><img src={dateRangeIcon} alt="" />{displayOrderDate(item.serviceStartedAt)}~{displayOrderDate(item.serviceEndsAt)}</span>
                         ) : <span className="order-catalog-item__period"><TranslatedText id="unit.quantity" values={{ count: item.quantity }} /></span>}
-                        {!terminal ? <p className="order-catalog-item__totals">
+                        {!terminal && !item.replacementSourceProductNo ? <p className="order-catalog-item__totals">
                           <span><TranslatedText id="order.finalPayment" /> <b>{t('money.krwAmount', { amount: finalItemAmount.toLocaleString('ko-KR') })}</b></span>
                           <span><i aria-hidden="true" /><TranslatedText id="order.discountAmount" /> <b>{t('money.krwAmount', { amount: discountAmount.toLocaleString('ko-KR') })}</b></span>
                           <span><i aria-hidden="true" />포인트 적립 <b><TranslatedText id="money.pointAmount" values={{ points: (item.accruedPoints ?? 0).toLocaleString('ko-KR') }} /></b></span>
@@ -308,15 +334,16 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
               })}
             </section>)}
             {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty" role="status">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 조건의 주문 내역이 없습니다.'}</p></section> : null}
-            <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} />
+            <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={(nextPage) => { setSelected([]); setPage(nextPage) }} />
           </>
         ) : null}
-        {inquiryOpen && myAccount.inquiryApi && myAccount.rcpcApi ? (
+        {inquiryTargets && myAccount.inquiryApi && myAccount.rcpcApi ? (
           <InquiryDialog
             api={myAccount.inquiryApi}
-            initialIds={selectedInquiryIds}
+            initialIds={inquiryTargets}
             initialProductNo=""
-            onClose={() => setInquiryOpen(false)}
+            fixedTarget
+            onClose={() => setInquiryTargets(null)}
             onCreated={() => setSelected([])}
             rcpcApi={myAccount.rcpcApi}
           />
@@ -369,7 +396,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     ] as const : []),
   ] : []
   return <AppShell className="order-full-shell"><main className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label="주문내역으로 뒤로가기"/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
-    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.map(item => <article key={item.orderItemId}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [['상품', item.title], ['수량', t('unit.quantity', { count: item.quantity })]] : [['PC사양', item.specSummary ?? '기록 없음'], ['이용기간', `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
+    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? '교체 이용' : item.customerRentalStatus === 'replacement_completed' ? '교체 완료' : item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [['상품', item.title], ['수량', t('unit.quantity', { count: item.quantity })]] : [['PC사양', item.specSummary ?? '기록 없음'], ['이용기간', `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
     <section className="order-full-section"><h2><TranslatedText id="order.paymentInformation" /></h2><AccountInfo rows={paymentRows}/></section>
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)

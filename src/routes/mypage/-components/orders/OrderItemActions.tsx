@@ -102,6 +102,7 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
+  const inquiryPcAssetId = item.customerRentalStatus === 'replacement_using' ? item.currentPcAssetId ?? item.pcAssetId : item.pcAssetId
 
   if (item.billingUnit === 'unit' && !item.rentalId) return null
   return <div className="order-catalog-item__action-support">
@@ -111,6 +112,6 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
       : item.rentalId && myAccount.inquiryApi && active
         ? null
         : <Button size="small" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
-    <InquiryAction disabled={!item.rentalId} initialIds={item.pcAssetId ? [Number(item.pcAssetId)] : []} initialProductNo={item.pcAssetId ? '' : item.productNo} />
+    <InquiryAction disabled={!item.rentalId || !inquiryPcAssetId || item.customerRentalStatus === 'replacement_completed'} fixedTarget initialIds={inquiryPcAssetId ? [Number(inquiryPcAssetId)] : []} />
   </div>
 }

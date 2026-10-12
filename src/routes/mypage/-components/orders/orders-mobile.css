@@ -1,6 +1,6 @@
 /* 261012.fig / L page / 3-04_주문내역_주문상세, node 1567:38584.
    Despite its frame name, its contents are the mobile order-history list. */
-.orders-period-label--mobile { display: none; }
+.orders-list-toolbar .orders-period-label--mobile { display: none; }
 .order-catalog-item__summary { display: contents; }
 
 @media (max-width: 767px) {
