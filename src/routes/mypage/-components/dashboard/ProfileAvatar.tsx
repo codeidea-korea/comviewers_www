@@ -17,5 +17,5 @@ export function ProfileAvatar({ attachmentId }: { attachmentId?: string | null }
     }).catch(() => { if (!controller.signal.aborted) setFailed(true) })
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [attachmentId, mutations])
-  return <img alt="프로필" src={source || defaultProfile} title={failed ? '프로필 이미지를 불러오지 못했습니다.' : undefined}/>
+  return <img alt="프로필" className={source ? undefined : 'is-default'} src={source || defaultProfile} title={failed ? '프로필 이미지를 불러오지 못했습니다.' : undefined}/>
 }

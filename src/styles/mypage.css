@@ -7,9 +7,9 @@
 .mypage-sidebar .mypage-sidebar__eyebrow,.mypage-sidebar .mypage-sidebar__eyebrow:visited { color: var(--color-black); display: block; font-size: 15px; font-weight: 700; line-height: 18px; margin-bottom: 5px; text-decoration: none; letter-spacing: -.03em; }
 .mypage-sidebar__search-area { position: relative; }
 .mypage-sidebar__search { display: block; height: 50px; margin-bottom: 0; position: relative; }
-.mypage-sidebar__search > label:first-child { color: var(--color-gray-500); display: block; font-size: 14px; left: 0; line-height: 17px; pointer-events: none; position: absolute; top: 15px; transition: font-size .15s ease, top .15s ease; z-index: 1; }
+.mypage-sidebar__search > label:first-child { color: var(--color-gray-500); display: block; font-size: 18px; left: 0; line-height: 21px; pointer-events: none; position: absolute; top: 14.5px; transition: font-size .15s ease, top .15s ease; z-index: 1; font-weight: 500; letter-spacing: -.03em; }
 .mypage-sidebar__search-row { align-items: center; border-bottom: 1px solid var(--color-black); display: flex; height: 50px; }
-.mypage-sidebar__search-row input { background: transparent; border: 0; height: 49px; min-width: 0; outline: 0; padding-right: 28px; width: 100%; }
+.mypage-sidebar__search-row input { background: transparent; border: 0; height: 49px; min-width: 0; outline: 0; padding-right: 28px; width: 100%; font-size: 18px; font-weight: 500; letter-spacing: -.03em; }
 .mypage-sidebar__search-row input::-webkit-search-cancel-button { display: none; }
 .order-catalog-item__state-icon--ended { filter: brightness(0); }
 .mypage-sidebar__search-clear { align-items: center; background: transparent; border: 0; color: var(--color-gray-500); cursor: pointer; display: flex; font-size: 18px; height: 24px; justify-content: center; line-height: 1; padding: 0; position: absolute; right: 28px; top: 13px; width: 24px; }
@@ -1234,4 +1234,25 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
   .benefit-tabs-row .mypage-tabs { border-bottom: 1px solid var(--color-gray-200); flex: 1 0 100%; }
   .benefit-tabs-row .mypage-tabs button { flex: 1 1 0; min-width: 0; }
   .benefit-tabs-row__policy { margin-left: auto; padding-block: 12px; }
+}
+
+@media (min-width: 768px) {
+  /* Desktop dashboard corrections; preserve the mobile styles at 767px and below. */
+  /* Dashboard details from Figma 508:14802 / 515:18599. */
+  .mypage-home-summary > a > strong > small { color: var(--color-gray-600); margin-left: 2px; }
+  .mypage-home-use > div:first-child strong small,
+  .mypage-home-storage__card strong small { margin-left: 2px; }
+  .mypage-home-user strong > span { display: inline-block; color: var(--color-gray-600); }
+  .mypage-home-user strong > span::first-letter { color: var(--color-system-success-bright); }
+  .mypage-home-user > img.is-default { object-fit: scale-down; }
+  .mypage-home .mypage-home-rcpc__state > img { background: var(--color-gray-100); border-radius: 999px; box-sizing: border-box; height: 24px; object-fit: scale-down; padding: 2px; width: 24px; }
+  .mypage-home .mypage-home-rcpc__state > img[data-status='on'] { background: var(--color-surface-success-soft); }
+  .mypage-home .mypage-home-rcpc__state > img[data-status='off'],
+  .mypage-home .mypage-home-rcpc__state > img[data-status='waiting'] { background: var(--color-surface-error-soft); }
+  .mypage-home .mypage-home-rcpc__period small { display: block; font-size: 12px; line-height: 14px; margin-top: 4px; white-space: normal; }
+  .mypage-home .mypage-home-rcpc__connection .rcpc-remote-access--compact article.rcpc-remote-provider--compact { grid-template-columns: 80px minmax(0,1fr); }
+  .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider--compact h4 { margin: 0; overflow: hidden; text-overflow: ellipsis; }
+  .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider__line > span:first-child { flex: 1 1 auto; }
+  .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider__line > button,
+  .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider__actions { flex-shrink: 0; }
 }
