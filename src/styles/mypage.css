@@ -1223,3 +1223,15 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .rcpc-bulk-actions > section > button:disabled,
 .favorites-results__toolbar .rcpc-bulk-actions > button:disabled,
 .favorites-results__toolbar .rcpc-bulk-actions > section > button:disabled { background: transparent; color: var(--color-gray-400); cursor: not-allowed; }
+
+.benefit-tabs-row { align-items: center; border-bottom: 1px solid var(--color-gray-200); display: flex; justify-content: space-between; min-height: 50px; }
+.benefit-tabs-row .mypage-tabs { border-bottom: 0; min-width: 0; }
+.benefit-tabs-row__policy { align-items: center; color: var(--color-gray-500); display: inline-flex; flex: 0 0 auto; font-size: 13px; gap: 6px; padding: 10px 4px; white-space: nowrap; }
+.benefit-tabs-row__policy img { height: 8px; width: 5px; }
+
+@media (max-width: 600px) {
+  .benefit-tabs-row { border-bottom: 0; flex-wrap: wrap; }
+  .benefit-tabs-row .mypage-tabs { border-bottom: 1px solid var(--color-gray-200); flex: 1 0 100%; }
+  .benefit-tabs-row .mypage-tabs button { flex: 1 1 0; min-width: 0; }
+  .benefit-tabs-row__policy { margin-left: auto; padding-block: 12px; }
+}

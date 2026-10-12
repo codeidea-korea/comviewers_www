@@ -129,25 +129,28 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
         ) : null}
 
         <section className="points-history">
-          <nav aria-label="포인트 내역 구분" className="mypage-tabs mypage-tabs--buttons">
-            {([
-              { value: 'all', label: '전체' },
-              { value: 'earned', label: '적립 내역' },
-              { value: 'used', label: '사용 내역' },
-            ] as const).map((item) => (
-              <button
-                aria-pressed={entryType === item.value}
-                key={item.value}
-                onClick={() => {
-                  setEntryType(item.value)
-                  setPage(0)
-                }}
-                type="button"
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
+          <div className="benefit-tabs-row">
+            <nav aria-label="포인트 내역 구분" className="mypage-tabs mypage-tabs--buttons">
+              {([
+                { value: 'all', label: '전체' },
+                { value: 'earned', label: '적립 내역' },
+                { value: 'used', label: '사용 내역' },
+              ] as const).map((item) => (
+                <button
+                  aria-pressed={entryType === item.value}
+                  key={item.value}
+                  onClick={() => {
+                    setEntryType(item.value)
+                    setPage(0)
+                  }}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <RelativeLink className="benefit-tabs-row__policy" to="/terms?section=refund">포인트·쿠폰 정책<img alt="" src={subtleChevronIcon} /></RelativeLink>
+          </div>
           <div className="points-history__toolbar">
             <span>사용 가능 포인트 <strong>{result.data?.balance.toLocaleString('ko-KR') ?? 0}</strong>점</span>
             <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button>
@@ -185,7 +188,6 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
               ) : null}
             </>
           ) : null}
-          <RelativeLink className="points-policy" to="/terms?section=refund">포인트·쿠폰 정책 〉</RelativeLink>
           {result.data ? <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage} /> : null}
         </section>
       </div>
@@ -236,25 +238,28 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
       ? <RelativeLink to={serverRoomId ? `/products?room=${encodeURIComponent(serverRoomId)}&instantOnly=false&couponProducts=true` : '/products?couponProducts=true'}>적용 상품 보러가기</RelativeLink>
       : <span>서버실 상품 확인 필요</span>
   const listContent = <>
-    <nav aria-label="쿠폰 내역 구분" className="mypage-tabs mypage-tabs--buttons">
-      {([
-        { value: 'held', label: '보유 쿠폰' },
-        { value: 'used', label: '사용 내역' },
-      ] as const).map((item) => (
-        <button
-          aria-pressed={item.value === status}
-          key={item.value}
-          onClick={() => {
-            setStatus(item.value)
-            setPage(0)
-            setPeriodOpen(false)
-          }}
-          type="button"
-        >
-          {item.label}
-        </button>
-      ))}
-    </nav>
+    <div className="benefit-tabs-row">
+      <nav aria-label="쿠폰 내역 구분" className="mypage-tabs mypage-tabs--buttons">
+        {([
+          { value: 'held', label: '보유 쿠폰' },
+          { value: 'used', label: '사용 내역' },
+        ] as const).map((item) => (
+          <button
+            aria-pressed={item.value === status}
+            key={item.value}
+            onClick={() => {
+              setStatus(item.value)
+              setPage(0)
+              setPeriodOpen(false)
+            }}
+            type="button"
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+      <RelativeLink className="benefit-tabs-row__policy" to="/terms?section=refund">포인트·쿠폰 정책<img alt="" src={subtleChevronIcon} /></RelativeLink>
+    </div>
     {status === 'used' ? <div className="coupons-history__filter"><button aria-expanded={periodOpen} aria-haspopup="dialog" onClick={() => setPeriodOpen(true)} type="button">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}<img alt="" src={periodChevronIcon} /></button></div> : null}
     {status === 'used' && periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
       setDates(nextDates)
@@ -289,7 +294,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
         {status === 'held' ? <section>{listContent}</section> : listContent}
         {status === 'held' ? (
           <section className="coupon-download">
-            <header><h2>다운로드 가능한 쿠폰</h2><RelativeLink to="/terms?section=refund">포인트·쿠폰 정책<img alt="" src={subtleChevronIcon} /></RelativeLink></header>
+            <header><h2>다운로드 가능한 쿠폰</h2></header>
             <AccountQueryState pending={offers.isPending} error={offers.error} retry={offers.refetch} />
             {download.isError ? <p role="alert">{download.error.message}</p> : null}
             {offers.data?.length === 0 ? <p className="mypage-empty">다운로드 가능한 쿠폰이 없습니다.</p> : null}
