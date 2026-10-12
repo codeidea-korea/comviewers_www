@@ -1256,3 +1256,40 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
   .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider__line > button,
   .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider__actions { flex-shrink: 0; }
 }
+
+/* RCPC specification rows retain the original 14px gap when values wrap. */
+.rcpc-spec-dialog { display: flex; flex-direction: column; height: auto; max-height: calc(100dvh - 48px); overflow-y: auto; }
+.rcpc-spec-dialog dl div,
+.rcpc-spec-dialog dl div:nth-child(-n+4),
+.rcpc-spec-dialog dl div:nth-child(5),
+.rcpc-spec-dialog dl div:nth-child(6) { grid-template-columns: 58px minmax(0,1fr); height: auto; min-height: 31px; padding-bottom: 14px; }
+.rcpc-spec-dialog dl div:last-child { height: auto; min-height: 25px; padding-bottom: 0; }
+.rcpc-spec-dialog dd { font-weight: 500; letter-spacing: -.02em; line-height: 17px; min-width: 0; overflow-wrap: anywhere; }
+.rcpc-spec-dialog > button { bottom: auto; flex-shrink: 0; left: auto; margin-top: 40px; position: static; width: 100%; }
+
+@media (min-width: 768px) {
+  /* Figma 534:17255: desktop RCPC filters, tabs and connection cells. */
+  .rcpc-list-page .rcpc-list__state img { background: var(--color-gray-100); border-radius: 999px; box-sizing: border-box; height: 24px; object-fit: scale-down; padding: 2px; width: 24px; }
+  .rcpc-list-page .rcpc-list__state img[src*='icon-server-on'] { background: var(--color-surface-success-soft); }
+  .rcpc-list-page .rcpc-list__state img[src*='icon-server-off'],
+  .rcpc-list-page .rcpc-list__state img[src*='icon-server-waiting'] { background: var(--color-surface-error-soft); }
+  .rcpc-list-page .rcpc-list__connect .rcpc-wan-ip--compact b,
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider--compact h4 { color: var(--color-black); font-size: 14px; font-weight: 400; letter-spacing: -.03em; margin: 0; }
+  .rcpc-list-page .rcpc-list__connect .rcpc-wan-ip--compact b img,
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider--compact h4 img { height: 20px; width: 20px; }
+  .rcpc-list-page .rcpc-list__connect .rcpc-wan-ip--compact { column-gap: 4px; grid-template-columns: 80px minmax(0,1fr) 14px 14px; }
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider--compact { align-items: start; column-gap: 8px; grid-template-columns: max-content minmax(0,1fr); }
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider__line { gap: 4px; }
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider__line > span:first-child { flex: 1 1 auto; min-width: 0; }
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider__line > button,
+  .rcpc-list-page .rcpc-list__connect .rcpc-remote-provider__actions { flex-shrink: 0; }
+  .rcpc-list-page .mypage-toolbar select[data-ui='native-select'] { appearance: none; background: var(--color-white) url('../assets/figma/selector-chevron-down.svg') right 4px center / 12px 8px no-repeat; border: 0; border-radius: 0; color: var(--color-gray-700); cursor: pointer; font-size: 14px; font-weight: 500; height: 24px; letter-spacing: -.03em; min-width: 180px; padding: 0 24px 0 0; }
+  .rcpc-list-page .mypage-toolbar select[data-ui='native-select']:disabled { color: var(--color-gray-400); cursor: not-allowed; }
+  .rcpc-list-page .mypage-tabs a,
+  .rcpc-list-page .mypage-tabs a.is-active { font-size: 16px; font-weight: 500; letter-spacing: 0; line-height: 24px; }
+  .rcpc-list-page .mypage-tabs a { color: var(--color-gray-600); }
+  .rcpc-list-page .mypage-tabs a.is-active { color: var(--color-black); }
+  .rcpc-list-page .rcpc-list__bulk-action-buttons button { font-weight: 400; letter-spacing: -.02em; text-decoration: none; font-size: 14px; }
+  .rcpc-list-page .rcpc-list__bulk-action-buttons button:not(:disabled) { color: var(--color-black); }
+  .rcpc-spec-dialog { min-height: min(436px, calc(100dvh - 48px)); }
+}
