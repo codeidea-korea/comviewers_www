@@ -7,7 +7,7 @@ import { connectionLabels, rentalOperationalStatus } from '../rcpcPresentation'
 
 export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
   const rentalStatus = rentalOperationalStatus(item)
-  if (rentalStatus === 'termination_waiting' || item.serverStatus === 'termination_waiting') {
+  if (rentalStatus === 'termination_waiting') {
     return <><img alt="" src={serverDisabledIcon}/><span>종료대기</span></>
   }
   if (rentalStatus === 'terminated' || rentalStatus === 'refunded' || item.serverStatus === 'ended') {
