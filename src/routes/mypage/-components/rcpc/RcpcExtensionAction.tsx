@@ -6,14 +6,14 @@ import { RcpcExtensionCheckout } from '../RcpcExtensionCheckout'
 import { extensionBlocked, extensionTarget } from '../rcpcPresentation'
 import { CManagerExtensionRequestAction } from './CManagerExtensionRequestAction'
 
-export function RcpcExtensionAction({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
+export function RcpcExtensionAction({ api, canExtend, item, showUnavailable = false }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem; showUnavailable?: boolean }) {
   const session = useSession()
   const cManager = session.status === 'authenticated' && session.customerSession?.memberRole === 'c_manager'
   if (cManager) {
     if (extensionBlocked(item)) return <Button disabled size="small">기간연장 조회</Button>
     return <CManagerExtensionRequestAction api={api} item={item}/>
   }
-  if (!canExtend) return null
+  if (!canExtend) return showUnavailable ? <Button disabled size="small">기간연장</Button> : null
   if (extensionBlocked(item)) return <Button disabled size="small">기간연장</Button>
   return <RcpcExtensionCheckout api={api} displayTargets={[extensionTarget(item)]} rentalIds={[item.rentalId]} triggerLabel="기간연장"/>
 }

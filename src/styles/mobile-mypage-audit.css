@@ -149,6 +149,28 @@
   .mypage-shell .orders-catalog-list .order-catalog-item__actions button { color: var(--color-black); font-size: 14px; min-height: 41px; min-width: 0; padding: 8px 4px; width: 100%; }
   .mypage-shell .orders-catalog-list .order-catalog-item__actions button:disabled { color: var(--color-gray-400); }
 
+  .favorites-mobile-group-control > span { gap: 8px; }
+  .favorites-mobile-group-control > span > button { align-items: center; color: var(--color-black); display: inline-flex; font-size: 14px; gap: 2px; height: 41px; padding: 0 16px; }
+  .favorites-mobile-group-control > span > button:first-child { color: var(--color-blue-500); font-size: 16px; font-weight: 600; gap: 0; height: 40px; padding: 0 8px; }
+  .favorites-mobile-group-control > span > button:first-child img { height: 20px; width: 20px; }
+  .favorites-mobile-group-control > span > button:last-child img { height: 16px; width: 16px; }
+  .favorites-mobile-sort-control button { align-items: center; color: var(--color-gray-700); display: flex; gap: 4px; }
+  .favorites-mobile-sort-control button img { height: 14.263px; object-fit: contain; width: 10px; }
+  .favorites-table > article.mobile-scrap-card > .rcpc-list__actions > section { display: block; height: auto; min-height: 41px; min-width: 0; width: 100%; }
+  .favorites-table > article.mobile-scrap-card > .rcpc-list__actions > section > button { background: var(--color-black); color: var(--color-white); display: flex; height: 41px; justify-content: center; width: 100%; }
+  .rcpc-popup-layer--single .rcpc-spec-dialog dl > div { align-items: start; height: auto; min-height: 0; padding-bottom: 14px; }
+  .rcpc-popup-layer--single .rcpc-spec-dialog dd { line-height: 22px; min-width: 0; overflow-wrap: anywhere; }
+  .rcpc-popup-layer--single .rcpc-spec-dialog dl > div:last-child { padding-bottom: 0; }
+  .favorites-group-management__actions { flex-basis: 50px; gap: 12px; }
+  .favorites-group-management__actions button { color: var(--color-black); font-size: 16px; font-weight: 500; height: 50px; padding: 0 16px; }
+  .favorites-group-management .favorites-group-editor__row { grid-template-columns: minmax(0, 1fr) 24px 24px 24px; width: 100%; }
+  .favorites-group-management .favorites-group-editor__row > .favorites-group-editor__name,
+  .favorites-group-management .favorites-group-editor__row > input { color: var(--color-black); min-width: 0; width: 100%; -webkit-text-fill-color: var(--color-black); }
+  .favorites-group-dialog select { appearance: none; background: var(--color-white) url('../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; border-radius: 0; color: var(--color-black); font-weight: 500; padding-right: 24px; -webkit-text-fill-color: var(--color-black); }
+  .favorites-group-dialog footer button { color: var(--color-black); font-size: 16px; font-weight: 500; height: 50px; }
+  .favorites-group-dialog footer button:last-child:not(:disabled) { color: var(--color-white); }
+  .favorites-group-dialog footer button:disabled { color: var(--color-gray-400); }
+
   .mypage-shell .manager-catalog__tools > span > button:last-child { display: none; }
 
   .mypage-shell .favorites-page > .favorites-group-toolbar { display: none; }

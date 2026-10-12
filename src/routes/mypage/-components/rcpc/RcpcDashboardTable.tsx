@@ -127,6 +127,6 @@ function MobileFavoriteCard({ api, canEditAlias, canExtend, index, item, mutatio
     <div data-mobile-label="이용 기간" role="cell"><strong><RcpcPeriodLabel item={item}/></strong></div>
     <div className="rcpc-list__connect" data-mobile-label="접속 정보" role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>
     <div data-mobile-label="트래픽 사용량" role="cell"><span className="mobile-scrap-card__traffic-value">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</span></div>
-    <div className="rcpc-list__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
+    <div className="rcpc-list__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item} showUnavailable/></div>
   </article>
 }
