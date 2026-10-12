@@ -642,11 +642,7 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
   }
 }
 .inquiry-product-choice__row > small i { background: var(--color-gray-300); height: 8px; width: 1px; }
-.inquiry-product-choice__row { column-gap: 8px; grid-template-columns: 18px minmax(0, 1fr); grid-template-rows: auto; min-height: 164px; row-gap: 8px; }
-.inquiry-product-choice__row > span,
-.inquiry-product-choice__row > em,
-.inquiry-product-choice__row > p,
-.inquiry-product-choice__row > small { grid-column: 2; min-width: 0; overflow-wrap: anywhere; }
+.inquiry-product-choice__row { grid-template-columns: 18px minmax(0,1fr) auto; grid-template-rows: auto auto auto; min-height: 164px; min-width: 0; }
 .inquiry-product-choice__row > em { justify-self: start; }
 .inquiry-product-choice > header { flex-shrink: 0; }
 .inquiry-product-choice__all { align-items: center; border-bottom: 1px solid var(--color-gray-200); display: flex; flex-shrink: 0; font-size: 18px; font-weight: 600; gap: 8px; letter-spacing: -.36px; line-height: 24px; margin-top: 30px; padding-bottom: 12px; }
@@ -654,9 +650,14 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .inquiry-product-choice footer button { border-radius: 4px; font-size: 16px; font-weight: 500; letter-spacing: -.48px; width: 100%; }
 .inquiry-product-choice footer button:disabled { color: var(--color-gray-500); }
 .inquiry-product-choice__limit { color: var(--color-system-error); font-size: 14px; margin: 0; }
-.inquiry-product-choice__row > span { flex-wrap: wrap; min-width: 0; }
-.inquiry-product-choice__row > span small { max-width: 100%; white-space: normal; }
-.inquiry-product-choice__row > small { flex-wrap: wrap; line-height: 20px; }
+.inquiry-product-choice__row > span { flex-wrap: nowrap; min-width: 0; }
+.inquiry-product-choice__row > span b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inquiry-product-choice__row > span small { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inquiry-product-choice__row > em { white-space: nowrap; }
+.inquiry-product-choice__row > p,.inquiry-product-choice__row > small { min-width: 0; overflow-wrap: anywhere; }
+.inquiry-product-choice__row > small { flex-wrap: wrap; }
+.inquiry-product-choice__row > small span { flex-wrap: wrap; min-width: 0; }
+.inquiry-preview-layer .inquiry-product-choice > .inquiry-product-choice__products { overflow-x: hidden; }
 
 /* API inquiry detail uses the same popup shell and proportions as the PDF flow. */
 .inquiry-chat > header > section { height: 24px; margin: 0; width: 24px; }
