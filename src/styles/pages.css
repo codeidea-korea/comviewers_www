@@ -92,7 +92,7 @@
 .home-cta__content { align-items: center; display: flex; flex-direction: column; gap: 60px; height: 186px; left: 50%; position: absolute; top: 211px; transform: translateX(-50%); width: 476px; z-index: 1; }
 .home-cta h2 { font-size: 32px; font-weight: 800; height: 76px; letter-spacing: -.03em; line-height: normal; margin: 0; white-space: nowrap; width: 476px; }
 .home-cta .home-outline-button { gap: 8px; height: 50px; padding: 0 14px; width: 161px; }
-.app-shell--home main { position: relative; max-width: var(--layout-viewport-desktop); width: 100%; margin-inline: auto; }
+.app-shell--home main { position: relative; width: 100%; }
 
 .auth-shell { background: var(--color-gray-50); }
 .auth-page { align-items: flex-start; display: flex; justify-content: flex-start; min-height: 700px; padding: 60px 24px 112px; }
