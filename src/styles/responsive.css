@@ -164,7 +164,7 @@
   .mobile-site-menu__utility a { align-items: center; display: flex; gap: 6px; }
 
   .site-footer { height: auto; }
-  .site-footer__menu { height: auto; min-height: 56px; overflow-x: auto; }
+  .site-footer__menu { height: auto; min-height: 56px; overflow-x: auto; overflow-y: hidden; }
   .site-footer__content { flex-direction: column; gap: 24px; height: auto; padding-bottom: 28px; }
   .site-footer__company-info,
   .site-footer__support { flex: none; min-width: 0; width: 100%; }

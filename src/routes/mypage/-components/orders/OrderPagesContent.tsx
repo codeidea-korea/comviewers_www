@@ -28,6 +28,7 @@ import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
 import { PageBackButton } from '@/components/common/PageBackButton'
+import './orders-mobile.css'
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
   awaiting: 'rental.awaiting',
@@ -175,7 +176,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   }
 
   return (
-    <MyPageLayout title={t('nav.orders')}>
+    <MyPageLayout footerVariant="compact" mobileHeader="site" title={t('nav.orders')}>
       <div className="orders-catalog-list">
         <nav aria-label="주문 상태" className="mypage-tabs mypage-tabs--buttons">
           {orderTabs.map((tab) => {
@@ -222,7 +223,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 .map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
           </label>
-          <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</button></span>
+          <button aria-expanded={periodOpen} aria-label={`기간 선택, 조회기간 ${dates.from.replaceAll('-', '.')} ~ ${dates.to.replaceAll('-', '.')}`} onClick={() => setPeriodOpen(true)} type="button"><span className="orders-period-label--desktop">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</span><span className="orders-period-label--mobile">기간 선택</span></button></span>
         </div>
 
         <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
@@ -277,8 +278,10 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         {!item.imageUrl || !/^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? <img src={windowsLogo} alt="" aria-hidden="true" /> : null}
                       </div>
                       <div>
+                        <div className="order-catalog-item__summary">
                         <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} src={rentalStatusIcons[item.customerRentalStatus] ?? serverOffIcon} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
                         <OrderProductDescription item={item} />
+                        </div>
                         {item.billingUnit !== 'unit' ? (
                           <span className="order-catalog-item__period"><img src={dateRangeIcon} alt="" />{displayOrderDate(item.serviceStartedAt)}~{displayOrderDate(item.serviceEndsAt)}</span>
                         ) : <span className="order-catalog-item__period"><TranslatedText id="unit.quantity" values={{ count: item.quantity }} /></span>}

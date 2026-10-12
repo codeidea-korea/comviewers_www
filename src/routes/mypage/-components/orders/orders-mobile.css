@@ -1,0 +1,142 @@
+/* 261012.fig / L page / 3-04_주문내역_주문상세, node 1567:38584.
+   Despite its frame name, its contents are the mobile order-history list. */
+.orders-period-label--mobile { display: none; }
+.order-catalog-item__summary { display: contents; }
+
+@media (max-width: 767px) {
+  .mypage-shell .mypage-layout:has(.orders-catalog-list) { padding: 24px 12px 90px; }
+  .mypage-shell .mypage-layout:has(.orders-catalog-list) .mypage-title {
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 24px;
+    margin-bottom: 12px;
+  }
+  .mypage-shell .orders-catalog-list .mypage-tabs { height: 50px; min-height: 50px; }
+  .mypage-shell .orders-catalog-list .mypage-tabs > button {
+    align-items: center;
+    display: flex;
+    font-size: 14px;
+    gap: 4px;
+    height: 50px;
+    justify-content: center;
+    line-height: 17px;
+    min-width: 0;
+    padding: 0 4px;
+  }
+  .mypage-shell .orders-list-toolbar { align-items: center; border-bottom: 1px solid var(--color-gray-200); flex-direction: row; gap: 8px; height: 40px; }
+  .mypage-shell .orders-list-toolbar > span { align-items: center; display: flex; gap: 8px; width: auto; }
+  .mypage-shell .orders-list-toolbar > span > label { display: block; position: relative; width: 69px; }
+  .mypage-shell .orders-list-toolbar select {
+    background-image: none;
+    color: var(--color-gray-500);
+    font-size: 14px;
+    height: 24px;
+    min-width: 0;
+    padding: 0 14px 0 0;
+    width: 100%;
+  }
+  .mypage-shell .orders-list-toolbar > span button {
+    background-image: none;
+    color: var(--color-gray-500);
+    height: 24px;
+    min-height: 24px;
+    min-width: 0;
+    padding: 0 14px 0 0;
+    position: relative;
+    width: 69px;
+  }
+  .mypage-shell .orders-list-toolbar > span > label::after,
+  .mypage-shell .orders-list-toolbar > span button::after {
+    background: var(--color-gray-500);
+    content: '';
+    height: 7.4px;
+    mask: url('../../../../assets/figma/selector-chevron-down.svg') center / 12px 7.4px no-repeat;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+  }
+  .orders-catalog-list .orders-period-label--desktop { display: none; }
+  .orders-catalog-list .orders-period-label--mobile { display: inline; width: auto; }
+  .orders-catalog-list .orders-select-all { border-bottom: 1px solid var(--color-gray-200); height: 40px; }
+  .mypage-shell .orders-catalog-list .orders-select-all__actions button {
+    color: var(--color-black);
+    text-decoration: none;
+  }
+  .orders-catalog-list .orders-select-all label { align-items: center; display: inline-flex; font-weight: 400; gap: 8px; line-height: 24px; }
+  .orders-catalog-list .orders-select-all input { flex: 0 0 18px; margin: 0; }
+  .orders-catalog-list .orders-by-date,
+  .orders-catalog-list .orders-by-date + .orders-by-date { height: auto; margin: 0; padding-top: 40px; }
+  .orders-catalog-list .orders-by-date > h2 { height: auto; line-height: 24px; margin-bottom: 12px; }
+  .orders-catalog-list .order-catalog-item,
+  .orders-catalog-list .orders-by-date:first-of-type .order-catalog-item,
+  .orders-catalog-list .orders-by-date .order-catalog-item--compact { padding-bottom: 40px; }
+  .orders-catalog-list .order-catalog-item header {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 24px;
+    margin-bottom: 12px;
+  }
+  .orders-catalog-list .order-catalog-item header label { align-items: center; display: inline-flex; gap: 4px; }
+  .orders-catalog-list .order-catalog-item header input[type='checkbox'] { flex: 0 0 18px; margin: 0; }
+  .orders-catalog-list .order-catalog-item header > span {
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .orders-catalog-list .order-catalog-item header > a { margin: 0; white-space: nowrap; }
+  .orders-catalog-list .order-catalog-item__product {
+    column-gap: 12px;
+    grid-template-columns: 146px minmax(0, 1fr);
+    min-height: 138px;
+    row-gap: 0;
+    margin-bottom: 12px;
+  }
+  .orders-catalog-list .order-catalog-item__image { grid-column: 1; grid-row: 1; height: 78px; width: 146px; }
+  .orders-catalog-list .order-catalog-item__image img:first-child { height: 78px; width: 146px; }
+  .orders-catalog-list .order-catalog-item__image img:last-child { max-width: none; }
+  .orders-catalog-list .order-catalog-item__product > div:not(.order-catalog-item__image) { display: contents; padding: 0; }
+  .orders-catalog-list .order-catalog-item__summary { display: flex; flex-direction: column; grid-column: 2; grid-row: 1; min-width: 0; }
+  .orders-catalog-list .order-catalog-item__heading {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    grid-column: 2;
+    min-width: 0;
+  }
+  .orders-catalog-list .order-catalog-item__heading > strong { line-height: 24px; }
+  .orders-catalog-list .order-catalog-item__heading > small { max-width: 100%; }
+  .orders-catalog-list .order-catalog-item__state { flex: 0 0 100%; min-height: 28px; }
+  .orders-catalog-list .order-catalog-item__spec {
+    grid-column: 2;
+    height: 17px;
+    line-height: 17px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .orders-catalog-list .order-catalog-item__period { grid-column: 1 / -1; margin-top: 12px; }
+  .orders-catalog-list .order-catalog-item__product > div:not(.order-catalog-item__image) > section { grid-column: 1 / -1; }
+  .orders-catalog-list .order-catalog-item__totals,
+  .orders-catalog-list .order-catalog-item__refund-totals {
+    font-size: 14px;
+    grid-column: 1 / -1;
+    line-height: 24px;
+  }
+  .orders-catalog-list .order-catalog-item__totals { gap: 4px 8px; }
+  .orders-catalog-list .order-catalog-item__confirm { height: auto; min-height: 41px; padding: 8px; }
+  .orders-catalog-list .order-catalog-item__actions { gap: 4px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .orders-catalog-list .order-catalog-item__actions .button,
+  .orders-catalog-list .order-catalog-item__actions button,
+  .orders-catalog-list .order-catalog-item__actions a { height: auto; min-height: 41px; padding: 8px 4px; }
+  .orders-catalog-list .order-catalog-item__actions--terminal { grid-template-columns: minmax(0, 1fr); }
+  .orders-catalog-list .order-catalog-item__actions:not(:has(.order-catalog-item__action-primary)) { grid-template-columns: minmax(0, 1fr); }
+  .orders-catalog-list > .pagination { margin-top: 50px; }
+}

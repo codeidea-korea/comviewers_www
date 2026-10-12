@@ -96,7 +96,7 @@ export function MyPageMobileHeader({ exitLabel = '쇼핑몰', menuOpen = false, 
   )
 }
 
-export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?: string; children: ReactNode; title?: string; wideHeader?: ReactNode }) {
+export function MyPageLayout({ backTo, children, footerVariant = 'default', mobileHeader = 'mypage', title, wideHeader }: { backTo?: string; children: ReactNode; footerVariant?: 'default' | 'compact'; mobileHeader?: 'mypage' | 'site'; title?: string; wideHeader?: ReactNode }) {
   const { pathname, search, hash, state } = useLocation()
   const profileEntryState = pathname === '/mypage/profile' ? state : { openProfilePasswordGate: true, returnTo: `${pathname}${search}${hash}` }
   const navigate = useNavigate()
@@ -104,6 +104,7 @@ export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?:
   const session = useSession()
   const capability = session.status === 'authenticated' ? session.customerSession : null
   const isManager = capability?.myPageOnly === true
+  const showSiteHeader = mobileHeader === 'site' && !isManager
   const baseMenu = isManager ? mypageManagerMenu : mypageMenu
   const menu: readonly MyPageMenuGroup[] = baseMenu.filter(group => {
     if (!capability) return false
@@ -142,8 +143,8 @@ export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?:
   const exitMyPage = () => { void auth.logout().then(() => navigate('/')).catch(() => navigate('/')) }
 
   return (
-    <AppShell className="mypage-shell" showHeader={!isManager}>
-      <MyPageMobileHeader
+    <AppShell className={`mypage-shell${showSiteHeader ? ' mypage-shell--site-header' : ''}`} footerVariant={footerVariant} showHeader={!isManager}>
+      {showSiteHeader ? null : <MyPageMobileHeader
         exitLabel={isManager ? '로그아웃' : '쇼핑몰'}
         menuOpen={mobileMenuOpen}
         onBack={() => {
@@ -159,7 +160,7 @@ export function MyPageLayout({ backTo, children, title, wideHeader }: { backTo?:
         onExit={isManager ? exitMyPage : undefined}
         onMenuToggle={() => { setMobileSearchOpen(false); setMobileMenuOpen((current) => !current) }}
         onSearchOpen={() => { setMobileMenuOpen(false); setMobileSearchOpen(true) }}
-      />
+      />}
       {mobileMenuOpen ? <nav aria-label="모바일 마이페이지 메뉴" className="mypage-mobile-menu" id="mypage-mobile-menu">
         <ManualTranslationControls />
         {isManager ? <button className="mypage-mobile-menu__exit" onClick={exitMyPage} type="button">로그아웃</button> : <Link className="mypage-mobile-menu__exit" onClick={() => setMobileMenuOpen(false)} to="/">쇼핑몰 홈으로 이동</Link>}

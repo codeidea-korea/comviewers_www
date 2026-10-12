@@ -204,7 +204,7 @@
   }
   .site-header .mobile-menu-backdrop { display: none; }
 
-  .mypage-shell > .site-header { display: none; }
+  .mypage-shell:not(.mypage-shell--site-header) > .site-header { display: none; }
   .mypage-mobile-header { height: 56px; }
   .mypage-shell .mypage-mobile-header {
     align-items: center;
