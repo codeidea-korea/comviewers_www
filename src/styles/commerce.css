@@ -171,7 +171,7 @@
 .products-layout--filter-open .product-list-table { min-width: 1200px; width: 100%; }
 .product-list-table th { background: var(--color-gray-50); box-shadow: inset 0 -1px 0 var(--color-gray-200); color: var(--color-gray-700); font-size: 14px; font-weight: 400; height: 40px; letter-spacing: -.42px; padding: 0; }
 .product-list-table td { border-bottom: 0; box-shadow: inset 0 -1px 0 var(--color-gray-200); font-size: 14px; height: 73px; line-height: normal; padding: 8px; vertical-align: middle; }
-.product-list-table td:first-child { color: var(--color-gray-600); font-size: 12px; letter-spacing: -.36px; }
+.product-list-table td:first-child { color: var(--color-gray-600); font-size: 12px; letter-spacing: -.36px; overflow-wrap: anywhere; }
 .product-table-copy { align-items: center; display: flex; justify-content: center; letter-spacing: -.42px; line-height: 20px; min-height: 34px; overflow-wrap: anywhere; text-align: center; }
 .product-list-table .tag { display: inline-block; font-weight: 500; letter-spacing: -.28px; max-width: 100%; overflow-wrap: anywhere; vertical-align: middle; white-space: normal; }
 .product-list-table td:nth-child(4),.product-list-table td:nth-child(5),.product-list-table td:nth-child(6),.product-list-table td:nth-child(7),.product-list-table td:nth-child(8),.product-list-table td:nth-child(9),.product-list-table td:nth-child(10),.product-list-table td:nth-child(11),.product-list-table td:nth-child(12) { text-align: center; }
