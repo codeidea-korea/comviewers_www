@@ -31,7 +31,7 @@ function RentalReviewListContent() {
   const stateOnly = contentStatus === 'error' || contentStatus === 'empty'
 
   return (
-    <div className={`board-page content-container${stateOnly ? ' board-page--empty' : ''}`} ref={boardRef}>
+    <div className={`board-page board-page--rental-reviews content-container${stateOnly ? ' board-page--empty' : ''}`} ref={boardRef}>
       <CommunityTabs active="reviews" />
       <BoardToolbar count={result.data?.totalCount ?? 0} onSearchChange={(value) => { setSearch(value); setCurrentPage(1) }} onSortChange={(value) => { setSort(value); setCurrentPage(1) }} search={search} sort={sort} sortOptions={[{ label: '최신순', value: 'latest' }, { label: '오래된순', value: 'oldest' }]} />
       <div className="rental-review-list">

@@ -71,6 +71,13 @@
     margin: 0 0 16px auto;
   }
 
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page--rental-reviews .board-toolbar { grid-template-columns: 124px minmax(0, 1fr); }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page--rental-reviews .board-toolbar > span { grid-column: 1 / -1; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page--rental-reviews .board-toolbar__sort { grid-column: 1; grid-row: 2; height: 44px; width: 100%; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page--rental-reviews .board-toolbar__sort select { height: 43px; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page--rental-reviews .board-toolbar__sort img { top: 18px; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page--rental-reviews .board-toolbar__search { grid-column: 2; grid-row: 2; min-width: 0; width: 100%; }
+
   .board-page--community-posts .board-mine-toggle--desktop,
   .board-page--community-posts .board-toolbar .board-write-button { display: none; }
 
