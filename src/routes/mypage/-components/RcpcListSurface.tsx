@@ -10,9 +10,10 @@ import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, rentalDaysRemaining, rentalEndDate, rentalOperationalStatus, totalTraffic } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
+import { useRcpcDateBoundary } from './rcpc/useRcpcDateBoundary'
 import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
 import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
@@ -40,6 +41,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   onSort: (sort: SortConfig<SortKey>) => void
   sortConfig: SortConfig<SortKey>
 }) {
+  useRcpcDateBoundary(api.organizationId)
   const { myAccount } = useServices()
   const [selectedAssetIds, setSelectedAssetIds] = useState<readonly number[]>([])
   const [refundRentalIds, setRefundRentalIds] = useState<readonly number[] | null>(null)
@@ -108,24 +110,22 @@ function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelected
 }
 
 function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
-  const endDate = item.serviceEndExclusiveDate ?? item.serviceEndsAt?.slice(0, 10)
+  const endDate = rentalEndDate(item)
   if (!endDate) return <span>-</span>
 
-  const todayParts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(new Date()).map(part => [part.type, part.value]))
-  const today = `${todayParts.year}-${todayParts.month}-${todayParts.day}`
-  const days = Math.max(0, Math.round((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000))
+  const days = Math.max(0, rentalDaysRemaining(item) ?? 0)
   const endParts = item.serviceEndsAt ? Object.fromEntries(new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
   }).formatToParts(new Date(item.serviceEndsAt)).map(part => [part.type, part.value])) : null
   const displayDate = endParts ? `${endParts.year}-${endParts.month}-${endParts.day}` : endDate
   const displayTime = endParts ? `${endParts.hour}:${endParts.minute}:${endParts.second}` : null
-  const ended = item.usageStatus === 'ended' || item.serverStatus === 'ended' || item.serverStatus === 'format_waiting'
+  const state = rentalOperationalStatus(item)
+  const label = state === 'termination_waiting' ? '종료대기' : state === 'extension_waiting' ? '연장대기'
+    : state === 'rental_waiting' ? '이용대기' : state === 'terminated' || state === 'refunded' ? '이용종료' : `${days}일 남음`
 
   return <>
-    <strong>{ended ? '이용종료' : `${days}일 남음`}</strong>
+    <strong>{label}</strong>
     <small>{displayDate}{displayTime ? <><br/>{displayTime} 까지</> : null}</small>
   </>
 }

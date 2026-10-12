@@ -30,7 +30,7 @@ export function createManagerReader(api: CManagersApi, rcpcApi: MyRcpcReadServic
     const details = await Promise.all(managers.map(manager => api.detail(manager.memberId, signal)))
     const byRental = new Map(assignableRcpcs.map(item => [item.rentalId, item]))
     const currentRcpcs = rcpcs.filter(item => item.rentalStatus === 'active'
-      && item.usageStatus !== 'ended' && item.serverStatus !== 'ended')
+      && item.usageStatus !== 'ended')
     const currentRentalIds = new Set(currentRcpcs.map(item => item.rentalId))
     return {
       rcpcs: currentRcpcs.map(item => {

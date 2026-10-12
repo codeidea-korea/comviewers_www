@@ -1,6 +1,6 @@
 import type { InquiryTarget } from '../../../components/mypage/inquiryFlowTypes'
 import type { MyRcpcItem } from '@/api/myRcpc'
-import { serverStatusLabels } from './rcpcPresentation'
+import { connectionLabels } from './rcpcPresentation'
 
 export type InquiryChoice = InquiryTarget & {
   productNo: string
@@ -12,12 +12,11 @@ export type InquiryChoice = InquiryTarget & {
   statusRank: number
 }
 
-const statusRanks: Record<MyRcpcItem['serverStatus'], number> = {
-  needs_attention: 0,
-  format_waiting: 1,
-  extension_waiting: 2,
-  running: 3,
-  ended: 4,
+const statusRanks: Record<string, number> = {
+  STALE: 0,
+  OFFLINE: 1,
+  NEVER_CONNECTED: 2,
+  ONLINE: 3,
 }
 
 function formatSpec(item: MyRcpcItem): string {
@@ -41,11 +40,11 @@ export function toInquiryChoice(item: MyRcpcItem): InquiryChoice {
     productNo: item.productNo,
     productName: item.productTitle ?? '상품명 정보 없음',
     location: item.serverRoomName ?? '서버실 정보 없음',
-    state: serverStatusLabels[item.serverStatus],
+    state: connectionLabels[item.connectionStatus.toUpperCase()] ?? '미확인',
     orderDate: item.orderedAt?.slice(0, 10) ?? '-',
     period: item.serviceStartedAt || item.serviceEndExclusiveDate ? `${item.serviceStartedAt?.slice(0, 10) ?? '-'} ~ ${item.serviceEndExclusiveDate ?? '-'}` : '-',
     spec: formatSpec(item),
-    statusRank: statusRanks[item.serverStatus],
+    statusRank: statusRanks[item.connectionStatus.toUpperCase()] ?? 4,
   }
 }
 

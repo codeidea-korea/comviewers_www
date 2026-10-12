@@ -10,6 +10,7 @@ import webIcon from '@/assets/figma/icon-connect-web.svg'
 import { Button } from '@/components/ui/ButtonControl'
 import { ApiClientError } from '@/api/httpClient'
 import { TooltipText } from '@/components/ui/TooltipControl'
+import { rentalOperationalStatus, rentalServiceAccessible } from './rcpcPresentation'
 
 function wanIpErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
@@ -26,7 +27,8 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
   const [open, setOpen] = useState(false)
   const key = useRef(crypto.randomUUID())
   const client = useQueryClient()
-  const canRequest = item.serverStatus === 'running'
+  const canRequest = rentalServiceAccessible(item) && item.usageStatus === 'using'
+    && rentalOperationalStatus(item) === 'active' && item.connectionStatus.toUpperCase() === 'ONLINE'
   const queryKey = ['my-rcpcs', api.organizationId, 'reboot', item.rentalId] as const
   const status = useQuery({ queryKey, enabled: canRequest, queryFn: ({ signal }) => api.rebootStatus(item.rentalId, signal),
     retry: false, refetchInterval: query => query.state.data?.pending ? 5000 : 30000 })
@@ -58,7 +60,7 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
   const [verified, setVerified] = useState(false)
   const sequence = useRef(0)
   const hiddenByUser = useRef(false)
-  const allowed = ['running', 'needs_attention'].includes(item.serverStatus) && item.rentalStatus === 'active'
+  const allowed = rentalServiceAccessible(item) && rentalOperationalStatus(item) === 'active'
   const registered = item.wanIpConfigured
   const available = allowed && registered !== false
   useEffect(() => { sequence.current += 1; hiddenByUser.current = false; setValue(null); setMessage(''); setPendingAction(null); setFailed(false); setVerified(false) }, [api.organizationId, item.rentalId, registered, setMessage])

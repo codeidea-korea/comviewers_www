@@ -3,10 +3,32 @@ import type { MyRcpcItem } from '@/api/myRcpc'
 
 export const rentalLabels: Record<string, string> = { active: '이용 중', terminated: '종료', refunded: '환불' }
 export const connectionLabels: Record<string, string> = { ONLINE: '실행 중', OFFLINE: '오프라인', STALE: '확인 필요', NEVER_CONNECTED: '연결 이력 없음', online: '실행 중', offline: '오프라인', stale: '확인 필요', unknown: '미확인' }
-export const serverStatusLabels: Record<string, string> = { needs_attention: '확인 필요', format_waiting: '포맷 대기', extension_waiting: '연장대기', running: '실행 중', ended: '종료' }
 export const endedRental = (status: string) => ['terminated', 'refunded'].includes(status)
-export const extensionBlocked = (item: Pick<MyRcpcItem, 'rentalStatus' | 'serverStatus' | 'usageStatus'>) =>
-  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || item.serverStatus === 'ended' || item.serverStatus === 'format_waiting'
+type RentalPeriodItem = Pick<MyRcpcItem, 'rentalStatus' | 'usageStatus' | 'operationalStatus' | 'serviceEndsAt' | 'serviceEndExclusiveDate'>
+const kstDateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' })
+const kstDate = (date: Date) => {
+  const parts = Object.fromEntries(kstDateFormat.formatToParts(date).map(part => [part.type, part.value]))
+  return `${parts.year}-${parts.month}-${parts.day}`
+}
+export const rentalEndDate = (item: RentalPeriodItem) => item.serviceEndsAt
+  ? kstDate(new Date(item.serviceEndsAt)) : item.serviceEndExclusiveDate
+export function rentalDaysRemaining(item: RentalPeriodItem, now = new Date()): number | null {
+  const endDate = rentalEndDate(item)
+  return endDate ? Math.round((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${kstDate(now)}T00:00:00Z`)) / 86_400_000) : null
+}
+export function rentalOperationalStatus(item: RentalPeriodItem) {
+  if (endedRental(item.rentalStatus)) return item.rentalStatus
+  if (item.usageStatus === 'ended') return 'terminated'
+  if (item.operationalStatus === 'terminated' || item.operationalStatus === 'refunded' || item.operationalStatus === 'rental_waiting') return item.operationalStatus
+  // Recalculate date-derived states locally so an older response does not survive KST midnight.
+  const days = rentalDaysRemaining(item)
+  if (days !== null) return days <= -2 ? 'termination_waiting' : days <= 1 ? 'extension_waiting' : 'active'
+  return item.operationalStatus ?? (item.usageStatus === 'extension_waiting' ? 'extension_waiting' : 'active')
+}
+export const extensionBlocked = (item: RentalPeriodItem) =>
+  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || ['termination_waiting', 'terminated', 'refunded'].includes(rentalOperationalStatus(item))
+export const rentalServiceAccessible = (item: RentalPeriodItem) =>
+  item.rentalStatus === 'active' && !extensionBlocked(item) && ['using', 'extension_waiting'].includes(item.usageStatus)
 export const traffic = (bytes: number | null) => bytes === null ? '-' : `${(bytes / 1_000_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 2 })} GB`
 export const totalTraffic = (downloadBytes: number | null, uploadBytes: number | null) =>
   traffic(downloadBytes === null && uploadBytes === null ? null : (downloadBytes ?? 0) + (uploadBytes ?? 0))

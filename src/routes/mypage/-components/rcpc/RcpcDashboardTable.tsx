@@ -12,6 +12,7 @@ import { RcpcRemoteAccess } from '../RcpcRemoteAccess'
 import { extensionBlocked, totalTraffic } from '../rcpcPresentation'
 import { RcpcStatusContents } from './RcpcStatusContents'
 import { RcpcExtensionAction } from './RcpcExtensionAction'
+import { useRcpcDateBoundary } from './useRcpcDateBoundary'
 import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 
@@ -31,6 +32,7 @@ export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items
   selected: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void
   sortConfig: SortConfig<SortKey>; onSort: (sort: SortConfig<SortKey>) => void; emptyMessage: string; mutations?: RcpcMutations; selectable?: boolean; className?: string; mobileVariant?: MobileVariant; showAccessValuesByDefault?: boolean; onAliasSaved?: () => void | Promise<unknown>
 }) {
+  useRcpcDateBoundary(api.organizationId)
   const selectableItems = items.filter(item => !extensionBlocked(item))
   const allSelected = selectableItems.length > 0 && selectableItems.every(item => selected.has(item.rentalId))
   const header = (column: { label: string; sort?: SortKey }) => column.sort
