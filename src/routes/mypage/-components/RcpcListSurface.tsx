@@ -10,9 +10,10 @@ import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton, RcpcTablePeriod } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, extensionTarget, totalTraffic } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
+import { RcpcExtensionCheckout } from './RcpcExtensionCheckout'
 import { useRcpcDateBoundary } from './rcpc/useRcpcDateBoundary'
 import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
 import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
@@ -49,7 +50,8 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   const visibleIds = items.map(item => item.pcAssetId)
   const selectedVisibleCount = visibleIds.filter(id => selectedAssetIds.includes(id)).length
   const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length
-  const selectedRentalIds = items.filter(item => selectedAssetIds.includes(item.pcAssetId)).map(item => item.rentalId)
+  const selectedItems = items.filter(item => selectedAssetIds.includes(item.pcAssetId))
+  const selectedRentalIds = selectedItems.map(item => item.rentalId)
   const toggle = (id: number, checked: boolean) => setSelectedAssetIds(previous => checked
     ? previous.includes(id) || previous.length >= 20 ? previous : [...previous, id]
     : previous.filter(value => value !== id))
@@ -64,11 +66,11 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
     <div className="rcpc-list__bulk-actions">
       <Checkbox checked={allVisibleSelected} className="rcpc-list__bulk-select" disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)} visualClassName="">모두선택</Checkbox>
       <span className="sr-only" role="status">선택 {selectedAssetIds.length}대, 최대 20대</span>
-      <div className="rcpc-list__bulk-action-buttons">
+      <nav aria-label="선택한 RCPC 처리" className="rcpc-list__bulk-action-buttons rcpc-bulk-actions">
         <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} key={selectedAssetIds.join(',')}>문의</InquiryAction>
-        <span aria-hidden="true" className="rcpc-list__bulk-divider"/>
         <button disabled={selectedRentalIds.length === 0 || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button>
-      </div>
+        {canExtend && selectedItems.length ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel="기간연장"/> : <button disabled type="button">기간연장</button>}
+      </nav>
     </div>
     {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundTriggerRef}/> : null}
     <div aria-label="RCPC 목록" className="rcpc-list rcpc-list--table" role="table">

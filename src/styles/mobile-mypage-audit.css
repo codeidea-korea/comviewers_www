@@ -96,4 +96,19 @@
   }
 
   .mypage-shell .manager-catalog__tools > span > button:last-child { display: none; }
+
+  .mypage-shell .favorites-page > .favorites-group-toolbar { display: none; }
+  .mypage-shell .favorites-results__summary { align-items: stretch; display: grid; gap: 12px; }
+  .mypage-shell .favorites-results__summary .rcpc-list-count { margin: 0; }
+  .mypage-shell .favorites-results__summary .favorites-results__filters { width: 100%; }
+  .mypage-shell .favorites-results .favorites-results__toolbar,
+  .mypage-shell .rcpc-list__bulk-actions { align-items: stretch; flex-direction: column; gap: 10px; height: auto; padding-block: 12px; }
+  .mypage-shell .rcpc-bulk-actions,
+  .mypage-shell .favorites-results__toolbar .rcpc-bulk-actions { justify-content: space-between; width: 100%; }
+  .mypage-shell .rcpc-bulk-actions > button,
+  .mypage-shell .rcpc-bulk-actions > section { flex: 1 1 0; justify-content: center; min-width: 0; }
+  .mypage-shell .rcpc-bulk-actions > button,
+  .mypage-shell .rcpc-bulk-actions > section > button,
+  .mypage-shell .favorites-results__toolbar .rcpc-bulk-actions > button,
+  .mypage-shell .favorites-results__toolbar .rcpc-bulk-actions > section > button { font-size: 12px; padding-inline: 4px; text-align: center; width: 100%; }
 }

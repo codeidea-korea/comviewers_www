@@ -1189,3 +1189,29 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-chat__attachment-file .button { flex: 0 0 auto; }
 /* Figma desktop navigation: symbol 534:17214. */
 .mypage-sidebar h2:only-child { font-size: 14px; line-height: 17px; }
+
+/* Keep the favorites heading, filters, and selection actions in the content column. */
+.favorites-page > .favorites-group-toolbar { margin-bottom: 28px; position: relative; z-index: 10; }
+.favorites-page .favorites-layout { margin-top: 0; }
+.favorites-results__summary { align-items: end; display: flex; gap: 20px; justify-content: space-between; min-height: 44px; }
+.favorites-results__summary .rcpc-list-count { margin: 0 0 10px; white-space: nowrap; }
+.favorites-results__summary .favorites-results__filters { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; width: min(100%, 360px); }
+.favorites-results__summary .favorites-results__filters label { min-width: 0; }
+.favorites-results__summary .favorites-results__filters select { background-color: transparent; border: 0; border-bottom: 1px solid var(--color-gray-200); border-radius: 0; height: 40px; padding-inline: 4px; }
+.favorites-results .favorites-results__toolbar { border-top: 1px solid var(--color-gray-200); gap: 12px; min-height: 50px; }
+.favorites-results__toolbar > label { flex: 0 0 auto; }
+.rcpc-list__bulk-actions { height: auto; min-height: 56px; }
+.rcpc-bulk-actions,
+.favorites-results__toolbar .rcpc-bulk-actions { align-items: center; display: flex; flex-wrap: nowrap; gap: 0; justify-content: flex-end; min-width: 0; }
+.rcpc-bulk-actions > section,
+.favorites-results__toolbar .rcpc-bulk-actions > section { align-items: center; display: flex; height: auto; min-width: 0; }
+.rcpc-bulk-actions > :not(:first-child),
+.favorites-results__toolbar .rcpc-bulk-actions > :not(:first-child) { border-left: 1px solid var(--color-gray-200); }
+.rcpc-bulk-actions > button,
+.rcpc-bulk-actions > section > button,
+.favorites-results__toolbar .rcpc-bulk-actions > button,
+.favorites-results__toolbar .rcpc-bulk-actions > section > button { background: transparent; border: 0; border-radius: 0; color: var(--color-black); cursor: pointer; font: inherit; font-size: 13px; height: 28px; line-height: 20px; min-width: 0; padding: 4px 12px; text-decoration: none; white-space: nowrap; }
+.rcpc-bulk-actions > button:disabled,
+.rcpc-bulk-actions > section > button:disabled,
+.favorites-results__toolbar .rcpc-bulk-actions > button:disabled,
+.favorites-results__toolbar .rcpc-bulk-actions > section > button:disabled { background: transparent; color: var(--color-gray-400); cursor: not-allowed; }
