@@ -187,7 +187,7 @@
 .profile-image-field small { color: var(--color-gray-500); line-height: 24px; white-space: nowrap; font-size: 14px; letter-spacing: -.02em; }
 .profile-image-field__error { color: var(--color-system-error); font-size: 14px; line-height: 24px; margin-top: -12px; letter-spacing: -.02em; }
 .field-with-action { position: relative; }
-.field-with-action > button { background: var(--color-white); border: 1px solid var(--color-gray-300); color: var(--color-blue-500); cursor: pointer; font-size: 14px; font-weight: 700; min-height: 30px; padding: 4px 12px; position: absolute; right: 0; top: 0; }
+.field-with-action > button { background: var(--color-white); border: 1px solid transparent; color: var(--color-blue-500); cursor: pointer; font-size: 14px; font-weight: 700; min-height: 30px; padding: 4px 12px; position: absolute; right: 0; top: 0; }
 .field-with-action > button:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: not-allowed; }
 .field-success { color: var(--color-system-success); font-size: 14px; margin-top: -16px; }
 .email-field, .split-field { border: 0; margin: 0; padding: 0; }
