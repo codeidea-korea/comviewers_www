@@ -171,6 +171,22 @@
   .favorites-group-dialog footer button:last-child:not(:disabled) { color: var(--color-white); }
   .favorites-group-dialog footer button:disabled { color: var(--color-gray-400); }
 
+  .rcpc-popup-layer--extension .rcpc-extension-dialog { border: 0; display: flex; flex-direction: column; height: 100dvh; max-height: 100dvh; min-height: 0; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog > h2 { flex: 0 0 56px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__scroll { border: 0; border-radius: 0; flex: 1 1 0; height: auto; min-height: 0; padding: 24px 0; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__help { font-size: 14px; height: auto; line-height: 20px; margin: 12px 0; padding: 12px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__modes { gap: 12px; height: auto; order: 4; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row { min-width: 0; }
+  .rcpc-popup-layer--extension .rcpc-extension-results-scroll { height: auto; margin-top: 24px; overflow: visible; pointer-events: auto; position: static; visibility: visible; width: 100%; }
+  .rcpc-popup-layer--extension .rcpc-extension-results { min-width: 0; width: 100%; }
+  .rcpc-popup-layer--extension .rcpc-extension-results__header { display: none; }
+  .rcpc-popup-layer--extension .rcpc-extension-results > div:not(.rcpc-extension-results__header) { border: 1px solid var(--color-gray-200); display: flex; flex-direction: column; height: auto; margin-bottom: 12px; padding: 12px; }
+  .rcpc-popup-layer--extension .rcpc-extension-results > div:not(.rcpc-extension-results__header) > span { align-items: center; display: grid; font-size: 14px; gap: 8px; grid-template-columns: 100px minmax(0, 1fr); height: auto; min-height: 41px; overflow-wrap: anywhere; padding: 8px 0; text-align: left; }
+  .rcpc-popup-layer--extension .rcpc-extension-results > div:not(.rcpc-extension-results__header) > span::before { color: var(--color-gray-600); content: attr(data-label); font-size: 12px; }
+  .rcpc-popup-layer--extension .rcpc-extension-total { height: auto; min-height: 0; padding: 20px 12px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog > footer { bottom: auto; flex: 0 0 auto; grid-template-columns: repeat(2, minmax(0, 1fr)); height: auto; left: auto; min-height: 74px; padding: 12px 12px max(12px, env(safe-area-inset-bottom)); position: static; right: auto; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog > footer > :is(button, a) { align-items: center; display: flex; height: 50px; justify-content: center; min-width: 0; width: 100%; }
+
   .mypage-shell .manager-catalog__tools > span > button:last-child { display: none; }
 
   .mypage-shell .favorites-page > .favorites-group-toolbar { display: none; }

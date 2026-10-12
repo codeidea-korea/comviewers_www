@@ -91,7 +91,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
         <div className="rcpc-extension-results-scroll" tabIndex={0}>
           <div className="rcpc-extension-results">
             <div className="rcpc-extension-results__header">{extensionHeaders.map((header) => <span key={header}>{header}</span>)}</div>
-            {displayRows.map((row) => <div className={row.warning ? 'is-warning' : undefined} key={row.key}>{[row.product, row.period, row.currentEnd, row.nextEnd, row.monthlyFee, row.payment].map((value, index) => <span key={index}>{value}</span>)}</div>)}
+            {displayRows.map((row) => <div className={row.warning ? 'is-warning' : undefined} key={row.key}>{[row.product, row.period, row.currentEnd, row.nextEnd, row.monthlyFee, row.payment].map((value, index) => <span data-label={extensionHeaders[index]} key={index}>{value}</span>)}</div>)}
           </div>
         </div>
         <div className="rcpc-extension-total"><small>선택 상품 <b>{itemCount ?? displayRows.length}개</b></small><strong>총 결제 금액 <b>{totalAmount}</b></strong></div>
