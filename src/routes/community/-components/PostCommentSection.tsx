@@ -42,11 +42,10 @@ export function PostCommentSection({
   return (
     <section className="comment-section">
       {commentQuery.isPending ? <LoadingState className="route-loading--compact" label="댓글을 불러오는 중입니다." /> : commentQuery.isError ? <p role="alert">댓글을 불러오지 못했습니다.</p> : null}
-      <h2>댓글 {displayedCommentCount}{editingCommentId ? <small className="comment-editing-label" role="status">댓글 수정 중</small> : null}</h2>
+      <h2>댓글 <b>{displayedCommentCount}</b>{editingCommentId ? <small className="comment-editing-label" role="status">댓글 수정 중</small> : null}</h2>
       {commentAllowed ? <label className={editingCommentId ? 'comment-editor--editing' : undefined}>
         <span className="sr-only">{editingCommentId ? '댓글 수정' : '댓글 입력'}</span>
         <textarea ref={commentInputRef} maxLength={1000} onChange={(event) => setComment(event.target.value)} onClick={() => { if (!commentAuthenticated) requestLogin() }} onFocus={() => { if (!commentAuthenticated) requestLogin() }} placeholder="댓글을 입력해 주세요." readOnly={!commentAuthenticated} rows={5} value={comment} />
-        <small>{comment.length.toLocaleString('ko-KR')} / 1,000</small>
         <button disabled={commentAuthenticated && (!comment.trim() || comment.length > 1000 || commentQuery.save.isPending || commentQuery.remove.isPending)} onClick={registerComment} ref={registerButtonRef} type="button">{editingCommentId ? '수정 완료' : '댓글 등록'}</button>
       </label> : null}
       <div>

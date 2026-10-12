@@ -279,12 +279,13 @@
 .post-detail__body { min-height: 121px; padding: 29px 0 20px; }
 .post-detail__body p { line-height: 24px; margin: 0; }
 .post-detail .attachment-list { border: 0; height: auto; margin-top: 60px; padding: 0; }
-.post-detail .attachment-list h2 { height: 24px; line-height: 24px; }
-.post-detail .attachment-list h2 b { color: var(--color-black); }
+.post-detail .attachment-list h2 { font-size: 18px; font-weight: 400; height: 24px; letter-spacing: -.36px; line-height: 24px; }
+.post-detail .attachment-list h2 b { color: var(--color-black); font-weight: 600; }
 .post-detail .attachment-list :is(a, button) { background: var(--color-gray-50); height: 50px; margin-top: 12px; padding: 0 16px; }
 .attachment-list__download { display: block; height: 16px; object-fit: contain; width: 16px; }
 .post-detail .comment-section { margin-top: 60px; }
-.post-detail .comment-section > h2 { height: 24px; line-height: 24px; }
+.post-detail .comment-section > h2 { font-weight: 400; height: 24px; line-height: 24px; }
+.post-detail .comment-section > h2 b { font-weight: 600; }
 .post-detail .comment-section > label { border: 2px solid var(--color-gray-200); border-radius: 8px; height: 140px; margin-top: 12px; padding: 16px; position: relative; }
 .post-detail .comment-section textarea { height: 76px; outline: 0; }
 .post-detail .comment-section > label.comment-editor--editing { border-color: var(--color-black); }
