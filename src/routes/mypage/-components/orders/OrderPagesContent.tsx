@@ -27,7 +27,7 @@ import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
-import { PageBackButton } from '../PageBackButton'
+import { PageBackButton } from '@/components/common/PageBackButton'
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
   awaiting: 'rental.awaiting',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AppShell } from '@/components/layout/AppShellView'
+import { PageBackButton } from '@/components/common/PageBackButton'
 import { SelectionToolbar } from '@/components/ui/SelectionToolbarControl'
 import { Modal } from '@/components/ui/ModalControl'
 import { Toast } from '@/components/ui/ToastControl'
@@ -43,7 +44,7 @@ export function CartPage() {
   }
   return <AppShell className={`commerce-shell cart-page${empty ? ' cart-page--empty' : ''}`}>
     <div className="content-container commerce-page">
-      <h1 className="commerce-title">장바구니</h1>
+      <div className="cart-page-heading"><PageBackButton fallbackTo="/products" label="장바구니 뒤로가기"/><h1 className="commerce-title">장바구니</h1></div>
       {pendingGuestError ? <div role="alert"><p>{pendingGuestError}</p><button onClick={() => {
         try { clearUnreadableGuestCart(); setPendingGuestError(''); setPendingGuestItems([]); void cart.refetch() }
         catch { setPendingGuestError('저장된 장바구니를 초기화하지 못했습니다.') }

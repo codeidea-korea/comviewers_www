@@ -17,7 +17,7 @@ import { managerScopedPath } from './-components/managerPortalPath'
 import { productNoSearchSchema } from '@/api/productNo'
 import { TranslatedText, type TranslationKey } from '../../i18n/translation'
 import { ManualTranslationControls } from '../../components/layout/GoogleTranslateTrial'
-import { PageBackButton } from './-components/PageBackButton'
+import { PageBackButton } from '@/components/common/PageBackButton'
 
 interface MyPageMenuItem { id: string; label: string; href: string; disabled?: boolean }
 interface MyPageMenuGroup { id: string; label: string; href?: string; disabled?: boolean; opensPasswordGate?: boolean; items: readonly MyPageMenuItem[] }

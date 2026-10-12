@@ -241,6 +241,9 @@
 .cart-page .commerce-page { padding: 60px 0 172.13px; }
 .cart-page .commerce-title { font-size: 26px; font-weight: 400; height: 29px; letter-spacing: -.02em; line-height: 29px; margin-bottom: 60px; }
 .cart-page:not(.cart-page--empty) .commerce-title { margin-bottom: 40px; }
+.cart-page-heading { align-items: center; display: flex; gap: 8px; margin-bottom: 60px; }
+.cart-page:not(.cart-page--empty) .cart-page-heading { margin-bottom: 40px; }
+.cart-page .cart-page-heading .commerce-title { margin-bottom: 0; }
 .cart-page .cart-layout { gap: 60px; grid-template-columns: 800px 340px; min-height: 520px; }
 .cart-page .cart-items { min-height: 0; }
 .selection-toolbar { align-items: center; border-bottom: 1px solid var(--color-gray-200); display: flex; height: 56px; justify-content: space-between; }
