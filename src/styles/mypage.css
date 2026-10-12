@@ -433,6 +433,16 @@
 .point-carousel__track article { flex-basis: min(400px, 100%); min-width: 0; }
 .point-carousel__track article span { min-width: 0; }
 .point-carousel__track article small { overflow-wrap: anywhere; }
+.points-catalog .point-carousel > header > a { color: var(--color-gray-600); font-size: 13px; font-weight: 400; }
+.points-catalog .point-carousel > header > strong { font-size: 16px; font-weight: 500; }
+.points-catalog .point-carousel > header > strong > b { font-size: 18px; font-weight: 500; }
+.points-catalog .point-carousel article > button { gap: 2px; }
+.points-catalog .point-carousel article > button > span { display: inline; margin-left: 0; }
+.points-catalog .benefit-tabs-row__policy { font-size: 16px; font-weight: 400; gap: 2px; letter-spacing: -.03em; line-height: 19px; }
+.points-catalog .points-policy-icon { align-items: center; display: inline-flex; flex: 0 0 16px; height: 16px; justify-content: center; width: 16px; }
+.points-catalog .points-policy-icon img { height: auto; width: auto; }
+.points-catalog .points-history__balance { align-items: center; color: var(--color-gray-600); display: inline-flex; font-size: 14px; font-weight: 400; gap: 4px; letter-spacing: -.02em; line-height: 24px; }
+.points-catalog .points-history__balance strong { color: var(--color-black); font-size: 14px; font-weight: 400; }
 .coupons-available .benefit-table > div strong,.coupons-available .benefit-table > p span { font-size: 14px; }
 .coupon-product-link { align-items: center; color: var(--color-gray-500); display: inline-flex; gap: 6px; }
 .coupon-product-link img { height: 8px; width: 4.933px; }

@@ -149,10 +149,10 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                 </button>
               ))}
             </nav>
-            <RelativeLink className="benefit-tabs-row__policy" to="/terms?section=refund">포인트·쿠폰 정책<img alt="" src={subtleChevronIcon} /></RelativeLink>
+            <RelativeLink className="benefit-tabs-row__policy" to="/terms?section=refund">포인트·쿠폰 정책<span className="points-policy-icon" aria-hidden="true"><img alt="" src={subtleChevronIcon} /></span></RelativeLink>
           </div>
           <div className="points-history__toolbar">
-            <span>사용 가능 포인트 <strong>{result.data?.balance.toLocaleString('ko-KR') ?? 0}</strong>점</span>
+            <span className="points-history__balance"><span>사용 가능 포인트</span><span><strong>{result.data?.balance.toLocaleString('ko-KR') ?? 0}</strong>점</span></span>
             <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button>
           </div>
           {periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
