@@ -62,8 +62,8 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
                 label={<TranslatedText id="product.peripherals" />}
                 value={(
                   <span className="product-card__peripherals">
-                    <span>{product.mouseIncluded === null ? "—" : <img alt="" src={hasMouse ? mouseActiveIcon : mouseIcon} />}</span>
-                    <span>{product.keyboardIncluded === null ? "—" : <img alt="" src={hasKeyboard ? keyboardActiveIcon : keyboardIcon} />}</span>
+                    <span className={`product-card__mouse${hasMouse ? ' is-active' : ''}`}>{product.mouseIncluded === null ? "—" : <img alt="" src={hasMouse ? mouseActiveIcon : mouseIcon} />}</span>
+                    <span className={`product-card__keyboard${hasKeyboard ? ' is-active' : ''}`}>{product.keyboardIncluded === null ? "—" : <img alt="" src={hasKeyboard ? keyboardActiveIcon : keyboardIcon} />}</span>
                     <span className="sr-only">{product.mouseIncluded === null ? '마우스 정보 없음' : hasMouse ? '마우스 포함' : '마우스 미포함'}, {product.keyboardIncluded === null ? '키보드 정보 없음' : hasKeyboard ? '키보드 포함' : '키보드 미포함'}</span>
                   </span>
                 )}

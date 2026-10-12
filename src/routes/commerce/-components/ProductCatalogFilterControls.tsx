@@ -69,9 +69,9 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
       {primarySelectors.map(selector => <DropdownSelect className="product-selector-field" controls={`catalog-${selector.id}`} disabled={!metadata} expanded={open === selector.id} hasPopup={false} key={selector.id} label={selectorKeys[selector.id] ? <TranslatedText id={selectorKeys[selector.id]} /> : selector.label} onToggle={() => setOpen(current => current === selector.id ? null : selector.id)}
         triggerIcon={<img alt="" src={selectorChevronDownIcon} />} value={<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{selector.value}</span>}
         panel={open === selector.id ? <>
-          {selector.id === 'rooms' ? <button aria-label="서버실 선택 닫기" className="product-mobile-selector-backdrop" onClick={dismiss} type="button" /> : null}
-          <div className={selector.id === 'rooms' ? 'product-mobile-server-sheet' : undefined}>
-            {selector.id === 'rooms' ? <span aria-hidden="true" className="product-mobile-bottom-sheet__handle" /> : null}
+          <button aria-label={`${selector.label} 선택 닫기`} className="product-mobile-selector-backdrop" onClick={dismiss} type="button" />
+          <div className="product-mobile-server-sheet">
+            <span aria-hidden="true" className="product-mobile-bottom-sheet__handle" />
           <GroupedMultiSelect ariaLabel={`${selector.label} 선택`} chevronIcon={filterChevronUpIcon} className="server-room-select-panel" groups={selector.groups} id={`catalog-${selector.id}`} onChange={values => {
           if (values.size > 50) { setRoomNotice('검색 조건은 최대 50개까지 선택할 수 있습니다.'); return }
           setRoomNotice('')

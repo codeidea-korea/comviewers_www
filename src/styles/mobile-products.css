@@ -361,4 +361,22 @@
   .product-filter--drawer .product-filter__section > h2 { padding: 12px 0; }
   .product-filter--drawer .product-filter-menu__heading { min-height: 56px; }
   .product-filter--drawer .product-filter-menu__content { padding: 12px 0 12px 12px; }
+  /* Local Figma 888:33481 / 890:35696: compact selectors and 4x12 slider handles. */
+  .product-mobile-controls { align-items: center; grid-template-columns: minmax(0, 1fr) 30px; }
+  .product-mobile-controls > .product-selectors { display: flex; flex-wrap: wrap; gap: 12px; grid-column: 1; grid-row: 1; }
+  .product-filter-trigger.product-filter-trigger--mobile { border: 1px solid var(--color-gray-200); font-size: 0; gap: 0; grid-column: 2; grid-row: 1; height: 30px; padding: 4px; width: 30px; }
+  .product-mobile-controls .product-selector-field { align-items: center; display: flex; flex-direction: row; gap: 4px; }
+  .product-mobile-controls .product-selector-field > span { color: var(--color-gray-700); display: block; font-size: 14px; font-weight: 400; line-height: 17px; }
+  .product-mobile-controls .product-selector-field > button:not(.product-mobile-selector-backdrop) { background: transparent; border: 0; border-radius: 0; color: var(--color-gray-700); gap: 4px; height: 30px; padding: 0; width: auto; }
+  .product-mobile-controls .product-selector-field > button:not(.product-mobile-selector-backdrop)::after { content: ''; inset: 0; position: absolute; }
+  .product-mobile-controls .product-selector-field > .product-mobile-selector-backdrop { height: 100dvh; width: 100vw; }
+  .product-mobile-controls .product-selector-field > button strong { display: none; }
+  .product-filter--drawer .product-filter-range input::-webkit-slider-thumb { background: transparent; border: 0; border-radius: 0; }
+  .product-filter--drawer .product-filter-range input::-moz-range-thumb { background: transparent; border: 0; border-radius: 0; }
+  .product-filter--drawer .product-filter-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .product-filter--drawer .product-filter-pills button { color: var(--color-black); font-weight: 500; height: 33px; padding: 0 12px; }
+  .product-filter--drawer .product-filter-pills button.is-active { color: var(--color-white); }
+  .product-card--large .product-card__peripherals > span:not(.sr-only) { background: var(--color-gray-100); border-radius: 4px; box-sizing: border-box; flex: 0 0 24px; padding: 0; }
+  .product-card--large .product-card__peripherals .product-card__mouse img { height: 16.667px; width: 11.667px; }
+  .product-card--large .product-card__peripherals .product-card__keyboard img { height: 11.667px; width: 16.667px; }
 }
