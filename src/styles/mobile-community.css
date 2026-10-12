@@ -97,4 +97,14 @@
   .board-page--community-posts .board-page__footer { gap: 24px; }
   .community-shell .board-page--community-posts .board-page__footer > .board-mine-toggle--desktop { display: flex; margin: 0; order: 2; }
   .board-page--community-posts .board-page__footer > .pagination { order: 1; }
+
+  .community-shell .post-detail .attachment-list h2,
+  .community-shell .post-detail .comment-section > h2 { font-size: 18px; font-weight: 400; line-height: 24px; }
+  .community-shell .post-detail .attachment-list h2 b,
+  .community-shell .post-detail .comment-section > h2 b { font-weight: 600; }
+  .community-shell .post-detail .attachment-list :is(a, button) { align-items: center; display: flex; gap: 12px; min-width: 0; width: 100%; }
+  .community-shell .post-detail .attachment-list :is(a, button) > span { display: block; flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .community-shell .post-detail .attachment-list__download { flex: 0 0 16px; }
+  .community-shell .post-detail .post-detail__menu button,
+  .community-shell .post-detail .comment-menu button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 }
