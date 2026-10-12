@@ -101,6 +101,21 @@
   .mypage-shell .points-history .points-policy-icon { align-items: center; display: inline-flex; flex: 0 0 16px; height: 16px; justify-content: center; width: 16px; }
   .mypage-shell .points-history .points-policy-icon img { height: 8px; object-fit: contain; width: 4.93333px; }
 
+  .mypage-shell .order-full-detail { height: auto; margin: 0; max-width: 100%; min-height: 0; padding: 0; width: 100%; }
+  .mypage-shell .order-full-detail__heading { display: none; }
+  .mypage-shell .order-full-detail__body { height: auto; margin-top: 0; min-width: 0; width: 100%; }
+  .mypage-shell .order-full-detail__body section > h2 { font-size: 18px; height: auto; line-height: 24px; padding-bottom: 12px; }
+  .mypage-shell .order-full-detail .order-full-products,
+  .mypage-shell .order-full-detail .order-full-section { height: auto; min-width: 0; width: 100%; }
+  .mypage-shell .order-full-detail .order-full-section { margin-top: 30px; }
+  .mypage-shell .order-full-products article { height: auto; max-width: 100%; min-height: 0; }
+  .mypage-shell .order-full-products article header { flex-wrap: wrap; height: auto; min-height: 50px; padding: 12px; }
+  .mypage-shell .order-full-products article dl { padding: 0 12px; }
+  .mypage-shell .order-full-detail dl > div { grid-template-columns: 100px minmax(0, 1fr); height: auto; min-height: 0; padding-block: 12px; }
+  .mypage-shell .order-full-detail dl > div:last-child { border-bottom: 0; }
+  .mypage-shell .order-full-detail dt { font-size: 12px; line-height: 16px; }
+  .mypage-shell .order-full-detail dd { font-size: 14px; line-height: 20px; min-width: 0; overflow-wrap: anywhere; }
+
   .mypage-shell .orders-list-toolbar > span {
     display: grid;
     gap: 8px;
