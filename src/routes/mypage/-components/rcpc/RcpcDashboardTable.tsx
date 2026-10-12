@@ -7,7 +7,7 @@ import starEmptyIcon from '@/assets/figma/review-star-empty.svg'
 import starFilledIcon from '@/assets/figma/review-star-filled.svg'
 import { RcpcFavoriteButton } from '../RcpcFavoriteButton'
 import { RcpcReboot, RcpcWanIp } from '../RcpcDeviceActions'
-import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton } from '../RcpcItemTools'
+import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton, RcpcTablePeriod } from '../RcpcItemTools'
 import { RcpcRemoteAccess } from '../RcpcRemoteAccess'
 import { extensionBlocked, totalTraffic } from '../rcpcPresentation'
 import { RcpcStatusContents } from './RcpcStatusContents'
@@ -76,7 +76,7 @@ function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, onAli
     <div className="mypage-home-rcpc__alias" role="cell"><strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{item.preference.alias || item.productNo}</span>{canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}</strong><span><RcpcSpecButton api={api} item={item} compact/></span></div>
     <div className="mypage-home-rcpc__server" role="cell"><span>{item.serverRoomRegion ?? '-'}<br />{item.serverRoomName ?? '-'}</span></div>
     <div className="mypage-home-rcpc__state" role="cell"><RcpcStatusContents item={item}/></div>
-    <div className="mypage-home-rcpc__period" role="cell"><span><strong><RcpcPeriodLabel item={item}/></strong></span></div>
+    <div className="mypage-home-rcpc__period" role="cell"><span><RcpcTablePeriod item={item}/></span></div>
     <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div>
     <div className="mypage-home-rcpc__traffic" role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
     <div className="mypage-home-rcpc__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>

@@ -8,9 +8,9 @@ import { Checkbox } from '@/components/ui/CheckboxControl'
 
 import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
-import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton } from './RcpcItemTools'
+import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton, RcpcTablePeriod } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, rentalEndDate, rentalPeriodText, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, totalTraffic } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
 import { useRcpcDateBoundary } from './rcpc/useRcpcDateBoundary'
@@ -107,22 +107,6 @@ function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelected
     <div role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
     <RcpcActions api={api} canExtend={canExtend} item={item}/>
   </article>
-}
-
-function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
-  const endDate = rentalEndDate(item)
-  if (!endDate) return <span>-</span>
-
-  const endParts = item.serviceEndsAt ? Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
-  }).formatToParts(new Date(item.serviceEndsAt)).map(part => [part.type, part.value])) : null
-  const displayDate = endParts ? `${endParts.year}-${endParts.month}-${endParts.day}` : endDate
-  const displayTime = endParts ? `${endParts.hour}:${endParts.minute}:${endParts.second}` : null
-  return <>
-    <strong>{rentalPeriodText(item)}</strong>
-    <small>{displayDate}{displayTime ? <><br/>{displayTime} 까지</> : null}</small>
-  </>
 }
 
 function RcpcProduct({ api, canEditAlias, item, mutations }: {

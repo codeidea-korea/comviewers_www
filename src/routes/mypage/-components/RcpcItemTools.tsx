@@ -45,3 +45,19 @@ export function RcpcPeriodLabel({ item }: { item: MyRcpcItem }) {
   const endDate = rentalEndDate(item) ?? '-'
   return endDate === '-' ? <>-</> : <>{endDate} · {rentalPeriodText(item)}</>
 }
+
+export function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
+  const endDate = rentalEndDate(item)
+  if (!endDate) return <span>-</span>
+
+  const endParts = item.serviceEndsAt ? Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date(item.serviceEndsAt)).map(part => [part.type, part.value])) : null
+  const displayDate = endParts ? `${endParts.year}-${endParts.month}-${endParts.day}` : endDate
+  const displayTime = endParts ? `${endParts.hour}:${endParts.minute}:${endParts.second}` : null
+  return <>
+    <strong>{rentalPeriodText(item)}</strong>
+    <small>{displayDate}{displayTime ? <><br/>{displayTime} 까지</> : null}</small>
+  </>
+}
