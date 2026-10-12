@@ -6,6 +6,7 @@ import { Toast, useToastMessage } from '../ui/ToastControl'
 import logoGray from '../../assets/figma/logo-gray.png'
 import { footerMenuItems } from '../../navigation/menuItems'
 import { TranslatedText } from '../../i18n/translation'
+import './mobile-footer.css'
 
 const companyInfoRows: ReadonlyArray<ReadonlyArray<readonly [string, string]>> = [
   [
@@ -25,7 +26,7 @@ const companyInfoRows: ReadonlyArray<ReadonlyArray<readonly [string, string]>> =
   ],
 ]
 
-export function Footer() {
+export function Footer({ variant = 'default' }: { variant?: 'default' | 'compact' }) {
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
   const [telegramOpen, setTelegramOpen] = useState(false)
   const [telegramCopyMessage, setTelegramCopyMessage] = useState('')
@@ -51,7 +52,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="site-footer">
+    <footer className={`site-footer${variant === 'compact' ? ' site-footer--compact' : ''}`}>
       <div className="site-footer__inner">
         <nav aria-label="회사 정보 메뉴" className="site-footer__menu">
           {footerMenuItems.map((item) => <Link key={item.id} to={item.href}>{item.id === 'company' ? <TranslatedText id="nav.company" /> : item.id === 'support' ? <TranslatedText id="nav.support" /> : item.label}</Link>)}

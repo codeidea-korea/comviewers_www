@@ -12,6 +12,7 @@ import { useCart } from './-components/cart/hooks/useCart'
 import { CommerceCartState } from './-components/CommerceCartState'
 import { useSession } from '@/app/session/SessionProvider'
 import { clearUnreadableGuestCart, pendingGuestCartSelections, removePendingGuestCartSelection } from '@/domain/cart/guestCartRepository'
+import './cart-mobile.css'
 
 export function CartPage() {
   const navigate = useNavigate()
@@ -42,7 +43,7 @@ export function CartPage() {
     }
     void navigate(checkoutUrl(cart.selectedIds))
   }
-  return <AppShell className={`commerce-shell cart-page${empty ? ' cart-page--empty' : ''}`}>
+  return <AppShell className={`commerce-shell cart-page${empty ? ' cart-page--empty' : ''}`} footerVariant="compact">
     <div className="content-container commerce-page">
       <div className="cart-page-heading"><PageBackButton fallbackTo="/products" label="장바구니 뒤로가기"/><h1 className="commerce-title">장바구니</h1></div>
       {pendingGuestError ? <div role="alert"><p>{pendingGuestError}</p><button onClick={() => {

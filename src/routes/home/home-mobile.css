@@ -2,8 +2,7 @@
    The 52px OS status bar is outside the web viewport. Card widths and gaps
    come from the frame; horizontal scrolling and <=767px were user-approved. */
 @media (max-width: 767px) {
-  .app-shell--home .content-container,
-  .app-shell--home .site-footer__inner {
+  .app-shell--home .content-container {
     max-width: none;
     width: calc(100% - 24px);
   }
@@ -196,35 +195,4 @@
     object-fit: fill;
     top: -18.327402%;
   }
-
-  .app-shell--home .site-footer__menu { gap: 12px; height: 56px; }
-  .app-shell--home .site-footer__menu a { font-size: 14px; }
-  .app-shell--home .site-footer__menu a + a::before { left: -6px; }
-  .app-shell--home .site-footer__logo { height: 44px; margin: 8px 0; width: 100px; }
-  .app-shell--home .site-footer__content { gap: 4px; padding-bottom: 40px; }
-  .app-shell--home .site-footer__company-info { font-size: 12px; gap: 4px; }
-  .app-shell--home .site-footer__company-row { align-items: center; flex-direction: row; flex-wrap: wrap; gap: 4px; }
-  .app-shell--home .site-footer__company-row > span { flex-wrap: wrap; gap: 8px; white-space: normal; }
-  .app-shell--home .site-footer__company-row > span + span::before {
-    display: block;
-    left: -2px;
-    margin: 0;
-    position: absolute;
-    top: 4px;
-  }
-  .app-shell--home .site-footer__support { align-items: flex-start; flex-direction: row; font-size: 12px; gap: 8px; }
-  .app-shell--home .site-footer__support > strong { line-height: 24px; }
-  .app-shell--home .site-footer__support > div { flex: 1 1 auto; }
-  .app-shell--home .site-footer__support nav { align-items: center; font-size: 12px; row-gap: 4px; }
-  .app-shell--home .site-footer__support nav > * {
-    align-items: center;
-    display: inline-flex;
-    font-size: 12px;
-    height: 24px;
-    justify-content: center;
-    line-height: 24px;
-    white-space: nowrap;
-  }
-  .app-shell--home .site-footer__bottom { font-size: 12px; gap: 4px; padding: 8px 0 40px; }
-  .app-shell--home .site-footer__bottom > div { min-height: 32px; }
 }

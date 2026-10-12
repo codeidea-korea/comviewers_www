@@ -50,7 +50,7 @@ export function HomePage() {
   const content = useHomeContent(recommendedUseOptionId)
   const dismissPopup = (id: number) => setDismissedPopupIds((ids) => [...ids, id])
   return (
-    <AppShell className="app-shell--home" headerState="main">
+    <AppShell className="app-shell--home" footerVariant="compact" headerState="main">
       <HomeHeroSection />
       <HomeIntroSection />
       <HomeRecommendedSection content={content} selectedOptionId={recommendedUseOptionId} onOptionChange={setRecommendedUseOptionId} />
