@@ -188,6 +188,7 @@
 .product-card__image { align-items: center; background: var(--color-gray-50); border-radius: var(--radius-md); display: flex; height: 140px; justify-content: center; overflow: hidden; position: relative; }
 .product-card__image > img:first-child { height: 100%; object-fit: cover; width: 100%; }
 .product-card__windows-logo { left: 50%; max-height: 30px; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 160px; }
+.product-card__os-label { color: #fff; font-size: 20px; font-weight: 700; left: 50%; position: absolute; text-shadow: 0 1px 5px rgba(0, 0, 0, .8); top: 50%; transform: translate(-50%, -50%); white-space: nowrap; }
 .product-card__info { display: flex; flex: 1 1 auto; flex-direction: column; justify-content: space-between; min-height: 0; }
 .product-card__specs { display: flex; flex-direction: column; gap: 12px; }
 .product-card--medium .product-card__specs { display: block; height: 226px; position: relative; }

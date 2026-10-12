@@ -1,22 +1,18 @@
-import { useState } from 'react'
 import type { CartItem } from '@/domain/cart/schemas'
 import { getCartItemAmount, getCartItemPoints, getCartSelectionUnits, cartUnitLabel, cartSelectionLabel, cartPriceLabel } from '@/domain/cart/cartEstimate'
 import { cartIssueMessage } from '@/domain/cart/cartIssues'
-import windowsLogo from '@/assets/figma/windows-logo.svg'
+import { productOsVisual } from '@/components/product/productOsVisual'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import tollIcon from '@/assets/figma/icon-toll-green.svg'
-import defaultProductImage from '@/assets/figma/store/product-04.png'
 import { CheckoutSectionTitle, formatCheckoutMoney as money } from './CheckoutFields'
 import { TranslatedText, useTranslation } from '@/i18n/translation'
 
 function CheckoutProductImage({ item }: { item: CartItem }) {
-  const [failedSource, setFailedSource] = useState<string | null>(null)
-  const fallback = !item.image || failedSource === item.image
+  const visual = productOsVisual(item.osFilterValue, item.type === 'part')
   return <div className="commerce-product-row__image">
-    <img className="checkout-product-image" alt={item.label} src={fallback ? defaultProductImage : item.image ?? defaultProductImage}
-      onError={fallback ? undefined : () => setFailedSource(item.image)} />
-    {fallback && <img className="checkout-product-logo" alt="" src={windowsLogo} />}
+    <img className="checkout-product-image" alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
+    {visual.label ? <span className="checkout-product-os-label">{visual.label}</span> : null}
   </div>
 }
 

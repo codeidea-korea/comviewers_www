@@ -3,6 +3,7 @@ import type { createCatalogApi, CatalogDetail } from '@/api/catalog'
 import { ApiClientError } from '@/api/httpClient'
 import type { CartRepository } from './cartRepository'
 import { addCartItemSchema, cartSchema, changeCartQuantitySchema, removeCartItemsSchema, type CartItem } from './schemas'
+import { osFilterLabel } from '@/domain/products/osFilterLabel'
 
 const storageKey = 'comviewers.guest-cart.v1'
 const selectionSchema = z.array(z.object({ productNo: addCartItemSchema.shape.productNo, rentalPeriods: z.number().int().positive().max(2147483647) }))
@@ -55,13 +56,14 @@ async function itemFor(selection: Selection, catalog: CatalogApi, signal?: Abort
   const amount = product ? (product.pricing.setupFee + product.pricing.unitPrice * (durationUnits ?? 1)) * quantity : null
   const amountSafe = amount !== null && Number.isSafeInteger(amount)
   const spec = product?.spec
-  const specText = spec ? [spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter(Boolean).join(' / ') : null
+  const specText = spec ? [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter(Boolean).join(' / ') : null
   return {
     id: `guest:${selection.productNo}`, productId: selection.productNo, source: 'guest',
     type: billingUnit === 'unit' ? 'part' : 'rental', rowKind: billingUnit === 'unit' ? 'partner' : 'normal',
     label: product?.title || selection.productNo,
     location: product ? `${product.serverRoom.providerName ? `${product.serverRoom.providerName}/` : ''}${product.serverRoom.name}` : '-',
     image: product?.images.find((image) => image.primary)?.url ?? product?.images[0]?.url ?? null,
+    osFilterValue: product?.osFilterValue ?? null,
     spec: billingUnit === 'unit' ? product?.description ?? null : specText || null,
     available, instantAvailable: product?.instantAvailable ?? null,
     billingUnit, durationUnits, quantity, minimumQuantity: product?.minUnits ?? 1,

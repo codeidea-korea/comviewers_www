@@ -10,11 +10,7 @@ import mouseIcon from '../../assets/figma/mouse.svg'
 import serverLinkIcon from '../../assets/figma/server-link.svg'
 import serverOffIcon from '../../assets/figma/link-off.svg'
 import shoppingBagIcon from '../../assets/figma/shopping-bag.svg'
-
-
-import windowsLogo from '../../assets/figma/windows-logo.svg'
-import defaultProductImage from '../../assets/figma/windows-card-render.png'
-import defaultPartProductImage from '../../assets/figma/cart-product-partner.png'
+import { productOsVisual } from './productOsVisual'
 
 const formatPrice = (price: number) => new Intl.NumberFormat('ko-KR').format(price)
 
@@ -36,26 +32,25 @@ function PriceValue({ amount, compact = false }: { amount: number | null; compac
   )
 }
 
-export function ProductCard({ image, onAddToCart, product, size = 'medium' }: { image?: string; onAddToCart?: (product: Product) => void; product: Product; size?: 'medium' | 'large' }) {
+export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddToCart?: (product: Product) => void; product: Product; size?: 'medium' | 'large' }) {
   const isLarge = size === 'large'
   const hasMouse = Boolean(product.mouseIncluded)
   const hasKeyboard = Boolean(product.keyboardIncluded)
   const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
-  const hasCustomImage = Boolean(image ?? product.image)
-  const imageSource = image ?? product.image ?? (part ? defaultPartProductImage : defaultProductImage)
+  const visual = productOsVisual(product.osFilterValue, part)
 
   return (
     <article className={`product-card product-card--${size}`}>
       <div className="product-card__image">
-        <img alt={product.image || image ? '' : part ? '기본 파트 상품 이미지' : '기본 RCPC 상품 이미지'} src={imageSource} />
-        {hasCustomImage && product.os?.includes('Windows') ? <img alt="Windows" className="product-card__windows-logo" src={windowsLogo} /> : null}
+        <img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
+        {visual.label ? <span className="product-card__os-label">{visual.label}</span> : null}
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">
           <ProductSpec label={<TranslatedText id="product.number" />} value={<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.productId}</span>} />
-          <ProductSpec className="product-card__spec--os" label="OS" value={product.os ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.os}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--os" label="OS" value={visual.label || product.os ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{visual.label ?? product.os}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
           <ProductSpec label="DISK" tone="gray" value={product.disk ?? <TranslatedText id="common.noInformation" />} />

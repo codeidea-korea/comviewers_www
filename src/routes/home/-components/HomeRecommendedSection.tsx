@@ -21,7 +21,7 @@ export function HomeRecommendedSection({ content, selectedOptionId, onOptionChan
             {recommendedOptions.map(option => <button aria-pressed={selectedOptionId === option.id} key={option.id} onClick={() => onOptionChange(option.id)} type="button">{option.label}</button>)}
           </div>
           {content.recommendedUseMetadata.isError ? <p className="home-recommended-filter-error" role="alert">추천용도 필터를 불러오지 못했습니다. <button onClick={() => void content.recommendedUseMetadata.refetch()} type="button">다시 시도</button></p> : null}
-          <div className="home-product-grid">{query.isPending ? <LoadingState className="route-loading--compact" label="추천 상품을 불러오는 중입니다." /> : query.isError ? <div className="home-product-grid__state home-product-grid__state--error" role="alert"><p>추천 상품을 불러오지 못했습니다.</p><button onClick={() => void query.refetch()} type="button">다시 시도</button></div> : !recommendedProducts.length ? <p className="home-product-grid__state">조건에 맞는 추천 상품이 없습니다.</p> : null}{recommendedProducts.map((product) => <ProductCard image={product.image ?? undefined} key={product.id} product={product} />)}</div>
+          <div className="home-product-grid">{query.isPending ? <LoadingState className="route-loading--compact" label="추천 상품을 불러오는 중입니다." /> : query.isError ? <div className="home-product-grid__state home-product-grid__state--error" role="alert"><p>추천 상품을 불러오지 못했습니다.</p><button onClick={() => void query.refetch()} type="button">다시 시도</button></div> : !recommendedProducts.length ? <p className="home-product-grid__state">조건에 맞는 추천 상품이 없습니다.</p> : null}{recommendedProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>
         </div>
       </section>
   )

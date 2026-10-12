@@ -17,6 +17,7 @@ import chevronRightIcon from '../../assets/figma/chevron-right.svg'
 import { useProductDetail } from './-components/hooks/useProductDetail'
 import { useAddToCart } from './-components/hooks/useAddToCart'
 import type { Product } from '../../domain/products/types'
+import { osFilterLabel } from '@/domain/products/osFilterLabel'
 import { useSession } from '@/app/session/SessionProvider'
 import { useServices } from '@/app/ServiceProvider'
 import { cartQueryKeys } from '@/domain/cart/cartRepository'
@@ -25,7 +26,7 @@ import { LoadingState } from '@/components/ui/LoadingStateControl'
 
 function specRows(product: Product) {
   return [
-    ['OS', product.os],
+    ['OS', osFilterLabel(product.osFilterValue) ?? product.os],
     ['CPU', product.cpu],
     ['RAM', product.ram],
     ['DISK', product.disk],

@@ -66,6 +66,7 @@ const productFields = {
   productNo: productNoResponseSchema, title: z.string(), category: categorySummary,
   serverRoom, pricing: catalogPricingSchema, availability: z.enum(['AVAILABLE', 'SOLD_OUT']),
   spec: catalogSpecSchema.nullable(), inputDeviceStatus,
+  osFilterValue: nullableText.optional(),
 }
 const catalogRefundPolicySchema = z.object({
   policyVersionId: id,

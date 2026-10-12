@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { Product } from '../../../domain/products/types'
 import { Button } from '../../../components/ui/ButtonControl'
-import windowsLogo from '../../../assets/figma/windows-logo-detail.svg'
 import shoppingBag from '../../../assets/figma/shopping-bag.svg'
 import serverLinkIcon from '../../../assets/figma/server-link.svg'
 import serverOffIcon from '../../../assets/figma/icon-server-off.svg'
@@ -10,13 +9,13 @@ import keyboardIcon from '../../../assets/figma/keyboard.svg'
 import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
 import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
-import defaultProductImage from '../../../assets/figma/product-detail-89023.png'
-import defaultPartProductImage from '../../../assets/figma/cart-product-partner.png'
+import { productOsVisual } from '@/components/product/productOsVisual'
 
 const formatWon = (amount: number | null) => amount === null ? "정보 없음" : `${amount.toLocaleString('ko-KR')}원`
 
 export function ProductDetailHero({ product, message, onCart, onBuy, cartPending = false, buyPending = false }: { product: Product; message: string; onCart: (rentalPeriods: number) => void; onBuy: (rentalPeriods: number) => void; cartPending?: boolean; buyPending?: boolean }) {
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
+  const visual = productOsVisual(product.osFilterValue, part)
   const minimum = part ? product.minPurchaseQuantity : product.minRentalUnits
   const maximum = part ? product.maxPurchaseQuantity : product.maxRentalUnits
   const unit = product.billingUnit
@@ -30,10 +29,10 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const setupFee = product.setupFee
   const totalAmount = rentalUnitPrice === null || quantity === null ? null : part ? (setupFee + rentalUnitPrice) * quantity : setupFee + rentalUnitPrice * quantity
   const safeTotalAmount = totalAmount !== null && Number.isSafeInteger(totalAmount) ? totalAmount : null
-  const specs = [['OS', product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
+  const specs = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
-        <div className="product-detail-visual"><img alt={product.image ? (product.title ?? `${product.os ?? ''} RCPC`) : part ? '기본 파트 상품 이미지' : '기본 RCPC 상품 이미지'} src={product.image ?? (part ? defaultPartProductImage : defaultProductImage)} />{!part && product.os?.includes('Windows 11') ? <img alt="Windows 11" src={windowsLogo} /> : null}</div>
+        <div className="product-detail-visual"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{visual.label ? <span className="product-detail-visual__os-label">{visual.label}</span> : null}</div>
         <div className="product-detail-buy">
           <h1><span><span>품번</span><b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
           {part && <h2>{product.title ?? product.productId}</h2>}

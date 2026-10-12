@@ -1,11 +1,9 @@
-import windowsLogo from '@/assets/figma/windows-logo.svg'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import closeIcon from '@/assets/figma/product-list-close.svg'
 import addIcon from '@/assets/figma/icon-add.svg'
 import removeIcon from '@/assets/figma/icon-remove.svg'
-import defaultPartProductImage from '@/assets/figma/cart-product-partner.png'
-import defaultProductImage from '@/assets/figma/windows-card-render.png'
+import { productOsVisual } from '@/components/product/productOsVisual'
 import { Checkbox } from '@/components/ui/CheckboxControl'
 import type { CartItem } from '@/domain/cart/schemas'
 import { getCartItemAmount, getCartItemPoints, getCartSelectionUnits, cartUnitLabel, cartSelectionLabel, cartPriceLabel } from '@/domain/cart/cartEstimate'
@@ -26,7 +24,7 @@ interface Props {
 export function CartProductRow({ item, selected, disabled, quantityUpdating, onToggle, onRemove, onQuantityChange }: Props) {
   const { locale, t } = useTranslation()
   const partner = item.type === 'part'
-  const fallbackImage = partner ? defaultPartProductImage : defaultProductImage
+  const visual = productOsVisual(item.osFilterValue, partner)
   const waiting = item.instantAvailable === false
   const soldOut = item.issues.includes('SOLD_OUT')
   const stockReserved = item.issues.includes('STOCK_RESERVED')
@@ -48,11 +46,7 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
       <button aria-label={`${item.label} 삭제`} disabled={disabled} onClick={onRemove} type="button"><img alt="" src={closeIcon} /></button>
     </header>
     <div className="purchase-row__body cart-item__body">
-      <div className="purchase-row__image cart-item__image"><img alt={item.label} onError={(event) => {
-        if (event.currentTarget.dataset.fallbackApplied === 'true') return
-        event.currentTarget.dataset.fallbackApplied = 'true'
-        event.currentTarget.src = fallbackImage
-      }} src={item.image ?? fallbackImage} />{!partner && <img alt="" src={windowsLogo} />}</div>
+      <div className="purchase-row__image cart-item__image"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{visual.label ? <span className="cart-item__os-label">{visual.label}</span> : null}</div>
       <div className="purchase-row__details cart-item__details">
         {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{item.instantAvailable !== null && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><TranslatedText id="money.setupFee" /><span><CartMoney value={item.setupFee} /></span></p><p><span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{cartPriceLabel(item)}</span><span><CartMoney value={item.rentalFee} /></span></p></div>}
