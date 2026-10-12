@@ -25,7 +25,7 @@ export function CheckoutProducts({ items }: { items: readonly CartItem[] }) {
       : item.instantAvailable === null ? <TranslatedText id="product.connectionUnknown" /> : item.instantAvailable ? '구매 즉시 접속 가능합니다.' : <TranslatedText id="product.preparing" />
     const points = getCartItemPoints(item)
     return <article className={`commerce-product-row commerce-product-row--compact${partner ? ' commerce-product-row--partner' : ''}`} key={item.id}>
-      <header className="commerce-product-row__heading">{partner ? <><span>{item.label}</span><small><TranslatedText id="product.number" /> {item.productId}</small></> : <><span className="checkout-product-number"><TranslatedText id="product.number" /> <b>{item.productId}</b></span><small>{item.location}</small></>}</header>
+      <header className="commerce-product-row__heading"><span className="checkout-product-number"><TranslatedText id="product.number" /> <b>{item.productId}</b></span>{partner ? <span>{item.label}</span> : <small>{item.location}</small>}</header>
       <div className="commerce-product-row__content">
         <CheckoutProductImage item={item} />
         <div className="commerce-product-row__body">
