@@ -89,21 +89,9 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     setCurrentPage(1)
   }
   return <MyPageLayout><section className="manager-catalog manager-catalog--mypage">
-    <ManagerFilterToolbar managers={managers} selected={managerFilter} unassignedCount={unassignedCount} onSelect={chooseGroup} onSettings={onSettings}/>
+    <ManagerFilterToolbar managers={managers} selected={managerFilter} unassignedCount={unassignedCount} onSelect={chooseGroup} onSettings={onSettings} onCreate={onCreate} onCopyLink={() => void copyAccessLink()} search={search} onSearch={value => { setSearch(value); setCurrentPage(1) }}/>
     <AccountQueryState pending={account.isPending} error={account.error} retry={account.refetch}/>
     <div className="manager-catalog__tools"><label><input aria-label="담당자 검색" onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명을 검색해 주세요." value={search} /><img alt="" src={searchIcon} /></label><span><button onClick={copyAccessLink} type="button">접속 링크복사 <img alt="" src={linkIcon} /></button><button onClick={onCreate} type="button">담당자 등록 <img alt="" src={addIcon} /></button></span></div>
-    <div className="manager-catalog__mobile-tools">
-      <div className="manager-catalog__mobile-actions">
-        <button type="button" onClick={onCreate}>담당자 등록</button>
-        <button type="button" onClick={copyAccessLink}>접속 링크복사</button>
-      </div>
-      <label className="manager-catalog__mobile-search">
-        <span className="sr-only">담당자 검색</span>
-        <input onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명 검색" type="search" value={search}/>
-        <img alt="" src={searchIcon}/>
-      </label>
-      {managerFilter && managerFilter !== 'unassigned' ? <button className="manager-catalog__mobile-manager-info" onClick={() => onEdit(managerFilter)} type="button">선택한 담당자 정보 보기</button> : null}
-    </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
     <div className="manager-catalog__body"><div className="manager-catalog__table-panel"><div className="manager-catalog__select"><label><Checkbox checked={allVisibleSelected} onChange={(event) => changeAll(event.target.checked)} /> 모두선택</label></div><div aria-label="RCPC 담당자 목록" className="manager-catalog__table" role="table"><div className="manager-catalog__head" role="row"><span aria-label="선택" role="columnheader" /><span role="columnheader">품번</span><span role="columnheader">RCPC 별명</span><span role="columnheader">이용기간</span><span role="columnheader">남은 일수</span><span role="columnheader">담당자 정보</span><span aria-label="작업" role="columnheader" /></div>{visibleRows.map((row) => {
       const menuOpen = openMenuRow === row.id
