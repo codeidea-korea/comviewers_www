@@ -84,6 +84,17 @@
     font-size: 13px;
   }
 
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-tabs-row { align-items: stretch; display: flex; flex-direction: column; gap: 12px; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-tabs-row .mypage-tabs { flex: 0 0 auto; margin: 0; min-height: 48px; width: 100%; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .mypage-tabs--buttons button { color: var(--color-gray-600); font-size: 16px; font-weight: 500; letter-spacing: -.03em; line-height: 24px; -webkit-text-fill-color: var(--color-gray-600); }
+  .mypage-shell :is(.coupons-available, .coupons-history) .mypage-tabs--buttons button[aria-pressed='true'] { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-tabs-row__policy { align-self: flex-end; flex: 0 0 auto; font-size: 14px; gap: 2px; height: 24px; line-height: 24px; margin: 0; padding: 0; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-tabs-row__policy .coupons-policy-icon { flex: 0 0 16px; height: 16px; width: 16px; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-table > p[role='row'] { margin-bottom: 12px; padding: 12px; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-table > p[role='row'] > span[role='cell'] { align-items: center; gap: 0; grid-template-columns: 100px minmax(0, 1fr); letter-spacing: -.03em; line-height: 20px; min-height: 41px; padding: 8px 0; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-table > p[role='row'] > span[role='cell']::before { font-size: 12px; font-weight: 400; line-height: 16px; }
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-table > p[role='row'] > span[role='cell'] + span[role='cell'] { border-top-color: var(--color-gray-200); }
+
   .mypage-shell .orders-list-toolbar > span {
     display: grid;
     gap: 8px;
