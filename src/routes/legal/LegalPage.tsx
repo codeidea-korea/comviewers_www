@@ -25,8 +25,8 @@ function DocumentBody({ kind }: { kind: LegalKind }) {
 }
 export function LegalPage({ privacy = false }: { privacy?: boolean }) {
   const [params] = useSearchParams()
-  const section = privacy ? 'privacy' : params.get('section') === 'point' ? 'point' : params.get('section') === 'refund' ? 'refund' : params.get('section') === 'rental' ? 'rental' : 'terms'
-  const title = privacy ? '개인정보처리방침' : section === 'rental' ? 'RCPC 렌탈약관' : section === 'refund' ? '취소·환불·포인트 정책' : section === 'point' ? '포인트·쿠폰 정책' : '서비스 이용약관'
+  const section = privacy ? 'privacy' : params.get('section') === 'point' || params.get('section') === 'refund' ? 'refund' : params.get('section') === 'rental' ? 'rental' : 'terms'
+  const title = privacy ? '개인정보처리방침' : section === 'rental' ? 'RCPC 렌탈약관' : section === 'refund' ? '취소·환불·포인트 정책' : '서비스 이용약관'
   return <AppShell><section className="legal-page">
     <div className="legal-page__panel">
       <header className="legal-page__heading">
