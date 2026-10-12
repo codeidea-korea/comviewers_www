@@ -315,10 +315,8 @@
   .product-tabs { overflow-x: auto; }
   .product-tabs button { flex: 0 0 auto; }
 
-  .commerce-product-row,
-  .checkout-main .commerce-product-row { align-items: start; grid-template-columns: 96px minmax(0, 1fr); }
-  .commerce-product-row__image,
-  .checkout-main .commerce-product-row__image { height: 72px; width: 96px; }
+  .commerce-product-row { align-items: start; grid-template-columns: 96px minmax(0, 1fr); }
+  .commerce-product-row__image { height: 72px; width: 96px; }
   .commerce-product-row__amount { grid-column: 1 / -1; justify-self: end; }
   .cart-item__body { grid-template-columns: 96px minmax(0, 1fr); }
   .cart-column-headings { display: none; }

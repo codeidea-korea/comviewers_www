@@ -19,6 +19,7 @@ import type { CheckoutQuote, CheckoutSubmission } from '@/domain/checkout/checko
 import { CommerceCartState } from './-components/CommerceCartState'
 import { PageTitle } from './CommerceComponents'
 import { useInvalidateProductCatalog } from './-components/hooks/useInvalidateProductCatalog'
+import './checkout-mobile.css'
 
 type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote }
 
@@ -141,7 +142,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const refreshing = !attempt && (result.isFetching || !benefitReady)
   const pageState = quote ? 'filled' : 'empty'
   const contentStatus = attempt ? null : !result.validSelection ? 'empty' : result.isPending ? 'loading' : result.isError ? 'error' : null
-  return <AppShell className={`commerce-shell checkout-page checkout-page--service checkout-page--${pageState}${showReceipt ? ' checkout-page--with-receipt' : ''}`}>
+  return <AppShell className={`commerce-shell checkout-page checkout-page--service checkout-page--${pageState}${showReceipt ? ' checkout-page--with-receipt' : ''}`} footerVariant="compact">
     <div className="content-container commerce-page"><PageTitle>주문서 작성</PageTitle>
       
       {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel="선택 상품의 예상 금액을 불러오는 중입니다." errorMessage="선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다." onRetry={() => { void result.refetch() }} errorAction={<Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart" variant="secondary">장바구니로 이동</Button>}><p>장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.</p><Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart">장바구니로 이동</Button></CommerceCartState>
