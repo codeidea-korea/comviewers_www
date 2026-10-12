@@ -193,7 +193,6 @@ export function useProfileForm() {
       }
       setError(cause instanceof Error ? cause.message : '인증 메일을 보내지 못했습니다.'); return
     } finally { setBusy(false) }
-    setNotice('이메일 인증을 완료하면 회원가입이 자동으로 완료됩니다.')
   }
   function selectProfileImage(file: File | null) {
     formRevision.current += 1
