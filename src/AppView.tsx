@@ -2,7 +2,7 @@ import { CustomerCapabilityGate, SessionRouteGate } from './app/session/SessionC
 import { useSession } from './app/session/SessionProvider'
 import { Route, Routes, useLocation } from 'react-router'
 import { RouteErrorBoundary } from './app/RouteErrorBoundary'
-import { lazy, Suspense, useLayoutEffect } from 'react'
+import { lazy, Suspense, useDeferredValue, useLayoutEffect } from 'react'
 const LoginPage = lazy(() => import('./routes/auth/LoginPageView').then(module => ({ default: module.LoginPage })))
 const ManagerPortalGate = lazy(() => import('./routes/mypage/ManagerPortalGate').then(module => ({ default: module.ManagerPortalGate })))
 const RecoveryPages = lazy(() => import('./routes/auth/RecoveryPagesView').then(module => ({ default: module.RecoveryPages })))
@@ -44,9 +44,7 @@ const SupportListPage = lazy(() => import('./routes/support/SupportPagesView').t
 const CommunityPostCreatePage = lazy(() => import('./routes/community/CommunityPostCreatePageView')
   .then((module) => ({ default: module.CommunityPostCreatePage })))
 
-function ScrollToTop() {
-  const { pathname } = useLocation()
-
+function ScrollToTop({ pathname }: { pathname: string }) {
   useLayoutEffect(() => {
     window.history.scrollRestoration = 'manual'
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -61,11 +59,13 @@ function CartRoute() {
 }
 
 export function App() {
+  // Keep the current route visible while the next lazy route chunk is loading.
+  const location = useDeferredValue(useLocation())
   return (
     <>
-    <ScrollToTop />
+    <ScrollToTop pathname={location.pathname} />
     <Suspense fallback={<div aria-live="polite" className="route-loading" role="status"><span aria-hidden="true" className="route-loading__indicator" /><span className="sr-only">화면을 불러오는 중입니다.</span></div>}>
-      <RouteErrorBoundary><CustomerCapabilityGate><Routes>
+      <RouteErrorBoundary><CustomerCapabilityGate><Routes location={location}>
       <Route index element={<HomePage />} />
       <Route path="login" element={<LoginPage />} />
       <Route path="manager/:organizationCode/mypage" element={<ManagerPortalGate />}>

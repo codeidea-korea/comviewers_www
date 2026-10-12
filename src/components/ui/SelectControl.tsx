@@ -20,11 +20,11 @@ export function NativeSelect({ children, options, placeholder, ...props }: Nativ
   )
 }
 
-export function DropdownSelect({ className, controls, expanded, hasPopup = 'listbox', label, onToggle, panel, triggerIcon, value }: DropdownSelectProps) {
+export function DropdownSelect({ className, controls, disabled, expanded, hasPopup = 'listbox', label, onToggle, panel, triggerIcon, value }: DropdownSelectProps) {
   return (
     <div className={className} data-ui="dropdown-select">
       <span>{label}</span>
-      <button aria-controls={controls} aria-expanded={expanded} aria-haspopup={hasPopup || undefined} onClick={onToggle} type="button">
+      <button aria-controls={controls} aria-expanded={expanded} aria-haspopup={hasPopup || undefined} disabled={disabled} onClick={onToggle} type="button">
         <strong>{value}</strong>
         {triggerIcon}
       </button>

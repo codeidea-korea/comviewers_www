@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState, type ReactNode } from 'react'
-import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { DropdownSelect, GroupedMultiSelect, useDismissibleSelect } from '@/components/ui/SelectControl'
 import filterChevronUpIcon from '@/assets/figma/filter-chevron-up.svg'
 import filterTuneIcon from '@/assets/figma/filter-tune.svg'
@@ -12,7 +11,7 @@ import { TranslatedText, useTranslation, type TranslationKey } from '@/i18n/tran
 
 function MetadataNotice({ controls }: { controls: ProductCatalogControls }) {
   const { t } = useTranslation()
-  return controls.filterMetadataPending ? <LoadingState className="route-loading--compact" label={t('filter.loading')} /> : controls.filterMetadataError ? <p role="alert"><TranslatedText id="filter.loadFailed" /> <button className="product-catalog-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}><TranslatedText id="common.retry" /></button></p> : null
+  return controls.filterMetadataPending ? <span className="sr-only" role="status">{t('filter.loading')}</span> : controls.filterMetadataError ? <p role="alert"><TranslatedText id="filter.loadFailed" /> <button className="product-catalog-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}><TranslatedText id="common.retry" /></button></p> : null
 }
 
 export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: { controls: ProductCatalogControls; mobileFilterTrigger?: ReactNode }) {
@@ -52,7 +51,7 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
         selectedValues: new Set(options.map(option => String(option.id))), groups: categoryGroups(categoryCode),
         value: selectedLabel(options.map(option => option.label)) }
     }),
-  ].filter(selector => selector.selectedValues.size > 0 || selector.groups.some(group => group.options.length > 0))
+  ]
   const tags = metadata?.groups.flatMap(group => {
     const options = group.options.filter(option => selectedOptions.includes(option.id))
     if (!options.length) return []
@@ -64,10 +63,10 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
     || Boolean(selected.keyboardConnectionStatus) || Boolean(selected.mouseConnectionStatus)
   return <>
     <MetadataNotice controls={controls} />
-    <div className="product-mobile-controls">
+    <div aria-busy={controls.filterMetadataPending} className="product-mobile-controls">
     {mobileFilterTrigger}
     <div className="product-selectors product-catalog-selectors" ref={container}>
-      {primarySelectors.map(selector => <DropdownSelect className="product-selector-field" controls={`catalog-${selector.id}`} expanded={open === selector.id} hasPopup={false} key={selector.id} label={selectorKeys[selector.id] ? <TranslatedText id={selectorKeys[selector.id]} /> : selector.label} onToggle={() => setOpen(current => current === selector.id ? null : selector.id)}
+      {primarySelectors.map(selector => <DropdownSelect className="product-selector-field" controls={`catalog-${selector.id}`} disabled={!metadata} expanded={open === selector.id} hasPopup={false} key={selector.id} label={selectorKeys[selector.id] ? <TranslatedText id={selectorKeys[selector.id]} /> : selector.label} onToggle={() => setOpen(current => current === selector.id ? null : selector.id)}
         triggerIcon={<img alt="" src={selectorChevronDownIcon} />} value={<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{selector.value}</span>}
         panel={open === selector.id ? <>
           {selector.id === 'rooms' ? <button aria-label="서버실 선택 닫기" className="product-mobile-selector-backdrop" onClick={dismiss} type="button" /> : null}

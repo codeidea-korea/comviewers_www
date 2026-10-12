@@ -14,6 +14,7 @@ export interface NativeSelectProps extends SelectHTMLAttributes<HTMLSelectElemen
 export interface DropdownSelectProps {
   className?: string
   controls?: string
+  disabled?: boolean
   expanded?: boolean
   hasPopup?: AriaAttributes['aria-haspopup']
   label: ReactNode
