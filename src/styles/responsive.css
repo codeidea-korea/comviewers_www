@@ -816,7 +816,8 @@
   .company-catalog-story > div,
   .company-catalog-platform > div > div,
   .company-catalog-benefits > div { grid-template-columns: 1fr; }
-  .company-catalog-story > div > article { height: auto; }
+  .company-catalog-story > div > article { background: linear-gradient(180deg, var(--color-gray-100) 35%, #fff0d4 100%); height: auto; padding: 28px 24px 0; }
+  .company-catalog-story > div > article::before { display: none; }
   .company-catalog-story article img { height: auto; margin-top: 36px; }
   .company-catalog-hero,
   .company-catalog-hero > .content-container,
@@ -828,7 +829,34 @@
   .company-catalog-platform,
   .company-catalog-benefits { padding-block: 72px; }
   .company-catalog-story > div { display: flex; flex-direction: column; }
-  .company-catalog-story > div > article img { left: auto; max-width: 100%; position: static; top: auto; width: 100%; }
+  .company-catalog-story > div > article img { border-radius: 0; display: block; height: auto; left: auto; margin: 28px -24px 0; max-width: none; object-fit: contain; position: static; top: auto; width: calc(100% + 48px); }
+  .company-catalog-story h2,
+  .company-catalog-platform > .content-container > header > h2,
+  .company-catalog-benefits h2,
+  .company-catalog-cta h2 { font-size: 22px; letter-spacing: -.03em; line-height: 30px; overflow-wrap: break-word; }
+  .company-catalog-story > div > div section,
+  .company-catalog-story > div > div section:first-child { height: auto; margin-bottom: 24px; padding: 0 0 24px; }
+  .company-catalog-story > div > div section:last-child { height: auto; margin-bottom: 0; padding-bottom: 0; }
+  .company-catalog-story > div > div section h3 { align-items: flex-start; font-size: 18px; line-height: 26px; }
+  .company-catalog-story section h3 img { flex-shrink: 0; }
+  .company-use-tags { flex-wrap: wrap; }
+  .company-use-tags span { display: inline-flex; gap: 4px; }
+  .company-use-tags span > i { color: var(--color-system-success-bright); font-style: normal; }
+  .company-catalog-platform header,
+  .company-catalog-benefits header { height: auto; }
+  .company-catalog-platform > .content-container > header > small { color: var(--color-black); font-size: 16px; font-weight: 500; line-height: 24px; }
+  .company-catalog-platform > .content-container > header > h2 { margin-top: 12px; }
+  .company-catalog-platform .company-network-art { aspect-ratio: 1200 / 389; display: block; height: auto; margin: 24px auto; overflow: hidden; width: 100%; }
+  .company-catalog-platform .company-network-art img { display: block; height: auto; left: 10%; margin: 0; max-width: none; object-fit: contain; position: absolute; top: -26.221%; transform: none; width: 80%; }
+  .company-catalog-platform article b,
+  .company-catalog-platform article b::first-line { color: var(--color-gray-600); font-size: 14px; font-weight: 400; line-height: 21px; }
+  .company-catalog-platform article b { color: var(--color-black); font-size: 16px; font-weight: 500; }
+  .company-catalog-cta a { background: transparent; box-sizing: border-box; color: var(--color-white); font-size: 16px; height: 50px; margin-top: 32px; min-width: 0; padding: 0 16px; width: 161px; }
+  .company-catalog-rcpc__art { left: 50%; overflow: visible; transform: translateX(-50%); width: 420px; }
+  .company-catalog-rcpc__art img:nth-child(1) { height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 840px; }
+  .company-catalog-rcpc__art img:nth-child(2) { height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 610px; }
+  .company-catalog-rcpc__art img:nth-child(3) { height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 328px; }
+  .company-catalog-rcpc small { font-size: 16px; line-height: 24px; }
   .company-catalog-platform > div > div { grid-template-columns: 1fr; }
   .company-catalog-rcpc p { flex-wrap: wrap; gap: 12px; justify-content: center; letter-spacing: .2em; padding-inline: 16px; }
   .company-catalog-benefits button { grid-template-columns: minmax(0, 1fr) 24px; height: auto; min-height: 72px; padding: 16px; }
@@ -836,6 +864,13 @@
   .company-catalog-benefits article > p,
   .company-catalog-benefits article:hover > p,
   .company-catalog-benefits article.is-open > p { padding-inline: 16px; }
+  .company-catalog-benefits > div > div { margin-top: 32px; }
+  .company-catalog-benefits article:hover button,
+  .company-catalog-benefits article.is-open button { height: auto; min-height: 72px; }
+  .company-catalog-benefits button strong { min-width: 0; }
+  .company-catalog-benefits button strong img { flex-shrink: 0; height: 24px; width: 24px; }
+  .company-catalog-benefits article:hover > p,
+  .company-catalog-benefits article.is-open > p { font-size: 16px; height: auto; line-height: 24px; max-height: none; overflow: visible; padding: 0 16px 24px; }
 
   .colocation-shell main { min-height: 0; }
   .colocation-page:not(.colocation-page--compact) {
