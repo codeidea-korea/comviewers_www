@@ -42,7 +42,7 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
     {soldOut && <div className="cart-item__sold-out" role="status">[품절] <TranslatedText id="cart.soldOut" /> 선택을 해제한 후 주문해 주세요.</div>}
     {!soldOut && stockReserved && <div className="cart-item__sold-out" role="status">[결제 대기] <TranslatedText id="cart.stockReserved" /> 선택을 해제한 후 주문해 주세요.</div>}
     <header className="purchase-row__header cart-item__header">
-      <label><Checkbox checked={selected} disabled={disabled} onChange={onToggle} />{partner ? <span className="cart-item__product-name">{item.label}</span> : <span className="cart-item__number"><TranslatedText id="product.number" /><b>{item.productId}</b></span>}{!partner && <small>{item.location}</small>}</label>
+      <label><Checkbox checked={selected} disabled={disabled} onChange={onToggle} />{partner ? <span className="cart-item__product-name"><span>{item.label}</span><small><TranslatedText id="product.number" /> {item.productId}</small></span> : <span className="cart-item__number"><TranslatedText id="product.number" /><b>{item.productId}</b></span>}{!partner && <small>{item.location}</small>}</label>
       <button aria-label={`${item.label} 삭제`} disabled={disabled} onClick={onRemove} type="button"><img alt="" src={closeIcon} /></button>
     </header>
     <div className="purchase-row__body cart-item__body">
