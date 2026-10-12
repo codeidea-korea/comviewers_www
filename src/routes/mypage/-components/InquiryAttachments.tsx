@@ -47,8 +47,13 @@ export function InquiryAttachments({ api, requestId, files, onChange, disabled, 
   return <fieldset disabled={disabled || busy}><legend>첨부파일 ({files.length}/5)</legend>
     <label>파일 선택<input type="file" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt" onChange={(event) => { void upload(event.target.files); event.target.value = '' }}/></label>
     <p className="inquiry-chat__attachment-help">PNG·JPG·WEBP·PDF·TXT, 파일당 최대 10MB. 안전 검사를 통과한 파일만 전송됩니다.</p>
-    {files.length || busy || error ? <div className="inquiry-chat__attachment-list">
-      {files.map((file) => <p className="inquiry-chat__attachment-file" key={file.attachmentId}>{file.fileName} ({file.fileSize.toLocaleString('ko-KR')} bytes) <Button size="small" variant="secondary" onClick={() => void remove(file.attachmentId)}>삭제</Button></p>)}
+    {files.length || busy || error ? <div className="inquiry-chat__attachment-list" aria-label="전송할 첨부파일" role="group">
+      <strong>전송할 파일 <span>{files.length}/5</span></strong>
+      {files.map((file) => <div className="inquiry-chat__attachment-file" key={file.attachmentId}>
+        <span title={file.fileName}>{file.fileName}</span>
+        <small>{Math.ceil(file.fileSize / 1024).toLocaleString('ko-KR')} KB</small>
+        <button aria-label={`${file.fileName} 첨부 삭제`} disabled={disabled || busy} onClick={() => void remove(file.attachmentId)} type="button">×</button>
+      </div>)}
       {busy ? <p role="status">첨부파일 처리 중…</p> : null}
       {error ? <p role="alert">{error}</p> : null}
     </div> : null}

@@ -1184,11 +1184,17 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-chat__composer > .inquiry-chat__attachment-guidance { grid-column: 1 / -1; grid-row: 2; }
 .inquiry-chat__attachments input[type='file'] { display: none; }
 .inquiry-chat__attachment-help { display: none; }
-.inquiry-chat__attachments fieldset { position: relative; }
-.inquiry-chat__attachment-list { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; box-shadow: 0 4px 14px rgb(0 0 0 / 8%); display: grid; gap: 6px; left: 0; min-width: 360px; padding: 8px; position: absolute; top: 38px; z-index: 3; }
-.inquiry-chat__attachment-list > p { margin: 0; position: static !important; width: auto !important; }
-.inquiry-chat__attachment-file { align-items: center; display: flex; gap: 8px; margin: 6px 0 0; min-width: 300px; }
-.inquiry-chat__attachment-file .button { flex: 0 0 auto; }
+.inquiry-chat__attachments fieldset { position: static; }
+.inquiry-chat__attachment-list { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 8px; bottom: calc(100% + 8px); box-shadow: 0 4px 14px rgb(0 0 0 / 8%); box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; left: 0; max-height: min(220px, 35dvh); min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px; position: absolute; right: 0; top: auto; z-index: 3; }
+.inquiry-chat__attachment-list > strong { align-items: center; display: flex; font-size: 12px; font-weight: 600; justify-content: space-between; }
+.inquiry-chat__attachment-list > strong span { color: var(--color-gray-500); font-weight: 400; }
+.inquiry-chat__attachment-list > p { font-size: 12px; margin: 4px 0 0; overflow-wrap: anywhere; position: static !important; width: auto !important; }
+.inquiry-chat__attachment-list > p[role='alert'] { color: var(--color-system-error); }
+.inquiry-chat__attachment-file { align-items: center; background: var(--color-gray-50); border-radius: 6px; display: flex; flex: 0 0 auto; gap: 8px; min-height: 36px; min-width: 0; padding: 4px 8px; }
+.inquiry-chat__attachment-file > span { flex: 1 1 auto; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inquiry-chat__attachment-file > small { color: var(--color-gray-500); flex: 0 0 auto; font-size: 11px; white-space: nowrap; }
+.inquiry-chat__attachment-file > button { align-items: center; background: transparent; border: 0; border-radius: 4px; color: var(--color-gray-600); display: flex; flex: 0 0 28px; font-size: 20px; height: 28px; justify-content: center; padding: 0; }
+.inquiry-chat__attachment-file > button:hover:not(:disabled) { background: var(--color-gray-200); color: var(--color-black); }
 /* Figma desktop navigation: symbol 534:17214. */
 .mypage-sidebar h2:only-child { font-size: 14px; line-height: 17px; }
 

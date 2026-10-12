@@ -97,7 +97,7 @@
 
   .inquiry-mobile-page .inquiry-chat__attachment-list {
     min-width: 0;
-    width: min(360px, calc(100vw - 24px));
+    width: auto;
   }
   .inquiry-mobile-page .inquiry-chat__attachment-file { min-width: 0; }
 }
