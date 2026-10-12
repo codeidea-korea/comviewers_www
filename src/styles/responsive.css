@@ -859,6 +859,8 @@
   .colocation-page:not(.colocation-page--compact) .email-control input,
   .colocation-page:not(.colocation-page--compact) .email-control select,
   .colocation-page:not(.colocation-page--compact) .phone-control input { width: 100%; }
+  .colocation-page:not(.colocation-page--compact) .phone-control,
+  .colocation-page:not(.colocation-page--compact) .messenger-control { grid-template-columns: 1fr; }
   .colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box,
   .colocation-page:not(.colocation-page--compact) .colocation-submit { margin-left: 0; max-width: 100%; width: 100%; }
 

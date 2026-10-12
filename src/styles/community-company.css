@@ -393,9 +393,15 @@
 .colocation-page:not(.colocation-page--compact) .colocation-card fieldset:nth-of-type(4),
 .colocation-page:not(.colocation-page--compact) .colocation-card fieldset:nth-of-type(5) { padding-top: 0; }
 .colocation-page:not(.colocation-page--compact) .colocation-consent > label { margin-top: 0; }
-.colocation-page:not(.colocation-page--compact) .colocation-card legend { margin-bottom: 17px; }
+.colocation-page:not(.colocation-page--compact) .colocation-card legend { font-size: 18px; font-weight: 500; margin-bottom: 17px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid { row-gap: 26px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid label > span { color: var(--color-gray-500); font-weight: 400; }
+.colocation-page:not(.colocation-page--compact) .colocation-card > header p { font-size: 16px; }
+.colocation-card .colocation-help b { color: var(--color-gray-500); }
+.colocation-page:not(.colocation-page--compact) .phone-control { align-items: center; display: grid; gap: 8px; grid-template-columns: 90px 1fr 1fr; }
+.colocation-page:not(.colocation-page--compact) .messenger-control { align-items: center; display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.colocation-page:not(.colocation-page--compact) .phone-control > :is(input, select),
+.colocation-page:not(.colocation-page--compact) .messenger-control > :is(input, select) { min-width: 0; width: 100%; }
 .colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box { background: white; border: 1px solid var(--color-gray-200); display: block; height: 116px; margin: 6px 0 0 26px; max-width: calc(100% - 26px); padding: 8px; position: relative; width: 574px; }
 .colocation-submit:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: default; }
 
