@@ -26,7 +26,7 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
   return (
     <section aria-modal="true" className={`inquiry-preview-dialog inquiry-product-choice${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role="dialog" tabIndex={-1}>
       <header><h2>상품 선택</h2><button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button></header>
-      <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={!products.length} indeterminate={selectedCount > 0 && !allSelected} onChange={event => onSelectedChange(event.target.checked ? products.map((_, index) => index) : [])} /><span>모두선택</span></label>
+      <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={!products.length} onChange={event => onSelectedChange(event.target.checked ? products.map((_, index) => index) : [])} /><span>모두선택</span></label>
       <div className="inquiry-product-choice__products">{notice}{products.map((product, index) => <ProductChoiceRow checked={selectedIndexes.includes(index)} key={product.selectionId} onCheckedChange={(checked) => changeOne(index, checked)} product={product} />)}</div>
       <footer>
         {overLimit ? <p className="inquiry-product-choice__limit" role="alert">최대 {maxSelection}대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요.</p> : null}
