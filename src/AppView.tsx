@@ -23,6 +23,7 @@ const StoragePage = lazy(() => import('./routes/mypage/StoragePageView').then(mo
 const FavoritesPage = lazy(() => import('./routes/mypage/FavoritesPagesView').then(module => ({ default: module.FavoritesPage })))
 const InquiryDetailPage = lazy(() => import('./routes/mypage/InquiryPagesView').then(module => ({ default: module.InquiryDetailPage })))
 const InquiryListPage = lazy(() => import('./routes/mypage/InquiryPagesView').then(module => ({ default: module.InquiryListPage })))
+const InquiryCreatePage = lazy(() => import('./routes/mypage/InquiryPagesView').then(module => ({ default: module.InquiryCreatePage })))
 const ManagersPage = lazy(() => import('./routes/mypage/ManagerPagesView').then(module => ({ default: module.ManagersPage })))
 const MypageHomePage = lazy(() => import('./routes/mypage/MypageHomePageView').then(module => ({ default: module.MypageHomePage })))
 const OrderDetailPage = lazy(() => import('./routes/mypage/OrderDetailPageView').then(module => ({ default: module.OrderDetailPage })))
@@ -77,6 +78,7 @@ export function App() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/:orderId" element={<OrderDetailPage />} />
         <Route path="inquiries" element={<InquiryListPage />} />
+        <Route path="inquiries/new" element={<InquiryCreatePage />} />
         <Route path="inquiries/:inquiryId" element={<InquiryDetailPage />} />
       </Route>
       <Route path="email-verification" element={<EmailVerificationPage />} />
@@ -114,6 +116,7 @@ export function App() {
       <Route path="mypage/points" element={<SessionRouteGate requireOrganization><PointsPage /></SessionRouteGate>} />
       <Route path="mypage/coupons" element={<SessionRouteGate requireOrganization><CouponsPage /></SessionRouteGate>} />
       <Route path="mypage/inquiries" element={<SessionRouteGate requireOrganization><InquiryListPage /></SessionRouteGate>} />
+      <Route path="mypage/inquiries/new" element={<SessionRouteGate requireOrganization><InquiryCreatePage /></SessionRouteGate>} />
       <Route path="mypage/inquiries/:inquiryId" element={<SessionRouteGate requireOrganization><InquiryDetailPage /></SessionRouteGate>} />
       <Route path="mypage/managers" element={<SessionRouteGate requireOrganization><ManagersPage /></SessionRouteGate>} />
       <Route path="mypage/profile" element={<SessionRouteGate requireOrganization><ProfilePage /></SessionRouteGate>} />

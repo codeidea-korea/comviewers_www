@@ -9,6 +9,7 @@ import radioOff from '../../assets/figma/select-radio-off.svg'
 import radioOn from '../../assets/figma/select-radio-on.svg'
 import { DialogLayer } from '../ui/DialogLayerControl'
 import { Radio } from '../ui/RadioControl'
+import backChevron from '../../assets/figma/chevron-left.svg'
 
 interface FlowPopupProps {
   backdropClassName?: string
@@ -29,6 +30,8 @@ interface TypeChoiceProps {
 }
 
 interface WriteContentProps {
+  standalone?: boolean
+  onAddProducts?: () => void
   composer: InquiryComposer
   inquiryType: string
   onBack: () => void
@@ -66,8 +69,9 @@ export function InquiryWritePopup({ backdropClassName, children, onClose, return
   return <DialogLayer asChild backdropClassName={backdropClassName} focusKey="create:write" isOpen onClose={onClose} returnFocusRef={returnFocusRef} showTitle={false} title="문의 작성">{children}</DialogLayer>
 }
 
-export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, selectedRcpcs, submitLabel = '초안 저장' }: WriteContentProps) {
+export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, onAddProducts, selectedRcpcs, standalone = false, submitLabel = '초안 저장' }: WriteContentProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [productsOpen, setProductsOpen] = useState(false)
   const message = composer.message
   const setMessage = composer.onMessageChange
   const selectMenuItem = (action: () => void) => {
@@ -75,17 +79,17 @@ export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, se
     action()
   }
   return (
-    <section aria-modal="true" className="inquiry-preview-dialog inquiry-chat" role="dialog" tabIndex={-1}>
-      <header><button aria-expanded={menuOpen} aria-label="문의 메뉴" onClick={() => setMenuOpen((open) => !open)} type="button"><img alt="" className="inquiry-chat__icon" src={moreVertical} /></button><h2>[작성 중] {inquiryType}</h2><button aria-label="닫기" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose} /></button></header>
-      {menuOpen ? <div className="inquiry-chat__menu" role="menu">{onBack ? <button onClick={() => selectMenuItem(onBack)} role="menuitem" type="button">문의 유형 변경</button> : null}</div> : null}
+    <section aria-label={standalone ? '문의 작성' : undefined} aria-modal={standalone ? undefined : true} className="inquiry-preview-dialog inquiry-chat" role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
+      <header>{standalone ? <button aria-label={productsOpen ? '문의 작성으로 돌아가기' : '문의 목록으로'} onClick={productsOpen ? () => setProductsOpen(false) : onClose} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}<button aria-expanded={menuOpen} aria-label="문의 메뉴" className="inquiry-chat__products-trigger" onClick={() => setMenuOpen((open) => !open)} type="button"><img alt="" className="inquiry-chat__icon" src={moreVertical} /></button><h2>{productsOpen ? `문의 상품 (${selectedRcpcs.length})` : `[작성 중] ${inquiryType}`}</h2>{!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose} /></button> : null}</header>
+      {menuOpen ? <div className="inquiry-chat__menu" role="menu"><button onClick={() => selectMenuItem(() => setProductsOpen(true))} role="menuitem" type="button">문의 상품</button><button onClick={() => selectMenuItem(onAddProducts ?? onBack)} role="menuitem" type="button">문의 상품 추가</button></div> : null}
       <div className="inquiry-chat__scroll">
         
         {selectedRcpcs.length > 1 ? <p className="inquiry-chat__bulk-summary">선택한 RCPC {selectedRcpcs.length}대 일괄 문의</p> : null}
         {selectedRcpcs.map((rcpc) => <article className="inquiry-chat__product" data-order-id={rcpc.orderId} data-rcpc-id={rcpc.rcpcId} data-selection-id={rcpc.selectionId} key={rcpc.selectionId ?? String(rcpc.rcpcId)}><span>선택 품목</span><img alt="RCPC 상품" src={productThumb} /><div><small>{rcpc.rcpcId}</small><b>{rcpc.alias}</b><em>{rcpc.location ?? '서버실 정보 없음'}</em></div></article>)}
-        <p className="inquiry-chat__system">문의 유형과 대상 RCPC를 확인한 뒤 내용을 작성해 주세요.</p>
+        {!productsOpen ? <p className="inquiry-chat__system">문의 유형과 대상 RCPC를 확인한 뒤 내용을 작성해 주세요.</p> : null}
       </div>
       {composer.notice ? <p role={composer.notice === '문의 초안을 저장했습니다.' ? 'status' : 'alert'} className={`mypage-notice ${composer.notice === '문의 초안을 저장했습니다.' ? 'mypage-notice--success' : 'mypage-notice--error'}`}>{composer.notice}</p> : null}
-      <footer className="inquiry-chat__draft-composer"><img alt="" src={addIcon} /><input maxLength={4000} disabled={composer.pending} aria-label="문의 메시지" onChange={(event) => setMessage(event.target.value)} placeholder="메시지를 입력해 주세요." value={message} /><button disabled={composer.pending || !message.trim()} onClick={composer.onSend} type="button">{composer.pending ? '처리 중…' : submitLabel}</button></footer>
+      {!productsOpen ? <footer className="inquiry-chat__draft-composer"><img alt="" src={addIcon} /><input maxLength={4000} disabled={composer.pending} aria-label="문의 메시지" onChange={(event) => setMessage(event.target.value)} placeholder="메시지를 입력해 주세요." value={message} /><button disabled={composer.pending || !message.trim()} onClick={composer.onSend} type="button">{composer.pending ? '처리 중…' : submitLabel}</button></footer> : null}
     </section>
   )
 }

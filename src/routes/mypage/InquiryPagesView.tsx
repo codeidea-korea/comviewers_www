@@ -1,6 +1,27 @@
 import { useServices } from '@/app/ServiceProvider'
 import { MyPageLayout } from './MypageComponentsView'
 import { InquiryDetailContent, InquiryListContent } from './-components/inquiries/InquiryPagesContent'
+import { useLocation, useNavigate } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
+import { InquiryCreateDialog } from './-components/InquiryCreateDialog'
+import { managerScopedPath } from './-components/managerPortalPath'
+
+const inquiryCreateState = z.object({ initialIds: z.array(z.number().int().positive().safe()).max(20).default([]), initialProductNo: z.string().max(16).default(''), fixedTarget: z.boolean().default(false) })
+
+export function InquiryCreatePage() {
+  const services = useInquiryServices()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const client = useQueryClient()
+  const parsed = inquiryCreateState.safeParse(location.state ?? {})
+  const initial = parsed.success ? parsed.data : { initialIds: [], initialProductNo: '', fixedTarget: false }
+  if (!services) return <MyPageLayout title="문의 작성"><p role="alert">문의 기능을 불러오지 못했습니다.</p></MyPageLayout>
+  return <InquiryCreateDialog {...services} {...initial} standalone onClose={() => navigate(managerScopedPath('/mypage/inquiries', location.pathname))} onCreated={async id => {
+    navigate(managerScopedPath(`/mypage/inquiries/${id}`, location.pathname), { replace: true })
+    await client.invalidateQueries({ queryKey: ['operation-requests', services.api.organizationId] })
+  }}/>
+}
 
 function useInquiryServices() {
   const { myAccount } = useServices()

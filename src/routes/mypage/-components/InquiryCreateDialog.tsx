@@ -17,13 +17,14 @@ type Props = {
   initialIds: readonly number[]
   initialProductNo: string
   fixedTarget?: boolean
+  standalone?: boolean
   onClose: () => void
   onCreated: (id: number) => Promise<void>
 }
 
 const requestCodes = ['as_request', 'setup_change', 'refund_cancel', 'inquiry'] as const
 
-export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, fixedTarget = false, onClose, onCreated }: Props) {
+export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, fixedTarget = false, standalone = false, onClose, onCreated }: Props) {
   const session = useSession()
   const hasFixedTarget = fixedTarget && initialIds.length > 0 && initialIds.length <= 20
   const [step, setStep] = useState<'product' | 'type' | 'write' | 'refund'>(hasFixedTarget ? 'type' : 'product')
@@ -32,6 +33,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const [typeIndex, setTypeIndex] = useState<number | null>(null)
   const [typeNotice, setTypeNotice] = useState('')
   const [message, setMessage] = useState('')
+  const [addingProducts, setAddingProducts] = useState(false)
   const submitting = useRef(false)
   const rcpcs = useQuery({
     queryKey: ['my-rcpcs', rcpcApi.organizationId, 'authorized-options'],
@@ -51,7 +53,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const create = useMutation({
     mutationFn: () => {
       if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
-      if (hasFixedTarget && selectedProducts.length !== initialIds.length) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
+      if (hasFixedTarget && !initialIds.every(id => selectedProducts.some(product => Number(product.rcpcId) === id))) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
       return api.create({
         requestType: selectedCode,
         title: inquiryTypes[selectedCode],
@@ -63,20 +65,23 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     onSettled: () => { submitting.current = false },
   })
   const close = () => { if (!create.isPending) onClose() }
+  const closeProductPicker = () => { if (addingProducts) { setAddingProducts(false); setStep('write') } else close() }
 
-  if (step === 'product') return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={close} showTitle={false} title="상품 선택">
+  if (step === 'product') return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={closeProductPicker} showTitle={false} title="상품 선택">
     <ProductChoiceContent
-      allowEmpty
+      allowEmpty={!hasFixedTarget}
       notice={rcpcs.isPending
         ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
         : rcpcs.isError
           ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
           : products.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}
-      onClose={close}
-      onEmpty={() => { setSelectedIds([]); setTypeIndex(null); setTypeNotice(''); setStep('type') }}
-      onNext={() => { setTypeIndex(null); setTypeNotice(''); setStep('type') }}
-      onSelectedChange={(indexes) => setSelectedIds(indexes
-        .map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger))}
+      onClose={closeProductPicker}
+      onEmpty={() => { setSelectedIds([]); if (addingProducts) { setAddingProducts(false); setStep('write') } else { setTypeIndex(null); setTypeNotice(''); setStep('type') } }}
+      onNext={() => { if (addingProducts) { setAddingProducts(false); setStep('write') } else { setTypeIndex(null); setTypeNotice(''); setStep('type') } }}
+      onSelectedChange={(indexes) => setSelectedIds([...new Set([
+        ...(hasFixedTarget ? initialIds : []),
+        ...indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger),
+      ])].slice(0, 20))}
       products={products}
       selectedIndexes={selectedIndexes}
     />
@@ -125,8 +130,8 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
 
   if (step === 'refund') return <InquiryRefundApplicationDialog api={api} initialRentalIds={refundRentalIds} onClose={() => setStep('type')} onComplete={close} />
 
-  return <InquiryWritePopup backdropClassName="inquiry-preview-layer inquiry-preview-layer--write" onClose={close}>
-    <InquiryWriteContent
+  const write = <InquiryWriteContent
+      standalone={standalone}
       composer={{
         message,
         sentMessages: [],
@@ -134,7 +139,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
         pending: create.isPending,
         onMessageChange: setMessage,
         onSend: () => {
-          if (!create.isPending && !submitting.current && selectedCode && (!hasFixedTarget || selectedProducts.length === initialIds.length) && (selectedProducts.length > 0 || selectedCode === 'inquiry') && message.trim()) {
+          if (!create.isPending && !submitting.current && selectedCode && (!hasFixedTarget || initialIds.every(id => selectedProducts.some(product => Number(product.rcpcId) === id))) && (selectedProducts.length > 0 || selectedCode === 'inquiry') && message.trim()) {
             submitting.current = true
             create.mutate()
           }
@@ -142,9 +147,10 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       }}
       inquiryType={selectedCode ? inquiryTypes[selectedCode] : ''}
       onBack={() => setStep('type')}
+      onAddProducts={() => { setAddingProducts(true); setStep('product') }}
       onClose={close}
       selectedRcpcs={selectedProducts}
-      submitLabel="문의 접수"
+      submitLabel={standalone ? '전송' : '문의 접수'}
     />
-  </InquiryWritePopup>
+  return standalone ? <main className="inquiry-mobile-page">{write}</main> : <InquiryWritePopup backdropClassName="inquiry-preview-layer inquiry-preview-layer--write" onClose={close}>{write}</InquiryWritePopup>
 }
