@@ -67,8 +67,7 @@
     grid-template-columns: 120px minmax(0, 1fr);
     width: 100%;
   }
-  .cart-page .cart-item__image { height: 64px; width: 120px; }
-  .cart-page .cart-item__os-label { font-size: 12px; }
+  .cart-page .cart-item__image { --product-os-label-size: 12px; height: 64px; width: 120px; }
   .cart-page .cart-item__details { display: contents; }
   .cart-page .cart-item__intro,
   .cart-page .cart-item__details > .cart-item__spec { grid-column: 2; min-width: 0; }
