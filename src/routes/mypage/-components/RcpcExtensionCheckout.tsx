@@ -18,7 +18,7 @@ import './rcpc/extension-checkout.css'
 type ExtensionQuote = Awaited<ReturnType<MyRcpcReadServices['extensionCheckout']['quote']>>
 
 const money = (amount: number | null | undefined) => amount == null ? '—' : `${amount.toLocaleString('ko-KR')}원`
-const dateTime = (value: string | null) => value?.replace('T', ' ') ?? '—'
+const dateTime = (value: string | null) => value ? value.replace('T', ' ').split('.')[0] : '—'
 
 export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialDays = 30, offerIds, pageMode = false, initialSelection, triggerLabel }: { api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; offerIds?: number[]; pageMode?: boolean; initialSelection?: ExtensionSelection; triggerLabel?: string }) {
   const session = useSession()
@@ -127,7 +127,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
                 <div><dt>현재 만료</dt><dd>{dateTime(item.previousEnd)}</dd></div>
                 <div><dt>예상 연장 종료</dt><dd>{dateTime(item.targetEnd)}</dd></div>
                 <div><dt>연장 기간</dt><dd>{item.addedDays == null ? '—' : `${item.addedDays}일`}</dd></div>
-                <div><dt>결제 예정금액</dt><dd><strong>{money(item.amount)}</strong></dd></div>
+                <div><dt>결제 예정금액</dt><dd><strong>{item.eligible ? money(item.amount) : '결제 불가'}</strong></dd></div>
               </dl>
               {!item.eligible && <p className="extension-checkout__error">{extensionResultText(item)}</p>}
             </article>)}
@@ -158,10 +158,10 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       <aside aria-label="결제 요약" className="extension-checkout__summary">
         <h3>결제 예정금액</h3>
         <dl>
-          <div><dt>연장 상품 {rentalIds.length}대</dt><dd>{money(current?.totalAmount)}</dd></div>
+          <div><dt>선택 상품 {rentalIds.length}대</dt><dd>{current && !current.eligible ? '결제 불가' : money(current?.totalAmount)}</dd></div>
           <div><dt>쿠폰 할인</dt><dd>{current ? `−${money(current.benefits?.couponDiscountAmount ?? 0)}` : '—'}</dd></div>
           <div><dt>포인트 사용</dt><dd>{current ? `−${(current.benefits?.pointUsedAmount ?? 0).toLocaleString('ko-KR')}P` : '—'}</dd></div>
-          <div className="extension-checkout__total"><dt>최종 결제금액</dt><dd>{money(current?.benefits?.finalAmount ?? current?.totalAmount)}</dd></div>
+          <div className="extension-checkout__total"><dt>최종 결제금액</dt><dd>{current && !current.eligible ? '결제 불가' : money(current?.benefits?.finalAmount ?? current?.totalAmount)}</dd></div>
         </dl>
         {current?.benefits?.finalAmount === 0 && <p className="extension-checkout__help">전액 할인되어 별도의 결제 없이 완료됩니다.</p>}
         <Checkbox className="extension-checkout__agreement" visualClassName="" checked={orderConfirmed} disabled={locked} onChange={event => setOrderConfirmed(event.target.checked)}>[필수] 주문 상품, 결제 금액 및 주문 내용을 모두 확인했습니다.</Checkbox>
@@ -186,7 +186,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       busy={quote.isFetching} dateValue={date} error={quote.error?.message} extensionMode={mode === 'days' ? 'period' : 'date'} itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
       onModeChange={(value) => setMode(value === 'date' ? 'date' : 'days')} onPeriodChange={setDays} periodValue={days}
       rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? rentalIds.map((rentalId) => ({ rcpcId: rentalId }))}
-      rows={current?.items.map((item) => ({ key: item.rentalId, product: item.productNo ?? '-', period: item.addedDays == null ? '-' : `${item.addedDays}일`, currentEnd: item.previousEnd?.replace('T', ' ') ?? '-', nextEnd: item.targetEnd?.replace('T', ' ') ?? '-', monthlyFee: item.monthlyFee == null ? '-' : `${item.monthlyFee.toLocaleString('ko-KR')}원`, payment: extensionResultText(item), warning: !item.eligible }))}
-      totalAmount={current ? `${current.totalAmount.toLocaleString('ko-KR')}원` : '견적 미조회'} /> : null}
+      rows={current?.items.map((item) => ({ key: item.rentalId, product: item.productNo ?? '-', period: item.addedDays == null ? '-' : `${item.addedDays}일`, currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : `${item.monthlyFee.toLocaleString('ko-KR')}원`, payment: extensionResultText(item), warning: !item.eligible }))}
+      totalAmount={current ? current.eligible ? `${current.totalAmount.toLocaleString('ko-KR')}원` : '결제 불가' : '견적 미조회'} /> : null}
   </section>
 }

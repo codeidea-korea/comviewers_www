@@ -94,7 +94,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
             {displayRows.map((row) => <div className={row.warning ? 'is-warning' : undefined} key={row.key}>{[row.product, row.period, row.currentEnd, row.nextEnd, row.monthlyFee, row.payment].map((value, index) => <span key={index}>{value}</span>)}</div>)}
           </div>
         </div>
-        <div className="rcpc-extension-total"><small>총 결제 상품 <b>{itemCount ?? displayRows.length}개</b></small><strong>총 결제 금액 <b>{totalAmount}</b></strong></div>
+        <div className="rcpc-extension-total"><small>선택 상품 <b>{itemCount ?? displayRows.length}개</b></small><strong>총 결제 금액 <b>{totalAmount}</b></strong></div>
       </div>
       <DialogActions><button onClick={onClose} type="button">취소</button>{action ?? <button disabled type="button">연장 결제하기</button>}</DialogActions>
     </PopupLayer>
