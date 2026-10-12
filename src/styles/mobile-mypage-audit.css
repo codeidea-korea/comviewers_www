@@ -116,16 +116,38 @@
   .mypage-shell .order-full-detail dt { font-size: 12px; line-height: 16px; }
   .mypage-shell .order-full-detail dd { font-size: 14px; line-height: 20px; min-width: 0; overflow-wrap: anywhere; }
 
-  .mypage-shell .orders-list-toolbar > span {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .mypage-shell .orders-list-toolbar > span button {
-    min-height: 40px;
-    padding-left: 0;
-    white-space: nowrap;
-  }
+  /* Local Figma mobile order history: 1567:38650, 390px canvas. */
+  .mypage-shell .mypage-layout:has(.orders-catalog-list) .mypage-title { font-size: 20px; font-weight: 400; line-height: 24px; }
+  .mypage-shell .orders-catalog-list .mypage-tabs--buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); height: 50px; margin: 0; overflow: visible; }
+  .mypage-shell .orders-catalog-list .mypage-tabs--buttons button { border-radius: 0; color: var(--color-gray-600); font-size: 16px; font-weight: 500; gap: 4px; height: 50px; letter-spacing: -.03em; line-height: 24px; min-width: 0; padding: 0 4px; -webkit-text-fill-color: var(--color-gray-600); }
+  .mypage-shell .orders-catalog-list .mypage-tabs--buttons button[aria-pressed='true'] { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+  .mypage-shell .orders-catalog-list .orders-list-toolbar { align-items: center; flex-direction: row; gap: 8px; height: 40px; margin: 0; }
+  .mypage-shell .orders-list-toolbar > strong { flex: 0 0 auto; font-size: 14px; font-weight: 400; }
+  .mypage-shell .orders-list-toolbar > span { align-items: center; display: flex; gap: 8px; min-width: 0; width: auto; }
+  .mypage-shell .orders-list-toolbar > span > label { min-width: 0; }
+  .mypage-shell .orders-list-toolbar select,
+  .mypage-shell .orders-list-toolbar > span button { appearance: none; background: var(--color-white) url('../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; border: 0; border-radius: 0; color: var(--color-gray-700); font-size: 14px; font-weight: 500; height: 24px; letter-spacing: -.03em; min-height: 24px; min-width: 0; padding: 0 20px 0 0; width: auto; -webkit-text-fill-color: var(--color-gray-700); }
+  .mypage-shell .orders-select-all { align-items: center; height: auto; min-height: 40px; }
+  .mypage-shell .orders-select-all__actions { align-items: center; display: flex; gap: 8px; }
+  .mypage-shell .orders-select-all__actions button { background: transparent; border: 0; color: var(--color-black); font-size: 14px; height: 24px; min-height: 24px; padding: 0; }
+  .mypage-shell .orders-select-all__actions button:disabled { color: var(--color-gray-400); }
+  .mypage-shell .orders-by-date > h2 { font-size: 20px; height: auto; line-height: 24px; margin-bottom: 12px; }
+  .mypage-shell .orders-catalog-list .order-catalog-item { height: auto; min-width: 0; padding: 0 0 24px; }
+  .mypage-shell .order-catalog-item header { gap: 4px 8px; height: auto; min-height: 24px; padding: 0; }
+  .mypage-shell .order-catalog-item header label { flex-wrap: wrap; min-width: 0; }
+  .mypage-shell .order-catalog-item__product { gap: 12px; grid-template-columns: minmax(0, 146px) minmax(0, 1fr); height: auto; margin-top: 12px; min-height: 0; }
+  .mypage-shell .order-catalog-item__image,
+  .mypage-shell .order-catalog-item__image img:first-child { height: 78px; width: 100%; }
+  .mypage-shell .order-catalog-item__product > div:not(.order-catalog-item__image) { display: contents; }
+  .mypage-shell .order-catalog-item__summary { display: flex; flex-direction: column; gap: 4px; grid-column: 2; min-width: 0; }
+  .mypage-shell .order-catalog-item__heading { flex-wrap: wrap; gap: 4px; height: auto; }
+  .mypage-shell .order-catalog-item__spec { height: auto; line-height: 16px; margin: 0; overflow-wrap: anywhere; }
+  .mypage-shell .order-catalog-item__period,
+  .mypage-shell .order-catalog-item__totals { flex-wrap: wrap; gap: 4px 8px; grid-column: 1 / -1; height: auto; line-height: 24px; margin: 0; min-width: 0; }
+  .mypage-shell .orders-catalog-list .order-catalog-item__actions { gap: 4px; grid-template-columns: repeat(2, minmax(0, 1fr)); height: auto; margin-top: 12px; }
+  .mypage-shell .order-catalog-item__confirm { grid-column: 1 / -1; height: auto; min-height: 41px; }
+  .mypage-shell .orders-catalog-list .order-catalog-item__actions button { color: var(--color-black); font-size: 14px; min-height: 41px; min-width: 0; padding: 8px 4px; width: 100%; }
+  .mypage-shell .orders-catalog-list .order-catalog-item__actions button:disabled { color: var(--color-gray-400); }
 
   .mypage-shell .manager-catalog__tools > span > button:last-child { display: none; }
 
