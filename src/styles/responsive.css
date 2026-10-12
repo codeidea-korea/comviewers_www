@@ -874,15 +874,20 @@
 
   .colocation-shell main { min-height: 0; }
   .colocation-page:not(.colocation-page--compact) {
+    background: var(--color-white);
     height: auto;
     margin-inline: auto;
     padding: 40px 16px 80px;
   }
   .colocation-page:not(.colocation-page--compact) .colocation-card {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     height: auto;
     margin: 0;
     max-width: 100%;
-    padding: 24px;
+    min-height: 0;
+    padding: 0;
     width: 100%;
   }
   .colocation-page:not(.colocation-page--compact) .colocation-grid { grid-template-columns: 1fr; }
@@ -895,7 +900,14 @@
   .colocation-page:not(.colocation-page--compact) .email-control select,
   .colocation-page:not(.colocation-page--compact) .phone-control input { width: 100%; }
   .colocation-page:not(.colocation-page--compact) .phone-control,
-  .colocation-page:not(.colocation-page--compact) .messenger-control { grid-template-columns: 1fr; }
+  .colocation-page:not(.colocation-page--compact) .messenger-control { display: grid; gap: 8px; min-width: 0; width: 100%; }
+  .colocation-page:not(.colocation-page--compact) .phone-control { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .colocation-page:not(.colocation-page--compact) .messenger-control { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  .colocation-page:not(.colocation-page--compact) .colocation-grid label { min-width: 0; }
+  .colocation-page:not(.colocation-page--compact) .colocation-grid :is(input, select) { box-sizing: border-box; max-width: 100%; min-width: 0; }
+  .colocation-page:not(.colocation-page--compact) .colocation-grid select[data-ui='native-select'] { appearance: none; background: transparent url('../assets/figma/selector-chevron-down.svg') right 4px center / 12px 7.4px no-repeat; border-radius: 0; color: var(--color-black); font-size: 16px; padding: 0 24px 0 0; -webkit-text-fill-color: var(--color-black); }
+  .colocation-page:not(.colocation-page--compact) .colocation-help > b { color: var(--color-gray-500); font-weight: 400; }
+  .colocation-page:not(.colocation-page--compact) .colocation-file { border-radius: 4px; box-sizing: border-box; }
   .colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box,
   .colocation-page:not(.colocation-page--compact) .colocation-submit { margin-left: 0; max-width: 100%; width: 100%; }
 
