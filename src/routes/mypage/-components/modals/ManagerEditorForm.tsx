@@ -4,7 +4,10 @@ import { DialogActions } from '@/components/ui/DialogActionsControl'
 import { ManagerField } from './ManagerForms'
 import { Button } from '@/components/ui/ButtonControl'
 import './managerEditorForm.css'
-export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete, checkLogin }: {
+import backIcon from '@/assets/figma/chevron-left.svg'
+import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
+export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete, onBack, checkLogin }: {
+  onBack?: () => void
   manager?: AccountManager; pending: boolean; onSave: (draft: ManagerInput) => Promise<void>; onClose: () => void; onDelete?: () => void; checkLogin: (loginId: string) => Promise<boolean>
 }) {
   const [draft, setDraft] = useState({ name: manager?.name ?? '', loginId: manager?.loginId ?? '', password: '', memo: manager?.memo ?? '' })
@@ -44,7 +47,7 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
   const passwordFieldError = touched.password
     ? !manager && !draft.password ? '비밀번호를 입력해 주세요.' : !passwordResult.success ? passwordResult.error.issues[0]?.message : undefined
     : undefined
-  return <form autoComplete="off" noValidate onSubmit={(event) => void submit(event)}><h2>{manager ? '담당자 정보' : '담당자 등록'}</h2>
+  return <form autoComplete="off" noValidate onSubmit={(event) => void submit(event)}>{onBack ? <header className="manager-editor-header"><button aria-label="담당자 설정으로 돌아가기" disabled={pending} onClick={onBack} type="button"><img alt="" src={backIcon}/></button><h2>담당자 설정</h2><button aria-label="닫기" disabled={pending} onClick={onClose} type="button"><img alt="" src={closeIcon}/></button></header> : <h2>{manager ? '담당자 정보' : '담당자 등록'}</h2>}
     <fieldset disabled={pending} style={{ border: 0, padding: 0, minWidth: 0 }}>
       <ManagerField autoComplete="off" error={nameFieldError} name="manager-display-name" label="담당자명" value={draft.name} onChange={(event) => { setTouched(current => ({ ...current, name: true })); setDraft((current) => ({ ...current, name: event.target.value })) }} />
       {manager ? <label className="manager-modal__field">아이디<input aria-label="아이디" autoComplete="off" name="manager-login-id" readOnly value={draft.loginId} /></label> : <ManagerField autoComplete="off" error={loginIdFieldError} help={checkedId === draft.loginId.trim() && checkedId ? '사용 가능한 아이디입니다.' : undefined} name="manager-login-id" label="아이디" action={checking ? '확인 중' : '중복확인'} onAction={() => { if (!checking) void check() }} value={draft.loginId} onChange={(event) => { revision.current += 1; setCheckedId(''); setLoginError(''); setTouched(current => ({ ...current, loginId: true })); setDraft((current) => ({ ...current, loginId: event.target.value })) }} />}

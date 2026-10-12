@@ -7,3 +7,7 @@
 .manager-modal--editor .manager-modal__field.text-field--error > .text-field__message { color: var(--color-system-error); }
 .manager-preview .manager-modal--editor .manager-modal__delete { position: static; margin-top: 20px; width: 100%; }
 .manager-preview .manager-modal--editor:has(.manager-modal__delete) footer { margin-top: 12px; width: auto; }
+.manager-modal--editor .manager-modal__field .text-field__label b { color: var(--color-system-error); }
+.manager-modal--editor .manager-modal__field > .text-field__label-action button { height: 24px; line-height: 24px; padding: 0; }
+.manager-modal--editor .manager-modal__field > .text-field__control input { caret-color: var(--color-black); cursor: text; padding-right: 0; }
+.manager-modal--editor .manager-modal__memo textarea { color: var(--color-black); caret-color: var(--color-black); font-family: inherit; font-weight: 400; letter-spacing: -.03em; line-height: 24px; text-align: left; word-spacing: normal; }

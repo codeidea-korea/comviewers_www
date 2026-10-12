@@ -1,0 +1,24 @@
+.manager-catalog--mypage { height: auto; }
+.manager-catalog--mypage .manager-catalog__body { display: block; height: auto; }
+.manager-catalog--mypage .manager-catalog__head,.manager-catalog--mypage .manager-catalog__row { grid-template-columns: 30px repeat(5, minmax(0, 1fr)) 30px; }
+.manager-filter-toolbar { flex-wrap: wrap; height: auto; min-height: 41px; position: relative; z-index: 3; }
+.manager-filter-menu { max-height: 644px; overflow-y: auto; width: 200px; }
+.manager-filter-menu > button { align-items: center; display: flex; justify-content: space-between; min-height: 40px; width: 100%; }
+.manager-filter-menu > button b,.manager-filter-menu > button span { font-size: 14px; font-weight: 700; letter-spacing: -.03em; line-height: 20px; }
+.manager-filter-menu > button[aria-pressed='true'] { background: var(--color-gray-100); }
+.manager-preview .manager-settings-dialog { display: flex; flex-direction: column; height: 763px; max-height: calc(100dvh - 48px); }
+.manager-settings-dialog > header,.manager-editor-header { align-items: center; display: flex; gap: 8px; }
+.manager-settings-dialog > header h2,.manager-editor-header h2 { flex: 1; margin: 0; }
+.manager-settings-dialog > header button,.manager-editor-header button { align-items: center; background: transparent; border: 0; display: flex; flex: 0 0 24px; height: 24px; justify-content: center; padding: 0; }
+.manager-settings-dialog > header button img,.manager-editor-header button:last-child img { height: 14px; width: 14px; }
+.manager-editor-header { margin-bottom: 30px; }
+.manager-editor-header button:first-child img { height: 24px; width: 24px; }
+.manager-settings-dialog__list { display: flex; flex-direction: column; gap: 4px; margin-top: 30px; min-height: 0; overflow-y: auto; padding-right: 10px; scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
+.manager-settings-dialog__list > button { align-items: flex-start; background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; display: flex; flex: 0 0 88px; flex-direction: column; gap: 4px; justify-content: center; padding: 16px; text-align: left; width: 100%; }
+.manager-settings-dialog__list strong { font-size: 16px; font-weight: 500; letter-spacing: -.03em; line-height: 19px; }
+.manager-settings-dialog__list span { color: var(--color-gray-600); font-size: 14px; letter-spacing: -.03em; line-height: 17px; }
+@media (max-width: 767px) {
+  .manager-filter-toolbar > h1 { flex: 0 0 100%; font-size: 18px; line-height: 24px; margin-bottom: 12px; }
+  .manager-catalog__mobile-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manager-preview .manager-settings-dialog { max-height: calc(100dvh - 32px); }
+}

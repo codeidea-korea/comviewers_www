@@ -13,10 +13,13 @@ import { AccountQueryState } from './AccountQueryState'
 import { useManagerWorkspace } from './hooks/useManagerWorkspace'
 import { MyPageLayout } from '../MypageComponentsView'
 import { managerCatalogRowMatches } from './managerCatalogSearch'
+import { ManagerFilterToolbar } from './ManagerFilterToolbar'
+import './managerCatalog.css'
 
-export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelectedRows, onCreate, onEdit, onAssign, onUnassign, onCloseMenu, onToggleMenu, openMenuRow = null }: {
+export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelectedRows, onCreate, onEdit, onAssign, onUnassign, onSettings, onCloseMenu, onToggleMenu, openMenuRow = null }: {
   selectedRows: string[]; onSelectedRowsChange: Dispatch<SetStateAction<string[]>>;
   onCreate: () => void; onEdit: (id: string) => void;
+  onSettings: () => void;
   onAssign: (ids: string[]) => void; onUnassign: (ids: string[]) => void;
   onCloseMenu: () => void; onToggleMenu: (id: string) => void; openMenuRow?: string | null;
 }) {
@@ -39,7 +42,6 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
   const safePage = totalPages ? Math.min(currentPage, totalPages) : 1
   const visibleRows = filteredRows.slice((safePage - 1) * pageSize, safePage * pageSize)
   const allVisibleSelected = visibleRows.length > 0 && visibleRows.every((row) => selectedRows.includes(row.id))
-  const selectedVisibleRows = visibleRows.filter((row) => selectedRows.includes(row.id))
   const changeAll = (checked: boolean) => setSelectedRows((current) => checked
     ? [...new Set([...current, ...visibleRows.map((row) => row.id)])]
     : current.filter((id) => !visibleRows.some((row) => row.id === id)))
@@ -86,17 +88,12 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     setManagerFilter(groupId)
     setCurrentPage(1)
   }
-  return <MyPageLayout title="RCPC 담당자 관리"><section className="manager-catalog manager-catalog--mypage">
-    <h1 className="manager-catalog__mobile-title">RCPC 담당자 관리</h1>
+  return <MyPageLayout><section className="manager-catalog manager-catalog--mypage">
+    <ManagerFilterToolbar managers={managers} selected={managerFilter} unassignedCount={unassignedCount} onSelect={chooseGroup} onSettings={onSettings}/>
     <AccountQueryState pending={account.isPending} error={account.error} retry={account.refetch}/>
     <div className="manager-catalog__tools"><label><input aria-label="담당자 검색" onChange={(event) => { setSearch(event.target.value); setCurrentPage(1) }} placeholder="담당자명, RCPC 품번 또는 별명을 검색해 주세요." value={search} /><img alt="" src={searchIcon} /></label><span><button onClick={copyAccessLink} type="button">접속 링크복사 <img alt="" src={linkIcon} /></button><button onClick={onCreate} type="button">담당자 등록 <img alt="" src={addIcon} /></button></span></div>
     <div className="manager-catalog__mobile-tools">
       <div className="manager-catalog__mobile-actions">
-        <select aria-label="담당자 선택" onChange={(event) => chooseGroup(event.target.value || null)} value={managerFilter ?? ''}>
-          <option value="">전체 담당자</option>
-          {managers.map((manager) => <option key={manager.id} value={manager.id}>{manager.name}</option>)}
-          <option value="unassigned">미배정</option>
-        </select>
         <button type="button" onClick={onCreate}>담당자 등록</button>
         <button type="button" onClick={copyAccessLink}>접속 링크복사</button>
       </div>
@@ -108,13 +105,7 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
       {managerFilter && managerFilter !== 'unassigned' ? <button className="manager-catalog__mobile-manager-info" onClick={() => onEdit(managerFilter)} type="button">선택한 담당자 정보 보기</button> : null}
     </div>
     <Toast message={copyMessage} toastKey={toastKey}/>
-    <div className="manager-catalog__body"><aside><strong>담당자 목록</strong><div className="manager-catalog__groups">
-      {managers.map((manager) => <div className={`manager-catalog__group-row${managerFilter === manager.id ? ' is-active' : ''}`} key={manager.id}>
-        <button aria-label={`${manager.name} 담당자 정보`} className="manager-catalog__group-name" onClick={() => onEdit(manager.id)} type="button">{manager.name}</button>
-        <button aria-label={`${manager.name} RCPC 현황 ${manager.assignedRcpcIds.length}대`} aria-pressed={managerFilter === manager.id} className="manager-catalog__group-count" onClick={() => chooseGroup(manager.id)} type="button">RCPC {manager.assignedRcpcIds.length}</button>
-      </div>)}
-      {managers.length ? <button className={managerFilter === 'unassigned' ? 'is-active' : ''} onClick={() => { setManagerFilter('unassigned'); setCurrentPage(1) }} type="button"><b>미배정<em>{unassignedCount}</em></b></button> : <p>등록된 담당자가 없습니다.</p>}
-    </div></aside><div className="manager-catalog__table-panel"><div className="manager-catalog__select"><label><Checkbox checked={allVisibleSelected} onChange={(event) => changeAll(event.target.checked)} /> 모두선택</label>{selectedVisibleRows.length ? <span><button type="button" onClick={() => onUnassign(selectedVisibleRows.map((row) => row.id))}>일괄 담당자 해제</button><button type="button" onClick={() => onAssign(selectedVisibleRows.map((row) => row.id))}>일괄 담당자 지정</button></span> : null}</div><div aria-label="RCPC 담당자 목록" className="manager-catalog__table" role="table"><div className="manager-catalog__head" role="row"><span aria-label="선택" role="columnheader" /><span role="columnheader">품번</span><span role="columnheader">RCPC 별명</span><span role="columnheader">이용기간</span><span role="columnheader">남은 일수</span><span role="columnheader">담당자 정보</span><span aria-label="작업" role="columnheader" /></div>{visibleRows.map((row) => {
+    <div className="manager-catalog__body"><div className="manager-catalog__table-panel"><div className="manager-catalog__select"><label><Checkbox checked={allVisibleSelected} onChange={(event) => changeAll(event.target.checked)} /> 모두선택</label></div><div aria-label="RCPC 담당자 목록" className="manager-catalog__table" role="table"><div className="manager-catalog__head" role="row"><span aria-label="선택" role="columnheader" /><span role="columnheader">품번</span><span role="columnheader">RCPC 별명</span><span role="columnheader">이용기간</span><span role="columnheader">남은 일수</span><span role="columnheader">담당자 정보</span><span aria-label="작업" role="columnheader" /></div>{visibleRows.map((row) => {
       const menuOpen = openMenuRow === row.id
       return <div className="manager-catalog__row" key={row.id} role="row"><span role="cell"><Checkbox aria-label={`${row.alias} ${row.rcpc} 선택`} checked={selectedRows.includes(row.id)} onChange={(event) => changeRow(row.id, event.target.checked)} /></span><span role="cell">{row.rcpc}</span><span role="cell">{row.alias}</span><span role="cell">{row.period}</span><span role="cell">{row.remain}</span><span className="manager-catalog__manager-cell" role="cell">{row.managers.map((manager) => <button aria-label={`${manager.name} 담당자 정보`} className="manager-catalog__manager-info" key={manager.id} onClick={() => onEdit(manager.id)} type="button">{manager.name} {manager.loginId}</button>)}</span><span className="manager-catalog__action-cell" ref={menuOpen ? openMenuContainerRef : undefined} role="cell"><button aria-controls={`manager-row-menu-${row.id}`} aria-expanded={menuOpen} aria-haspopup="menu" aria-label={`${row.alias} 담당자 메뉴`} className="manager-catalog__menu-trigger" onClick={() => onToggleMenu(row.id)} type="button"><img alt="" src={moreIcon} /></button>{menuOpen ? <span aria-label={`${row.alias} 담당자 작업`} className="manager-catalog__menu" id={`manager-row-menu-${row.id}`} role="menu"><button role="menuitem" type="button" onClick={() => onAssign([row.id])}>{row.managerIds.length ? '담당자 변경' : '담당자 설정'}</button>{row.managerIds.length ? <button onClick={() => onUnassign([row.id])} role="menuitem" type="button">담당자 해제</button> : null}</span> : null}</span></div>
     })}{visibleRows.length ? null : <div className="manager-catalog__empty" role="row"><span role="cell">{search.trim() ? '검색 조건에 해당하는 담당자 또는 RCPC가 없습니다.' : managerFilter && managerFilter !== 'unassigned' ? '담당자에게 배정된 RCPC가 없습니다.' : '등록된 RCPC가 없습니다.'}</span></div>}</div><div aria-label="모바일 RCPC 담당자 목록" className="mobile-manager-list">{visibleRows.map((row) => <article className="mobile-manager-card" key={row.id}>
