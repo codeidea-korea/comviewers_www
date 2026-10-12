@@ -95,7 +95,7 @@
 .company-catalog-hero h1 strong { color: white; }
 .company-catalog-story { height: 1072px; margin-top: 4px; padding: 120px 0; }
 .company-catalog-story > div { gap: 40px; grid-template-columns: 440px 720px; }
-.company-catalog-story > div > article { background: var(--color-gray-100); border-bottom: 10px solid #f6e1b9; border-radius: 12px; height: 832px; overflow: hidden; padding: 50px; position: relative; }
+.company-catalog-story > div > article { background: var(--color-gray-100); border-bottom: 10px solid #f6e1b9; border-radius: 12px; height: 832px; overflow: hidden; padding: 50px; position: relative; isolation: isolate; }
 .company-catalog-story h2 { font-family: "NanumSquare Neo",sans-serif; font-size: 26px; letter-spacing: -.03em; line-height: 34px; font-weight: 900; }
 .company-catalog-story article p { font-size: 16px; letter-spacing: -.02em; line-height: 24px; margin-top: 16px; }
 .company-catalog-story > div > article img { border-radius: 8px; height: 480px; left: -171px; margin: 0; max-width: none; object-fit: cover; position: absolute; top: 449px; width: 651px; }
@@ -108,7 +108,7 @@
 .company-catalog-story > div > div section h3 img { height: 28px; width: 28px; }
 .company-catalog-story > div > div section p { font-size: 16px; letter-spacing: -.02em; line-height: 22px; margin-top: 12px; }
 .company-use-tags { display: flex; gap: 8px; margin-top: 12px; }
-.company-use-tags span { border: 1px solid var(--color-gray-200); border-radius: 999px; color: var(--color-black); font-size: 14px; line-height: 24px; padding: 3px 8px; }
+.company-use-tags span { border: 1px solid var(--color-gray-200); border-radius: 999px; color: var(--color-black); font-size: 14px; line-height: 24px; padding: 3px 8px; display: inline-block; letter-spacing: -.02em; }
 .company-catalog-rcpc { height: 600px; margin-top: 4px; }
 .company-catalog-rcpc { background: var(--color-black); overflow: hidden; position: relative; }
 .company-catalog-rcpc__art { inset: 0; overflow: hidden; position: absolute; }
@@ -134,7 +134,7 @@
 .company-platform-copy { color: var(--color-gray-800); font-size: 16px; letter-spacing: -.02em; line-height: 22px; margin: 0 auto 50px; max-width: 1200px; text-align: center; }
 .company-catalog-platform > div > div { gap: 12px; }
 .company-catalog-platform article { border-left: 3px solid var(--color-gray-200); border-top: 0; min-height: 94px; padding: 0 0 0 20px; }
-.company-catalog-platform article b { font-size: 16px; line-height: 19px; font-weight: 500; letter-spacing: -.03em; }
+.company-catalog-platform article b { font-size: 16px; line-height: 19px; font-weight: 500; letter-spacing: -.03em; display: block; color: var(--color-black); }
 .company-catalog-platform article p { color: var(--color-gray-800); font-size: 16px; line-height: 22px; margin-top: 10px; letter-spacing: -.02em; }
 .company-catalog-benefits { height: 866px; margin-top: 4px; padding: 120px 0; }
 .company-catalog-benefits > div { display: block; }
@@ -158,7 +158,7 @@
 .company-catalog-cta { height: 608px; margin-top: 4px; }
 .company-catalog-cta > div { height: 608px; }
 .company-catalog-cta h2 { font-size: 32px; line-height: normal; font-weight: 800; letter-spacing: -.03em; }
-.company-catalog-cta a { align-items: center; display: inline-flex; gap: 16px; height: 50px; justify-content: center; line-height: 24px; margin-top: 60px; padding: 0 16px; }
+.company-catalog-cta a { align-items: center; display: inline-flex; gap: 8px; height: 50px; justify-content: center; line-height: normal; margin-top: 60px; padding: 0 16px; width: 161px; border: 1px solid var(--color-white-alpha-30); border-radius: 4px; font-size: 16px; font-weight: 500; letter-spacing: -.03em; }
 .company-catalog-cta a > span { align-items: center; display: inline-flex; }
 .community-hero--support::after { background: none; }
 .company-catalog-hero h1 { font-family: "Pretendard Variable","Pretendard",sans-serif; white-space: nowrap; letter-spacing: -.03em; font-weight: 800; }
@@ -496,3 +496,16 @@
 
 .community-shell:has(.board-page--posts) .board-page--posts { height: auto; min-height: 760px; }
 .community-shell:has(.board-page--posts.board-page--empty) .board-page--posts { height: auto; }
+/* Company Figma 317:6334 / 330:7469: warm blurred ellipse behind the monitor. */
+.company-catalog-story > div > article::before { background: rgb(255 240.6 211.8); border-radius: 50%; content: ''; filter: blur(200px); height: 684px; left: -175px; pointer-events: none; position: absolute; top: 359px; width: 684px; z-index: -1; }
+.company-catalog-story .company-use-tags span::first-letter { color: var(--color-system-success-bright); }
+/* The existing b element contains the role and its subtitle, separated by br. */
+.company-catalog-platform article b::first-line { color: var(--color-gray-600); font-size: 14px; font-weight: 400; line-height: 21px; }
+.company-catalog-platform > .content-container > header > small { color: var(--color-black); font-size: 20px; font-weight: 500; letter-spacing: -.03em; line-height: 24px; }
+.company-catalog-platform > .content-container > header > h2 { color: var(--color-black); font-size: 32px; font-weight: 700; letter-spacing: -.03em; line-height: 40px; }
+@media (min-width: 768px) {
+  /* Figma sections are 166/174px plus a separate 60px gap after the stroke. */
+  .company-catalog-story > div > div section { border-bottom: 1px solid var(--color-gray-300); height: 174px; margin-bottom: 60px; padding-bottom: 60px; }
+  .company-catalog-story > div > div section:first-child { height: 166px; }
+  .company-catalog-story > div > div section:last-child { border-bottom: 0; height: 114px; margin-bottom: 0; padding-bottom: 0; }
+}
