@@ -50,11 +50,12 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
       <div aria-hidden="true" className="order-summary__rule" />
       <div className="order-summary__agreements">
         <div className="order-summary__agreement"><label><Checkbox checked={form.orderAgreed} disabled={locked} onChange={(event) => form.setOrderAgreed(event.target.checked)} /> <TranslatedText id="checkout.requiredOrderReview" /></label></div>
+        <div className="order-summary__agreement"><label><Checkbox checked={form.paymentServiceAgreed} disabled={locked} onChange={(event) => form.setPaymentServiceAgreed(event.target.checked)} /> <TranslatedText id="checkout.requiredPaymentServiceTerms" /></label></div>
       </div>
       
     </div>
     {!quote.checkoutEligible && <div role="alert"><p><TranslatedText id="checkout.unavailable" /></p>{quote.issues.map((issue) => <p className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined} key={issue}>{cartIssueMessage(issue)}</p>)}</div>}
-    {form.fieldError('orderAgreed') && <div className="checkout-agreement-errors" role="alert"><p>{form.fieldError('orderAgreed')}</p></div>}
+    {(form.fieldError('orderAgreed') || form.fieldError('paymentServiceAgreed')) && <div className="checkout-agreement-errors" role="alert">{form.fieldError('orderAgreed') && <p>{form.fieldError('orderAgreed')}</p>}{form.fieldError('paymentServiceAgreed') && <p>{form.fieldError('paymentServiceAgreed')}</p>}</div>}
     {paymentAvailabilityError && <p className="checkout-submit-error" role="alert">{paymentAvailabilityError}</p>}
     {paymentNotice && <p className="checkout-payment-notice" role="status">{paymentNotice}</p>}
     {submitError ? <p className="checkout-submit-error" role="alert">{submitError} <RelativeLink to="/mypage/orders"><TranslatedText id="checkout.viewOrders" /></RelativeLink></p> : null}
