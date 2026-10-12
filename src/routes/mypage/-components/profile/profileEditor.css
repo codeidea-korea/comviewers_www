@@ -11,3 +11,15 @@
 .profile-catalog .profile-catalog__actions > .button--primary:not(:disabled) { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }
 .profile-catalog .profile-catalog__actions > .button--secondary:not(:disabled) { background: var(--color-white); border-color: var(--color-gray-200); color: var(--color-black); }
 .profile-catalog .profile-catalog__actions > .button:disabled { background: var(--color-gray-100); border-color: var(--color-gray-100); color: var(--color-gray-400); }
+
+@media (max-width: 767px) {
+  .profile-catalog .profile-catalog__phone > div { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-catalog .profile-catalog__messenger > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-catalog .profile-catalog__phone > div,
+  .profile-catalog .profile-catalog__messenger > div { height: 50px; }
+  .profile-catalog .profile-catalog__phone input,
+  .profile-catalog .profile-catalog__phone select,
+  .profile-catalog .profile-catalog__messenger input,
+  .profile-catalog .profile-catalog__messenger select { min-width: 0; width: 100%; }
+  .profile-catalog select { color: var(--color-black); -webkit-text-fill-color: var(--color-black); padding-right: 24px; }
+}
