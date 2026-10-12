@@ -15,6 +15,7 @@ import { RcpcExtensionAction } from './RcpcExtensionAction'
 import { useRcpcDateBoundary } from './useRcpcDateBoundary'
 import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
+import { Checkbox } from '@/components/ui/CheckboxControl'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -47,7 +48,7 @@ export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items
     {items.map((item, index) => <RcpcDashboardRow api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={item.rentalId} mutations={mutations} onAliasSaved={onAliasSaved} selectable={selectable} selected={selected.has(item.rentalId)} selection={selected} onSelectedChange={onSelectedChange} showAccessValuesByDefault={showAccessValuesByDefault && index < 5}/>) }
     {items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}
   </div>
-  {mobileVariant === 'rcpc' ? <div className="mobile-rcpc-list" aria-label="RCPC 모바일 목록">{items.map(item => <MobileRcpcDashboardCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations} onAliasSaved={onAliasSaved}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
+  {mobileVariant === 'rcpc' ? <div className="mobile-rcpc-list" aria-label="RCPC 모바일 목록">{items.map(item => <MobileRcpcDashboardCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations} onAliasSaved={onAliasSaved} selected={selected.has(item.rentalId)} onSelectedChange={checked => onSelectedChange(new Set(checked ? [...selected, item.rentalId] : [...selected].filter(id => id !== item.rentalId)))}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
   {mobileVariant === 'favorites' ? <div className="favorites-table favorites-table--mobile" role={items.length ? 'table' : undefined} aria-label="즐겨찾기 RCPC 모바일 목록">{items.map((item, index) => <MobileFavoriteCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} index={index} item={item} key={`favorite-mobile:${item.rentalId}`} mutations={mutations} onAliasSaved={onAliasSaved} selectable={selectable} selected={selected.has(item.rentalId)} selection={selected} onSelectedChange={onSelectedChange}/>)}{items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}</div> : null}
   </>
 }
@@ -87,19 +88,20 @@ function rcpcDisplayName(item: MyRcpcItem) {
   return item.preference.alias || item.productNo
 }
 
-function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations, onAliasSaved }: { api: MyRcpcReadServices; canEditAlias: boolean; canExtend: boolean; item: MyRcpcItem; mutations?: RcpcMutations; onAliasSaved?: () => void | Promise<unknown> }) {
+function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations, onAliasSaved, selected, onSelectedChange }: { api: MyRcpcReadServices; canEditAlias: boolean; canExtend: boolean; item: MyRcpcItem; mutations?: RcpcMutations; onAliasSaved?: () => void | Promise<unknown>; selected: boolean; onSelectedChange: (checked: boolean) => void }) {
   const unavailable = extensionBlocked(item)
   return <article className={`mobile-rcpc-card${unavailable ? ' is-ended' : ''}`}>
     <header>
+      <Checkbox aria-label={`${item.productNo} 선택`} checked={selected} disabled={unavailable} onChange={event => onSelectedChange(event.target.checked)}/>
       <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{rcpcDisplayName(item)}</span>{canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}</strong>
       <span className="mobile-rcpc-card__spec"><RcpcSpecButton api={api} item={item} compact/></span>
     </header>
     <dl className="mobile-rcpc-card__facts">
       <div><dt>서버 위치</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>
       <div className="mobile-rcpc-card__state"><dt>서버 상태</dt><dd><RcpcStatusContents item={item}/></dd></div>
-      <div><dt>이용 기간</dt><dd><strong><RcpcPeriodLabel item={item}/></strong></dd></div>
+      <div className="mobile-rcpc-card__period"><dt>이용 기간</dt><dd><RcpcTablePeriod item={item} inlineEndDate/></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
-      <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
+      <div><dt>트래픽사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
     <footer><span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></footer>
   </article>

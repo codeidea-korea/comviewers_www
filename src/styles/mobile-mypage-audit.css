@@ -227,4 +227,37 @@
   .mobile-rcpc-card > header strong { flex: 1 1 0; max-width: none; min-width: 0; }
   .mobile-rcpc-card > header strong > span { overflow: hidden; text-overflow: ellipsis; }
   .mobile-rcpc-card > header strong > button { flex-shrink: 0; }
+  /* Mobile dashboard, local Figma 768:19779 and card 839:27483. */
+  .mypage-shell:has(.mypage-home) .mypage-mobile-header__exit--home { display: none; }
+  .mypage-shell .mypage-home-mobile-heading { margin-bottom: 12px; }
+  .mypage-shell .mypage-home-mobile-heading .mypage-mobile-filter-trigger { background: transparent; border-radius: 0; gap: 4px; padding: 0; }
+  .mypage-home-mobile-heading .mypage-mobile-filter-trigger img { height: 14.263px; object-fit: contain; width: 10px; }
+  .mypage-shell .mypage-home-section--rcpc > .mobile-rcpc-list { flex-direction: row; gap: 12px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; width: 100%; }
+  .mypage-home-section--rcpc > .mobile-rcpc-list > .mobile-rcpc-card { box-sizing: border-box; flex: 0 0 308px; min-width: 308px; scroll-snap-align: start; }
+  .mypage-home .mobile-rcpc-card__spec .mypage-home-rcpc__spec-action > span { display: none; }
+  .mypage-home .mobile-rcpc-card__state img { border-radius: 50%; box-sizing: border-box; height: 24px; object-fit: contain; padding: 4px; width: 24px; }
+  .mypage-home .mobile-rcpc-card__state img[data-status='on'] { background: var(--color-surface-success-soft); }
+  .mypage-home .mobile-rcpc-card__state img[data-status='off'],
+  .mypage-home .mobile-rcpc-card__state img[data-status='waiting'] { background: var(--color-surface-error-soft); }
+  .mypage-home .mobile-rcpc-card__state img[data-status='disabled'] { background: var(--color-gray-100); }
+  .mypage-home .mobile-rcpc-card__period dd { align-items: flex-start; flex-direction: column; gap: 2px; }
+  .mypage-home .mobile-rcpc-card__period strong { font-size: 14px; font-weight: 400; line-height: 17px; }
+  .mypage-home .mobile-rcpc-card__period small { font-size: 12px; line-height: 14px; white-space: normal; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-list__connect { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-wan-ip--compact { gap: 4px; grid-template-columns: 80px minmax(0, 1fr) 14px 14px; min-width: 0; width: 100%; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider--compact { column-gap: 4px; grid-template-columns: 80px minmax(0, 1fr); min-width: 0; width: 100%; }
+  .mypage-home .mobile-rcpc-card__connection :is(b, h4) { font-size: 14px; font-weight: 400; margin: 0; }
+  .mypage-home .mobile-rcpc-card__connection :is(b, h4) img { height: 20px; width: 20px; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__credentials { min-width: 0; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__line { gap: 4px; min-width: 0; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__line > :first-child { min-width: 0; overflow-wrap: anywhere; }
+  .mypage-shell .mypage-home .mypage-home-columns { display: flex; flex-direction: column; gap: 24px; grid-template-columns: none; margin-top: 24px; width: 100%; }
+  .mypage-shell .mypage-home .mypage-home-columns > div { display: block; width: 100%; }
+  .mypage-shell .mypage-home .mypage-home-columns > div > section { display: block; height: auto; margin: 0 0 24px; width: 100%; }
+  .mypage-shell .mypage-home .mypage-home-use { height: auto; margin-top: 16px; }
+  .mypage-shell .mypage-home .mypage-home-use > div:first-child > span { min-width: 0; padding: 12px; }
+  .mypage-shell .mypage-home .mypage-home-use__orders { min-height: 0; padding: 12px; }
+  .mypage-shell .mypage-home .mypage-home-use__orders > p { flex-wrap: wrap; font-size: 14px; gap: 4px; height: auto; }
+  .mypage-shell .mypage-home .mypage-home-use__tooltip { right: 0; }
+  .mypage-shell .mypage-home .mypage-home-text-list { width: 100%; }
 }

@@ -46,7 +46,7 @@ export function RcpcPeriodLabel({ item }: { item: MyRcpcItem }) {
   return endDate === '-' ? <>-</> : <>{endDate} · {rentalPeriodText(item)}</>
 }
 
-export function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
+export function RcpcTablePeriod({ item, inlineEndDate = false }: { item: MyRcpcItem; inlineEndDate?: boolean }) {
   const endDate = rentalEndDate(item)
   if (!endDate) return <span>-</span>
 
@@ -58,6 +58,6 @@ export function RcpcTablePeriod({ item }: { item: MyRcpcItem }) {
   const displayTime = endParts ? `${endParts.hour}:${endParts.minute}:${endParts.second}` : null
   return <>
     <strong>{rentalPeriodText(item)}</strong>
-    <small>{displayDate}{displayTime ? <><br/>{displayTime} 까지</> : null}</small>
+    <small>{displayDate}{displayTime ? <>{inlineEndDate ? ' ' : <br/>}{displayTime} 까지</> : null}</small>
   </>
 }
