@@ -10,6 +10,7 @@ import mouseIcon from '../../assets/figma/mouse.svg'
 import serverLinkIcon from '../../assets/figma/server-link.svg'
 import serverOffIcon from '../../assets/figma/link-off.svg'
 import shoppingBagIcon from '../../assets/figma/shopping-bag.svg'
+import { ProductOsOverlay } from './ProductOsOverlay'
 import { productOsVisual } from './productOsVisual'
 
 const formatPrice = (price: number) => new Intl.NumberFormat('ko-KR').format(price)
@@ -45,7 +46,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
     <article className={`product-card product-card--${size}`}>
       <div className="product-card__image">
         <img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
-        {visual.label ? <span className="product-card__os-label">{visual.label}</span> : null}
+        <ProductOsOverlay label={visual.label} />
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">

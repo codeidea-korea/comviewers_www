@@ -323,6 +323,8 @@
   .cart-item__body { grid-template-columns: 96px minmax(0, 1fr); }
   .cart-column-headings { display: none; }
   .cart-item__image { height: 72px; width: 96px; }
+  .cart-item__image,
+  .checkout-page .checkout-main .commerce-product-row__image { --product-os-label-size: 9px; }
   .cart-item__header,
   .cart-item:not(.cart-item--partner) .cart-item__header,
   .cart-item:not(.cart-item--partner) .cart-item__header label { height: auto; min-height: 24px; }

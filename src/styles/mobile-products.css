@@ -166,6 +166,7 @@
     border-radius: 2.5px;
     height: auto;
     width: 100%;
+    --product-os-label-size: clamp(13px, 4vw, 20px);
   }
   .product-card--large .product-card__windows-logo { height: auto; width: 54.2158%; }
   .product-card--large .product-card__info { gap: 6px; }

@@ -2,6 +2,7 @@ import type { CartItem } from '@/domain/cart/schemas'
 import { getCartItemAmount, getCartItemPoints, getCartSelectionUnits, cartUnitLabel, cartSelectionLabel, cartPriceLabel } from '@/domain/cart/cartEstimate'
 import { cartIssueMessage } from '@/domain/cart/cartIssues'
 import { productOsVisual } from '@/components/product/productOsVisual'
+import { ProductOsOverlay } from '@/components/product/ProductOsOverlay'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import tollIcon from '@/assets/figma/icon-toll-green.svg'
@@ -12,7 +13,7 @@ function CheckoutProductImage({ item }: { item: CartItem }) {
   const visual = productOsVisual(item.osFilterValue, item.type === 'part')
   return <div className="commerce-product-row__image">
     <img className="checkout-product-image" alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
-    {visual.label ? <span className="checkout-product-os-label">{visual.label}</span> : null}
+    <ProductOsOverlay label={visual.label} />
   </div>
 }
 

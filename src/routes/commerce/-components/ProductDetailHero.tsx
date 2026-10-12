@@ -10,6 +10,7 @@ import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
 import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { productOsVisual } from '@/components/product/productOsVisual'
+import { ProductOsOverlay } from '@/components/product/ProductOsOverlay'
 
 const formatWon = (amount: number | null) => amount === null ? "정보 없음" : `${amount.toLocaleString('ko-KR')}원`
 
@@ -32,7 +33,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const specs = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
-        <div className="product-detail-visual"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{visual.label ? <span className="product-detail-visual__os-label">{visual.label}</span> : null}</div>
+        <div className="product-detail-visual"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} /><ProductOsOverlay label={visual.label} /></div>
         <div className="product-detail-buy">
           <h1><span><span>품번</span><b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
           {part && <h2>{product.title ?? product.productId}</h2>}
