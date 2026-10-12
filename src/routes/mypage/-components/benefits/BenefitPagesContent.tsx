@@ -123,8 +123,8 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                 <OrderItemActions api={api} item={item} orderStatus={order.orderStatus} paymentStatus={order.paymentStatus} variant="purchase-summary" />
               </article>)}
             </div></div>
-            {carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label="이전 주문 보기" className="point-carousel__previous" onClick={() => scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
-            {carouselEdges.next ? <button aria-controls="point-confirmation-orders" aria-label="다음 주문 보기" className="point-carousel__next" onClick={() => scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {candidates.length > 1 && carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label="이전 주문 보기" className="point-carousel__previous" onClick={() => scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {candidates.length > 1 && carouselEdges.next ? <button aria-controls="point-confirmation-orders" aria-label="다음 주문 보기" className="point-carousel__next" onClick={() => scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
           </section>
         ) : null}
 
