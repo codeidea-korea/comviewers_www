@@ -1245,6 +1245,10 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .benefit-tabs-row .mypage-tabs { border-bottom: 0; min-width: 0; }
 .benefit-tabs-row__policy { align-items: center; color: var(--color-gray-500); display: inline-flex; flex: 0 0 auto; font-size: 13px; gap: 6px; padding: 10px 4px; white-space: nowrap; }
 .benefit-tabs-row__policy img { height: 8px; width: 5px; }
+.coupons-available .benefit-tabs-row__policy,
+.coupons-history .benefit-tabs-row__policy { font-size: 16px; font-weight: 400; gap: 2px; letter-spacing: -.03em; line-height: 19px; }
+.coupons-policy-icon { align-items: center; display: inline-flex; flex: 0 0 16px; height: 16px; justify-content: center; width: 16px; }
+.benefit-tabs-row__policy .coupons-policy-icon img { height: auto; width: auto; }
 
 @media (max-width: 600px) {
   .benefit-tabs-row { border-bottom: 0; flex-wrap: wrap; }

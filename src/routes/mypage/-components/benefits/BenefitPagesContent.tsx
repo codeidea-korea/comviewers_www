@@ -258,7 +258,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
           </button>
         ))}
       </nav>
-      <RelativeLink className="benefit-tabs-row__policy" to="/terms?section=refund">포인트·쿠폰 정책<img alt="" src={subtleChevronIcon} /></RelativeLink>
+      <RelativeLink className="benefit-tabs-row__policy" to="/terms?section=refund">포인트·쿠폰 정책<span className="coupons-policy-icon" aria-hidden="true"><img alt="" src={subtleChevronIcon} /></span></RelativeLink>
     </div>
     {status === 'used' ? <div className="coupons-history__filter"><button aria-expanded={periodOpen} aria-haspopup="dialog" onClick={() => setPeriodOpen(true)} type="button">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}<img alt="" src={periodChevronIcon} /></button></div> : null}
     {status === 'used' && periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
