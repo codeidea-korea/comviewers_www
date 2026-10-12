@@ -1,3 +1,40 @@
+.home-mobile-break { display: none; }
+
+.home-section-heading__arrow {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 16px;
+  height: 16px;
+  justify-content: center;
+  width: 16px;
+}
+
+.home-section-heading > a .home-section-heading__arrow img {
+  height: 8px;
+  width: 4.93333px;
+}
+
+.usage-help__arrow {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 20px;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.usage-help__arrow img {
+  height: 12px;
+  width: 7.4px;
+}
+
+.home-hero > picture,
+.banner-grid a > picture {
+  display: block;
+  inset: 0;
+  position: absolute;
+}
+
 .banner-grid {
   display: grid;
   gap: 12px;
@@ -17,19 +54,19 @@
   position: relative;
 }
 
-.banner-grid a > img {
+.banner-grid a > picture > img {
   max-width: none;
   position: absolute;
 }
 
-.banner-grid__item--1 > img {
+.banner-grid__item--1 > picture > img {
   height: 165.41%;
   left: -4.53%;
   top: -25.83%;
   width: 109.06%;
 }
 
-.banner-grid__item--2 > img {
+.banner-grid__item--2 > picture > img {
   height: 100%;
   left: -9.78%;
   object-fit: cover;
@@ -37,7 +74,7 @@
   width: 119.55%;
 }
 
-.banner-grid__item--3 > img {
+.banner-grid__item--3 > picture > img {
   height: 100%;
   inset: 0;
   object-fit: cover;

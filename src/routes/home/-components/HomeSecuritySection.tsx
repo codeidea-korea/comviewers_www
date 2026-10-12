@@ -14,6 +14,6 @@ const securityItems = [
 
 export function HomeSecuritySection() {
   return (
-      <section className="home-section security-section"><div className="content-container"><SectionHeading description="접속 권한과 상태 정보를 안전하게 관리하여, 안정적인 RCPC 이용 환경을 제공합니다.">보안과 안정성을 고려한 RCPC 이용 환경</SectionHeading><div className="security-grid">{securityItems.map((item) => <article key={item.title}><h3>{item.title}</h3><p>{item.description}</p><img alt="" src={item.image} /></article>)}</div></div></section>
+      <section className="home-section security-section"><div className="content-container"><SectionHeading description="접속 권한과 상태 정보를 안전하게 관리하여, 안정적인 RCPC 이용 환경을 제공합니다.">보안과 안정성을 고려한 <br className="home-mobile-break" />RCPC 이용 환경</SectionHeading><div className="security-grid">{securityItems.map((item) => <article key={item.title}><h3>{item.title}</h3><p>{item.description}</p><img alt="" src={item.image} /></article>)}</div></div></section>
   )
 }

@@ -15,6 +15,7 @@ import { HomeCallToAction } from './-components/HomeCallToAction'
 import { HomeBannerSection } from './-components/HomeBannerSection'
 import { HomeStorePopup } from './-components/HomeStorePopup'
 import './home-publishing.css'
+import './home-mobile.css'
 
 const popupDismissalKey = (id: number) => `comviewers:home-popup:hidden-until:${id}`
 
