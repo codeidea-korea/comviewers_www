@@ -153,8 +153,8 @@ export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, 
   const alias = item.preference.alias?.trim()
   return <article className={`mobile-rcpc-card${unavailable ? ' is-ended' : ''}`}>
     <header>
-      <input aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionFull && !selected} onChange={event => onSelectedChange(event.target.checked)} type="checkbox" />
-      <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}{alias ? <span>{alias}</span> : null}</strong>
+      <Checkbox aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionFull && !selected} onChange={event => onSelectedChange(event.target.checked)}/>
+      <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{alias || item.productNo}</span></strong>
       {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
       <span className="mobile-rcpc-card__spec"><span>{item.productNo} </span><RcpcSpecButton api={api} item={item} compact/></span>
     </header>
