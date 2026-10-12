@@ -4,6 +4,7 @@ import type { createCatalogApi, CatalogDetail } from '@/api/catalog'
 import { ApiClientError } from '@/api/httpClient'
 import type { CartRepository } from './cartRepository'
 import { addCartItemSchema, cartItemSchema, cartSchema, changeCartQuantitySchema, removeCartItemsSchema } from './schemas'
+import { osFilterLabel } from '@/domain/products/osFilterLabel'
 
 type CartApi = ReturnType<typeof createCartApi>
 type CatalogApi = ReturnType<typeof createCatalogApi>
@@ -34,12 +35,13 @@ function mapItem(row: CartDto['items'][number], product: CatalogDetail | null) {
     ...(!product && !reserved ? ['UNAVAILABLE'] : []),
   ]
   const spec = product?.spec
-  const specText = spec ? [spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter((value) => value !== null).join(' / ') : null
+  const specText = spec ? [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter((value) => value !== null).join(' / ') : null
   return {
     id: String(row.id), productId: row.productNo, source: 'api',
     type: unit === 'unit' ? 'part' : 'rental', rowKind: unit === 'unit' ? 'partner' : 'normal',
     label: row.title || row.productNo, location: reserved ? reserved.serverRoomName ?? '-' : product ? `${product.serverRoom.providerName ? `${product.serverRoom.providerName}/` : ''}${product.serverRoom.name}` : '-',
     image: reserved ? reserved.imageUrl || null : product?.images.find((image) => image.primary)?.url ?? product?.images[0]?.url ?? null,
+    osFilterValue: product?.osFilterValue ?? null,
     spec: reserved ? reserved.specSummary || null : unit === 'unit' ? (product?.description ?? specText) || null : specText || null,
     available: reserved ? row.available : product?.availability === 'AVAILABLE', instantAvailable: product?.instantAvailable ?? null,
     billingUnit: unit, durationUnits: row.durationUnits, quantity: row.quantity,

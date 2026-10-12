@@ -19,6 +19,7 @@ export const cartItemSchema = z.object({
   quotedAmount: amount.nullable().default(null), expectedPoints: amount.nullable().default(null),
   location: z.string(),
   image: z.string().min(1).nullable(),
+  osFilterValue: z.string().nullable().default(null),
   spec: z.string().min(1).nullable(),
   available: z.boolean(),
   setupFee: amount.nullable(),

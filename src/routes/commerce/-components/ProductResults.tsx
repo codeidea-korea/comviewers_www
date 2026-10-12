@@ -2,6 +2,7 @@ import { useTranslation } from '@/i18n/translation'
 import type { Product } from '../../../domain/products/types'
 import { useNavigate } from 'react-router'
 import { ProductCard } from '../../../components/product/ProductCardView'
+import { osFilterLabel } from '@/domain/products/osFilterLabel'
 import flagKorea from '../../../assets/figma/flag-korea.png'
 import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
 import keyboardIcon from '../../../assets/figma/keyboard.svg'
@@ -30,7 +31,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
   return (
     <tr className="product-list-table__row" role="link" tabIndex={0} onClick={event => { if (!(event.target as HTMLElement).closest('button,a,input,select,textarea')) openProduct() }} onKeyDown={event => { if (event.key === 'Enter' && event.target === event.currentTarget) openProduct() }}>
       <td>{product.productId}</td>
-      <td><span className="product-table-copy">{product.os ?? t('common.noInformation')}</span></td>
+      <td><span className="product-table-copy">{osFilterLabel(product.osFilterValue) ?? product.os ?? t('common.noInformation')}</span></td>
       <td><span className="product-table-copy">{product.cpu ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--blue">{product.ram ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--gray">{product.disk ?? t('common.noInformation')}</span></td>
