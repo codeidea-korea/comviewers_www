@@ -1,0 +1,14 @@
+.manager-preview .manager-modal.manager-modal--permissions { height: auto; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.manager-modal--permissions form footer { position: static; margin-top: 20px; }
+.manager-modal--permissions .manager-modal__action-error { position: static; margin-top: 12px; }
+.manager-permission-groups { margin: 20px 0; font-size: 14px; }
+.manager-permission-groups label { display: grid; gap: 6px; margin: 12px 0; }
+.manager-permission-groups select, .manager-permission-groups input:not([type=checkbox]), .manager-permission-groups textarea { width: 100%; min-height: 40px; border: 1px solid #ccc; border-radius: 6px; padding: 8px; box-sizing: border-box; }
+.manager-permission-groups p { margin: 10px 0; line-height: 1.5; }
+.manager-permission-groups__buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.manager-permission-groups__editor { margin-top: 12px; border: 1px solid #ccc; border-radius: 8px; padding: 12px; }
+.manager-permission-groups__table { overflow-x: auto; }
+.manager-permission-groups table { width: 100%; border-collapse: collapse; }
+.manager-permission-groups th, .manager-permission-groups td { padding: 8px 4px; border-bottom: 1px solid #ddd; text-align: center; }
+.manager-permission-groups th:first-child { text-align: left; }
+.manager-permission-groups input[type=checkbox] { width: 18px; height: 18px; }

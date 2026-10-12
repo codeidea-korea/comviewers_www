@@ -1,0 +1,2 @@
+.product-catalog-selectors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.product-catalog-filter__inline-action { background: transparent; border: 0; color: inherit; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }

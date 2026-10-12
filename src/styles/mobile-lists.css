@@ -166,6 +166,15 @@
   .mobile-manager-card footer { display: grid; gap: 4px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
   .manager-catalog__body .pagination { margin-top: 28px; }
   .manager-catalog__menu { display: none; }
+/* Local Figma: 839:28829, 868:24973, 871:25703. */
+.mobile-list-page-heading--rcpc h1, .mypage-shell .mypage-layout:has(.inquiry-catalog) .mypage-title { font-weight: 400; letter-spacing: -.03em; line-height: 21px; }
+.mobile-rcpc-card > header strong { font-weight: 600; letter-spacing: -.03em; }
+.mobile-rcpc-card__spec, .mobile-rcpc-card__facts dt, .mobile-rcpc-card__facts dd, .mobile-inquiry-card dt, .mobile-inquiry-card dd, .mobile-manager-card dt, .mobile-manager-card dd { letter-spacing: -.03em; }
+.mobile-inquiry-card dl > div, .mobile-manager-card dl > div { grid-template-columns: 100px minmax(0, 1fr); min-height: 41px; }
+.mobile-inquiry-card dt, .mobile-manager-card dt { font-size: 12px; font-weight: 400; }
+.mobile-inquiry-card h2, .mobile-manager-card h2 { border-bottom: 0; font-weight: 600; letter-spacing: -.03em; line-height: 19px; min-height: 19px; margin-bottom: 12px; padding-bottom: 0; }
+.manager-catalog > h1 { font-weight: 400; letter-spacing: -.03em; line-height: 21px; }
+.manager-catalog__mobile-manager-info { font-size: 14px; letter-spacing: -.02em; }
 
 }
 

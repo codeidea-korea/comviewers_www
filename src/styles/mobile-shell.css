@@ -34,11 +34,11 @@
     color: var(--color-black);
     cursor: pointer;
     display: flex;
-    height: 32px;
+    height: 24px;
     justify-content: center;
     padding: 0;
     position: relative;
-    width: 32px;
+    width: 24px;
   }
   .site-header .mobile-cart-button > img {
     height: 24px;
@@ -56,14 +56,15 @@
     display: flex;
     font-size: 12px;
     font-weight: 500;
-    height: 20px;
+    height: 16px;
     justify-content: center;
     letter-spacing: -.02em;
-    min-width: 20px;
+    min-width: 23px;
     padding-inline: 4px;
     position: absolute;
-    right: -6px;
-    top: -4px;
+    right: -11px;
+    top: -2.5px;
+    line-height: 24px;
   }
   .site-header .mobile-cart-button:focus-visible {
     border-radius: 4px;
@@ -107,7 +108,7 @@
     color: var(--color-black);
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     height: 24px;
     justify-content: center;
     padding: 0;
@@ -121,7 +122,7 @@
     display: block;
     height: 2px;
     transition: transform .16s ease, opacity .16s ease;
-    width: 20px;
+    width: 18px;
   }
   .site-header .mobile-menu-toggle__close,
   .mypage-mobile-menu-toggle > img {
@@ -132,11 +133,11 @@
   .site-header--main .mobile-menu-toggle__close { filter: brightness(0) invert(1); }
   .site-header--main.site-header--scrolled .mobile-menu-toggle__close { filter: none; }
   .site-header .mobile-menu-toggle.is-open span:first-child,
-  .mypage-mobile-menu-toggle.is-open span:first-child { transform: translateY(7px) rotate(45deg); }
+  .mypage-mobile-menu-toggle.is-open span:first-child { transform: translateY(6px) rotate(45deg); }
   .site-header .mobile-menu-toggle.is-open span:nth-child(2),
   .mypage-mobile-menu-toggle.is-open span:nth-child(2) { opacity: 0; }
   .site-header .mobile-menu-toggle.is-open span:last-child,
-  .mypage-mobile-menu-toggle.is-open span:last-child { transform: translateY(-7px) rotate(-45deg); }
+  .mypage-mobile-menu-toggle.is-open span:last-child { transform: translateY(-6px) rotate(-45deg); }
 
   .mobile-site-menu { inset: 56px 0 0; }
   .site-header .mobile-site-menu {
@@ -683,6 +684,10 @@
   .mypage-shell .mypage-home-rcpc__actions span { height: 41px; }
   .mypage-shell .mypage-home-rcpc__actions button,
   .mypage-shell .mypage-home-rcpc__actions > button { height: 41px; margin: 0; }
+/* Figma mobile menu: node 871:27100. */
+.mypage-mobile-menu section.has-children h2,
+.mypage-mobile-menu section:has(> h2 + a) h2,
+.mypage-mobile-menu section:has(> h2 + span) h2 { font-size: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

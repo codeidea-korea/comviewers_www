@@ -1,0 +1,116 @@
+@media (min-width: 768px) and (max-width: 1023px) {
+  .product-detail-page .product-detail-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-height: 0;
+    padding-bottom: 0;
+  }
+
+  .product-detail-page .product-detail-visual {
+    aspect-ratio: 3 / 2;
+    height: auto;
+  }
+
+  .product-detail-page .product-detail-buy { min-height: 0; }
+  .product-detail-page .product-detail-content { margin-top: 48px; }
+}
+
+@media (max-width: 767px) {
+  .product-detail-page .product-detail-hero {
+    gap: 20px;
+    min-height: 0;
+    margin-top: 12px;
+    padding-bottom: 0;
+  }
+
+  .product-detail-page .product-detail-visual {
+    aspect-ratio: 3 / 2;
+    height: auto;
+    width: 100%;
+  }
+
+  .product-detail-page .product-detail-visual > img + img {
+    width: min(48%, 180px);
+  }
+
+  .product-detail-page .product-detail-buy { min-height: 0; }
+  .product-detail-page .product-detail-buy h1 > span { font-size: 18px; }
+  .product-detail-page .product-detail-buy h1 > span b { font-size: 20px; }
+  .product-detail-page .product-detail-availability { margin: 8px 0 20px; }
+  .product-detail-page .product-detail-specs { min-height: 0; padding-bottom: 20px; }
+
+  .product-detail-page .product-detail-prices {
+    gap: 12px;
+    height: auto;
+    margin-top: 20px;
+  }
+
+  .product-detail-page .product-detail-prices p {
+    gap: 12px;
+    height: auto;
+    min-height: 24px;
+  }
+
+  .product-detail-page .product-detail-prices p > span {
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    min-width: 0;
+  }
+
+  .product-detail-page .product-detail-prices p > strong {
+    flex: 0 0 auto;
+    text-align: right;
+  }
+
+  .product-detail-page .product-detail-notice {
+    height: auto;
+    margin: 20px 0 16px;
+  }
+
+  .product-detail-page .product-detail-total { height: auto; margin-top: 20px; }
+  .product-detail-page .product-detail-total strong b { font-size: 26px; }
+  .product-detail-page .product-detail-total strong small { font-size: 22px; }
+  .product-detail-page .product-detail-actions { margin-top: 16px; }
+
+  .product-detail-page .product-detail-content {
+    min-height: 0;
+    margin-top: 32px;
+  }
+
+  .product-detail-page .product-detail-content #guide {
+    min-height: 0;
+    margin-top: 24px;
+  }
+
+  .product-detail-page .product-detail-content #reviews,
+  .product-detail-page .product-detail-content #reviews.product-detail-reviews--empty,
+  .product-detail-page .product-detail-content #refund {
+    min-height: 0;
+    margin-top: 40px;
+  }
+
+  .product-detail-page .product-detail-content #guide,
+  .product-detail-page .product-detail-content #reviews,
+  .product-detail-page .product-detail-content #refund {
+    scroll-margin-top: 72px;
+  }
+
+  .product-detail-page .product-detail-reviews--empty .product-empty-message {
+    height: auto;
+    min-height: 80px;
+    padding: 20px 0;
+  }
+
+  .product-detail-page .refund-box {
+    min-height: 0;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .product-detail-page .detail-bottom-banner {
+    height: 220px;
+    margin-top: 64px;
+  }
+}

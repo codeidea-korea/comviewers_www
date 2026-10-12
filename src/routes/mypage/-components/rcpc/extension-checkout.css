@@ -37,7 +37,7 @@
 .extension-checkout__summary dd { font-weight: 600; margin-left: auto; overflow-wrap: anywhere; }
 .extension-checkout__summary .extension-checkout__total { border-top: 1px solid var(--color-gray-200); margin-top: 8px; padding-top: 20px; }
 .extension-checkout__total dd { color: var(--color-system-error); font-size: 24px; line-height: 32px; }
-.extension-checkout__agreement { align-items: flex-start; cursor: pointer; display: flex; font-size: 13px; gap: 8px; }
+.extension-checkout__agreement { align-items: flex-start; cursor: pointer; display: flex; font-size: 14px; gap: 8px; letter-spacing: -.02em; color: var(--color-gray-800); }
 .extension-checkout__agreement > .checkbox__input { flex: 0 0 auto; margin-top: 2px; }
 .extension-checkout__agreement > span:last-child { min-width: 0; }
 .extension-checkout__error { color: var(--color-system-error); font-size: 13px; overflow-wrap: anywhere; }

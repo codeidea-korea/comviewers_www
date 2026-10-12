@@ -16,6 +16,8 @@
   gap: 12px;
   height: 50px;
   padding: 0 16px;
+  font-weight: 500;
+  letter-spacing: -.03em;
 }
 
 .social-login--stacked .social-button img {

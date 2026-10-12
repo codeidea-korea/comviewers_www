@@ -1,0 +1,9 @@
+.manager-preview .manager-modal.manager-modal--editor { height: auto; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.manager-modal--editor > form { margin: 0; }
+.manager-modal--editor h2 { margin-bottom: 30px; }
+.manager-modal--editor form footer { position: static; margin-top: 20px; width: auto; }
+.manager-preview .manager-modal--editor .manager-modal__action-error { position: static; margin: 12px 0 0; overflow-wrap: anywhere; }
+.manager-modal--editor .manager-modal__field > .text-field__message { height: auto; white-space: normal; overflow-wrap: anywhere; }
+.manager-modal--editor .manager-modal__field.text-field--error > .text-field__message { color: var(--color-system-error); }
+.manager-preview .manager-modal--editor .manager-modal__delete { position: static; margin-top: 20px; width: 100%; }
+.manager-preview .manager-modal--editor:has(.manager-modal__delete) footer { margin-top: 12px; width: auto; }

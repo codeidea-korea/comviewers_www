@@ -87,7 +87,7 @@
 .product-preview { align-items: flex-start; display: flex; gap: 36px; margin-bottom: 56px; }
 
 .button { align-items: center; border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; font-weight: 500; gap: 4px; justify-content: center; letter-spacing: -.03em; line-height: normal; margin: 0; }
-.button--small { font-size: 13px; min-height: 34px; padding: 7px 12px; }
+.button--small { font-size: 14px; min-height: 33px; padding: 0 12px; height: 33px; }
 .button--medium { font-size: 14px; min-height: 41px; padding: 10px 16px; }
 .button--large { font-size: 16px; height: 50px; min-height: 50px; min-width: 100px; padding: 0 16px; }
 .button--large.button--with-icon { gap: 4px; }
@@ -110,15 +110,15 @@
 .text-field { display: flex; flex-direction: column; width: 100%; }
 .text-field:has(.text-field__label-action) { position: relative; }
 .text-field__label-action { position: absolute; right: 0; top: 0; }
-.text-field__label { align-items: center; color: var(--color-gray-700); display: flex; font-size: 14px; font-weight: 400; height: 24px; line-height: 24px; }
+.text-field__label { align-items: center; color: var(--color-gray-600); display: flex; font-size: 14px; font-weight: 400; height: 24px; line-height: 24px; letter-spacing: -.02em; }
 .text-field__control { align-items: center; border-bottom: 1px solid var(--color-black); display: flex; height: 50px; justify-content: space-between; }
-.text-field__control input { background: transparent; border: 0; color: var(--color-black); flex: 1; font-size: 18px; font-weight: 500; letter-spacing: -.36px; min-width: 0; outline: 0; padding: 0; text-indent: -1px; }
+.text-field__control input { background: transparent; border: 0; color: var(--color-black); flex: 1; font-size: 18px; font-weight: 500; letter-spacing: -.03em; min-width: 0; outline: 0; padding: 0; text-indent: -1px; }
 .text-field__control input::placeholder { color: var(--color-gray-400); }
 .text-field__trailing-action { background: transparent; border: 0; cursor: pointer; display: inline-flex; padding: 4px; }
 :where(:root:not([data-input-modality="pointer"])) .text-field__control:focus-within { border-bottom-width: 2px; }
 .text-field--box .text-field__control { border: 1px solid var(--color-gray-300); border-radius: 3px; padding: 0 13px; }
 :where(:root:not([data-input-modality="pointer"])) .text-field--box .text-field__control:focus-within { border-color: var(--color-black); border-width: 1px; }
-.text-field__message { color: var(--color-gray-500); font-size: 14px; line-height: 24px; margin-top: 4px; }
+.text-field__message { color: var(--color-gray-500); font-size: 14px; line-height: 24px; margin-top: 4px; letter-spacing: -.02em; }
 .text-field__messages { display: flex; flex-direction: column; margin-top: 4px; }
 .text-field__messages .text-field__message { margin-top: 0; }
 .text-field__message--error { color: var(--color-system-error); }
@@ -148,7 +148,7 @@
 .checkbox__input--switch:checked,.checkbox__input--switch:indeterminate { background-image: none; }
 
 .modal-backdrop { align-items: center; background: var(--color-overlay-40); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 100; }
-.modal { background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-modal); max-width: 500px; outline: none; padding: 30px; width: 100%; }
+.modal { background: var(--color-white); border-radius: var(--radius-lg); box-shadow: none; max-width: 500px; outline: none; padding: 30px; width: 100%; }
 .modal[tabindex]:focus-visible { outline: none; }
 .modal h2 { font-size: 24px; letter-spacing: -.03em; }
 .modal__content { color: var(--color-black); font-size: 18px; letter-spacing: -.36px; line-height: 24px; padding: 30px 0 40px; }
