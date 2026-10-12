@@ -148,7 +148,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
       : current.length < 20 ? [...current, orderItemId] : current)
   }
 
-  if (submit.isSuccess) return <Modal className="modal--refund-complete" isOpen title="해지 신청이 완료되었습니다." closeLabel="확인" onClose={onComplete ?? onClose} returnFocusRef={returnFocusRef}>
+  if (submit.isSuccess) return <Modal className="modal--refund-complete" isOpen title="해지 신청이 완료되었습니다." closeLabel="확인" closeVariant="primary" onClose={onComplete ?? onClose} returnFocusRef={returnFocusRef}>
     <p>접수, 처리 중 상태에서는 해지 요청을 철회할 수 있으며, 철회 시 RCPC를 그대로 이용하실 수 있습니다.</p>
   </Modal>
 
@@ -202,14 +202,14 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
           <p><span>다량 중도해지 공제금</span><strong>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</strong></p>
           <p><span>최종 환불 예상 금액</span><strong>{displayMoney(method === 'point' ? quote.data.pointTotal : quote.data.cashTotal)}</strong></p>
         </section>
-        <details className="refund-application__breakdown">
-          <summary>환불 예상금액 상세보기</summary>
+        <section className="refund-application__breakdown" aria-label="환불 예상금액 상세보기">
+          <h3>환불 예상금액 상세보기</h3>
           <div className="refund-application__table-scroll"><table><thead><tr><th>RCPC</th><th>남은기간 / 정산금</th><th>이용기간 공제율 / 공제금</th><th>세팅비</th><th>조기종료 포맷비</th><th>적립금 사용금액</th><th>쿠폰 사용금액</th><th>공제금액 합계</th><th>환불 금액</th><th>적립금 복원금액</th></tr></thead><tbody>{quote.data.items.map(item => {
             const target = selectedTargets.find(candidate => candidate.orderItemId === item.orderItemId)
             const deductionTotal = item.usedDaysDeduction + item.dailyQuantityDeduction + item.setupFee + item.formatFee + item.promotionalPointDeduction + item.purchaseConfirmationPointReversal + item.couponDeduction
             return <tr key={item.orderItemId}><td>{target?.alias || item.productNo}</td><td>{item.remainingDays}일 / {displayMoney(item.remainingSettlement, 8)}</td><td>{item.usedDays}일 {item.usedDaysRateBasisPoints / 100}% / {displayMoney(item.usedDaysDeduction, 8)}</td><td>{displayMoney(item.setupFee)}</td><td>{displayMoney(item.formatFee)}</td><td>{displayMoney(item.promotionalPointDeduction)}</td><td>{displayMoney(item.couponDeduction)}</td><td>{displayMoney(deductionTotal, 8)}</td><td>{displayMoney(method === 'point' ? item.pointAmount : item.cashAmount)}</td><td>{method === 'point' ? '0P' : `${item.pointAmount.toLocaleString('ko-KR')}P`}</td></tr>
           })}</tbody></table></div>
-        </details>
+        </section>
         <section className="refund-application__bulk"><h3>다량 중도해지 공제</h3><dl><div><dt>해지 요청 건 수</dt><dd>{dailyQuantity}건</dd></div><div><dt>공제율</dt><dd>{dailyRate}%</dd></div><div><dt>공제금</dt><dd>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</dd></div></dl></section>
         <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 부분적으로 복원됩니다.</li></ul>
         {methodChoices}
@@ -218,7 +218,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
           setBank(current => ({ ...current, code: selectedBank?.[0] ?? '', name: selectedBank?.[1] ?? '' })); attempt.current = null
         }}><option value="">은행명</option>{bankOptions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select><input required aria-label="계좌번호" inputMode="numeric" pattern="[0-9 -]{8,40}" placeholder="계좌번호 숫자만 입력" value={bank.accountNumber} onChange={(event) => { setBank(current => ({ ...current, accountNumber: event.target.value })); attempt.current = null }}/><input required aria-label="예금주" placeholder="예금주" value={bank.holder} onChange={(event) => { setBank(current => ({ ...current, holder: event.target.value })); attempt.current = null }}/></fieldset> : null}
         <label className="refund-application__phone"><span>연락처</span><input maxLength={30} value={contactPhone} pattern="[0-9+() -]{8,30}" inputMode="tel" placeholder="연락처 숫자만 입력" onChange={(event) => { setPhone(event.target.value); attempt.current = null }}/></label>
-        <label className="refund-application__agreement"><input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span><strong>[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.</strong><RelativeLink to="/terms?section=refund" target="_blank" rel="noopener noreferrer">환불 정책을 확인해주세요.</RelativeLink></span></label>
+        <section className="refund-application__terms"><h3>약관동의</h3><label className="refund-application__agreement"><input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span><strong>[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.</strong><RelativeLink to="/terms?section=refund" target="_blank" rel="noopener noreferrer">환불 정책을 확인해주세요.</RelativeLink></span></label></section>
       </> : null}
       {submit.isError ? <p role="alert">{ambiguousFailure ? '접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요.' : submit.error instanceof Error ? submit.error.message : '신청을 접수하지 못했습니다.'}</p> : null}
         <footer><button type="button" disabled={locked} onClick={close}>취소</button><button type="button" disabled={locked} onClick={(event) => { event.preventDefault(); attempt.current = null; submit.reset(); setAgreed(false); setStep(1) }}>이전</button><button type="submit" disabled={!quoteCurrent || !agreed || submit.isPending}>{submit.isPending ? '접수 중…' : ambiguousFailure ? '같은 요청으로 다시 접수' : '환불 신청하기'}</button></footer>

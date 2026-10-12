@@ -16,6 +16,7 @@ import { InquiryTargetAddition } from '../InquiryTargetAddition'
 import { InquiryAttachments, InquiryAttachmentDownload, type InquiryDraftAttachment } from '../InquiryAttachments'
 import { RefundDetail } from '../InquiryRefundRequests'
 import { managerScopedPath } from '../managerPortalPath'
+import { InquiryChatProducts } from './InquiryChatProducts'
 
 const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
 
@@ -54,6 +55,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const [historyEnd, setHistoryEnd] = useState(false)
   const [productConversation, setProductConversation] = useState<string | null>(null)
   const [productMenuOpen, setProductMenuOpen] = useState(false)
+  const [productsOpen, setProductsOpen] = useState(false)
   const [refundOpen, setRefundOpen] = useState(false)
   const lastRead = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -124,12 +126,14 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const conversation = <section aria-label={standalone ? '문의 상세' : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>
         {standalone ? <button aria-label="문의 목록으로" onClick={close} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}
-        {chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap((target) => target.pcAssetId === null ? [] : [target.pcAssetId])} total={chat.data.operationRequest.targets.length} closed={closed}/> : <span/>}
+        <button aria-expanded={productMenuOpen} aria-haspopup="menu" aria-label="문의 메뉴" className="inquiry-chat__products-trigger" onClick={() => setProductMenuOpen((open) => !open)} type="button"><img alt="" src={moreVertical}/></button>
         <h2>[{chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] {type}</h2>
-        <button aria-expanded={productMenuOpen} aria-label="문의 상품 보기" className="inquiry-chat__products-trigger" disabled={!chat.data?.operationRequest.targets.length} onClick={() => setProductMenuOpen((open) => !open)} type="button"><img alt="" src={moreVertical}/></button>
         {!standalone ? <button aria-label="닫기" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button> : null}
       </header>
-      {productMenuOpen && chat.data ? <div className="inquiry-chat__products-menu" role="menu"><strong>문의 상품 {chat.data.operationRequest.targets.length}개</strong>{chat.data.operationRequest.targets.map((target, index) => <button disabled={!target.productNo} key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} onClick={() => { if (target.productNo) { setProductMenuOpen(false); setProductConversation(target.productNo) } }} role="menuitem" type="button"><span>{target.productNo ? `${target.alias ? `${target.alias}·` : ''}${target.productNo}` : '상품 정보 없음'}</span><small>{target.serverRoomName ?? '서버실 정보 없음'}</small></button>)}</div> : null}
+      {productMenuOpen && chat.data ? <div className="inquiry-chat__menu" role="menu" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setProductMenuOpen(false) } }}>
+        <button onClick={() => { setProductMenuOpen(false); setProductsOpen(true) }} role="menuitem" type="button">문의 상품</button>
+        <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap((target) => target.pcAssetId === null ? [] : [target.pcAssetId])} total={chat.data.operationRequest.targets.length} closed={closed}/>
+      </div> : null}
       <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
         {chat.data && requestInfo.data ? <>
@@ -149,7 +153,6 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
               <div className="inquiry-chat__message-row">
                 <p>{item.content}</p>
                 <div className="inquiry-chat__message-meta">
-                  {item.unreadCount > 0 ? <span aria-label={`읽지 않은 사람 ${item.unreadCount}명`}>{item.unreadCount}</span> : null}
                   <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
                 </div>
               </div>
@@ -164,11 +167,13 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
       {refundOpen && refund ? <RefundDetail key={refund.id} api={api} requestId={refund.id} onClose={() => setRefundOpen(false)}/> : null}
       {chat.data && requestInfo.data ? (closed ? <footer className="inquiry-chat__closed" role="status">처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
         <div className="inquiry-chat__attachments"><InquiryAttachments api={api} requestId={id} files={files} disabled={send.isPending} onBusy={setAttachmentBusy} onChange={(next) => { setFiles(next); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }}/></div>
-        <p className="inquiry-chat__attachment-guidance">첨부파일 ({files.length}/5) · 파일당 최대 10MB</p>
         <label><span className="sr-only">새 메시지</span><textarea aria-label="새 메시지" ref={composerRef} readOnly={send.isPending || attachmentBusy} maxLength={4000} placeholder="메시지를 입력해 주세요." value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
         <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? '전송 중…' : send.isError ? '재전송' : '전송'}</Button>
         {send.isError ? <p role="alert">{send.error.message}</p> : null}
       </form>) : null}
     </section>
-  return standalone ? conversation : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title="문의 상세">{conversation}</DialogLayer>
+  const content = productsOpen && chat.data ? <InquiryChatProducts targets={chat.data.operationRequest.targets} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
+    {productConversation ? <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/> : null}
+  </InquiryChatProducts> : conversation
+  return standalone ? content : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title={productsOpen ? '문의 상품' : '문의 상세'}>{content}</DialogLayer>
 }

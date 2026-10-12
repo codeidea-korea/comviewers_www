@@ -666,7 +666,7 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .inquiry-chat > header > section > p { background: white; box-shadow: 0 4px 12px rgb(0 0 0 / 12%); font-size: 13px; left: 30px; margin: 0; padding: 8px; position: absolute; top: 58px; width: 250px; z-index: 3; }
 .inquiry-chat .inquiry-chat__scroll { padding-bottom: 32px; }
 .inquiry-chat .inquiry-chat__product div > button { background: transparent; border: 0; color: var(--color-black); font-size: 14px; font-weight: 600; padding: 0; text-align: left; }
-.inquiry-chat > header .inquiry-chat__products-trigger { align-items: center; display: flex; height: 24px; justify-content: center; margin-left: auto; width: 24px; }
+.inquiry-chat > header .inquiry-chat__products-trigger { align-items: center; display: flex; height: 24px; justify-content: center; margin: 0; order: -1; width: 24px; }
 .inquiry-chat > header .inquiry-chat__products-trigger img { height: 16px; width: 4px; }
 .inquiry-chat > header .inquiry-chat__products-trigger + button { margin-left: 12px; }
 .inquiry-chat__products-menu { background: white; box-shadow: 0 4px 12px rgb(0 0 0 / 12%); display: grid; gap: 4px; padding: 10px; position: absolute; right: 52px; top: 58px; width: 240px; z-index: 4; }
@@ -939,16 +939,19 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 /* SHOP_MY-INQUIRY-001-P02: actual refund application dialog. */
 .modal--refund-application { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); padding: 30px; }
 .modal--refund-application.modal--refund-step-1 { max-width: 500px; }
-.modal--refund-application.modal--refund-step-2 { max-width: 910px; }
+.modal--refund-application.modal--refund-step-2 { max-width: 1204px; }
 .modal--refund-application > .modal__content { min-height: 0; overflow-y: auto; padding: 24px 0 0; }
+.modal--refund-step-2 > .modal__content { border: 1px solid var(--color-gray-200); border-radius: 8px; margin-top: 30px; padding: 20px; }
 .modal--refund-application > .modal__actions { display: none; }
-.modal--refund-application h2 { flex: 0 0 auto; font-size: 22px; line-height: 29px; }
+.modal--refund-application h2 { flex: 0 0 auto; font-size: 24px; line-height: 29px; }
 .refund-application { color: var(--color-black); font-size: 14px; line-height: 1.45; }
 .refund-application fieldset { border: 0; margin: 0; min-width: 0; padding: 0; }
 .refund-application__count { font-size: 15px; margin-bottom: 12px; }
 .refund-application__count strong { font-size: 17px; }
-.refund-application__candidates { border-bottom: 1px solid var(--color-gray-200); max-height: 340px; overflow-y: auto; padding-right: 8px; scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
-.refund-application__candidates > article { border-top: 1px solid var(--color-gray-200); padding: 14px 8px; }
+.refund-application fieldset.refund-application__candidates { border: 1px solid var(--color-gray-200); border-radius: 8px; max-height: 369px; overflow-y: auto; padding: 20px; scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
+.refund-application__candidates > article { padding: 14px 0; }
+.refund-application__candidates > article:first-of-type { padding-top: 0; }
+.refund-application__candidates > article + article { border-top: 1px solid var(--color-gray-200); }
 .refund-application__candidates > article > label { align-items: flex-start; cursor: pointer; display: flex; gap: 10px; }
 .refund-application__candidates > article > label > input { flex: 0 0 auto; margin-top: 3px; }
 .refund-application__candidate-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -960,44 +963,49 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .refund-application__reason > span,.refund-application__phone > span { display: block; font-weight: 600; margin-bottom: 8px; }
 .refund-application__reason b { color: var(--color-system-error); }
 .refund-application__reason select,.refund-application__phone input,.refund-application__bank input,.refund-application__bank select { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); font: inherit; height: 42px; padding: 0 12px; width: 100%; }
+.refund-application__reason select { appearance: none; background: var(--color-white) url('/assets/figma-select-chevron.svg') no-repeat right 12px center; background-size: 12px 7.4px; border: 0; border-bottom: 1px solid var(--color-black); border-radius: 0; font-size: 18px; font-weight: 500; height: 50px; padding: 0 36px 0 0; }
 .refund-application__reason small { color: var(--color-system-error); display: block; margin-top: 8px; }
 .profile-catalog__phone:has(> small.is-error),.profile-catalog__messenger:has(> small.is-error) { height: 118px; }
-.refund-application > footer { background: var(--color-white); bottom: 0; display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 12px; position: sticky; z-index: 1; }
-.refund-application > footer button { background: var(--color-white); border: 1px solid var(--color-gray-300); border-radius: 4px; color: var(--color-black); font-weight: 600; height: 44px; min-width: 80px; padding: 0 20px; }
+.refund-application > footer { background: var(--color-white); bottom: 0; display: flex; gap: 12px; justify-content: flex-end; margin-top: 40px; padding-top: 12px; position: sticky; z-index: 1; }
+.refund-application > footer button { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); flex: 1; font-size: 16px; font-weight: 500; height: 50px; min-width: 80px; padding: 0 20px; }
 .refund-application > footer button:last-child { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }
 .refund-application > footer button:disabled { background: var(--color-gray-100); border-color: var(--color-gray-100); color: var(--color-gray-400); }
 .refund-application__loading { align-items: center; display: flex; justify-content: center; min-height: 340px; }
-.refund-application__summary { background: var(--color-gray-50); border-radius: 8px; padding: 10px 14px; }
-.refund-application__summary p { align-items: center; display: flex; justify-content: space-between; min-height: 24px; }
-.refund-application__summary p:last-child { border-top: 1px solid var(--color-gray-200); font-size: 18px; margin-top: 6px; padding-top: 9px; }
-.refund-application__breakdown,.refund-application__bulk { border: 1px solid var(--color-gray-200); border-radius: 6px; margin-top: 10px; }
-.refund-application__breakdown summary { cursor: pointer; font-weight: 600; list-style-position: outside; margin-left: 18px; min-height: 40px; padding: 10px 14px 8px 0; }
+.refund-application__summary { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 0; display: grid; gap: 10px; padding: 20px; }
+.refund-application__summary p { align-items: center; display: flex; justify-content: space-between; min-height: 17px; }
+.refund-application__summary p:first-child > span { display: flex; justify-content: space-between; width: 100%; }
+.refund-application__summary p:last-child { border-top: 1px solid var(--color-gray-200); font-size: 16px; margin-top: 0; padding-top: 10px; }
+.refund-application__breakdown,.refund-application__bulk { border: 0; border-radius: 0; margin-top: 30px; }
+.refund-application__breakdown h3,.refund-application__bulk h3,.refund-application__terms h3 { font-size: 16px; font-weight: 400; line-height: 19px; margin-bottom: 12px; }
 .refund-application__table-scroll { border-top: 1px solid var(--color-gray-200); overflow-x: auto; }
-.refund-application__table-scroll table { border-collapse: collapse; font-size: 11px; min-width: 990px; text-align: center; width: 100%; }
-.refund-application__table-scroll th,.refund-application__table-scroll td { border-bottom: 1px solid var(--color-gray-200); padding: 9px 7px; white-space: nowrap; }
-.refund-application__table-scroll th { background: var(--color-gray-50); font-weight: 600; }
+.refund-application__table-scroll table { border-collapse: collapse; font-size: 12px; min-width: 1100px; table-layout: fixed; text-align: center; width: 100%; }
+.refund-application__table-scroll th,.refund-application__table-scroll td { border-bottom: 1px solid var(--color-gray-200); height: 30px; overflow-wrap: anywhere; padding: 6px 8px; }
+.refund-application__table-scroll th { background: var(--color-gray-50); font-weight: 400; height: 40px; }
 .refund-application__table-scroll td:nth-last-child(-n+2) { color: var(--color-system-error); font-weight: 600; }
-.refund-application__bulk { padding: 10px 14px; }
-.refund-application__bulk h3 { font-size: 14px; margin-bottom: 8px; }
-.refund-application__bulk dl { display: grid; gap: 7px; }
+.refund-application__bulk { padding: 0; }
+.refund-application__bulk dl { display: grid; gap: 8px; }
 .refund-application__bulk dl div { display: flex; justify-content: space-between; }
 .refund-application__bulk dd { font-weight: 600; }
-.refund-application__notice { font-size: 12px; list-style: disc; margin: 10px 0 18px; padding-left: 18px; }
-.refund-application__method legend,.refund-application__bank legend { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-.refund-application__method > div { display: grid; gap: 24px; grid-template-columns: 1fr 1fr; }
-.refund-application__method label { align-items: flex-start; display: flex; gap: 9px; }
+.refund-application__notice { background: var(--color-gray-50); border-radius: 8px; color: var(--color-gray-600); font-size: 14px; list-style: disc; margin: 12px 0 30px; padding: 12px 12px 12px 28px; }
+.refund-application__method legend,.refund-application__bank legend { font-size: 16px; font-weight: 400; margin-bottom: 12px; }
+.refund-application__method > div { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.refund-application__method label { align-items: center; border: 1px solid var(--color-gray-200); border-radius: 4px; display: flex; gap: 8px; min-height: 88px; padding: 16px; }
+.refund-application__method label:has(input:checked) { border-color: var(--color-black); }
 .refund-application__method input { accent-color: var(--color-black); height: 16px; margin-top: 2px; width: 16px; }
 .refund-application__method label span { display: flex; flex-direction: column; gap: 3px; }
 .refund-application__method small { color: var(--color-gray-500); }
 .refund-application__bank { display: grid; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px !important; }
 .refund-application__bank legend { grid-column: 1 / -1; }
-.refund-application__phone { border-top: 1px solid var(--color-gray-200); display: block; margin-top: 18px; padding-top: 14px; }
-.refund-application__agreement { align-items: flex-start; border-top: 1px solid var(--color-gray-200); display: flex; gap: 9px; margin-top: 14px; padding-top: 14px; }
+.refund-application__phone { display: block; margin-top: 30px; }
+.refund-application__phone > span { font-size: 16px; font-weight: 400; margin-bottom: 12px; }
+.refund-application__phone input { height: 50px; }
+.refund-application__terms { margin-top: 30px; }
+.refund-application__agreement { align-items: flex-start; display: flex; gap: 8px; }
 .refund-application__agreement > input { accent-color: var(--color-black); height: 18px; margin: 2px 0 0; width: 18px; }
 .refund-application__agreement > span { display: flex; flex-direction: column; gap: 4px; }
 .refund-application__agreement a { color: var(--color-system-error); font-size: 12px; text-decoration: underline; }
-.modal--refund-complete { max-width: 430px; }
-.modal--refund-complete .modal__content { font-size: 14px; padding-bottom: 30px; }
+.modal--refund-complete { max-width: 500px; }
+.modal--refund-complete .modal__content { font-size: 16px; padding-bottom: 40px; }
 
 @media (max-width: 767px) {
   .modal--refund-application { max-height: calc(100dvh - 32px); padding: 22px 18px; }
@@ -1195,11 +1203,13 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-chat > .inquiry-chat__draft-composer button { align-items: center; display: inline-flex; height: 36px; justify-content: center; line-height: 20px; min-width: 76px; padding: 0 12px; white-space: nowrap; }
 
 /* Keep the chat composer in a single row and fully remove the native file input. */
-.inquiry-chat > .inquiry-chat__composer { grid-template-columns: 32px minmax(0, 1fr) auto; grid-template-rows: 44px auto; }
+.inquiry-chat > .inquiry-chat__composer { border: 1px solid var(--color-gray-200); border-radius: 4px; gap: 8px; grid-template-columns: 20px minmax(0, 1fr) auto; grid-template-rows: 48px; margin-top: 40px; min-height: 50px; padding: 0 12px; }
 .inquiry-chat__composer > .inquiry-chat__attachments { grid-column: 1; grid-row: 1; }
 .inquiry-chat__composer > label { grid-column: 2; grid-row: 1; }
-.inquiry-chat__composer > .button { grid-column: 3; grid-row: 1; height: 44px; min-height: 44px; min-width: 76px; padding: 0 12px; white-space: nowrap; }
-.inquiry-chat__composer > .inquiry-chat__attachment-guidance { grid-column: 1 / -1; grid-row: 2; }
+.inquiry-chat__composer > .button { grid-column: 3; grid-row: 1; height: 33px; min-height: 33px; min-width: 48px; padding: 0 12px; white-space: nowrap; }
+.inquiry-chat__composer textarea { background: transparent; border: 0; font-size: 14px; height: 48px; padding: 14px 0; }
+.inquiry-chat__attachments label { border: 0; height: 20px; width: 20px; }
+.inquiry-chat__attachments label::before { background: url('../assets/figma/icon-add.svg') center no-repeat; content: ''; height: 15px; width: 15px; }
 .inquiry-chat__attachments input[type='file'] { display: none; }
 .inquiry-chat__attachment-help { display: none; }
 .inquiry-chat__attachments fieldset { position: static; }
@@ -1213,6 +1223,18 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-chat__attachment-file > small { color: var(--color-gray-500); flex: 0 0 auto; font-size: 11px; white-space: nowrap; }
 .inquiry-chat__attachment-file > button { align-items: center; background: transparent; border: 0; border-radius: 4px; color: var(--color-gray-600); display: flex; flex: 0 0 28px; font-size: 20px; height: 28px; justify-content: center; padding: 0; }
 .inquiry-chat__attachment-file > button:hover:not(:disabled) { background: var(--color-gray-200); color: var(--color-black); }
+.inquiry-type-choice > footer.inquiry-type-choice__actions--single { grid-template-columns: 1fr; }
+.inquiry-chat__menu > section { margin: 0; }
+.inquiry-chat__menu > section > button { width: 100%; }
+.inquiry-chat-products > header h2 { font-weight: 500; padding-left: 12px; text-align: left; }
+.inquiry-chat-products > header > button:first-child img { height: 24px; width: 24px; }
+.inquiry-chat-products__list { height: calc(100% - 54px); margin-top: 30px; overflow-y: auto; }
+.inquiry-chat-products__list > article { align-items: center; border-bottom: 1px solid var(--color-gray-200); display: flex; gap: 20px; min-height: 102px; padding: 12px 0; }
+.inquiry-chat-products__list > article > img { flex: 0 0 120px; height: 64px; object-fit: contain; width: 120px; }
+.inquiry-chat-products__list > article > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.inquiry-chat-products__list button { background: transparent; border: 0; color: var(--color-gray-500); font-size: 12px; padding: 0; text-align: left; }
+.inquiry-chat-products__list strong { font-size: 14px; overflow-wrap: anywhere; }
+.inquiry-chat-products__list span { align-self: flex-start; background: var(--color-gray-100); border-radius: 3px; color: var(--color-gray-700); font-size: 14px; padding: 4px 6px; }
 /* Figma desktop navigation: symbol 534:17214. */
 .mypage-sidebar h2:only-child { font-size: 14px; line-height: 17px; }
 

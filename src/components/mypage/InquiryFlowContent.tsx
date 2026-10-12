@@ -55,7 +55,7 @@ export function TypeChoiceContent({ backLabel = '이전', notice, onBack = () =>
         return <Radio checked={checked} className={checked ? 'is-selected' : ''} key={item} name="inquiry-type" offIcon={radioOff} onChange={() => onSelectedChange(index)} onIcon={radioOn}>{item}</Radio>
       })}</div>
       {notice ? <p className="mypage-notice mypage-notice--error" role="alert">{notice}</p> : null}
-      <footer><button onClick={onBack} type="button">{backLabel}</button><button disabled={selectedIndex === null || !options[selectedIndex]} onClick={onNext} type="button">문의 접수하기</button></footer>
+      <footer className={backLabel === '닫기' ? 'inquiry-type-choice__actions--single' : undefined}>{backLabel !== '닫기' ? <button onClick={onBack} type="button">{backLabel}</button> : null}<button disabled={selectedIndex === null || !options[selectedIndex]} onClick={onNext} type="button">문의 접수하기</button></footer>
     </section>
   )
 }
