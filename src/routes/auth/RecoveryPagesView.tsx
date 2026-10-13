@@ -221,6 +221,7 @@ function ResetPasswordPage() {
     try { await api.confirmPasswordReset(token, password, confirmation); setComplete(true) }
     catch (cause) {
       if (cause instanceof ApiClientError && cause.code === 'A006') setPasswordPolicyError('8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.')
+      else if (cause instanceof ApiClientError && cause.code === 'A026') setPasswordPolicyError('기존 비밀번호와 다른 비밀번호를 입력해 주세요.')
       else if (cause instanceof ApiClientError && cause.code === 'A017') setLinkState('invalid')
       else setError(cause instanceof Error ? cause.message : '비밀번호를 재설정하지 못했습니다.')
     }
