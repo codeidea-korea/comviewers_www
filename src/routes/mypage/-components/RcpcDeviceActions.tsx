@@ -27,8 +27,7 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
   const [open, setOpen] = useState(false)
   const key = useRef(crypto.randomUUID())
   const client = useQueryClient()
-  const canRequest = rentalServiceAccessible(item) && item.usageStatus === 'using'
-    && rentalOperationalStatus(item) === 'active' && item.connectionStatus.toUpperCase() === 'ONLINE'
+  const canRequest = rentalServiceAccessible(item) && item.connectionStatus.toUpperCase() === 'ONLINE'
   const queryKey = ['my-rcpcs', api.organizationId, 'reboot', item.rentalId] as const
   const status = useQuery({ queryKey, enabled: canRequest, queryFn: ({ signal }) => api.rebootStatus(item.rentalId, signal),
     retry: false, refetchInterval: query => query.state.data?.pending ? 5000 : 30000 })
