@@ -1263,6 +1263,11 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .rcpc-bulk-actions > section > button:disabled,
 .favorites-results__toolbar .rcpc-bulk-actions > button:disabled,
 .favorites-results__toolbar .rcpc-bulk-actions > section > button:disabled { background: transparent; color: var(--color-gray-400); cursor: not-allowed; }
+.rcpc-change-list { margin-top: 24px; padding: 20px; border: 1px solid var(--color-gray-200); border-radius: 4px; }
+.rcpc-change-list h3 { margin: 0 0 16px; font-size: 18px; }
+.rcpc-change-list article { padding: 16px 0; border-top: 1px solid var(--color-gray-200); }
+.rcpc-change-list article p { margin: 0 0 8px; line-height: 1.5; }
+.rcpc-change-list article a { color: var(--color-blue-500); font-weight: 600; text-decoration: underline; }
 
 .benefit-tabs-row { align-items: center; border-bottom: 1px solid var(--color-gray-200); display: flex; justify-content: space-between; min-height: 50px; }
 .benefit-tabs-row .mypage-tabs { border-bottom: 0; min-width: 0; }

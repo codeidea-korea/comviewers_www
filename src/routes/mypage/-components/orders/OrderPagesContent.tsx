@@ -303,10 +303,10 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                             type="checkbox"
                           />
                         ) : null}
-                        <strong className={`${import.meta.env.DEV ? 'notranslate' : ''}${item.refundPending ? ' is-red' : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}>{rowStatusKeys[status] ? t(rowStatusKeys[status]) : status}</strong>
+                        <strong className={`notranslate${item.refundPending ? ' is-red' : ''}`} translate="no">{rowStatusKeys[status] ? t(rowStatusKeys[status]) : status}</strong>
                       </label>
                       <span>{order.orderNo}</span>
-                      <RelativeLink className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined} to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
+                      <RelativeLink className="notranslate" translate="no" to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
                     </header>
                     <div className="order-catalog-item__product">
                       <div className="order-catalog-item__image">
@@ -315,7 +315,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </div>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[item.customerRentalStatus] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[item.customerRentalStatus] ?? 'off']} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[item.customerRentalStatus] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[item.customerRentalStatus] ?? 'off']} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}{item.rentalId ? <RelativeLink to={`/mypage/rcpc/${item.rentalId}`}>RCPC 상세·교체 내역</RelativeLink> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (

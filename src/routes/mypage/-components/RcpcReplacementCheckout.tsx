@@ -13,6 +13,7 @@ const statusLabels: Record<string, string> = {
   quoted: '견적 보관 / 결제 대기',
   payment_pending: '결제 진행 중',
   paid: '결제 승인 / 인계 대기',
+  applying: '교체 진행 중',
   completed: '교체 완료',
   cancelled: '취소',
   expired: '만료',
@@ -40,7 +41,7 @@ export function RcpcReplacementCheckoutEntry({ api, rentalId }: { api: MyRcpcRea
   if (list.isPending) return <LoadingState className="route-loading--compact" label="교체 견적을 확인하고 있습니다." />
   if (list.error) return <p role="alert">교체 견적을 불러오지 못했습니다. <button type="button" onClick={() => void list.refetch()}>다시 시도</button></p>
   if (!cases.length) return null
-  return <section aria-label="RCPC 교체 결제"><h3>교체 견적·처리 내역</h3>
+  return <section aria-label="RCPC 교체 결제" className="rcpc-change-list"><h3>교체 견적·처리 내역</h3>
     {cases.map(item => <article key={item.id}><p>{typeLabels[item.changeType] ?? item.changeType} · {item.refundRecoveryAvailable ? '환불 완료 · 관리자 교체 취소 대기' : statusLabels[item.status] ?? item.status}</p>
       <p>{item.sourceProductNo ?? '현재 장비'} → {item.targetProductNo ?? '교체 장비'} · {item.targetServerRoomName ?? '서버실 미등록'}</p>
       <p>추가 결제액 {money(item.additionalPaymentAmount)} · 차액 적립 {item.pointCreditAmount.toLocaleString('ko-KR')}P · 이용 종료일 {date(item.serviceEndsAtSnapshot)}</p>
