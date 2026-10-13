@@ -399,7 +399,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     ['결제방식', paymentMethod ? paymentMethods[paymentMethod] ?? paymentMethod : '-'],
     ['결제금액', formatPaymentAmount(order.finalAmount)],
     ['결제상태', display && rowStatusKeys[display.label] ? t(rowStatusKeys[display.label]) : display?.label ?? accountStatus(order.paymentStatus)],
-    ...(payment?.method === 'virtual_account' && display?.waitingForDeposit ? [
+    ...(payment?.method === 'virtual_account' && (display?.waitingForDeposit || display?.label === '결제완료') ? [
       ['입금은행', payment.bankName ?? '-'],
       ['입금자명', payment.depositorName ?? '-'],
       ['입금계좌', payment.accountMasked ?? '-'],
