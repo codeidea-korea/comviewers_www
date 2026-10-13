@@ -60,7 +60,7 @@ function StandardSignupProfileStep() {
               success={usernameFeedback?.tone === 'success' ? usernameFeedback.message : undefined}
               value={profile.loginId}
             />
-            <button disabled={busy} onClick={() => { void checkUsername() }} type="button">{checkedUsername === profile.loginId && checkedUsername ? '확인 완료' : '중복 확인'}</button>
+            <Button disabled={busy} onClick={() => { void checkUsername() }} size="small" variant="secondary" type="button">{checkedUsername === profile.loginId && checkedUsername ? '확인 완료' : '중복 확인'}</Button>
           </div>
           <PasswordField error={fieldErrors.password} helperText="8~16자의 영문, 숫자, 특수문자(!, @, #, $, %, )만 사용할 수 있습니다." label={<><span className="required-mark">*</span>비밀번호</>} maxLength={16} name="password" onChange={setField('password')} placeholder="비밀번호 입력" required value={profile.password} />
           <PasswordField error={fieldErrors.passwordConfirm} label={<><span className="required-mark">*</span>비밀번호 확인</>} maxLength={16} name="passwordConfirm" onChange={setField('passwordConfirm')} placeholder="비밀번호 입력" required value={profile.passwordConfirm} />

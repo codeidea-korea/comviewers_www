@@ -57,4 +57,9 @@
   .auth-page .email-field__row select {
     grid-column: 3;
   }
+  .auth-shell .auth-page--terms .terms-list { min-width: 0; padding-left: 0; width: 100%; }
+  .auth-shell .auth-page--terms .terms-item .auth-checkbox { min-width: 0; width: 100%; }
+  .auth-shell .auth-page--terms .terms-copy { box-sizing: border-box; max-width: 100%; }
+  .auth-shell :is(.auth-page--profile, .auth-page--find-id, .auth-page--find-password) select[data-ui='native-select'] { border-radius: 0; }
+  .auth-shell .auth-page--profile .field-with-action > .button--secondary { border-color: var(--color-gray-200); color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 }
