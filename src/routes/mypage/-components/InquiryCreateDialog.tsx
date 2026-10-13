@@ -1,9 +1,9 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { InquiryReadServices, MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { useSession } from '@/app/session/SessionProvider'
 import { DialogLayer } from '@/components/ui/DialogLayerControl'
-import { InquiryTypeChoicePopup, InquiryWriteContent, InquiryWritePopup, TypeChoiceContent } from '@/components/mypage/InquiryFlowContent'
+import { InquiryWriteContent, InquiryWritePopup, TypeChoiceContent } from '@/components/mypage/InquiryFlowContent'
 import { ProductChoiceContent } from './modals/InquiryProductChoice'
 import { sortInquiryChoices, type InquiryChoice } from './inquiryChoice'
 import { loadAuthorizedRcpcs } from './rcpcPresentation'
@@ -11,6 +11,7 @@ import { inquiryTypes } from './InquiryPresentation'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
 import { bulkInquiryBusinessNotice, hasSameInquiryBusiness } from './inquiryBusinessScope'
+import './inquiry-flow-qa.css'
 
 type Props = {
   api: InquiryReadServices
@@ -69,9 +70,13 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   })
   const close = () => { if (!create.isPending) onClose() }
   const closeProductPicker = () => { if (addingProducts) { setAddingProducts(false); setStep('write') } else close() }
+  const showStep = (content: ReactNode, title: string, backdropClassName: string, onExit = close) => standalone
+    ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main>
+    : <DialogLayer asChild backdropClassName={backdropClassName} focusKey={step} isOpen onClose={onExit} showTitle={false} title={title}>{content}</DialogLayer>
 
-  if (step === 'product') return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={closeProductPicker} showTitle={false} title="상품 선택">
+  if (step === 'product') return showStep(
     <ProductChoiceContent
+      standalone={standalone}
       allowEmpty={!hasFixedTarget}
       notice={<>{rcpcs.isPending
         ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
@@ -91,11 +96,11 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       ])].slice(0, 20)) }}
       products={products}
       selectedIndexes={selectedIndexes}
-    />
-  </DialogLayer>
+    />, '상품 선택', 'inquiry-preview-layer inquiry-preview-layer--select-product', closeProductPicker)
 
-  if (step === 'type') return <InquiryTypeChoicePopup backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-type" onClose={close}>
+  if (step === 'type') return showStep(
     <TypeChoiceContent
+      standalone={standalone}
       onBack={() => hasFixedTarget ? close() : setStep('product')}
       backLabel={hasFixedTarget ? '닫기' : '이전'}
       onClose={close}
@@ -136,10 +141,9 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onSelectedChange={(index) => { setTypeIndex(index); setTypeNotice('') }}
       options={codes.map((code) => inquiryTypes[code])}
       selectedIndex={typeIndex}
-    />
-  </InquiryTypeChoicePopup>
+    />, '문의 유형 선택', 'inquiry-preview-layer inquiry-preview-layer--select-type')
 
-  if (step === 'refund') return <InquiryRefundApplicationDialog api={api} initialRentalIds={refundRentalIds} onClose={() => setStep('type')} onComplete={close} />
+  if (step === 'refund') return <InquiryRefundApplicationDialog api={api} initialRentalIds={refundRentalIds} onClose={() => setStep('type')} onComplete={close} standalone={standalone} />
 
   const write = <InquiryWriteContent
       standalone={standalone}

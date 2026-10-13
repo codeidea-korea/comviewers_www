@@ -7,6 +7,9 @@ import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { Modal } from '@/components/ui/ModalControl'
 import { AccountQueryState } from './AccountQueryState'
+import { DialogLayer } from '@/components/ui/DialogLayerControl'
+import backIcon from '@/assets/figma/mypage-mobile-back.png'
+import './inquiry-flow-qa.css'
 
 type RefundCandidate = Awaited<ReturnType<InquiryReadServices['refundApplicationCandidates']>>[number]
 type SubmitAttempt = { input: RefundDirectApplicationInput; key: string }
@@ -50,12 +53,13 @@ export function InquiryRefundApplication({ api, initialRentalIds = [], triggerLa
   </section>
 }
 
-export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose, onComplete, returnFocusRef }: {
+export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose, onComplete, returnFocusRef, standalone = false }: {
   api: InquiryReadServices
   initialRentalIds: readonly number[]
   onClose: () => void
   onComplete?: () => void
   returnFocusRef?: RefObject<HTMLElement | null>
+  standalone?: boolean
 }) {
   const client = useQueryClient()
   const [selected, setSelected] = useState<number[]>([])
@@ -163,7 +167,9 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     <label><input type="radio" name="refund-method" checked={method === 'original'} onChange={() => changeMethod('original')}/><span><strong>결제수단 환불</strong><small>기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.</small></span></label>
   </div></fieldset>
 
-  return <Modal className={`modal--refund-application modal--refund-step-${step}`} isOpen title="중도해지 및 환불 신청" closeLabel="취소" onClose={close} returnFocusRef={returnFocusRef} showClose={false}>
+  const back = () => { if (locked) return; if (step === 1) close(); else { attempt.current = null; submit.reset(); setAgreed(false); setStep(1) } }
+  const content = <section aria-label="중도해지 및 환불 신청" aria-modal={standalone ? undefined : true} className={`modal modal--refund-application modal--refund-step-${step}${standalone ? ' refund-application-page' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
+    <header className="refund-application-page__header"><button aria-label="이전 화면으로" disabled={locked} onClick={back} type="button"><img alt="" src={backIcon}/></button><h2>중도해지 및 환불 신청</h2></header><div className="modal__content">
     {step === 1 ? <form className="refund-application refund-application--select" onSubmit={(event) => {
       event.preventDefault()
       if (!targetsReady || !selectedCount || !reason) return
@@ -194,7 +200,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
       if (!submit.isPending && (attempt.current || quoteCurrent)) submit.mutate()
     }}>
       {quote.isPending ? <LoadingState className="refund-application__loading" label="환불 예상 금액을 계산하고 있습니다." /> : null}
-      {quote.isError ? <><p role="alert">{quote.error instanceof Error ? quote.error.message : '환불 예상 금액을 확인하지 못했습니다.'} <button type="button" onClick={() => requestQuote()}>다시 시도</button></p>{methodChoices}</> : null}
+      {quote.isError ? <p role="alert">{quote.error instanceof Error ? quote.error.message : '환불 예상 금액을 확인하지 못했습니다.'} <button type="button" onClick={() => requestQuote()}>다시 시도</button></p> : null}
       {quoteCurrent && quote.data ? <>
         <section className="refund-application__summary" aria-label="최종 환불 예상 금액 요약">
           <p><span>신청 품목 <strong>{selectedCount}개</strong></span></p>
@@ -212,7 +218,9 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
         </section>
         <section className="refund-application__bulk"><h3>다량 중도해지 공제</h3><dl><div><dt>해지 요청 건 수</dt><dd>{dailyQuantity}건</dd></div><div><dt>공제율</dt><dd>{dailyRate}%</dd></div><div><dt>공제금</dt><dd>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</dd></div></dl></section>
         <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 부분적으로 복원됩니다.</li></ul>
-        {methodChoices}
+      </> : null}
+      {methodChoices}
+      {quoteCurrent && quote.data ? <>
         {quote.data.bankRequired ? <fieldset className="refund-application__bank"><legend>환불 계좌정보</legend><select required aria-label="은행명" value={bank.code} onChange={(event) => {
           const selectedBank = bankOptions.find(([code]) => code === event.target.value)
           setBank(current => ({ ...current, code: selectedBank?.[0] ?? '', name: selectedBank?.[1] ?? '' })); attempt.current = null
@@ -221,7 +229,8 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
         <section className="refund-application__terms"><h3>약관동의</h3><label className="refund-application__agreement"><input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span><strong>[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.</strong><RelativeLink to="/terms?section=refund" target="_blank" rel="noopener noreferrer">환불 정책을 확인해주세요.</RelativeLink></span></label></section>
       </> : null}
       {submit.isError ? <p role="alert">{ambiguousFailure ? '접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요.' : submit.error instanceof Error ? submit.error.message : '신청을 접수하지 못했습니다.'}</p> : null}
-        <footer><button type="button" disabled={locked} onClick={close}>취소</button><button type="button" disabled={locked} onClick={(event) => { event.preventDefault(); attempt.current = null; submit.reset(); setAgreed(false); setStep(1) }}>이전</button><button type="submit" disabled={!quoteCurrent || !agreed || submit.isPending}>{submit.isPending ? '접수 중…' : ambiguousFailure ? '같은 요청으로 다시 접수' : '환불 신청하기'}</button></footer>
+        <footer><button type="button" disabled={locked} onClick={close}>취소</button><button type="submit" disabled={!quoteCurrent || !agreed || submit.isPending}>{submit.isPending ? '접수 중…' : ambiguousFailure ? '같은 요청으로 다시 접수' : '환불 신청하기'}</button></footer>
     </form>}
-  </Modal>
+  </div></section>
+  return standalone ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main> : <DialogLayer asChild backdropClassName="modal-backdrop" isOpen onClose={close} returnFocusRef={returnFocusRef} showTitle={false} title="중도해지 및 환불 신청">{content}</DialogLayer>
 }

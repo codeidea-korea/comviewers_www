@@ -1,0 +1,34 @@
+.inquiry-preview-dialog > header > .inquiry-flow-back { margin-left: 0; margin-right: 4px; }
+.inquiry-preview-dialog > header > .inquiry-flow-back img { height: 24px; width: 24px; }
+.inquiry-preview-dialog.inquiry-type-choice > header h2 { flex: 1; }
+.inquiry-preview-dialog.inquiry-type-choice > footer.inquiry-type-choice__actions--single { grid-template-columns: minmax(0, 1fr); }
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row { grid-template-columns: 18px minmax(0, 1fr); grid-template-rows: auto; gap: 4px; min-height: 0; }
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > span { flex-wrap: wrap; }
+.inquiry-product-choice .inquiry-product-choice__state { align-items: center; color: var(--color-black); display: inline-flex; font-size: 14px; font-style: normal; gap: 4px; white-space: nowrap; }
+.inquiry-product-choice .inquiry-product-choice__state i { align-items: center; background: var(--color-surface-success-soft); border-radius: 50%; display: flex; height: 24px; justify-content: center; width: 24px; }
+.inquiry-product-choice .inquiry-product-choice__state[data-status='off'] i { background: var(--color-surface-error-soft); }
+.inquiry-product-choice .inquiry-product-choice__state img { height: 8.333px; width: 16.667px; }
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > :is(p, small) { grid-column: 2; margin-block: 0; }
+.inquiry-product-choice__products,
+.inquiry-chat-products__list,
+.refund-application__candidates,
+.refund-application__table-scroll { scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
+:is(.inquiry-product-choice__products, .inquiry-chat-products__list, .refund-application__candidates, .refund-application__table-scroll)::-webkit-scrollbar { height: 4px; width: 4px; }
+:is(.inquiry-product-choice__products, .inquiry-chat-products__list, .refund-application__candidates, .refund-application__table-scroll)::-webkit-scrollbar-track { background: transparent; }
+:is(.inquiry-product-choice__products, .inquiry-chat-products__list, .refund-application__candidates, .refund-application__table-scroll)::-webkit-scrollbar-thumb { background: var(--color-gray-400); border-radius: 999px; }
+.inquiry-product-choice footer button:first-child:not(:last-child) { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+.refund-application-page__header { align-items: center; display: flex; gap: 4px; }
+.refund-application-page__header h2 { margin: 0; }
+.refund-application-page__header button { background: transparent; border: 0; padding: 0; }
+.refund-application-page__header img { height: 24px; width: 24px; }
+@media (max-width: 767px) {
+  .inquiry-mobile-page.inquiry-flow-page { min-height: 100dvh; overflow-x: hidden; overflow-y: auto; }
+  .inquiry-flow-page > .inquiry-preview-dialog { border: 0; border-radius: 0; display: flex; flex-direction: column; height: auto; min-height: 100dvh; left: auto; max-height: none; position: static; top: auto; transform: none; width: 100%; }
+  .inquiry-flow-page > .inquiry-preview-dialog > header { flex: 0 0 auto; }
+  .inquiry-flow-page > .inquiry-preview-dialog > footer { bottom: auto; left: auto; margin-top: auto; padding-top: 12px; position: static; right: auto; }
+  .inquiry-flow-page .inquiry-product-choice__products { flex: 1; max-height: none; }
+  .inquiry-flow-page > .refund-application-page { border: 0; border-radius: 0; max-height: none; min-height: 100dvh; width: 100%; }
+  .inquiry-flow-page .refund-application-page .modal__content { max-height: none; overflow: visible; }
+  .refund-application-page .refund-application__table-scroll { max-width: 100%; overflow-x: auto; }
+  .refund-application-page .refund-application footer { position: static; }
+}

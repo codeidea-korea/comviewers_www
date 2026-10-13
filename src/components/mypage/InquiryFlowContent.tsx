@@ -19,6 +19,7 @@ interface FlowPopupProps {
 }
 
 interface TypeChoiceProps {
+  standalone?: boolean
   backLabel?: string
   notice?: ReactNode
   onBack?: () => void
@@ -46,19 +47,19 @@ export function InquiryTypeChoicePopup({ backdropClassName, children, onClose, r
   return <DialogLayer asChild backdropClassName={backdropClassName} focusKey="create:select-type" isOpen onClose={onClose} returnFocusRef={returnFocusRef} showTitle={false} title="문의 유형 선택">{children}</DialogLayer>
 }
 
-export function TypeChoiceContent({ backLabel = '이전', notice, onBack = () => {}, onClose = () => {}, onNext = () => {}, onSelectedChange = () => {}, options = inquiryTypes, selectedIndex = null }: TypeChoiceProps) {
+export function TypeChoiceContent({ backLabel = '이전', notice, onBack = () => {}, onClose = () => {}, onNext = () => {}, onSelectedChange = () => {}, options = inquiryTypes, selectedIndex = null, standalone = false }: TypeChoiceProps) {
   return (
-    <section aria-modal="true" className="inquiry-preview-dialog inquiry-type-choice" role="dialog" tabIndex={-1}>
+    <section aria-label={standalone ? '문의 유형 선택' : undefined} aria-modal={standalone ? undefined : true} className="inquiry-preview-dialog inquiry-type-choice" role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>
-        <h2>문의 유형 선택</h2>
-        <button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button>
+        <button aria-label={backLabel === '닫기' ? '닫기' : '상품 선택으로 돌아가기'} className="inquiry-flow-back" onClick={onBack} type="button"><img alt="" src={backChevron}/></button><h2>문의 유형 선택</h2>
+        {!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button> : null}
       </header>
       <div>{options.map((item, index) => {
         const checked = selectedIndex === index
         return <Radio checked={checked} className={checked ? 'is-selected' : ''} key={item} name="inquiry-type" offIcon={radioOff} onChange={() => onSelectedChange(index)} onIcon={radioOn}>{item}</Radio>
       })}</div>
       {notice ? <p className="mypage-notice mypage-notice--error" role="alert">{notice}</p> : null}
-      <footer className={backLabel === '닫기' ? 'inquiry-type-choice__actions--single' : undefined}>{backLabel !== '닫기' ? <button onClick={onBack} type="button">{backLabel}</button> : null}<button disabled={selectedIndex === null || !options[selectedIndex]} onClick={onNext} type="button">문의 접수하기</button></footer>
+      <footer className="inquiry-type-choice__actions--single"><button disabled={selectedIndex === null || !options[selectedIndex]} onClick={onNext} type="button">문의 접수하기</button></footer>
     </section>
   )
 }
