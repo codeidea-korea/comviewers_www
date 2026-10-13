@@ -11,7 +11,7 @@ const languages: readonly { value: LanguageChoice; label: string }[] = [
   { value: 'zh-TW', label: '繁體中文' },
 ]
 
-export function LanguageMenu({ locale, onSelect, status, triggerLabel = 'Language' }: {
+export function LanguageMenu({ locale, onSelect, status, triggerLabel }: {
   locale: PageLocale
   triggerLabel?: string
   onSelect: (value: LanguageChoice) => void
@@ -49,12 +49,12 @@ export function LanguageMenu({ locale, onSelect, status, triggerLabel = 'Languag
     <button
       aria-controls={menuId}
       aria-expanded={open}
-      aria-label={`Language: ${selected?.label ?? '한국어'}`}
+      aria-label={`언어: ${selected?.label ?? '한국어'}`}
       className="language-menu__trigger"
       onClick={() => setOpen(current => !current)}
       ref={triggerRef}
       type="button"
-    >{triggerLabel}<span aria-hidden="true" className="language-menu__chevron" /></button>
+    >{triggerLabel ?? selected?.label ?? '한국어'}<span aria-hidden="true" className="language-menu__chevron" /></button>
     {open ? <div aria-label="번역 언어" className="language-menu__list" id={menuId} role="group">
       {languages.map(language => <button
         aria-pressed={language.value === locale}

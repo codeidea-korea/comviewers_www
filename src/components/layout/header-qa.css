@@ -1,0 +1,9 @@
+@media (min-width: 768px) {
+  .app-shell > header.site-header { background: var(--color-white); color: var(--color-black); }
+  .app-shell > header.site-header .site-header__utility { background: var(--color-white); border-color: var(--color-gray-300); }
+  .app-shell > header.site-header .site-header__primary { border-color: var(--color-gray-300); }
+  .app-shell > header.site-header .utility-menu > * + *::before { background: var(--color-gray-300); }
+}
+@media (max-width: 767px) {
+  .app-shell > header.site-header > :not(.mobile-site-menu) .google-translate-trial { display: none; }
+}

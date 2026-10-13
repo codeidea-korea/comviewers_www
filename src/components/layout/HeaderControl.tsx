@@ -11,6 +11,7 @@ import { menuItems, utilityMenuItems } from '../../navigation/menuItems'
 import { useMobileOverlay } from '../ui/useMobileOverlay'
 import { GoogleTranslateTrial, ManualTranslationControls } from './GoogleTranslateTrial'
 import { TranslatedText, useTranslation, type TranslationKey } from '../../i18n/translation'
+import './header-qa.css'
 
 const menuTranslationKeys: Readonly<Record<string, TranslationKey>> = {
   'rcpc-products': 'nav.rcpcProducts',
@@ -85,7 +86,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
       <div className="site-header__primary">
         <div className="site-header__inner">
           <Link className="site-logo" to={restricted ? '/mypage/rcpc' : '/'}>
-            <img alt="ComViewers" src={isMain && !scrolled ? logoWhite : logoPrimary} />
+            <picture><source media="(min-width: 768px)" srcSet={logoPrimary}/><img alt="ComViewers" src={isMain && !scrolled ? logoWhite : logoPrimary} /></picture>
           </Link>
           <nav aria-label="주 메뉴" className="main-menu">
             {visibleMenuItems.map((item) => <Link key={item.id} to={item.href}><MenuLabel item={item} /></Link>)}
