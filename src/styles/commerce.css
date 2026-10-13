@@ -598,6 +598,8 @@
 .commerce-shell--products > .app-shell__scroll-region::-webkit-scrollbar { display: none; }
 
 @media (min-width: 768px) {
+  .product-filter-drawer-layer .product-filter--drawer { --product-filter-width: 320px; background: var(--color-white); padding: 30px; scrollbar-width: thin; }
+  .product-filter-drawer-layer .product-filter--drawer::before { display: none; }
   .products-content .product-selector-field > button,
   .products-content .server-room-select-panel { border-radius: 0; }
   .product-filter-rail .product-filter__scroll { padding-right: 0; }
