@@ -1,0 +1,25 @@
+.rcpc-filter-select { align-items: center; color: var(--color-gray-700); display: inline-flex; max-width: 100%; min-width: 0; position: relative; }
+.rcpc-filter-select > i,
+.rcpc-selection-menu__trigger > i { background: currentColor; display: block; flex: 0 0 16px; height: 16px; mask: url('../../../assets/figma/selector-chevron-down.svg') center / 12px 7.4px no-repeat; width: 16px; }
+.rcpc-filter-select > i { pointer-events: none; position: absolute; right: 0; }
+.mypage-shell :is(.rcpc-list-page, .favorites-page) span.rcpc-filter-select > select[data-ui='native-select'] { appearance: none; background-image: none; color: inherit; max-width: 100%; min-width: 0; padding-right: 20px; -webkit-text-fill-color: currentColor; }
+.rcpc-selection-menu { position: relative; }
+.rcpc-selection-menu__trigger { display: none; }
+.mypage-shell .rcpc-list-page > .mypage-toolbar { border-bottom: 1px solid var(--color-gray-200); }
+.mypage-shell .rcpc-list-page .rcpc-list__state img[data-status],
+.mypage-shell .rcpc-list-page .mobile-rcpc-card__state img[data-status] { background: transparent; }
+.mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions > :not(:first-child) { align-self: center; border-left: 1px solid var(--color-gray-200); }
+.mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions button:not(:disabled) { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+@media (max-width: 767px) {
+  .rcpc-filter-select { color: var(--color-gray-500); }
+  .mypage-shell .rcpc-list-page .rcpc-list__bulk-actions:has(.rcpc-selection-menu) { align-items: center; display: flex; flex-direction: row; justify-content: flex-start; }
+  .mypage-shell:has(.rcpc-list-page) .mypage-mobile-header__exit--home { display: none; }
+  .rcpc-selection-menu__trigger { align-items: center; background: transparent; border: 0; color: var(--color-gray-500); display: inline-flex; font: inherit; font-size: 12px; gap: 4px; padding: 0; }
+  .mypage-shell .rcpc-selection-menu > .rcpc-bulk-actions { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; display: none; flex-direction: column; padding: 8px; position: absolute; right: 0; top: 100%; width: max-content; z-index: 3; }
+  .mypage-shell .rcpc-selection-menu.is-open > .rcpc-bulk-actions { display: flex; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-selection-menu .rcpc-bulk-actions > * { align-self: stretch; border: 0; flex: none; width: 100%; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-selection-menu .rcpc-bulk-actions button { text-align: left; width: 100%; }
+  .mypage-shell .rcpc-list-page .mobile-rcpc-card > header { column-gap: 4px; }
+  .mypage-shell .rcpc-list-page .mobile-rcpc-card > header strong { flex: 0 1 auto; }
+  .mypage-shell .rcpc-list-page .mobile-rcpc-card > header > .mobile-rcpc-card__spec { margin-left: auto; }
+}
