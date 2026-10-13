@@ -10,18 +10,23 @@ import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { sortInquiryChoices } from './inquiryChoice'
 import { ProductChoiceContent } from './modals/InquiryProductChoice'
 import { bulkInquiryBusinessNotice, hasSameInquiryBusiness } from './inquiryBusinessScope'
+import { useMobileInquiryViewport } from './inquiries/inquiryViewport'
 
-export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean }) {
+export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean; pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean }) {
   const { myAccount } = useServices()
   return myAccount.rcpcApi ? <TargetPicker {...props} rcpcApi={myAccount.rcpcApi}/> : null
 }
 
-function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
+function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pickerOpen, onClosePicker, showTrigger = true }: {
   api: InquiryReadServices; rcpcApi: MyRcpcReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean
+  pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean
 }) {
   const client = useQueryClient()
   const chatKey = ['operation-requests', api.organizationId, 'chat', requestId] as const
-  const [open, setOpen] = useState(false)
+  const [localOpen, setLocalOpen] = useState(false)
+  const open = pickerOpen ?? localOpen
+  const setOpen = (value: boolean) => { setLocalOpen(value); if (!value) onClosePicker?.() }
+  const mobile = useMobileInquiryViewport()
   const [selected, setSelected] = useState<readonly number[]>([])
   const [businessNotice, setBusinessNotice] = useState('')
   const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
@@ -66,25 +71,21 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
     pending.current = true; save.mutate()
   }
   if (closed) return null
-  return <section aria-label="문의 상품 추가">
-    <Toast message={outcome} toastKey={toastKey} />
-    <button aria-label="문의 상품 추가" type="button" disabled={total >= 20 || save.isPending} onClick={() => setOpen((value) => !value)}>문의 상품 추가</button>
-    {open && !closed ? <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }} showTitle={false} title="문의 상품 추가">
-      <ProductChoiceContent
-        actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '선택'}
+  const picker = <ProductChoiceContent
+        standalone={mobile}
+        title={`문의 상품 추가 (${selectedIndexes.length})`}
+        actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '추가하기'}
         allowEmpty={false}
         maxSelection={Math.max(0, 20 - total)}
         notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{businessNotice ? <p role="alert">{businessNotice}</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
         onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }}
         onNext={submit}
-        onSelectedChange={(indexes) => {
-          attempt.current = null
-          setBusinessNotice('')
-          setSelected(indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger))
-        }}
-        products={products}
-        selectedIndexes={selectedIndexes}
+        onSelectedChange={(indexes) => { attempt.current = null; setBusinessNotice(''); setSelected(indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger)) }}
+        products={products} selectedIndexes={selectedIndexes}
       />
-    </DialogLayer> : null}
+  return <section aria-label="문의 상품 추가">
+    <Toast message={outcome} toastKey={toastKey} />
+    {showTrigger ? <button aria-label="문의 상품 추가" type="button" disabled={total >= 20 || save.isPending} onClick={() => setOpen(!open)}>문의 상품 추가</button> : null}
+    {open && !closed ? mobile ? <main className="inquiry-mobile-page inquiry-flow-page">{picker}</main> : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }} showTitle={false} title="문의 상품 추가">{picker}</DialogLayer> : null}
   </section>
 }

@@ -1,0 +1,14 @@
+.inquiry-preview-dialog.inquiry-chat { position: relative; }
+.inquiry-preview-dialog.inquiry-chat > .inquiry-chat__menu { border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); left: 30px; top: 62px; z-index: 2; }
+.inquiry-preview-dialog.inquiry-chat .inquiry-chat__menu button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+.inquiry-chat-products .inquiry-chat-products__list > article { display: block; }
+.inquiry-chat-products .inquiry-chat-products__list header { align-items: center; display: flex; flex-wrap: wrap; gap: 4px; }
+.inquiry-chat-products .inquiry-chat-products__list header em { align-items: center; display: inline-flex; font-style: normal; gap: 4px; }
+.inquiry-chat-products .inquiry-chat-products__list header em img { height: 24px; width: 24px; }
+.inquiry-chat-products .inquiry-chat-products__list header em span { background: transparent; padding: 0; }
+.inquiry-chat-products .inquiry-chat-products__list p { color: var(--color-gray-500); font-size: 12px; line-height: 17px; margin: 4px 0; }
+.inquiry-chat-products .inquiry-chat-products__list small { color: var(--color-gray-500); }
+.inquiry-preview-dialog.inquiry-chat-products > header .inquiry-chat__back-icon { height: 24px; width: 24px; }
+@media (max-width: 767px) {
+  .inquiry-mobile-page .inquiry-preview-dialog.inquiry-chat > .inquiry-chat__menu { left: 12px; }
+}

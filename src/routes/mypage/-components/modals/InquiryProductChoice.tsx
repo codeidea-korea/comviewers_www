@@ -26,7 +26,7 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
     : selectedIndexes.filter((value) => value !== index))
   return (
     <section aria-label={standalone ? title : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-product-choice${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <header>{standalone ? <button aria-label="이전 화면으로" className="inquiry-flow-back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button> : null}<h2>{title}</h2>{!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button> : null}</header>
+      <header>{standalone || title !== '상품 선택' ? <button aria-label="이전 화면으로" className="inquiry-flow-back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button> : null}<h2>{title}</h2>{!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button> : null}</header>
       <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={!products.length} onChange={event => onSelectedChange(event.target.checked ? products.map((_, index) => index) : [])} /><span>모두선택</span></label>
       <div className="inquiry-product-choice__products">{notice}{products.map((product, index) => <ProductChoiceRow checked={selectedIndexes.includes(index)} key={product.selectionId} onCheckedChange={(checked) => changeOne(index, checked)} product={product} />)}</div>
       <footer>
