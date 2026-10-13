@@ -611,7 +611,6 @@
   .product-filter-drawer-layer .product-filter--drawer::before { display: none; }
   .products-content .product-selector-field > button,
   .products-content .server-room-select-panel { border-radius: 0; }
-  .product-filter-rail .product-filter__scroll { padding-right: 0; }
   .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) dd { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) dd > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .product-card--large .product-card__peripherals > span:not(.sr-only) { background: var(--color-gray-100); border-radius: 4px; box-sizing: border-box; padding: 0; }

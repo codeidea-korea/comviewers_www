@@ -10,7 +10,7 @@ import { MyPageLayout } from '../../MypageComponentsView'
 import { AppShell } from '@/components/layout/AppShellView'
 import { useMobileInquiryViewport } from '../inquiries/inquiryViewport'
 import { AccountQueryState } from '../AccountQueryState'
-import { InquiryDialog } from '../inquiries/InquiryDialog'
+import { InquiryAction } from '../inquiries/InquiryAction'
 
 import { InquiryRefundApplication } from '../InquiryRefundApplication'
 import { accountDateRange } from '../shared/AccountDatePresets'
@@ -131,6 +131,14 @@ const rentalStatusIconKinds: Record<string, ServerIconStatus> = {
   termination_waiting: 'disabled',
 }
 
+function OrderRentalStatusIcon({ status }: { status: string }) {
+  const kind = rentalStatusIconKinds[status] ?? 'off'
+  const icon = <img data-status={kind} src={serverStatusIcons[kind]} alt="" />
+  return status === 'termination_waiting'
+    ? <span className="order-catalog-item__state-icon--ended">{icon}</span>
+    : icon
+}
+
 const displayOrderDate = (value: string | null) => {
   const date = accountDate(value).slice(0, 10)
   return date === '-' ? date : date.replaceAll('-', '.')
@@ -147,7 +155,6 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const [dates, setDates] = useState(initialDates)
   const [periodOpen, setPeriodOpen] = useState(false)
   const [rentalStatus, setRentalStatus] = useState<AccountOrderQuery['rentalStatus']>()
-  const [inquiryTargets, setInquiryTargets] = useState<readonly number[] | null>(null)
 
   const result = useAccountRead(
     ['orders', category ?? 'all', page, rentalStatus ?? '', dates.from, dates.to],
@@ -267,7 +274,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                   {selectableIds.length > 20 ? '최대 20개 선택' : '모두선택'}
                 </label>
                 <div className="orders-select-all__actions">
-                  <button disabled={selectedInquiryIds.length === 0 || !myAccount.inquiryApi || !myAccount.rcpcApi} onClick={() => setInquiryTargets(selectedInquiryIds)} type="button">문의</button>
+                  <InquiryAction appearance="text" disabled={selectedInquiryIds.length === 0} fixedTarget initialIds={selectedInquiryIds} onCreated={() => setSelected([])}>문의</InquiryAction>
                   {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel={t('order.terminationRequest')} /> : null}
                   {selectedRefundRentalIds.length === 0 || !myAccount.inquiryApi ? <button disabled type="button"><TranslatedText id="order.terminationRequest" /></button> : null}
                 </div>
@@ -311,7 +318,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </RelativeLink>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={displayRentalStatus === 'termination_waiting' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[displayRentalStatus ?? ''] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[displayRentalStatus ?? ''] ?? 'off']} alt="" />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}{item.replacementSourceProductNo ? ' · 교체이용' : null}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (
@@ -342,17 +349,6 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
             {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty" role="status">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 조건의 주문 내역이 없습니다.'}</p></section> : null}
             <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={(nextPage) => { setSelected([]); setPage(nextPage) }} />
           </>
-        ) : null}
-        {inquiryTargets && myAccount.inquiryApi && myAccount.rcpcApi ? (
-          <InquiryDialog
-            api={myAccount.inquiryApi}
-            initialIds={inquiryTargets}
-            initialProductNo=""
-            fixedTarget
-            onClose={() => setInquiryTargets(null)}
-            onCreated={() => setSelected([])}
-            rcpcApi={myAccount.rcpcApi}
-          />
         ) : null}
         {periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
           setDates(nextDates)

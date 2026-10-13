@@ -20,6 +20,7 @@ const statusQuery = z.string().trim().toLowerCase().transform((value) => value |
 
 export const catalogListQuerySchema = z.object({
   categoryCode,
+  couponId: z.string().regex(/^[1-9]\d{0,18}$/).refine(value => /^[1-9]\d{0,18}$/.test(value) && BigInt(value) <= 9223372036854775807n).optional(),
   keyword: z.string().trim().max(100).optional(),
   filterOptionIds: z.array(id).transform((ids) => [...new Set(ids)].sort((a, b) => a - b))
     .pipe(z.array(id).max(50)).optional(),
@@ -115,12 +116,13 @@ export type CatalogDetail = z.infer<typeof catalogDetailSchema>
 
 export function createCatalogApi(client: ApiClient) {
   return {
-    list(input: CatalogListQuery = {}, signal?: AbortSignal): Promise<CatalogPage> {
+    list(input: CatalogListQuery = {}, signal?: AbortSignal, customerOrganizationId?: string): Promise<CatalogPage> {
       const parsed = catalogListQuerySchema.parse(input)
       return client.request('/api/v1/products', catalogPageSchema, {
         query: { ...parsed, filterOptionIds: parsed.filterOptionIds?.length ? parsed.filterOptionIds.join(',') : undefined,
           serverRoomIds: parsed.serverRoomIds?.length ? parsed.serverRoomIds.join(',') : undefined },
-        signal, authenticated: false,
+        signal, authenticated: Boolean(parsed.couponId),
+        customerOrganizationId: parsed.couponId ? customerOrganizationId : undefined,
       })
     },
     get(productNo: string, signal?: AbortSignal): Promise<CatalogDetail> {

@@ -1,7 +1,7 @@
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import type { MyRcpcItem } from '@/api/myRcpc'
 
-export const connectionLabels: Record<string, string> = { ONLINE: '실행 중', OFFLINE: '오프라인', STALE: '확인 필요', NEVER_CONNECTED: '확인 필요', online: '실행 중', offline: '오프라인', stale: '확인 필요', unknown: '미확인' }
+export const connectionLabels: Record<string, string> = { ONLINE: '실행 중', OFFLINE: '확인 필요', STALE: '확인 필요', NEVER_CONNECTED: '확인 필요', online: '실행 중', offline: '확인 필요', stale: '확인 필요', unknown: '미확인' }
 export const endedRental = (status: string) => ['terminated', 'refunded'].includes(status)
 type RentalPeriodItem = Pick<MyRcpcItem, 'rentalStatus' | 'usageStatus' | 'operationalStatus' | 'serviceStartedAt' | 'serviceEndsAt' | 'serviceEndExclusiveDate'>
 const kstDateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' })

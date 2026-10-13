@@ -1,6 +1,6 @@
 import { productQueryKeys } from '@/domain/products/productQueryKeys'
 import { usePublicCatalogQueryClient } from '@/app/PublicCatalogQueryProvider'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
@@ -27,6 +27,7 @@ function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductL
   const candidate = {
     page: Number(params.get('page') ?? 1), pageSize: 12,
     categoryCode,
+    couponId: params.get('couponId') ?? undefined,
     keyword: params.get('keyword')?.trim() || undefined,
     instantOnly: params.has('instantOnly') ? params.get('instantOnly') !== 'false' : defaultInstantOnly, rooms: params.getAll('room'),
     line: params.get('line') ?? '전체', ip: params.get('ip') ?? '전체', purpose: params.get('purpose') ?? '전체',
@@ -37,17 +38,18 @@ function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductL
     maxPrice: params.get('maxPrice') ? Number(params.get('maxPrice')) : undefined,
     keyboardConnectionStatus: params.get('keyboard') || undefined,
     mouseConnectionStatus: params.get('mouse') || undefined,
-    saleAvailableOnly: params.get('saleAvailableOnly') === 'true',
+    saleAvailableOnly: params.has('couponId') || params.get('saleAvailableOnly') === 'true',
     sort: params.get('sort') ?? 'newest',
   }
   const result = productQuerySchema.safeParse(candidate)
-  return result.success ? result.data : { page: 1, pageSize: 12, categoryCode: candidate.categoryCode, instantOnly: defaultInstantOnly, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {} }
+  return result.success ? result.data : { page: 1, pageSize: 12, categoryCode: candidate.categoryCode, couponId: candidate.couponId, instantOnly: defaultInstantOnly, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {} }
 }
 
 export function useProductList() {
   const [params, setParams] = useSearchParams()
   const { products } = useServices()
   const publicCatalogClient = usePublicCatalogQueryClient()
+  const scopedClient = useQueryClient()
   const defaultInstantOnly = products.filterMetadata ? false : products.capabilities?.instantOnly !== false
   const storedQuery = readQuery(params, defaultInstantOnly)
   const metadata = useQuery({ queryKey: ['product-filter-metadata', storedQuery.categoryCode], enabled: Boolean(products.filterMetadata), queryFn: () => products.filterMetadata!(storedQuery.categoryCode) }, publicCatalogClient)
@@ -56,22 +58,26 @@ export function useProductList() {
   const query: ProductListQuery = { ...storedQuery, priceBasis: storedQuery.categoryCode === 'parts' ? 'unit' : storedQuery.priceBasis ?? defaultPriceBasis }
   const result = useQuery({
     queryKey: productQueryKeys.list(query),
-    queryFn: async () => productPageSchema.parse(await products.list(query)),
-  }, publicCatalogClient)
+    queryFn: async ({ signal }) => productPageSchema.parse(await products.list(query, signal)),
+    placeholderData: (previous, previousQuery) => {
+      const previousFilters = previousQuery?.queryKey[2] as ProductListQuery | undefined
+      return previousFilters?.categoryCode === query.categoryCode && previousFilters?.priceBasis === query.priceBasis && previousFilters?.couponId === query.couponId
+        ? previous : undefined
+    },
+  }, query.couponId !== undefined ? scopedClient : publicCatalogClient)
   const resolvedPage = result.data?.page
   useEffect(() => {
-    if (resolvedPage === undefined || resolvedPage === query.page) return
+    if (result.isPlaceholderData || resolvedPage === undefined || resolvedPage === query.page) return
     setParams((previous) => {
       const next = new URLSearchParams(previous)
       next.set('page', String(resolvedPage))
       return next
     }, { replace: true })
-  }, [resolvedPage, query.page, setParams])
+  }, [resolvedPage, result.isPlaceholderData, query.page, setParams])
   function updateQuery(changes: Partial<ProductListQuery>, resetPage = true) {
     setParams((previous) => {
       const nextQuery = { ...readQuery(previous, defaultInstantOnly), priceBasis: query.priceBasis, ...changes, ...(resetPage ? { page: 1 } : {}) }
       const next = new URLSearchParams(previous)
-      if (changes.rooms !== undefined || changes.categoryCode !== undefined) next.delete('couponProducts')
       next.set('page', String(nextQuery.page))
       if (nextQuery.keyword) next.set('keyword', nextQuery.keyword)
       else next.delete('keyword')
@@ -102,11 +108,11 @@ export function useProductList() {
     filterMetadata: metadata.data,
     filterMetadataPending: metadata.isPending, filterMetadataError: metadata.isError, refetchFilterMetadata: metadata.refetch,
     catalogSelections: query,
-    isCouponProductList: params.get('couponProducts') === 'true' && query.categoryCode === 'rcpc',
+    isCouponProductList: Boolean(query.couponId) || params.get('couponProducts') === 'true',
     setCatalogSelections: (changes: Partial<ProductListQuery>) => updateQuery(changes),
     ...result, errorMessage: result.error instanceof UnsupportedProductFilterError ? result.error.message : '상품 목록을 불러오지 못했습니다.',
     visibleProducts: result.data?.items ?? [], resultTotal: result.data?.total ?? 0,
-    totalPages: result.data?.totalPages ?? 0, currentPage: result.data?.page ?? query.page,
+    totalPages: result.data?.totalPages ?? 0, currentPage: result.isPlaceholderData ? query.page : result.data?.page ?? query.page,
     facets: result.data?.facets ?? null, capabilities: products.capabilities, instantOnly: query.instantOnly,
     selectedRooms: new Set(query.rooms), detailSelections: query.details, selectorSelections,
     setCurrentPage: (page: number) => updateQuery({ page }, false),

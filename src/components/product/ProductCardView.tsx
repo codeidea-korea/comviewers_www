@@ -40,13 +40,13 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
   const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
-  const visual = productOsVisual(product.osFilterValue, part)
+  const visual = productOsVisual(product.osFilterValue, part, product.image)
 
   return (
     <article className={`product-card product-card--${size}`}>
       <div className="product-card__image">
-        <img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
-        <ProductOsOverlay label={visual.label} />
+        <img alt={product.image ? `${product.title ?? product.productId} 상품 이미지` : visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
+        {!product.image ? <ProductOsOverlay label={visual.label} /> : null}
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">

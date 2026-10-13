@@ -25,7 +25,7 @@ interface Props {
 export function CartProductRow({ item, selected, disabled, quantityUpdating, onToggle, onRemove, onQuantityChange }: Props) {
   const { locale, t } = useTranslation()
   const partner = item.type === 'part'
-  const visual = productOsVisual(item.osFilterValue, partner)
+  const visual = productOsVisual(item.osFilterValue, partner, item.image)
   const waiting = item.instantAvailable === false
   const soldOut = item.issues.includes('SOLD_OUT')
   const stockReserved = item.issues.includes('STOCK_RESERVED')
@@ -47,7 +47,7 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
       <button aria-label={`${item.label} 삭제`} disabled={disabled} onClick={onRemove} type="button"><img alt="" src={closeIcon} /></button>
     </header>
     <div className="purchase-row__body cart-item__body">
-      <div className="purchase-row__image cart-item__image"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} /><ProductOsOverlay label={visual.label} /></div>
+      <div className="purchase-row__image cart-item__image"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{!item.image ? <ProductOsOverlay label={visual.label} /> : null}</div>
       <div className="purchase-row__details cart-item__details">
         {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{item.instantAvailable !== null && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span className="notranslate" translate="no">{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><TranslatedText id="money.setupFee" /><span><CartMoney value={item.setupFee} /></span></p><p><span className="notranslate" translate="no">{cartPriceLabel(item)}</span><span><CartMoney value={item.rentalFee} /></span></p></div>}

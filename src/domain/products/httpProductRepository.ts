@@ -10,7 +10,7 @@ export class UnsupportedProductFilterError extends Error {
 }
 
 // API-backed product adapter used by the service runtime.
-export function createHttpProductRepository(client: ApiClient): ProductRepository {
+export function createHttpProductRepository(client: ApiClient, organizationId?: string): ProductRepository {
   const api = createCatalogApi(client)
   return {
     loadEditorImage: id => client.download(`/api/v1/content/editor-images/${id}`, { authenticated: false }),
@@ -22,12 +22,13 @@ export function createHttpProductRepository(client: ApiClient): ProductRepositor
         || Object.values(query.details).some((values) => values?.length)) throw new UnsupportedProductFilterError()
       // Comparison prices are separate from the unchanged checkout billing unit and unit price.
       const serverRoomIds = query.rooms.map(value => z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().positive().safe()).parse(value))
-      const dto = await api.list({ categoryCode: query.categoryCode, keyword: query.keyword, page: query.page - 1, size: query.pageSize,
+      if (query.couponId && !organizationId) throw new ApiClientError('authentication')
+      const dto = await api.list({ categoryCode: query.categoryCode, couponId: query.couponId, keyword: query.keyword, page: query.page - 1, size: query.pageSize,
         serverRoomIds, instantOnly: query.instantOnly, saleAvailableOnly: query.saleAvailableOnly,
         filterOptionIds: query.filterOptionIds, minPrice: query.minPrice, maxPrice: query.maxPrice, priceBasis: query.priceBasis,
         keyboardConnectionStatus: query.keyboardConnectionStatus, mouseConnectionStatus: query.mouseConnectionStatus,
         sort: query.sort,
-      }, signal)
+      }, signal, organizationId)
       return productPageSchema.parse({ items: dto.items.map(mapCatalogProduct), total: dto.totalElements, totalPages: dto.totalPages, page: dto.page + 1, facets: null })
     },
     async get(productNo, signal) {

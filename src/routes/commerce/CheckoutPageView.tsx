@@ -84,7 +84,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
       setUnresolvedOrderId(null)
       unresolvedCustomerCancellation.current = false
       setPaymentRetryReady(true)
-      setPaymentNotice('결제창을 닫았습니다. 결제수단을 다시 선택해 결제할 수 있습니다.')
+      setPaymentNotice(null)
       return
     }
     if (status === 'cancelled' || status === 'failed') {
@@ -192,7 +192,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
               {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
               <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
               {showReceipt && <fieldset className="checkout-input-fields" disabled={!!attempt && (!paymentRetryReady || !!attempt.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt && !paymentRetryReady} retryPayment={paymentRetryReady} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt && !paymentRetryReady} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>
 }

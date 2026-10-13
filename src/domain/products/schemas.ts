@@ -11,6 +11,7 @@ export const detailSelectionsSchema = z.object({
 })
 export const productQuerySchema = z.object({
   categoryCode: z.string().optional(),
+  couponId: z.string().regex(/^[1-9]\d{0,18}$/).refine(value => /^[1-9]\d{0,18}$/.test(value) && BigInt(value) <= 9223372036854775807n).optional(),
   keyword: z.string().trim().max(100).optional(),
   page: z.number().int().min(1).max(100000),
   pageSize: z.number().int().min(1).max(100),

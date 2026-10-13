@@ -10,6 +10,7 @@ export type InquiryChoice = InquiryTarget & {
   period: string
   spec: string
   statusRank: number
+  serverRoomBusinessKey?: string | null
 }
 
 const statusRanks: Record<string, number> = {
@@ -40,6 +41,7 @@ export function toInquiryChoice(item: MyRcpcItem): InquiryChoice {
     productNo: item.productNo,
     productName: item.productTitle ?? '상품명 정보 없음',
     location: item.serverRoomName ?? '서버실 정보 없음',
+    serverRoomBusinessKey: item.serverRoomBusinessKey,
     state: connectionLabels[item.connectionStatus.toUpperCase()] ?? '미확인',
     orderDate: item.orderedAt?.slice(0, 10) ?? '-',
     period: item.serviceStartedAt || item.serviceEndExclusiveDate ? `${item.serviceStartedAt?.slice(0, 10) ?? '-'} ~ ${item.serviceEndExclusiveDate ?? '-'}` : '-',

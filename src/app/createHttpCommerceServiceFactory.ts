@@ -27,7 +27,7 @@ function unavailableCommerce(message: string): Pick<Services, 'cart' | 'checkout
 export function createHttpCommerceServiceFactory(options: CommerceFactoryOptions): ServiceFactory {
   return (scope) => {
     const client = createApiClient({ baseUrl: options.baseUrl, getAccessToken: scope.getAccessToken, onAuthenticationFailure: scope.logout })
-    const products = createHttpProductRepository(client)
+    const products = createHttpProductRepository(client, scope.session.status === 'authenticated' ? scope.session.organizationId ?? undefined : undefined)
     const other = options.createOtherServices(scope)
     const session = scope.session
     const catalog = createCatalogApi(client)

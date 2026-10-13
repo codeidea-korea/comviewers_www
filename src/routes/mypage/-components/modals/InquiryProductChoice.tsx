@@ -8,7 +8,7 @@ export function ProductChoiceRow({ checked = false, onCheckedChange = () => {}, 
   return (
     <label className="inquiry-product-choice__row">
       <Checkbox checked={checked} onChange={(event) => onCheckedChange(event.target.checked)} />
-      <span><b title={product.alias}>{product.alias}</b><small title={product.location}>{product.location}</small></span>
+      <span><b title={`${product.alias} · ${product.productNo}`}>{product.alias} · {product.productNo}</b><small title={product.location}>{product.location}</small></span>
       <em><i><img alt="" src={serverOnIcon} /></i>{product.state}</em>
       <p>{product.spec}</p>
       <small><span>주문일 <b>{product.orderDate}</b></span><i/><span>이용기간 <b>{product.period}</b></span></small>

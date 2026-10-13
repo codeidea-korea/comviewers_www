@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
 import { colocationDraftInputSchema, colocationDraftSchema, colocationServerRooms, type ColocationDraft, type ColocationServerRoom } from '@/domain/colocation/draftRepository'
-import { assignColocationEvidenceTypes, colocationRoomFieldName, colocationSubmissionErrorMessage, validateColocation } from '../colocationInput'
+import { assignColocationEvidenceTypes, colocationRoomFieldName, colocationSubmissionErrorMessage, normalizeColocationEmailFields, validateColocation } from '../colocationInput'
 
 const draftKey = ['colocationDraft'] as const
 export function useColocationDraft() {
@@ -21,11 +21,15 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
   const [validationIssue, setValidationIssue] = useState<{ field: string; message: string } | null>(null)
   const [completeOpen, setCompleteOpen] = useState(false)
   const [emailDomain, setEmailDomain] = useState('direct')
+  const [emailIdInput, setEmailIdInput] = useState(initialDraft?.fields.emailId ?? '')
   const [emailDomainInput, setEmailDomainInput] = useState(initialDraft?.fields.emailDomain ?? '')
   const [phonePrefix, setPhonePrefix] = useState(initialDraft?.fields.phonePrefix ?? '010')
   const [serverRooms, setServerRooms] = useState(() => (initialDraft ? colocationServerRooms(initialDraft) : [{ requestedServerRoomName: '', messengerType: '', messengerId: '' }]).map((room, index) => ({ ...room, id: String(index) })))
   const nextRoomId = useRef(serverRooms.length)
-  const save = useMutation({ mutationFn: async (input: Parameters<typeof repository.save>[0]) => colocationDraftSchema.parse(await repository.save(input)), onSuccess: (draft) => client.setQueryData(draftKey, draft) })
+  const save = useMutation({
+    mutationFn: async (input: Parameters<typeof repository.save>[0]) => colocationDraftSchema.parse(await repository.save(input)),
+    onSuccess: () => { client.setQueryData<ColocationDraft | null>(draftKey, null) },
+  })
   const terms = useQuery({ queryKey: ['colocation', 'terms'], enabled: Boolean(repository.terms), queryFn: ({ signal }) => repository.terms!(signal) })
   const fixture: Partial<ColocationDraft['fields']> & { phone?: string[] } = initialDraft ? { ...initialDraft.fields, phone: [initialDraft.fields.phonePrefix, initialDraft.fields.phoneMiddle, initialDraft.fields.phoneLast] } : {}
   function showIssue(form: HTMLFormElement, field: string, message: string) {
@@ -39,6 +43,25 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     } else {
       form.querySelector('header')?.scrollIntoView({ block: 'center' })
     }
+  }
+  function updateEmailId(event: ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value
+    const fields = normalizeColocationEmailFields(value, '')
+    setEmailIdInput(fields.emailId)
+    if (fields.emailId !== value.trim()) {
+      setEmailDomainInput(fields.emailDomain)
+      setEmailDomain('direct')
+      if (value.endsWith('@')) {
+        const domainInput = event.currentTarget.form?.elements.namedItem('emailDomain')
+        if (domainInput instanceof HTMLInputElement) domainInput.focus()
+      }
+    }
+  }
+  function updateEmailDomainInput(event: ChangeEvent<HTMLInputElement>) {
+    const fields = normalizeColocationEmailFields('', event.target.value)
+    if (fields.emailId) setEmailIdInput(fields.emailId)
+    setEmailDomainInput(fields.emailDomain)
+    setEmailDomain('direct')
   }
   function updateFiles(event: ChangeEvent<HTMLInputElement>) {
     const incoming = Array.from(event.target.files ?? [])
@@ -75,7 +98,12 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     event.preventDefault()
     if (busy.current) return
     const form = event.currentTarget
+    const values = Object.fromEntries(new FormData(form))
     const checked = validateColocation(form, emailDomainInput, files.map(file => file.name), serverRooms)
+    const emailFields = normalizeColocationEmailFields(String(values.emailId ?? ''), String(values.emailDomain ?? emailDomainInput))
+    setEmailIdInput(emailFields.emailId)
+    setEmailDomainInput(emailFields.emailDomain)
+    if (emailFields.emailDomain !== emailDomainInput) setEmailDomain('direct')
     if (!checked.success) {
       const issue = checked.error.issues[0]
       const key = validationField(issue?.path ?? [])
@@ -84,9 +112,8 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     }
     setValidationIssue(null)
     if (!terms.data) { showIssue(form, 'accepted', '입점 약관을 불러온 후 다시 신청해 주세요.'); return }
-    const values = Object.fromEntries(new FormData(event.currentTarget))
     const firstRoom = checked.data.serverRooms[0]!
-    const input = { fields: { ...values, emailDomain: emailDomainInput, phonePrefix, serverRoomName: firstRoom.requestedServerRoomName, messenger: firstRoom.messengerType, messengerId: firstRoom.messengerId }, serverRooms: checked.data.serverRooms, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
+    const input = { fields: { ...values, emailId: checked.data.emailId, emailDomain: checked.data.emailDomain, phonePrefix, serverRoomName: firstRoom.requestedServerRoomName, messenger: firstRoom.messengerType, messengerId: firstRoom.messengerId }, serverRooms: checked.data.serverRooms, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
     const fingerprint = JSON.stringify({ ...input, files: files.map(file => [file.name, file.size, file.lastModified]) })
     if (submissionKey.current?.fingerprint !== fingerprint) {
       try { submissionKey.current = { fingerprint, key: crypto.randomUUID() } }
@@ -114,7 +141,7 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     finally { busy.current = false }
   }
   return { fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)),
-    validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailDomainInput, setEmailDomainInput,
+    validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailIdInput, updateEmailId, emailDomainInput, setEmailDomainInput, updateEmailDomainInput,
     phonePrefix, setPhonePrefix, serverRooms, addServerRoom, removeServerRoom, updateServerRoom, pending: save.isPending,
     submitLabel: '입점 신청',
     pendingLabel: '제출 중…',

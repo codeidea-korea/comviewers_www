@@ -1,13 +1,15 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent, type MouseEvent } from 'react'
 import type { JSONContent } from '@tiptap/core'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { RelativeLink as Link } from '../../components/navigation/RelativeLinkView'
 import { RichTextEditor } from '../../components/ui/RichTextEditorControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
+import { Modal } from '../../components/ui/ModalControl'
 import { usePost, usePostActions } from '@/routes/community/-components/hooks/useContent'
 import type { Post } from '@/domain/storefront/services'
 import { isDefinitivePostRejection } from '@/domain/storefront/postSaveRetry'
 import { CommunityShell } from './CommunityComponentsView'
+import { postEditorContentChanged } from './-components/postEditorDraft'
 import closeIcon from '../../assets/figma/product-list-close.svg'
 
 type EditorAttachment = { id?: string; localId: string; name: string; size?: string; type?: string; file?: File }
@@ -32,6 +34,9 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
   const [title, setTitle] = useState(editingPost?.title || '')
   const [content, setContent] = useState(editingPost ? toEditorHtml(editingPost.content || []) : '')
   const [richContent, setRichContent] = useState<JSONContent | null>((editingPost?.richContent as JSONContent | null | undefined) ?? null)
+  const [initialDraft] = useState(() => ({ title, content, richContent, fileIds: files.map(file => file.localId).join('\n') }))
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const cancelLinkRef = useRef<HTMLAnchorElement>(null)
   const [notice, setNotice] = useState('')
   const [fileNotice, setFileNotice] = useState('')
   const imageUploadLock = useRef(false)
@@ -50,6 +55,17 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
   const attachmentError = fileNotice || attachmentSaveError
   const submitError = notice && !titleError && !contentError && !attachmentSaveError ? notice : ''
   const submitLabel = mode === 'edit' ? '수정 완료' : '등록'
+  const listParams = params.toString()
+  const cancelUrl = `${editingPost ? `/community/posts/${editingPost.postId}` : '/community/posts'}${listParams ? `?${listParams}` : ''}`
+  function cancel(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault()
+    if (submitting.current || imageUploadLock.current) return
+    const changed = title !== initialDraft.title
+      || files.map(file => file.localId).join('\n') !== initialDraft.fileIds
+      || postEditorContentChanged(initialDraft.content, initialDraft.richContent, content, richContent)
+    if (changed) setCancelOpen(true)
+    else navigate(cancelUrl)
+  }
   function selectFiles(selected: File[]) {
     setNotice('')
     if (files.length + selected.length > 3) {
@@ -105,8 +121,9 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
         <div className="post-editor__editor-field"><span id="post-editor-content-label">내용</span><RichTextEditor uploadImage={actions.uploadImage ? uploadImage : undefined} loadImage={actions.loadImage} onImageUploadPendingChange={setImageUploadPending} ariaLabelledby="post-editor-content-label" onChange={(value) => { setContent(value); setNotice('') }} onDocumentChange={(document) => setRichContent(document)} placeholder="" value={richContent ?? content} />{contentError ? <small className="post-editor__field-error" role="alert">{contentError}</small> : null}</div>
         <section className={`post-files${attachmentError ? ' post-files--error' : ''}`}><h2>첨부파일</h2><p>* 최대 3개까지 첨부 가능</p><label className="file-select">파일 선택<input className="sr-only" aria-describedby={attachmentError ? 'post-files-error' : undefined} aria-invalid={Boolean(attachmentError)} disabled={imagePending || actions.save.isPending} onChange={(event) => { selectFiles(Array.from(event.target.files ?? [])); event.currentTarget.value = '' }} type="file" multiple /></label>{attachmentError ? <small className="post-files__error" id="post-files-error" role="alert">{attachmentError}</small> : null}{files.map((file) => <div key={file.localId}><span>{file.name} <small>{file.size}</small></span><button aria-label={`${file.name} 삭제`} onClick={() => { setFiles((current) => current.filter((item) => item.localId !== file.localId)); setFileNotice(''); setNotice('') }} type="button"><img alt="" src={closeIcon} /></button></div>)}</section>
         {submitError ? <p className="post-editor__submit-error" role="alert">{submitError}</p> : null}
-        <div className="post-editor__actions"><Link to={editingPost ? `/community/posts/${editingPost.postId}${params.toString() ? `?${params.toString()}` : ''}` : `/community/posts${params.toString() ? `?${params.toString()}` : ''}`}>취소</Link><button disabled={actions.save.isPending || imagePending} type="submit">{submitLabel}</button></div>
+        <div className="post-editor__actions"><Link aria-disabled={actions.save.isPending || imagePending} onClick={cancel} ref={cancelLinkRef} to={cancelUrl}>취소</Link><button disabled={actions.save.isPending || imagePending} type="submit">{submitLabel}</button></div>
       </form>
+      <Modal closeLabel="취소" confirmLabel="확인" confirmDisabled={actions.save.isPending || imagePending} isOpen={cancelOpen} onClose={() => setCancelOpen(false)} onConfirm={() => { if (!submitting.current && !imageUploadLock.current) navigate(cancelUrl) }} returnFocusRef={cancelLinkRef} title={mode === 'edit' ? '게시글 수정을 취소하시겠습니까?' : '게시글 작성을 취소하시겠습니까?'}><p>입력한 내용은 저장되지 않습니다.</p></Modal>
     </CommunityShell>
   )
 }

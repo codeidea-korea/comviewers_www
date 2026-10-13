@@ -10,6 +10,7 @@ import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { inquiryTypes } from './InquiryPresentation'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
+import { bulkInquiryBusinessNotice, hasSameInquiryBusiness } from './inquiryBusinessScope'
 
 type Props = {
   api: InquiryReadServices
@@ -32,6 +33,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const [selectedIds, setSelectedIds] = useState<readonly number[]>(initialIds)
   const [typeIndex, setTypeIndex] = useState<number | null>(null)
   const [typeNotice, setTypeNotice] = useState('')
+  const [productNotice, setProductNotice] = useState('')
   const [message, setMessage] = useState('')
   const [addingProducts, setAddingProducts] = useState(false)
   const submitting = useRef(false)
@@ -54,6 +56,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     mutationFn: () => {
       if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
       if (hasFixedTarget && !initialIds.every(id => selectedProducts.some(product => Number(product.rcpcId) === id))) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
+      if (!hasSameInquiryBusiness(selectedProducts)) throw new Error(bulkInquiryBusinessNotice)
       return api.create({
         requestType: selectedCode,
         title: inquiryTypes[selectedCode],
@@ -70,18 +73,22 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   if (step === 'product') return <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={closeProductPicker} showTitle={false} title="상품 선택">
     <ProductChoiceContent
       allowEmpty={!hasFixedTarget}
-      notice={rcpcs.isPending
+      notice={<>{rcpcs.isPending
         ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
         : rcpcs.isError
           ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
-          : products.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}
+          : products.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}{productNotice ? <p role="alert">{productNotice}</p> : null}</>}
       onClose={closeProductPicker}
-      onEmpty={() => { setSelectedIds([]); if (addingProducts) { setAddingProducts(false); setStep('write') } else { setTypeIndex(null); setTypeNotice(''); setStep('type') } }}
-      onNext={() => { if (addingProducts) { setAddingProducts(false); setStep('write') } else { setTypeIndex(null); setTypeNotice(''); setStep('type') } }}
-      onSelectedChange={(indexes) => setSelectedIds([...new Set([
+      onEmpty={() => { setSelectedIds([]); setProductNotice(''); if (addingProducts) { setAddingProducts(false); setStep('write') } else { setTypeIndex(null); setTypeNotice(''); setStep('type') } }}
+      onNext={() => {
+        if (!hasSameInquiryBusiness(selectedProducts)) { setProductNotice(bulkInquiryBusinessNotice); return }
+        setProductNotice('')
+        if (addingProducts) { setAddingProducts(false); setStep('write') } else { setTypeIndex(null); setTypeNotice(''); setStep('type') }
+      }}
+      onSelectedChange={(indexes) => { setProductNotice(''); setSelectedIds([...new Set([
         ...(hasFixedTarget ? initialIds : []),
         ...indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger),
-      ])].slice(0, 20))}
+      ])].slice(0, 20)) }}
       products={products}
       selectedIndexes={selectedIndexes}
     />
@@ -101,6 +108,10 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
         }
         if (selectedProducts.length === 0 && selectedCode !== 'inquiry') {
           setTypeNotice('선택한 문의 유형은 문의 상품을 선택해 주세요.')
+          return
+        }
+        if (!hasSameInquiryBusiness(selectedProducts)) {
+          setTypeNotice(bulkInquiryBusinessNotice)
           return
         }
         if (selectedCode === 'refund_cancel' && !(session.status === 'authenticated' && session.customerSession?.commerceAvailable)) {
@@ -147,7 +158,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       }}
       inquiryType={selectedCode ? inquiryTypes[selectedCode] : ''}
       onBack={() => setStep('type')}
-      onAddProducts={() => { setAddingProducts(true); setStep('product') }}
+      onAddProducts={() => { setProductNotice(''); setAddingProducts(true); setStep('product') }}
       onClose={close}
       selectedRcpcs={selectedProducts}
       submitLabel={standalone ? '전송' : '문의 접수'}

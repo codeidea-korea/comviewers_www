@@ -236,9 +236,9 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
       ])
     },
   })
-  const productLink = (serverRoomId: string | null) =>
+  const productLink = (couponId: string, serverRoomId: string | null) =>
     !serverRoomId || products.capabilities?.rooms
-      ? <RelativeLink to={serverRoomId ? `/products?room=${encodeURIComponent(serverRoomId)}&instantOnly=false&couponProducts=true` : '/products?couponProducts=true'}>적용 상품 보러가기</RelativeLink>
+      ? <RelativeLink to={`/products?couponId=${encodeURIComponent(couponId)}&instantOnly=false&saleAvailableOnly=true&couponProducts=true${serverRoomId ? `&room=${encodeURIComponent(serverRoomId)}` : ''}`}>적용 상품 보러가기</RelativeLink>
       : <span>서버실 상품 확인 필요</span>
   const listContent = <>
     <div className="benefit-tabs-row">
@@ -277,7 +277,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
           ? [{ key: 'name', label: '쿠폰명', renderCell: item => item.name },
             { key: 'expiry', label: '사용기한', renderCell: couponExpiry },
             { key: 'benefit', label: '혜택', renderCell: couponBenefit },
-            { key: 'product', label: '적용 상품', renderCell: item => productLink(item.serverRoomId) }]
+            { key: 'product', label: '적용 상품', renderCell: item => item.status === 'unavailable' ? <span>사용중지</span> : productLink(item.couponId, item.serverRoomId) }]
           : [{ key: 'usedAt', label: '사용일', sortValue: item => item.usedAt ? Date.parse(item.usedAt) : null, renderCell: item => accountDate(item.usedAt).slice(0, 10) },
             { key: 'name', label: '쿠폰명', renderCell: item => item.name },
             { key: 'amount', label: '할인 금액', renderCell: item => accountMoney(item.usedDiscountAmount) },

@@ -113,14 +113,20 @@ function ProductPriceRange({ selectedValues, onSelectionChange, priceBasis = 'mo
     if (draftRange === null) return
     const nextMinPercent = handle === 'min' ? percent : draftRange.min
     const nextMaxPercent = handle === 'max' ? percent : draftRange.max
-    setDraftRange(null)
     if (nextMinPercent === 0 && nextMaxPercent === 100) {
-      onSelectionChange([])
+      if (selectedValues.length === 0) setDraftRange(null)
+      else onSelectionChange([])
       return
     }
     const nextMin = amountFromPercent(nextMinPercent)
     const nextMax = amountFromPercent(nextMaxPercent)
-    onSelectionChange([String(Math.min(nextMin, nextMax)), String(Math.max(nextMin, nextMax))])
+    const lowerAmount = Math.min(nextMin, nextMax)
+    const upperAmount = Math.max(nextMin, nextMax)
+    if (lowerAmount === selectedMinAmount && upperAmount === selectedMaxAmount) {
+      setDraftRange(null)
+      return
+    }
+    onSelectionChange([String(lowerAmount), String(upperAmount)])
   }
 
   return (

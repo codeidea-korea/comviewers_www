@@ -9,6 +9,7 @@ import { AccountQueryState } from './AccountQueryState'
 import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { sortInquiryChoices } from './inquiryChoice'
 import { ProductChoiceContent } from './modals/InquiryProductChoice'
+import { bulkInquiryBusinessNotice, hasSameInquiryBusiness } from './inquiryBusinessScope'
 
 export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean }) {
   const { myAccount } = useServices()
@@ -22,6 +23,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
   const chatKey = ['operation-requests', api.organizationId, 'chat', requestId] as const
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<readonly number[]>([])
+  const [businessNotice, setBusinessNotice] = useState('')
   const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
   const pending = useRef(false)
   const attempt = useRef<{ ids: readonly number[]; key: string } | null>(null)
@@ -52,6 +54,13 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
     if (!attempt.current) {
       const ids = selected.filter((id) => available.some((item) => item.pcAssetId === id)).sort((a, b) => a - b)
       if (!ids.length || ids.length + total > 20) return
+      const selectedTargets = available.filter(item => ids.includes(item.pcAssetId))
+      const existingTargets = (options.data ?? []).filter(item => existingIds.includes(item.pcAssetId))
+      // The API also checks existing targets absent from this caller's RCPC options (including products).
+      const knownTargets = existingIds.length === total && existingIds.every(id => existingTargets.some(item => item.pcAssetId === id))
+        ? [...existingTargets, ...selectedTargets] : selectedTargets
+      if (!hasSameInquiryBusiness(knownTargets)) { setBusinessNotice(bulkInquiryBusinessNotice); return }
+      setBusinessNotice('')
       attempt.current = { ids, key: `inquiry-targets:${crypto.randomUUID()}` }
     }
     pending.current = true; save.mutate()
@@ -65,11 +74,12 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed }: {
         actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '선택'}
         allowEmpty={false}
         maxSelection={Math.max(0, 20 - total)}
-        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
+        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{businessNotice ? <p role="alert">{businessNotice}</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
         onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }}
         onNext={submit}
         onSelectedChange={(indexes) => {
           attempt.current = null
+          setBusinessNotice('')
           setSelected(indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger))
         }}
         products={products}

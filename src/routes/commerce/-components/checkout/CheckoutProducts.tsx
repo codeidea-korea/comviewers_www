@@ -11,10 +11,10 @@ import { TranslatedText, useTranslation } from '@/i18n/translation'
 import type { OrderBenefitQuote } from '@/api/ordersPayments'
 
 function CheckoutProductImage({ item }: { item: CartItem }) {
-  const visual = productOsVisual(item.osFilterValue, item.type === 'part')
+  const visual = productOsVisual(item.osFilterValue, item.type === 'part', item.image)
   return <div className="commerce-product-row__image">
     <img className="checkout-product-image" alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
-    <ProductOsOverlay label={visual.label} />
+    {!item.image ? <ProductOsOverlay label={visual.label} /> : null}
   </div>
 }
 

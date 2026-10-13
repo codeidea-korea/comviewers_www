@@ -3,7 +3,7 @@ import serverDisabledIcon from '@/assets/figma/icon-server-disabled.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
 import serverWaitingIcon from '@/assets/figma/icon-server-waiting.svg'
-import { connectionLabels, endedRental, rentalOperationalStatus } from '../rcpcPresentation'
+import { endedRental, rentalOperationalStatus } from '../rcpcPresentation'
 
 export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
   const rentalStatus = rentalOperationalStatus(item)
@@ -17,10 +17,8 @@ export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
     return <><img alt="" data-status="waiting" src={serverWaitingIcon}/><span>연장대기</span></>
   }
 
-  const connection = item.connectionStatus.toUpperCase()
-  const status = connection === 'ONLINE' ? 'on'
-    : connection === 'STALE' || connection === 'NEVER_CONNECTED' || connection === 'OFFLINE' ? 'off' : 'disabled'
-  const icon = status === 'on' ? serverOnIcon : status === 'off' ? serverOffIcon : serverDisabledIcon
+  const status = item.serverStatus === 'running' ? 'on' : 'off'
+  const icon = status === 'on' ? serverOnIcon : serverOffIcon
 
-  return <><img alt="" data-status={status} src={icon}/><span>{item.serverStatus === 'needs_attention' && connection === 'ONLINE' ? '확인 필요' : connectionLabels[connection] ?? '미확인'}</span></>
+  return <><img alt="" data-status={status} src={icon}/><span>{status === 'on' ? '실행 중' : '확인 필요'}</span></>
 }

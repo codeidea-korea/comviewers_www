@@ -16,7 +16,7 @@ const formatWon = (amount: number | null) => amount === null ? "정보 없음" :
 
 export function ProductDetailHero({ product, message, onCart, onBuy, cartPending = false, buyPending = false, readOnly = false }: { product: Product; message: string; onCart: (rentalPeriods: number) => void; onBuy: (rentalPeriods: number) => void; cartPending?: boolean; buyPending?: boolean; readOnly?: boolean }) {
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
-  const visual = productOsVisual(product.osFilterValue, part)
+  const visual = productOsVisual(product.osFilterValue, part, product.image)
   const minimum = part ? product.minPurchaseQuantity : product.minRentalUnits
   const maximum = part ? product.maxPurchaseQuantity : product.maxRentalUnits
   const unit = product.billingUnit
@@ -33,7 +33,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const specs = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
-        <div className="product-detail-visual"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} /><ProductOsOverlay label={visual.label} /></div>
+        <div className="product-detail-visual"><img alt={product.image ? `${product.title ?? product.productId} 상품 이미지` : visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{!product.image ? <ProductOsOverlay label={visual.label} /> : null}</div>
         <div className="product-detail-buy">
           <h1><span><span>품번</span><b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
           {part && <h2>{product.title ?? product.productId}</h2>}

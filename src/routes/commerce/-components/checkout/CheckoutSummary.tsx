@@ -24,7 +24,7 @@ const paymentOptions: readonly { value: PaymentMethod; label?: string; translati
   { value: 'kakao-pay', label: '카카오페이', directEasyPay: 'kakaoPay', icon: kakaoPayIcon },
   { value: 'global-card', label: '', cardLogos: true },
 ]
-export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, retryPayment, checkingPayment, submitting, submitError, onSubmit, variant = 'cart', extensionAmount }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; retryPayment?: boolean; checkingPayment?: boolean; submitting: boolean; submitError?: string; onSubmit: () => void; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
+export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitError, onSubmit, variant = 'cart', extensionAmount }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitError?: string; onSubmit: () => void; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
   const { locale, t } = useTranslation()
   const amount = quote.estimate
   return <aside className="order-summary">
@@ -59,6 +59,6 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
     {paymentAvailabilityError && <p className="checkout-submit-error" role="alert">{paymentAvailabilityError}</p>}
     {paymentNotice && <p className="checkout-payment-notice" role="status">{paymentNotice}</p>}
     {submitError ? <p className="checkout-submit-error" role="alert">{submitError} <RelativeLink to="/mypage/orders"><TranslatedText id="checkout.viewOrders" /></RelativeLink></p> : null}
-    <Button className="commerce-primary-button" disabled={refreshing || submitting || !quote.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" /> : checkingPayment ? '결제 상태 다시 확인' : <TranslatedText id={locked || retryPayment ? 'checkout.retryPayment' : 'checkout.order'} />}</Button>
+    <Button className="commerce-primary-button" disabled={refreshing || submitting || !quote.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" /> : checkingPayment ? '결제 상태 다시 확인' : <TranslatedText id="checkout.order" />}</Button>
   </aside>
 }

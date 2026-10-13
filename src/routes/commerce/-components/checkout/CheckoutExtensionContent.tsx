@@ -93,7 +93,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
       setUnresolvedOrderId(null)
       customerCancelled.current = false
       setPaymentRetryReady(true)
-      setPaymentNotice('결제창을 닫았습니다. 결제수단을 다시 선택해 결제할 수 있습니다.')
+      setPaymentNotice(null)
       return
     }
     if (status === 'approved') {
@@ -225,7 +225,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
         {canRevise && <Button variant="secondary" onClick={() => { attemptRef.current = null; setAttempt(null); submit.reset(); retryQuotes() }}>입력 수정 후 견적 다시 확인</Button>}
       </div><CheckoutSummary variant={hasPurchase ? 'cart' : 'extension'} extensionAmount={hasPurchase && current.items.length ? current.extensionAmount : undefined} quote={currentSummary!} benefits={shownBenefits} form={form} directEasyPayMethods={methods.data}
         paymentAvailabilityError={availabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setAvailabilityError(null); setPaymentNotice(null) }}
-        refreshing={!attempt && !quoteReady} locked={Boolean(attempt) && !paymentRetryReady} retryPayment={paymentRetryReady} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+        refreshing={!attempt && !quoteReady} locked={Boolean(attempt) && !paymentRetryReady} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>
 }
