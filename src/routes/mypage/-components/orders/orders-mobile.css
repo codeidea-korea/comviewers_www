@@ -3,6 +3,21 @@
 .orders-list-toolbar .orders-period-label--mobile { display: none; }
 .order-catalog-item__summary { display: contents; }
 
+.mypage-shell .orders-catalog-list .orders-select-all__actions > :not(:first-child) { border-left: 1px solid var(--color-gray-200); padding-left: 12px; }
+.mypage-shell .orders-catalog-list .order-catalog-item { border-bottom: 0; }
+.mypage-shell .orders-catalog-list .orders-by-date .order-catalog-item--refund-pending { padding-block: 24px; }
+.mypage-shell .orders-catalog-list .order-catalog-item__points-tooltip { flex-shrink: 0; width: max-content; white-space: nowrap; }
+.mypage-shell .orders-catalog-list .order-catalog-item :is(.order-catalog-item__actions button, .order-catalog-item__confirm):disabled {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+  box-sizing: border-box;
+  height: 50px;
+  min-height: 50px;
+  min-width: 115px;
+  padding-inline: 16px;
+  -webkit-text-fill-color: var(--color-gray-500);
+}
+
 @media (max-width: 767px) {
   .mypage-shell .mypage-layout:has(.orders-catalog-list) { padding: 24px 12px 90px; }
   .mypage-shell .mypage-layout:has(.orders-catalog-list) .mypage-title {
@@ -139,4 +154,5 @@
   .orders-catalog-list .order-catalog-item__actions--terminal { grid-template-columns: minmax(0, 1fr); }
   .orders-catalog-list .order-catalog-item__actions:not(:has(.order-catalog-item__action-primary)) { grid-template-columns: minmax(0, 1fr); }
   .orders-catalog-list > .pagination { margin-top: 50px; }
+  .mypage-shell .orders-catalog-list .order-catalog-item :is(.order-catalog-item__actions button, .order-catalog-item__confirm):disabled { height: auto; min-width: 0; }
 }

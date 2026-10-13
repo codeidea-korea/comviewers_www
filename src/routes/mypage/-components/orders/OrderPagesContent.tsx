@@ -212,7 +212,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   }
 
   return (
-    <MyPageLayout footerVariant="compact" mobileHeader="site" title={t('nav.orders')}>
+    <MyPageLayout footerVariant="compact" title={t('nav.orders')}>
       <div className="orders-catalog-list">
         <nav aria-label="주문 상태" className="mypage-tabs mypage-tabs--buttons">
           {orderTabs.map((tab) => {
@@ -258,7 +258,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 .map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
           </label>
-          <button aria-expanded={periodOpen} aria-label={`기간 선택, 조회기간 ${dates.from.replaceAll('-', '.')} ~ ${dates.to.replaceAll('-', '.')}`} onClick={() => setPeriodOpen(true)} type="button"><span className="orders-period-label--desktop">조회기간 {dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</span><span className="orders-period-label--mobile">기간 선택</span></button></span>
+          <button aria-expanded={periodOpen} aria-label={`기간 선택, 조회기간 ${dates.from.replaceAll('-', '.')} ~ ${dates.to.replaceAll('-', '.')}`} onClick={() => setPeriodOpen(true)} type="button"><span className="orders-period-label--desktop">{dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</span><span className="orders-period-label--mobile">기간 선택</span></button></span>
         </div>
 
         <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
@@ -294,7 +294,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 const showRentalStatus = displayRentalStatus !== null
                 const orderDetail = orderDetailByNo.get(order.orderNo)
                 return (
-                  <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}`} key={displaySelectionId(item)}>
+                  <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}${item.refundPending ? ' order-catalog-item--refund-pending' : ''}`} key={displaySelectionId(item)}>
                     <header>
                       <label>
                         {selectedId ? (
