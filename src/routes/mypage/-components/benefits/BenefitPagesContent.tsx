@@ -16,6 +16,7 @@ import pointOrderProduct from '@/assets/figma/window-bg-rendered-1.png'
 import carouselNextIcon from '@/assets/figma/pagination-chevron-right.svg'
 import periodChevronIcon from '@/assets/figma/selector-chevron-down.svg'
 import subtleChevronIcon from '@/assets/figma/scrap-chevron-right.svg'
+import './benefits-qa.css'
 
 function couponExpiry(item: { expiresAt: string | null; endsAt: string | null }) {
   const values = [item.expiresAt, item.endsAt].filter((value): value is string => value !== null)
@@ -54,6 +55,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
   const carouselViewport = useRef<HTMLDivElement>(null)
   const carouselTrack = useRef<HTMLDivElement>(null)
   const [carouselEdges, setCarouselEdges] = useState({ previous: false, next: false })
+  const [carouselArrowTop, setCarouselArrowTop] = useState<number>()
   const [periodOpen, setPeriodOpen] = useState(false)
   const [entryType, setEntryType] = useState<PointEntryType>('all')
   const [dates, setDates] = useState(() => accountDateRange('month'))
@@ -86,6 +88,12 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
       const next = left < maximum - 1
       setCarouselEdges(current => current.previous === previous && current.next === next
         ? current : { previous, next })
+      const image = track.querySelector('article > div > img')
+      const carousel = viewport.closest('.point-carousel')
+      if (image && carousel) {
+        const imageBounds = image.getBoundingClientRect()
+        setCarouselArrowTop(imageBounds.top - carousel.getBoundingClientRect().top + imageBounds.height / 2)
+      }
     }
     updateEdges()
     viewport.addEventListener('scroll', updateEdges, { passive: true })
@@ -126,8 +134,8 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                 <OrderItemActions api={api} item={item} orderStatus={order.orderStatus} paymentStatus={order.paymentStatus} variant="purchase-summary" />
               </article>)}
             </div></div>
-            {candidates.length > 1 && carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label="이전 주문 보기" className="point-carousel__previous" onClick={() => scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
-            {candidates.length > 1 && carouselEdges.next ? <button aria-controls="point-confirmation-orders" aria-label="다음 주문 보기" className="point-carousel__next" onClick={() => scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {candidates.length > 1 && carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label="이전 주문 보기" className="point-carousel__previous" style={{ top: carouselArrowTop, transform: 'translateY(-50%)' }} onClick={() => scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {candidates.length > 1 && carouselEdges.next ? <button aria-controls="point-confirmation-orders" aria-label="다음 주문 보기" className="point-carousel__next" style={{ top: carouselArrowTop, transform: 'translateY(-50%)' }} onClick={() => scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
           </section>
         ) : null}
 
@@ -156,7 +164,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
           </div>
           <div className="points-history__toolbar">
             <span className="points-history__balance"><span>사용 가능 포인트</span><span><strong>{result.data?.balance.toLocaleString('ko-KR') ?? 0}</strong>점</span></span>
-            <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">기간 선택<img alt="" src={periodChevronIcon} /></button>
+            <button aria-expanded={periodOpen} onClick={() => setPeriodOpen(true)} type="button">{dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}<img alt="" src={periodChevronIcon} /></button>
           </div>
           {periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
             setDates(nextDates)

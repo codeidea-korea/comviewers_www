@@ -1,0 +1,14 @@
+.mypage-shell :is(.points-history, .coupons-available, .coupons-history) div.benefit-tabs-row { align-items: center; flex-direction: row; flex-wrap: wrap; }
+.mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row .mypage-tabs { flex: 1 1 auto; width: auto; }
+.mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row .mypage-tabs button { font-size: 16px; }
+.mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row > a.benefit-tabs-row__policy { align-self: center; color: var(--color-gray-500); gap: 10px; height: 19px; min-height: 19px; padding: 0; width: 119px; }
+.order-period-layer .order-period-dialog footer button:first-child { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+@media (max-width: 767px) {
+  .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row nav.mypage-tabs { flex: 1 1 auto; min-width: 0; width: auto; }
+  .mypage-shell .points-catalog .point-carousel { height: auto; overflow: visible; }
+  .mypage-shell .points-catalog .point-carousel__viewport { box-sizing: border-box; height: auto; padding-top: 12px; margin-top: 8px; }
+  .mypage-shell .points-catalog .point-carousel article { height: auto; padding-bottom: 8px; }
+  .mypage-shell .points-catalog .point-carousel article > b { max-width: 100%; right: 0; white-space: nowrap; }
+  .mypage-shell .points-history .points-history__toolbar > button,
+  .mypage-shell .coupons-history .coupons-history__filter { border-bottom: 0; }
+}
