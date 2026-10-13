@@ -586,6 +586,9 @@
 }
 .checkout-validation-error { display: block; margin-top: 8px; }
 .checkout-agreement-errors p { margin: 0; }
+.checkout-page .order-summary__agreement { flex-direction: column; gap: 0; }
+.checkout-page .order-summary__agreement label { width: 100%; }
+.order-summary__agreement .checkout-agreement-error { color: var(--color-system-error); font-size: 14px; font-weight: 400; line-height: 20px; margin: 8px 0 0 26px; }
 .checkout-page .cart-empty > button + .checkout-return-cart-button { margin-top: 8px; }
 
 .checkout-customer .commerce-field:has(> .commerce-field__error) {
