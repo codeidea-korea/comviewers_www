@@ -24,8 +24,11 @@ function couponExpiry(item: { expiresAt: string | null; endsAt: string | null })
     : '기한 없음'
 }
 
-function couponBenefit(item: { discountType: string; discountValue: number }) {
-  if (item.discountType === 'percentage') return `${item.discountValue}% 할인`
+function couponBenefit(item: { discountType: string; discountValue: number; maximumDiscountAmount?: number | null }) {
+  if (item.discountType === 'percentage') {
+    const cap = item.maximumDiscountAmount == null ? '' : ` (최대 ${accountMoney(item.maximumDiscountAmount)})`
+    return `${item.discountValue}% 할인${cap}`
+  }
   if (item.discountType === 'fixed_amount') return `${accountMoney(item.discountValue)} 할인`
   return `${item.discountType} ${item.discountValue}`
 }
