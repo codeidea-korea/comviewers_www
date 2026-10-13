@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { TranslatedText, type TranslationKey } from '@/i18n/translation'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import { InfoTable, PageTitle, SectionTitle } from '../CommerceComponents'
+import './checkout-complete-qa.css'
 
 const paymentLabelKeys: Readonly<Record<string, TranslationKey>> = {
   주문완료: 'order.completedTab', 결제완료: 'payment.completed', 결제실패: 'payment.failed',

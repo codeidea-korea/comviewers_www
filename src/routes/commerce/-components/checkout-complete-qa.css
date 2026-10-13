@@ -1,0 +1,6 @@
+@media (max-width: 767px) {
+  .complete-page .commerce-page .commerce-info-table { max-width: 100%; overflow: visible; width: 100%; }
+  .complete-page .commerce-page .commerce-info-table > div { display: grid; grid-template-columns: minmax(0, 100px) minmax(0, 1fr); height: auto; min-width: 0; width: auto; }
+  .complete-page .commerce-page .commerce-info-table :is(dt, dd) { min-width: 0; overflow-wrap: anywhere; white-space: normal; width: auto; }
+  .complete-page .commerce-page .commerce-info-table .complete-product-table__title { overflow-wrap: anywhere; white-space: normal; }
+}
