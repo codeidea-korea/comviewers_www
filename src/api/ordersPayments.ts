@@ -29,6 +29,12 @@ export type DirectEasyPayMethods = z.infer<typeof directEasyPayMethods>
 export type PaymentAbandonment = z.infer<typeof abandonment>
 export type PaymentConfirmation = z.infer<typeof confirmation>
 export type PaymentConfirmationRequest = z.infer<typeof confirmationRequest>
+export interface PaymentPreparationRequest {
+  orderNo: string
+  paymentMethod: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'
+  cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'
+  cashReceiptIdentifier: string | null
+}
 
 export function createOrdersPaymentsApi(client: ApiClient, organizationId: string) {
   const scoped = { authenticated: true, customerOrganizationId: organizationId } as const
@@ -37,7 +43,7 @@ export function createOrdersPaymentsApi(client: ApiClient, organizationId: strin
     resume: (orderNo: string, key: string) => client.request('/api/v1/payments/resume', prepared, { ...scoped, method: 'POST', body: { orderNo, paymentMethod: 'card', cashReceiptType: 'not_requested', cashReceiptIdentifier: null }, idempotencyKey: z.uuidv4().parse(key) }),
     benefitQuote: (body: { cartItemIds: number[]; userCouponId: number | null; pointAmount: number }, signal?: AbortSignal) => client.request('/api/v1/orders/quote', benefitQuote, { ...scoped, method: 'POST', body, signal }),
     order: (body: unknown, key: string) => client.request('/api/v1/orders', order, { ...scoped, method: 'POST', body, idempotencyKey: `order:${z.uuid().parse(key)}` }),
-    prepare: (body: unknown, key: string) => client.request('/api/v1/payments/prepare', prepared, { ...scoped, method: 'POST', body, idempotencyKey: `payment:${z.uuid().parse(key)}` }),
+    prepare: (body: PaymentPreparationRequest, key: string) => client.request('/api/v1/payments/prepare', prepared, { ...scoped, method: 'POST', body, idempotencyKey: `payment:${z.uuid().parse(key)}` }),
     settleInternal: (orderNo: string, key: string) => client.request('/api/v1/payments/internal/settle', prepared, { ...scoped, method: 'POST', body: { orderNo }, idempotencyKey: z.uuidv4().parse(key) }),
     confirm: (body: PaymentConfirmationRequest, key: string) => client.request('/api/v1/payments/toss/confirm', confirmation, { ...scoped, method: 'POST', body: confirmationRequest.parse(body), idempotencyKey: z.uuidv4().parse(key) }),
     refresh: (providerOrderId: string, key: string) => client.request('/api/v1/payments/toss/refresh', confirmation, { ...scoped, method: 'POST', body: { orderId: providerOrderId }, idempotencyKey: z.uuidv4().parse(key) }),

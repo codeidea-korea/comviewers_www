@@ -874,11 +874,6 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 
 /* Actual API storage follows the PDF's single reservation list and purchase summary. */
 .storage-catalog { height: auto; min-height: 520px; padding-top: 0; }
-.storage-catalog > .storage-extension-offers { border: 1px solid var(--color-gray-200); border-radius: 6px; margin-bottom: 24px; padding: 18px; }
-.storage-catalog > .storage-extension-offers h2 { font-size: 16px; margin: 0 0 12px; }
-.storage-extension-offers article + article { border-top: 1px solid var(--color-gray-200); margin-top: 14px; padding-top: 14px; }
-.storage-extension-offers article p { color: var(--color-gray-600); font-size: 13px; margin: 6px 0; }
-.storage-extension-offers article a { display: inline-block; font-size: 13px; font-weight: 700; margin-top: 6px; text-decoration: underline; }
 .storage-catalog .storage-catalog__body { gap: 32px; grid-template-columns: minmax(0,1fr) minmax(300px,320px); height: auto; margin-top: 0; }
 .storage-catalog .storage-catalog__body.is-empty { grid-template-columns: 1fr; }
 .storage-catalog .storage-catalog__items { height: auto; min-width: 0; }

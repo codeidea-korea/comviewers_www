@@ -66,6 +66,10 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
       return payment
     },
     payment: orders.payment,
+    preparePayment: input => input.finalAmount === 0 ? orders.settleInternal(input.orderNo, input.idempotencyKey)
+      : orders.prepare({ orderNo: input.orderNo, paymentMethod: input.payment,
+        cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',
+        cashReceiptIdentifier: input.payment === 'virtual_account' && input.cashReceiptType !== 'not_requested' ? input.cashReceiptIdentifier : null }, input.idempotencyKey),
     resume: orders.resume,
     abandon: orders.abandon,
     refresh: orders.refresh,

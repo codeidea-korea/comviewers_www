@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { AppShell } from '@/components/layout/AppShellView'
@@ -20,6 +20,8 @@ import { CommerceCartState } from './-components/CommerceCartState'
 import { PageTitle } from './CommerceComponents'
 import { useInvalidateProductCatalog } from './-components/hooks/useInvalidateProductCatalog'
 import './checkout-mobile.css'
+import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
+import { CheckoutExtensionContent } from './-components/checkout/CheckoutExtensionContent'
 
 type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote }
 
@@ -159,7 +161,10 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   </AppShell>
 }
 export function CheckoutPage() {
+  const location = useLocation()
   const [params] = useSearchParams()
+  const extension = extensionCheckoutStateSchema.safeParse(location.state)
+  if (extension.success) return <CheckoutExtensionContent state={extension.data} key={JSON.stringify(extension.data)} />
   const ids = params.getAll('cartItemId')
   return <CheckoutContent ids={ids} key={JSON.stringify(ids)} />
 }

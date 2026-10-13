@@ -6,11 +6,19 @@ import { ReadPages, useAccountRead } from '../shared/AccountReadCommon'
 import { StorageSelectionCheckout } from './StorageSelectionCheckout'
 import { PartStorageOffers } from './PartStorageOffers'
 import { MixedStorageCheckout } from './MixedStorageCheckout'
-import { StorageExtensionOffers } from './StorageExtensionOffers'
+import { StorageExtensionItems } from './StorageExtensionItems'
 import { MyPageLayout } from '../../MypageComponentsView'
 
 export function StoragePageContent({ api, rcpcApi }: { api: MyAccountReadServices; rcpcApi?: MyRcpcReadServices }) {
   const [page, setPage] = useState(0)
   const result = useAccountRead(['storage', 'stored', page], (signal) => api.storage({ page, size: 20, status: 'stored' }, signal))
-  return <MyPageLayout backTo="/mypage" title="보관함"><div className={`storage-catalog purchase-selection-page${result.data && result.data.items.length===0?' storage-catalog--empty':''}`}><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{rcpcApi?<StorageExtensionOffers api={rcpcApi}/>:null}{result.data?<MixedStorageCheckout api={api}><StorageSelectionCheckout key={page} api={api} items={result.data.items}/><PartStorageOffers api={api}/><ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage}/></MixedStorageCheckout>:null}</div></MyPageLayout>
+  return <MyPageLayout backTo="/mypage" title="보관함"><div className="storage-catalog purchase-selection-page">
+    <AccountQueryState pending={false} error={result.error} retry={result.refetch}/>
+    <MixedStorageCheckout hasExtensionSource={Boolean(rcpcApi)} rentalsState={result.isPending ? 'pending' : result.isError ? 'error' : 'ready'}>
+      {rcpcApi && <StorageExtensionItems api={rcpcApi}/>}
+      {result.data && <StorageSelectionCheckout key={page} items={result.data.items}/>}
+      <PartStorageOffers api={api}/>
+      {result.data && <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={setPage}/>}
+    </MixedStorageCheckout>
+  </div></MyPageLayout>
 }

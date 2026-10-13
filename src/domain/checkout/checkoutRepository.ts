@@ -20,9 +20,11 @@ export const checkoutQuoteSchema = z.object({
 export type CheckoutQuote = z.infer<typeof checkoutQuoteSchema>
 export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
 export type CheckoutStartResult = import('@/api/ordersPayments').PreparedPayment
+export type CheckoutPaymentPreparation = Pick<CheckoutSubmission, 'payment' | 'cashReceiptType' | 'cashReceiptIdentifier' | 'idempotencyKey'> & { orderNo: string; finalAmount: number }
 export interface CheckoutRepository {
   quote(cartItemIds: readonly string[], signal?: AbortSignal, knownCartItems?: readonly CartItem[]): Promise<CheckoutQuote>
   start?(input: CheckoutSubmission): Promise<CheckoutStartResult>
+  preparePayment?(input: CheckoutPaymentPreparation): Promise<CheckoutStartResult>
   payment?(paymentId: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').PaymentDetail>
   abandon?(providerOrderId: string, customerCancelled?: boolean): Promise<import('@/api/ordersPayments').PaymentAbandonment>
   resume?(orderNo: string, key: string): Promise<CheckoutStartResult>
