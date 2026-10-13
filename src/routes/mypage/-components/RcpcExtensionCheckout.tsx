@@ -49,8 +49,8 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       busy={quote.isFetching} dateValue={date} error={quote.error?.message} extensionMode={mode === 'days' ? 'period' : 'date'}
       itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
       onModeChange={value => setMode(value === 'date' ? 'date' : 'days')} onPeriodChange={setDays} periodValue={days}
-      rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
-      rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', period: item.addedDays == null ? '-' : `${item.addedDays}일`,
+      rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? current?.items.map(item => ({ rcpcId: item.productNo ?? item.rentalId, location: item.serverRoomName ?? undefined, currentEnd: dateTime(item.previousEnd), cpu: item.spec ?? undefined })) ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
+      rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', location: item.serverRoomName, period: item.addedDays == null ? '-' : `${item.addedDays}일`,
         currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : `${item.monthlyFee.toLocaleString('ko-KR')}원`,
         payment: extensionResultText(item), warning: !item.eligible }))}
       totalAmount={current ? current.eligible ? `${current.totalAmount.toLocaleString('ko-KR')}원` : '결제 불가' : '견적 미조회'} /> : null}
