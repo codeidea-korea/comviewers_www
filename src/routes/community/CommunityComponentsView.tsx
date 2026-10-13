@@ -8,6 +8,7 @@ import communitySearch from '../../assets/figma/community-search.svg'
 import { BoardToolbar as SharedBoardToolbar } from '../../components/community/BoardToolbarControl'
 import reviewStarEmpty from '../../assets/figma/review-star-empty.svg'
 import reviewStarFilled from '../../assets/figma/review-star-filled.svg'
+import './community-list-qa.css'
 
 export const communityTabs = [
   { id: 'posts', label: '커뮤니티', href: '/community/posts' },

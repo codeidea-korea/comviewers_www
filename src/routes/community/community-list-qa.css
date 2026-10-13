@@ -1,0 +1,14 @@
+.board-toolbar__mobile-search { display: none; }
+@media (max-width: 767px) {
+  .community-shell .community-hero .community-hero__decoration { display: block; left: auto; right: 0; }
+  .community-shell .board-page.board-page--community-posts { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .community-shell .board-page.board-page--community-posts > :not(.community-tabs, .board-write-button--mobile) { grid-column: 1 / -1; }
+  .community-shell .board-page.board-page--community-posts > .community-tabs { grid-column: 1; grid-row: 1; min-width: 0; }
+  .community-shell .board-page.board-page--community-posts > .board-write-button--mobile { align-self: start; display: flex; grid-column: 2; grid-row: 1; height: 48px; margin: 0; padding-inline: 16px; width: auto; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar > span { grid-column: 1; grid-row: 1; }
+  .community-shell .board-page .board-toolbar .board-toolbar__search { display: none; }
+  .community-shell .board-page .board-toolbar .board-toolbar__mobile-search { align-items: center; background: transparent; border: 0; display: flex; grid-column: 2; grid-row: 1; justify-content: center; padding: 0; }
+  .community-shell .board-page .board-toolbar .board-toolbar__mobile-search img { height: 24px; width: 24px; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar .board-toolbar__sort { grid-column: 1 / -1; grid-row: 2; justify-self: end; width: 124px; }
+}
