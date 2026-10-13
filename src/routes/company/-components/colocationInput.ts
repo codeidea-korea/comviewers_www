@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { colocationServerRoomSchema, type ColocationServerRoom } from '@/domain/colocation/draftRepository'
 
 // Client input checks only; server must verify documents and current terms version.
 const colocationInputSchema = z.object({
@@ -9,9 +10,7 @@ const colocationInputSchema = z.object({
   email: z.string().min(1, '이메일을 입력해 주세요.').pipe(z.email('이메일 주소를 확인해 주세요.')),
   phoneMiddle: z.string().regex(/^\d{3,4}$/, '핸드폰 번호를 입력해 주세요.'),
   phoneLast: z.string().regex(/^\d{4}$/, '핸드폰 번호를 입력해 주세요.'),
-  serverRoomName: z.string().trim().min(1, '서버실명을 입력해 주세요.').max(150),
-  messenger: z.string().min(1, '상담 메신저 정보를 입력해 주세요.'),
-  messengerId: z.string().trim().min(1, '상담 메신저 정보를 입력해 주세요.').max(100),
+  serverRooms: z.array(colocationServerRoomSchema).min(1, '서버실 정보를 입력해 주세요.'),
   accepted: z.literal(true, { error: '필수 약관에 동의해 주세요.' }),
   files: z.array(z.string()).min(2, '필수 증빙서류를 선택해 주세요.').max(5),
 })
@@ -28,17 +27,20 @@ export function hasRequiredColocationEvidenceTypes(fileTypes: readonly Colocatio
 }
 
 export function colocationSubmissionErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message === '동일 사업자번호로 신청·검토 중이거나 승인된 입점 내역이 있습니다.') {
-    return '검토 중인 입점 신청 내역이 있습니다.'
-  }
   if (error instanceof Error) return error.message
   return '입점 신청을 제출하지 못했습니다.'
 }
 
-export function validateColocation(form: HTMLFormElement, emailDomain: string, files: string[]) {
+export function validateColocation(form: HTMLFormElement, emailDomain: string, files: string[], serverRooms?: readonly ColocationServerRoom[]) {
   const values = Object.fromEntries(new FormData(form))
   const emailId = String(values.emailId ?? '').trim()
   const normalizedDomain = emailDomain.trim()
   const email = emailId && normalizedDomain ? `${emailId}@${normalizedDomain}` : ''
-  return colocationInputSchema.safeParse({ ...values, email, accepted: values.accepted === 'on', files })
+  const rooms = serverRooms ?? [{ requestedServerRoomName: String(values.serverRoomName ?? ''), messengerType: String(values.messenger ?? ''), messengerId: String(values.messengerId ?? '') }]
+  return colocationInputSchema.safeParse({ ...values, serverRooms: rooms, email, accepted: values.accepted === 'on', files })
+}
+
+export function colocationRoomFieldName(roomId: string, index: number, field: keyof ColocationServerRoom): string {
+  const name = field === 'requestedServerRoomName' ? 'serverRoomName' : field === 'messengerType' ? 'messenger' : field
+  return index === 0 ? name : `serverRoom-${roomId}-${name}`
 }

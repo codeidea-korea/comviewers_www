@@ -4,7 +4,7 @@ import { colocationDraftInputSchema, type ColocationDraft, type ColocationDraftR
 
 export function createHttpColocationDraftRepository(client: ApiClient, authenticated: boolean): ColocationDraftRepository {
   const api = createServerRoomApplicationApi(client, authenticated)
-  const copy = (value: ColocationDraft): ColocationDraft => ({ ...value, fields: { ...value.fields }, files: [...value.files], cleanEvidenceFiles: value.cleanEvidenceFiles ? [...value.cleanEvidenceFiles] : undefined })
+  const copy = (value: ColocationDraft): ColocationDraft => ({ ...value, fields: { ...value.fields }, serverRooms: value.serverRooms?.map(room => ({ ...room })), files: [...value.files], cleanEvidenceFiles: value.cleanEvidenceFiles ? [...value.cleanEvidenceFiles] : undefined })
   return {
     async get(signal) { signal?.throwIfAborted(); return null },
     terms: signal => api.terms(signal),

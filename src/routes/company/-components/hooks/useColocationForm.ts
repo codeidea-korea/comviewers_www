@@ -2,8 +2,8 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
-import { colocationDraftInputSchema, colocationDraftSchema, type ColocationDraft } from '@/domain/colocation/draftRepository'
-import { assignColocationEvidenceTypes, colocationSubmissionErrorMessage, validateColocation } from '../colocationInput'
+import { colocationDraftInputSchema, colocationDraftSchema, colocationServerRooms, type ColocationDraft, type ColocationServerRoom } from '@/domain/colocation/draftRepository'
+import { assignColocationEvidenceTypes, colocationRoomFieldName, colocationSubmissionErrorMessage, validateColocation } from '../colocationInput'
 
 const draftKey = ['colocationDraft'] as const
 export function useColocationDraft() {
@@ -23,7 +23,8 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
   const [emailDomain, setEmailDomain] = useState('direct')
   const [emailDomainInput, setEmailDomainInput] = useState(initialDraft?.fields.emailDomain ?? '')
   const [phonePrefix, setPhonePrefix] = useState(initialDraft?.fields.phonePrefix ?? '010')
-  const [messenger, setMessenger] = useState(initialDraft?.fields.messenger ?? '')
+  const [serverRooms, setServerRooms] = useState(() => (initialDraft ? colocationServerRooms(initialDraft) : [{ requestedServerRoomName: '', messengerType: '', messengerId: '' }]).map((room, index) => ({ ...room, id: String(index) })))
+  const nextRoomId = useRef(serverRooms.length)
   const save = useMutation({ mutationFn: async (input: Parameters<typeof repository.save>[0]) => colocationDraftSchema.parse(await repository.save(input)), onSuccess: (draft) => client.setQueryData(draftKey, draft) })
   const terms = useQuery({ queryKey: ['colocation', 'terms'], enabled: Boolean(repository.terms), queryFn: ({ signal }) => repository.terms!(signal) })
   const fixture: Partial<ColocationDraft['fields']> & { phone?: string[] } = initialDraft ? { ...initialDraft.fields, phone: [initialDraft.fields.phonePrefix, initialDraft.fields.phoneMiddle, initialDraft.fields.phoneLast] } : {}
@@ -50,21 +51,42 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     }
     event.target.value = ''
   }
+  function addServerRoom() {
+    if (busy.current) return
+    const id = String(nextRoomId.current++)
+    setServerRooms(current => [...current, { id, requestedServerRoomName: '', messengerType: '', messengerId: '' }])
+  }
+  function removeServerRoom(id: string) {
+    if (busy.current || id === serverRooms[0]?.id) return
+    setServerRooms(current => current.filter(room => room.id !== id))
+    setValidationIssue(current => current?.field.startsWith(`serverRoom-${id}-`) ? null : current)
+  }
+  function updateServerRoom(id: string, field: keyof ColocationServerRoom, value: string) {
+    if (busy.current) return
+    setServerRooms(current => current.map(room => room.id === id ? { ...room, [field]: value } : room))
+  }
+  function validationField(path: readonly PropertyKey[]): string {
+    if (path[0] !== 'serverRooms') return String(path[0] ?? '')
+    const index = Number(path[1])
+    const room = serverRooms[index]
+    return room ? colocationRoomFieldName(room.id, index, path[2] as keyof ColocationServerRoom) : 'form'
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy.current) return
     const form = event.currentTarget
-    const checked = validateColocation(form, emailDomainInput, files.map(file => file.name))
+    const checked = validateColocation(form, emailDomainInput, files.map(file => file.name), serverRooms)
     if (!checked.success) {
       const issue = checked.error.issues[0]
-      const key = String(issue?.path[0] ?? '')
+      const key = validationField(issue?.path ?? [])
       showIssue(form, key, issue?.message ?? '입력값을 확인해 주세요.')
       return
     }
     setValidationIssue(null)
     if (!terms.data) { showIssue(form, 'accepted', '입점 약관을 불러온 후 다시 신청해 주세요.'); return }
     const values = Object.fromEntries(new FormData(event.currentTarget))
-    const input = { fields: { ...values, emailDomain: emailDomainInput, phonePrefix, messenger }, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
+    const firstRoom = checked.data.serverRooms[0]!
+    const input = { fields: { ...values, emailDomain: emailDomainInput, phonePrefix, serverRoomName: firstRoom.requestedServerRoomName, messenger: firstRoom.messengerType, messengerId: firstRoom.messengerId }, serverRooms: checked.data.serverRooms, files, fileTypes, accepted: true, termsPolicyVersionId: terms.data?.id }
     const fingerprint = JSON.stringify({ ...input, files: files.map(file => [file.name, file.size, file.lastModified]) })
     if (submissionKey.current?.fingerprint !== fingerprint) {
       try { submissionKey.current = { fingerprint, key: crypto.randomUUID() } }
@@ -73,11 +95,11 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     const result = colocationDraftInputSchema.safeParse({ ...input, idempotencyKey: submissionKey.current?.key })
     if (!result.success) {
       const issue = result.error.issues[0]
-      const key = String(issue?.path[0] === 'fields' ? issue.path[1] : issue?.path[0] ?? '')
+      const key = issue?.path[0] === 'fields' ? String(issue.path[1]) : validationField(issue?.path ?? [])
       const mappedField = key === 'termsPolicyVersionId' ? 'accepted' : key === 'fileTypes' ? 'files'
         : key === 'emailId' || key === 'emailDomain' ? 'email'
         : key === 'phonePrefix' ? 'phoneMiddle' : key === 'idempotencyKey' ? 'form' : key
-      const field = ['businessName', 'businessNumber', 'representative', 'managerName', 'email', 'phoneMiddle', 'phoneLast', 'serverRoomName', 'messenger', 'messengerId', 'accepted', 'files'].includes(mappedField) ? mappedField : 'form'
+      const field = mappedField.startsWith('serverRoom-') || ['businessName', 'businessNumber', 'representative', 'managerName', 'email', 'phoneMiddle', 'phoneLast', 'serverRoomName', 'messenger', 'messengerId', 'accepted', 'files'].includes(mappedField) ? mappedField : 'form'
       showIssue(form, field, issue?.message ?? '입력값을 확인해 주세요.')
       return
     }
@@ -85,8 +107,7 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     try { await save.mutateAsync(result.data); setCompleteOpen(true) }
     catch (error) {
       const message = colocationSubmissionErrorMessage(error)
-      const field = message === '검토 중인 입점 신청 내역이 있습니다.' ? 'businessNumber'
-        : message.includes('증빙') || message.includes('첨부파일') ? 'files'
+      const field = message.includes('증빙') || message.includes('첨부파일') ? 'files'
         : message.includes('약관') ? 'accepted' : 'form'
       showIssue(form, field, message)
     }
@@ -94,7 +115,7 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
   }
   return { fixture, selectedFiles: files.map((file) => `${file.name} (${(file.size / 1024).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} KB)`), removeFile: (index: number) => setFiles(current => current.filter((_, itemIndex) => itemIndex !== index)),
     validationIssue, completeOpen, setCompleteOpen, emailDomain, setEmailDomain, emailDomainInput, setEmailDomainInput,
-    phonePrefix, setPhonePrefix, messenger, setMessenger, pending: save.isPending,
+    phonePrefix, setPhonePrefix, serverRooms, addServerRoom, removeServerRoom, updateServerRoom, pending: save.isPending,
     submitLabel: '입점 신청',
     pendingLabel: '제출 중…',
     completeTitle: '입점 신청 완료',

@@ -6,6 +6,12 @@ export const colocationDraftFieldsSchema = z.object({
   phonePrefix: z.string().max(10), phoneMiddle: z.string().max(10), phoneLast: z.string().max(10),
   serverRoomName: z.string().max(200), messenger: z.string().max(100), messengerId: z.string().max(200),
 })
+export const colocationServerRoomSchema = z.object({
+  requestedServerRoomName: z.string().trim().min(1, '서버실명을 입력해 주세요.').max(150),
+  messengerType: z.string().trim().min(1, '상담 메신저 정보를 입력해 주세요.').max(50),
+  messengerId: z.string().trim().min(1, '상담 메신저 정보를 입력해 주세요.').max(100),
+})
+export type ColocationServerRoom = z.infer<typeof colocationServerRoomSchema>
 export const cleanColocationEvidenceFileSchema = z.object({
   fileType: z.enum(['business_license', 'bankbook']),
   fileName: z.string().min(1).max(255),
@@ -16,6 +22,7 @@ export const cleanColocationEvidenceFileSchema = z.object({
 })
 export const colocationDraftInputSchema = z.object({
   fields: colocationDraftFieldsSchema,
+  serverRooms: z.array(colocationServerRoomSchema).min(1, '서버실 정보를 입력해 주세요.').optional(),
   files: z.array(z.instanceof(File).refine((file) => /\.(jpe?g|png|pdf)$/i.test(file.name) && file.size <= 10 * 1024 * 1024, '첨부파일 형식과 크기를 확인해 주세요.')).min(2, '필수 증빙서류를 선택해 주세요.').max(5),
   termsPolicyVersionId: z.number().int().positive().optional(),
   cleanEvidenceFiles: z.array(cleanColocationEvidenceFileSchema).optional(),
@@ -24,6 +31,13 @@ export const colocationDraftInputSchema = z.object({
   idempotencyKey: z.string().regex(/^[A-Za-z0-9_-]{16,100}$/).optional(),
 })
 export type ColocationDraftInput = z.infer<typeof colocationDraftInputSchema>
+export function colocationServerRooms(input: Pick<ColocationDraftInput, 'fields' | 'serverRooms'>): ColocationServerRoom[] {
+  return input.serverRooms?.map(room => ({ ...room })) ?? [{
+    requestedServerRoomName: input.fields.serverRoomName,
+    messengerType: input.fields.messenger,
+    messengerId: input.fields.messengerId,
+  }]
+}
 export const colocationDraftSchema = colocationDraftInputSchema.extend({ savedAt: z.iso.datetime(), applicationId: z.number().int().positive().optional() })
 export type ColocationDraft = z.infer<typeof colocationDraftSchema>
 export interface ColocationDraftRepository {
