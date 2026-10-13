@@ -24,16 +24,26 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
     setOpen(false)
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] }), client.invalidateQueries({ queryKey: ['productReviews', item.productNo] })])
   } })
+  function openReview() {
+    if (save.isPending) return
+    save.reset()
+    setOpen(true)
+  }
+  function closeReview() {
+    if (save.isPending) return
+    setOpen(false)
+    save.reset()
+  }
   const reviewId = item.reviewId ?? save.data?.id
   if (reviewId) return <RelativeLink to={`/products/${encodeURIComponent(item.productNo)}?reviewId=${encodeURIComponent(reviewId)}#reviews`}>후기 보기</RelativeLink>
   return <>
-    <Button size="small" variant="secondary" onClick={() => setOpen(true)}>후기 작성</Button>
+    <Button size="small" variant="secondary" onClick={openReview}>후기 작성</Button>
     <ProductReviewDialog
       eligibleRentals={sourceId && allowed ? [{ id: sourceId, label: `${item.title} · ${item.productNo}` }] : []}
       eligibilityPending={eligible.isPending}
       error={eligible.error?.message ?? (eligible.isSuccess && !allowed ? '이미 후기를 작성했거나 현재 후기 작성 대상이 아닙니다.' : save.error?.message)}
       isOpen={open}
-      onClose={() => { if (!save.isPending) setOpen(false) }}
+      onClose={closeReview}
       onSubmit={(draft, rentalId) => save.mutate({ draft, rentalId })}
       pending={save.isPending}
       product={{ productId: item.productNo, serverRoom: item.serverRoomName ?? '-', pricingType: item.billingUnit === 'unit' ? 'one_time' : 'rental', title: item.title, description: item.specSummary, os: null, cpu: item.specSummary, ram: null, disk: null, gpu: null }}

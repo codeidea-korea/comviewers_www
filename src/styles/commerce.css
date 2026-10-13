@@ -568,6 +568,9 @@
 .quantity-control button:first-of-type { border-radius: 4px 0 0 4px; }
 .quantity-control button:last-of-type { border-radius: 0 4px 4px 0; }
 .product-detail-favorite { border-radius: 4px; }
+.review-create-feedback { height: 40px; overflow-y: auto; overflow-wrap: anywhere; }
+.review-create-feedback > .form-error { margin: 0; }
+.review-create-feedback + .review-create-actions { margin-top: 0; }
 .review-create-actions button { border-radius: 4px; }
 
 @media (max-height: 786px) {
