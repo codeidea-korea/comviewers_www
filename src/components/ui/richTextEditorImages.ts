@@ -4,12 +4,17 @@ import type { Editor, JSONContent } from '@tiptap/core'
 export type EditorImageUpload = (file: File) => Promise<{ attachmentId: number; blob: Blob }>
 export type EditorImageLoader = (attachmentId: number) => Promise<Blob>
 
+const PERSISTED_IMAGE_ATTRS = new Set(['attachmentId', 'alt', 'title'])
+
 export function persistentEditorDocument(node: JSONContent): JSONContent {
-  const attributes = node.attrs ? { ...node.attrs } : undefined
-  if (node.type === 'image' && attributes) {
-    delete attributes.src
-    delete attributes.srcset
-  }
+  // Persist only the image attributes accepted by ContentRichDocumentService.
+  const attributes = node.attrs
+    ? Object.fromEntries(
+      Object.entries(node.attrs).filter(
+        ([name]) => node.type !== 'image' || PERSISTED_IMAGE_ATTRS.has(name),
+      ),
+    )
+    : undefined
   return {
     ...node,
     ...(attributes ? { attrs: attributes } : {}),
