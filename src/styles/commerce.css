@@ -591,6 +591,7 @@
   line-height: 20px;
 }
 .checkout-validation-error { display: block; margin-top: 8px; }
+.payment-methods > .checkout-validation-error { font-size: 14px; }
 .checkout-agreement-errors p { margin: 0; }
 .checkout-page .order-summary__agreement { flex-direction: column; gap: 0; }
 .checkout-page .order-summary__agreement label { width: 100%; }
