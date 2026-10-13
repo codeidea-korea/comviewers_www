@@ -193,7 +193,6 @@
 .favorites-table > article.mobile-scrap-card > .rcpc-list__actions .rcpc-reboot-control,
 .mobile-rcpc-card > footer .rcpc-reboot-control { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .rcpc-reboot-control > .button { flex: 0 0 auto; width: 100%; }
-.rcpc-reboot-control > small { display: block; font-size: 12px; line-height: 16px; overflow-wrap: anywhere; white-space: normal; }
 .modal--rcpc-reboot { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
 .modal--rcpc-reboot > h2,.modal--rcpc-reboot > .modal__actions { flex: 0 0 auto; }
 .modal--rcpc-reboot > .modal__content { min-height: 0; overflow-y: auto; overflow-wrap: anywhere; word-break: keep-all; }
