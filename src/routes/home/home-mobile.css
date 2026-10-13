@@ -138,13 +138,13 @@
   .app-shell--home .banner-grid__item--1 > picture > img {
     height: 100%;
     left: 0;
-    object-fit: fill;
+    object-fit: cover;
     top: 0;
     width: 100%;
   }
   .app-shell--home .banner-grid__item--3 > picture > img { object-position: center; }
-  .app-shell--home .banner-grid span { font-size: 18px; line-height: 21px; }
-  .app-shell--home .banner-grid strong { font-size: 24px; line-height: 29px; }
+  .app-shell--home .banner-grid span { font-size: 14px; line-height: 20px; }
+  .app-shell--home .banner-grid strong { font-size: 20px; line-height: 28px; }
 
   .app-shell--home .notice-card {
     align-items: start;
@@ -176,7 +176,7 @@
   }
   .app-shell--home .usage-help strong { font-size: 18px; line-height: 21px; }
   .app-shell--home .usage-help p { font-size: 16px; line-height: 24px; margin-top: 12px; }
-  .app-shell--home .usage-help .button { align-self: flex-start; height: 45px; min-height: 45px; width: auto; }
+  .app-shell--home .usage-help .button { align-self: stretch; flex: 0 0 auto; height: 45px; justify-content: space-between; min-height: 45px; min-width: 0; width: 100%; }
   .app-shell--home .usage-help__watermark { display: block; left: 156px; top: -13px; }
   .app-shell--home .security-section .home-section-heading { display: block; margin-bottom: 60px; }
   .app-shell--home .security-grid { gap: 12px; }
@@ -195,4 +195,15 @@
     object-fit: fill;
     top: -18.327402%;
   }
+  .app-shell--home .button--large > :is(img, svg, .icon),
+  .app-shell--home .button--large .usage-help__arrow { flex: 0 0 20px; height: 20px; width: 20px; }
+  .app-shell--home .button--large .usage-help__arrow img { height: 12px; object-fit: contain; width: 7.4px; }
+  .app-shell--home .steps-grid article:first-child .step-tabs span.is-active { border-top-right-radius: 12px; }
+  .app-shell--home .category-tabs button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+  .app-shell--home .category-tabs button[aria-pressed='true'] { color: var(--color-white); -webkit-text-fill-color: var(--color-white); }
+  .app-shell--home .home-section-heading:has(> a) { align-items: flex-start; display: flex; flex-direction: row; gap: 12px; }
+  .app-shell--home .home-section-heading:has(> a) > div { flex: 1 1 0; min-width: 0; }
+  .app-shell--home .home-section-heading > a { flex-shrink: 0; font-size: 14px; white-space: nowrap; }
+  .app-shell--home .products-section .home-section-heading > a { position: static; }
+  .app-shell--home .products-section .home-section-heading h2 { padding-right: 0; }
 }
