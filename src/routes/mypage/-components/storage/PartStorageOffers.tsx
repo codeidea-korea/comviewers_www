@@ -1,10 +1,9 @@
-import storageProductImage from '@/assets/figma/store/product-04.png'
+import { StorageProductRow } from './StorageProductRow'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
-import { accountMoney } from '../shared/AccountReadCommon'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
 import { useMixedStorageSelection, type StorageSelectedGroup } from './MixedStorageCheckout'
 
@@ -46,9 +45,11 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
   if (offers.isPending || (!offers.isError && rows.length===0)) return null
   return <section className="part-storage-selection">
     {offers.isError && <p role="alert">예약 상품을 불러오지 못했습니다. <button onClick={() => void offers.refetch()} type="button">다시 시도</button></p>}
-    {availableRows.map(row => <article className="storage-catalog-product storage-catalog-product--part" key={row.id}><header><label><input type="checkbox" disabled={shared?.locked} checked={selectedIds.includes(row.id)} onChange={event => setSelected(event.target.checked ? [...selectedIds,row.id] : selectedIds.filter(id=>id!==row.id))}/><strong>{row.productNo}</strong><span>{row.serverRoomName}</span></label></header>
-      <div><div className="storage-catalog-product__image"><img alt={row.title} src={storageProductImage}/></div><section><span className="storage-catalog-product__column-title">상품 정보</span><strong>{row.title}</strong><p>{row.description || '등록된 상품 설명이 없습니다.'}</p></section><dl><dt className="storage-catalog-product__column-title">주문정보</dt><div><dt>상품금액</dt><dd>{accountMoney(row.unitPrice)}</dd></div><div><dt>세팅비</dt><dd>{accountMoney(row.setupFee)}</dd></div><div className="storage-catalog-product__quantity"><dt>수량</dt><dd><QuantityStepper label={`${row.productNo} 수량`} showLabel={false} value={quantity(row)} minimum={row.minimumQuantity} maximum={Math.min(row.maximumQuantity,row.availableQuantity)} unit="개" disabled={shared?.locked} onChange={value=>setQuantities(old=>({...old,[row.id]:value}))}/></dd></div></dl><footer><span className="storage-catalog-product__column-title">소계</span><strong>{accountMoney((row.unitPrice+row.setupFee)*quantity(row))}</strong><em>포인트 적립 0점</em></footer></div>
-    </article>)}
+    {availableRows.map(row => <StorageProductRow key={row.id} productNo={row.productNo} title={row.title} serverRoom={row.serverRoomName}
+      selected={selectedIds.includes(row.id)} disabled={shared?.locked} onSelect={checked => setSelected(checked ? [...selectedIds,row.id] : selectedIds.filter(id=>id!==row.id))}
+      description={row.description || '등록된 상품 설명이 없습니다.'} fees={[{ label: '상품금액', amount: row.unitPrice }, { label: '세팅비', amount: row.setupFee }]}
+      quantity={<QuantityStepper label={`${row.productNo} 수량`} showLabel={false} value={quantity(row)} minimum={row.minimumQuantity} maximum={Math.min(row.maximumQuantity,row.availableQuantity)} unit="개" disabled={shared?.locked} onChange={value=>setQuantities(old=>({...old,[row.id]:value}))}/>}
+      amount={(row.unitPrice+row.setupFee)*quantity(row)} points={0} />)}
     {rows.length>=50||page>0?<nav className="storage-pages"><button type="button" disabled={page===0||shared?.locked} onClick={()=>changePage(page-1)}>이전</button><span>{page+1}페이지</span><button type="button" disabled={(rows.length<50)||shared?.locked} onClick={()=>changePage(page+1)}>다음</button></nav>:null}
     {new Set(selectedRows.map(row=>row.productNo)).size!==selectedRows.length&&<p role="alert">같은 품번의 보관 상품은 한 건씩 선택해 주세요.</p>}
     {!shared&&<button type="button" disabled={!valid || !Number.isSafeInteger(total)} onClick={startCheckout}>선택 상품 주문서 작성</button>}

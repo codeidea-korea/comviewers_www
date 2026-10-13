@@ -3,8 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useSession } from '@/app/session/SessionProvider'
 import type { ExtensionOffer } from '@/api/extensionCheckout'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import storageProductImage from '@/assets/figma/store/product-04.png'
-import { accountMoney } from '../shared/AccountReadCommon'
+import { StorageProductRow } from './StorageProductRow'
 import { useMixedStorageSelection, type StorageSelectedGroup } from './MixedStorageCheckout'
 
 const emptyOffers: readonly ExtensionOffer[] = []
@@ -36,19 +35,10 @@ export function StorageExtensionItems({ api }: { api: MyRcpcReadServices }) {
     valid: true, availableCount: 0, state: 'ready' }) }, [report])
   return <>
     {offers.isError && <p role="alert">보관 상품을 불러오지 못했습니다. <button type="button" onClick={() => void offers.refetch()}>다시 시도</button></p>}
-    {rows.map(row => <article className="storage-catalog-product" key={row.id}>
-      <header><label><input type="checkbox" disabled={!canPurchase || shared?.locked} checked={selectedIds.includes(row.id)}
-        onChange={event => setSelected(event.target.checked ? [...selectedIds, row.id] : selectedIds.filter(id => id !== row.id))} />
-        <strong>품번 {row.productNo}</strong><span>{row.serverRoomName ?? '-'}</span></label></header>
-      <div><div className="storage-catalog-product__image"><img src={storageProductImage} alt={row.title} /></div>
-        <section><span className="storage-catalog-product__column-title">상품 정보</span><strong>{row.title}</strong>
-          <p>{row.spec ?? '등록된 PC 사양 정보가 없습니다.'}<br />현재 종료 {dateTime(row.previousEnd)}<br />예상 연장 종료 {dateTime(row.targetEnd)}</p></section>
-        <dl><dt className="storage-catalog-product__column-title">주문정보</dt>
-          <div><dt>세팅비</dt><dd>{accountMoney(0)}</dd></div><div><dt>렌탈금액</dt><dd>{accountMoney(row.quotedAmount)}</dd></div>
-          <div className="storage-catalog-product__quantity"><dt>이용기간</dt><dd>{row.addedDays}일 연장</dd></div>
-        </dl><footer><span className="storage-catalog-product__column-title">소계</span><strong>{accountMoney(row.quotedAmount)}</strong>
-          <em>포인트 적립 {Math.floor(row.quotedAmount / 100).toLocaleString('ko-KR')}점</em></footer>
-      </div>
-    </article>)}
+    {rows.map(row => <StorageProductRow key={row.id} productNo={row.productNo} title={row.title} serverRoom={row.serverRoomName}
+      selected={selectedIds.includes(row.id)} disabled={!canPurchase || shared?.locked} onSelect={checked => setSelected(checked ? [...selectedIds, row.id] : selectedIds.filter(id => id !== row.id))}
+      description={<>{row.spec ?? '등록된 PC 사양 정보가 없습니다.'}<br />현재 종료 {dateTime(row.previousEnd)}<br />예상 연장 종료 {dateTime(row.targetEnd)}</>}
+      fees={[{ label: '세팅비', amount: 0 }, { label: '렌탈금액', amount: row.quotedAmount }]} quantity={`${row.addedDays}일 연장`}
+      amount={row.quotedAmount} points={Math.floor(row.quotedAmount / 100)} />)}
   </>
 }

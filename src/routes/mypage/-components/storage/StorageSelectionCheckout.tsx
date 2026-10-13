@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router'
 import type { AccountStorageItem } from '@/api/myAccountSchemas'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
-import { accountMoney } from '../shared/AccountReadCommon'
 import { useMixedStorageSelection, type StorageSelectedGroup } from './MixedStorageCheckout'
-import storageProductImage from '@/assets/figma/store/product-04.png'
+import { StorageProductRow } from './StorageProductRow'
 
 export function StorageSelectionCheckout({ items }: { items: readonly AccountStorageItem[] }) {
   const shared=useMixedStorageSelection()
@@ -41,13 +40,14 @@ export function StorageSelectionCheckout({ items }: { items: readonly AccountSto
     navigate('/checkout', { state })
   }
   if (!available.length && shared) return null
-  return <section className="storage-selection">{!shared&&<div className="storage-catalog__toolbar"><label><input checked={allSelected} disabled={!available.length} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> 모두 선택</label><span>주문정보</span><span>소계</span></div>}{available.map(item => <article className="storage-catalog-product" key={item.id}>
-    <header><label><input type="checkbox" disabled={shared?.locked} checked={selected.includes(item.id)} onChange={event => setSelected(previous => event.target.checked ? [...previous, item.id] : previous.filter(id => id !== item.id))}/><strong>품번 {item.productNo ?? '-'}</strong><span>{item.serverRoomName ?? '-'}</span></label></header>
-    <div><div className="storage-catalog-product__image"><img src={item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? item.imageUrl : storageProductImage} alt={item.productTitle ?? '예약 상품'}/></div><section><span className="storage-catalog-product__column-title">상품 정보</span><strong>{item.productTitle ?? '상품명 미등록'}</strong><p>{item.instantAvailable ? '결제 후 바로 접속 가능합니다.' : '접속 준비 상태를 확인해 주세요.'}<br/>{item.specSummary ?? '등록된 PC 사양 정보가 없습니다.'}</p></section><dl><dt className="storage-catalog-product__column-title">주문정보</dt>
-      <div><dt>세팅비</dt><dd>{accountMoney(item.setupFee)}</dd></div><div><dt>{item.pricingType==='rental'?'월 렌탈료':'상품금액'}</dt><dd>{accountMoney(item.unitPrice)}</dd></div>
-      <div className="storage-catalog-product__quantity"><dt>{item.pricingType==='rental'?'이용기간':'수량'}</dt><dd>{item.pricingType==='rental'?<QuantityStepper label={`${item.productNo ?? '보관 상품'} 이용기간`} showLabel={false} value={duration(item)} minimum={item.minUnits} maximum={item.maxUnits} unit={item.billingUnit==='thirty_day'?'개월':item.billingUnit==='day'?'일':item.billingUnit==='hour'?'시간':''} disabled={shared?.locked} onChange={value=>setUnits(previous=>({...previous,[item.id]:value}))}/>: '1개'}</dd></div>
-    </dl><footer><span className="storage-catalog-product__column-title">소계</span><strong>{accountMoney(base(item)+(item.setupFee??0))}</strong><em>포인트 적립 {item.pricingType==='rental'?Math.floor(base(item)/100).toLocaleString():0}점</em></footer></div>
-  </article>)}
+  return <section className="storage-selection">{!shared&&<div className="storage-catalog__toolbar"><label><input checked={allSelected} disabled={!available.length} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> 모두 선택</label></div>}{available.map(item => <StorageProductRow key={item.id}
+    productNo={item.productNo} title={item.productTitle ?? '상품명 미등록'} serverRoom={item.serverRoomName} imageUrl={item.imageUrl}
+    description={item.specSummary ?? '등록된 PC 사양 정보가 없습니다.'} instantAvailable={item.instantAvailable}
+    selected={selected.includes(item.id)} disabled={shared?.locked} onSelect={checked => setSelected(previous => checked ? [...previous, item.id] : previous.filter(id => id !== item.id))}
+    fees={[{ label: '세팅비', amount: item.setupFee }, { label: item.pricingType === 'rental' ? '월 렌탈료' : '상품금액', amount: item.unitPrice }]}
+    quantity={item.pricingType==='rental'?<QuantityStepper label={`${item.productNo ?? '보관 상품'} 이용기간`} showLabel={false} value={duration(item)} minimum={item.minUnits} maximum={item.maxUnits} unit={item.billingUnit==='thirty_day'?'개월':item.billingUnit==='day'?'일':item.billingUnit==='hour'?'시간':''} disabled={shared?.locked} onChange={value=>setUnits(previous=>({...previous,[item.id]:value}))}/>: '1개'}
+    amount={base(item)+(item.setupFee??0)} points={item.pricingType==='rental'?Math.floor(base(item)/100):0}
+  />)}
     {!shared&&<button type="button" disabled={!valid || !Number.isSafeInteger(total)} onClick={startCheckout}>선택 상품 주문서 작성</button>}
     {!available.length && (shared?.hasPending
       ? <p className="mypage-empty storage-empty" role="status">예약 상품을 불러오는 중입니다.</p>
