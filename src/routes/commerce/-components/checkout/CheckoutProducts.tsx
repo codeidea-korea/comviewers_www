@@ -8,6 +8,7 @@ import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import tollIcon from '@/assets/figma/icon-toll-green.svg'
 import { CheckoutSectionTitle, formatCheckoutMoney as money } from './CheckoutFields'
 import { TranslatedText, useTranslation } from '@/i18n/translation'
+import type { OrderBenefitQuote } from '@/api/ordersPayments'
 
 function CheckoutProductImage({ item }: { item: CartItem }) {
   const visual = productOsVisual(item.osFilterValue, item.type === 'part')
@@ -17,14 +18,14 @@ function CheckoutProductImage({ item }: { item: CartItem }) {
   </div>
 }
 
-export function CheckoutProducts({ items }: { items: readonly CartItem[] }) {
+export function CheckoutProducts({ items, benefits, refreshing }: { items: readonly CartItem[]; benefits?: OrderBenefitQuote; refreshing: boolean }) {
   const { locale, t } = useTranslation()
   return <section className="checkout-products"><CheckoutSectionTitle>주문상품</CheckoutSectionTitle>{items.map((item) => {
     const partner = item.type === 'part'
     const waiting = !item.available || (!partner && item.instantAvailable === false)
     const status = !item.available ? <TranslatedText id="checkout.unavailable" /> : partner ? '구매 가능합니다.'
       : item.instantAvailable === null ? <TranslatedText id="product.connectionUnknown" /> : item.instantAvailable ? '구매 즉시 접속 가능합니다.' : <TranslatedText id="product.preparing" />
-    const points = getCartItemPoints(item)
+    const points = benefits?.itemExpectedPoints?.find((row) => String(row.cartItemId) === item.id)?.expectedPoints ?? getCartItemPoints(item)
     return <article className={`commerce-product-row commerce-product-row--compact${partner ? ' commerce-product-row--partner' : ''}`} key={item.id}>
       <header className="commerce-product-row__heading"><span className="checkout-product-number"><TranslatedText id="product.number" /> <b>{item.productId}</b></span>{partner ? <span>{item.label}</span> : <small>{item.location}</small>}</header>
       <div className="commerce-product-row__content">
@@ -37,7 +38,7 @@ export function CheckoutProducts({ items }: { items: readonly CartItem[] }) {
       {item.priceChanged && <p role="status"><TranslatedText id="cart.priceChanged" /></p>}{item.issues.map((issue) => <p className="notranslate" translate="no" key={issue} role="status">{cartIssueMessage(issue)}</p>)}
       <div className="commerce-product-row__meta">
         <div className="commerce-product-row__terms">{partner ? <><span><TranslatedText id="money.productAmount" /> <strong className="notranslate" translate="no">{money(item.rentalFee)}</strong></span><b aria-hidden="true" /><span>{locale === 'ko' && '수량 '}<strong className="notranslate" translate="no">{t('unit.quantity', { count: item.quantity })}</strong></span></> : <><span><TranslatedText id="money.setupFee" /> <strong className="notranslate" translate="no">{money(item.setupFee)}</strong></span><b aria-hidden="true" /><span className="notranslate" translate="no">{cartPriceLabel(item)} <strong>{money(item.rentalFee)}</strong></span><b aria-hidden="true" /><span>{locale === 'ko' && '이용기간 '}<strong className="notranslate" translate="no">{locale === 'ko' ? `${getCartSelectionUnits(item)}${cartUnitLabel(item)}` : cartSelectionLabel(item)}</strong></span></>}</div>
-        <div className="commerce-product-row__amount">{!partner && <span className="notranslate" translate="no"><img alt="" src={tollIcon} />{locale === 'ko' ? <><b>{points ?? '-'}</b>{points !== null && '점 적립'}</> : <b>{points === null ? '-' : t('money.pointAmount', { points })}</b>}</span>}<strong className="notranslate" translate="no">{money(getCartItemAmount(item))}</strong></div>
+        <div className="commerce-product-row__amount">{!partner && <span className="notranslate" translate="no"><img alt="" src={tollIcon} />{locale === 'ko' ? <><b>{refreshing ? '-' : points ?? '-'}</b>{!refreshing && points !== null && '점 적립'}</> : <b>{refreshing || points === null ? '-' : t('money.pointAmount', { points })}</b>}</span>}<strong className="notranslate" translate="no">{money(getCartItemAmount(item))}</strong></div>
       </div>
     </article>
   })}</section>

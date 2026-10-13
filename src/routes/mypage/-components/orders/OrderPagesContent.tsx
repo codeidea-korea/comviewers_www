@@ -287,6 +287,9 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 const discountAmount = item.couponDiscountAmount + item.pointUsedAmount
                 const finalItemAmount = Math.max(0, item.amount - discountAmount)
                 const status = rowStatus(item, order, now)
+                const productDetailPath = `/products/${encodeURIComponent(item.productNo)}`
+                  + (['approved', 'partially_refunded', 'refunded'].includes(order.paymentStatus)
+                    ? `?orderItemId=${encodeURIComponent(String(item.orderItemId))}` : '')
                 const terminal = ['환불완료', '취소완료', '결제실패', '결제기한 만료'].includes(status)
                 const showRentalStatus = Boolean(item.rentalId) || (!terminal && Boolean(item.pcAssetId) && item.customerRentalStatus === 'awaiting')
                 const orderDetail = orderDetailByNo.get(order.orderNo)
@@ -309,13 +312,13 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       <RelativeLink className="notranslate" translate="no" to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
                     </header>
                     <div className="order-catalog-item__product">
-                      <div className="order-catalog-item__image">
+                      <RelativeLink aria-label={`${item.title} 상품 상세 보기`} className="order-catalog-item__image" to={productDetailPath}>
                         <img src={item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? item.imageUrl : windowsCard} alt={item.title} />
                         {!item.imageUrl || !/^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? <img src={windowsLogo} alt="" aria-hidden="true" /> : null}
-                      </div>
+                      </RelativeLink>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><TranslatedText id="product.number" /> {item.productNo}</strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[item.customerRentalStatus] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[item.customerRentalStatus] ?? 'off']} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[item.customerRentalStatus] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[item.customerRentalStatus] ?? 'off']} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (

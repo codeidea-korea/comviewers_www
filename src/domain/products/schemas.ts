@@ -11,6 +11,7 @@ export const detailSelectionsSchema = z.object({
 })
 export const productQuerySchema = z.object({
   categoryCode: z.string().optional(),
+  keyword: z.string().trim().max(100).optional(),
   page: z.number().int().min(1).max(100000),
   pageSize: z.number().int().min(1).max(100),
   instantOnly: z.boolean(),

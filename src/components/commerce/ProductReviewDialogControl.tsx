@@ -33,9 +33,9 @@ export function ProductReviewCard({ filled = false, onCancel, onSubmit, section 
       {!initial && eligibleRentals.length > 1 ? <label>구매확정 상품<select disabled={pending} onChange={(event) => setRentalId(event.target.value)} value={rentalId}>{eligibleRentals.map((rental) => <option key={rental.id} value={rental.id}>{rental.label}</option>)}</select></label> : null}
       {!initial && eligibilityPending ? <LoadingState className="route-loading--compact" label="후기 작성 가능 여부를 확인하고 있습니다." /> : !initial && !eligibleRentals.length && product ? <p role="status">후기를 작성할 수 있는 구매확정 상품이 없습니다.</p> : null}
       <div className="review-create-rating"><span>상품 만족도</span><div>{[1,2,3,4,5].map((star) => <button disabled={pending} aria-label={`${star}점`} aria-pressed={rating >= star} key={star} onClick={() => setRating(star)} type="button"><img alt="" src={rating >= star ? reviewStarFilled : reviewStarEmpty} /></button>)}</div></div>
-      <label className="review-create-text"><span>후기 내용 (10~500자)</span><textarea disabled={pending} maxLength={500} onChange={(event) => setContent(event.target.value)} placeholder={'상품의 성능, 접속 안정성, 이용환경 등 실제 사용 경험을\n작성해 주세요.'} value={content} /></label>
+      <label className="review-create-text"><span>후기 내용 (10~500자)</span><textarea disabled={pending} onChange={(event) => setContent(event.target.value)} placeholder={'상품의 성능, 접속 안정성, 이용환경 등 실제 사용 경험을\n작성해 주세요.'} value={content} /></label>
       {error ? <p role="alert" className="form-error">{error}</p> : null}
-      <div className="review-create-actions"><button disabled={pending} onClick={onCancel} type="button">취소</button><button disabled={pending || !rating || (!initial && !!product && !rentalId)} onClick={() => onSubmit({ rating, body: content }, rentalId)} type="button">{pending ? '저장 중…' : initial ? '후기 수정' : '후기 등록'}</button></div>
+      <div className="review-create-actions"><button disabled={pending} onClick={onCancel} type="button">취소</button><button disabled={pending || (!initial && !!product && !rentalId)} onClick={() => onSubmit({ rating, body: content }, rentalId)} type="button">{pending ? '저장 중…' : initial ? '후기 수정' : '후기 등록'}</button></div>
     </>
   )
   return section ? <section className={`review-create-card${filled ? ' review-create-card--filled' : ''}`}>{formContent}</section> : formContent

@@ -147,7 +147,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
       
       {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel="선택 상품의 예상 금액을 불러오는 중입니다." errorMessage="선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다." onRetry={() => { void result.refetch() }} errorAction={<Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart" variant="secondary">장바구니로 이동</Button>}><p>장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.</p><Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart">장바구니로 이동</Button></CommerceCartState>
             : quote ? <div className="checkout-layout" aria-busy={refreshing}><div className="checkout-main">
-              <CheckoutProducts items={quote.items} />
+              <CheckoutProducts items={quote.items} benefits={shownBenefits} refreshing={refreshing} />
               {productUnavailable ? <div className="checkout-product-error">
                 <p role="alert">선택한 상품 중 현재 주문할 수 없는 상품이 있습니다. 장바구니에서 상품 상태를 다시 확인해 주세요.</p>
                 <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">장바구니로 이동</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인'}</Button></div>

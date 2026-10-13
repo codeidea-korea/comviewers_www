@@ -97,6 +97,9 @@ export function createPublicAccountApi(baseUrl: string) {
     requestPasswordReset(username: string, email: string) {
       return client.request('/api/auth/password-reset', z.undefined(), { method: 'POST', body: { username, email } })
     },
+    validatePasswordResetToken(token: string) {
+      return client.request('/api/auth/password-reset/validate', z.undefined(), { method: 'POST', body: { token } })
+    },
     confirmPasswordReset(token: string, newPassword: string, newPasswordConfirm: string) {
       return client.request('/api/auth/password-reset/confirm', z.undefined(), {
         method: 'POST', body: { token, newPassword, newPasswordConfirm },

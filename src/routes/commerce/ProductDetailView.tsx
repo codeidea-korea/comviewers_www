@@ -53,9 +53,12 @@ function ProductDetailContent() {
   const location = useLocation()
   const reviewIdText = new URLSearchParams(location.search).get('reviewId')
   const reviewId = reviewIdText && /^[1-9]\d{0,18}$/.test(reviewIdText) && BigInt(reviewIdText) <= 9223372036854775807n ? reviewIdText : undefined
+  const orderItemIdText = new URLSearchParams(location.search).get('orderItemId')
+  const orderItemId = orderItemIdText && /^[1-9]\d{0,18}$/.test(orderItemIdText) && BigInt(orderItemIdText) <= 9223372036854775807n ? orderItemIdText : undefined
   const organizationId = session.status === 'authenticated' ? session.organizationId : null
   const reviewMode = Boolean(reviewId && organizationId && products.getReviewed)
-  const { data: product, isPending, isError, refetch } = useProductDetail(productId, reviewMode ? reviewId : undefined, organizationId)
+  const purchaseMode = Boolean(orderItemId && organizationId && products.getPurchased)
+  const { data: product, isPending, isError, refetch } = useProductDetail(productId, reviewMode ? reviewId : undefined, organizationId, purchaseMode ? orderItemId : undefined)
   const [message, setMessage] = useState('')
   const reviews = useProductReviews({ productId, onMessage: setMessage })
   const [cartPopupOpen, setCartPopupOpen] = useState(false)
@@ -110,11 +113,11 @@ function ProductDetailContent() {
   return (
     <AppShell className="commerce-shell product-detail-page">
       <div className="content-container product-breadcrumb"><span>HOME</span><img alt="" src={chevronRightIcon} /><span>{product.pricingType === 'one_time' ? '파트 상품' : 'RCPC 상품'}</span></div>
-      <ProductDetailHero key={product.id} product={product} message={message} cartPending={cartAddition.isPending} buyPending={directPurchase.isPending} onCart={(rentalPeriods) => {
-        if (reviewMode) return
+      <ProductDetailHero key={product.id} product={product} message={message} cartPending={cartAddition.isPending} buyPending={directPurchase.isPending} readOnly={reviewMode || purchaseMode} onCart={(rentalPeriods) => {
+        if (reviewMode || purchaseMode || product.saleAvailability !== 'AVAILABLE') return
         cartAddition.add(String(product.productId), rentalPeriods)
       }} onBuy={(rentalPeriods) => {
-        if (reviewMode) return
+        if (reviewMode || purchaseMode || product.saleAvailability !== 'AVAILABLE') return
         if (session.status !== 'authenticated') {
           setLoginRequiredOpen(true)
           return

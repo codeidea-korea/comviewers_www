@@ -17,7 +17,8 @@ const detail = z.object({ paymentId: id, orderNo: z.string(), paymentMethod: z.s
 export type PaymentDetail = z.infer<typeof detail>
 export type PreparedPayment = z.infer<typeof prepared>
 const benefitQuote = z.object({ subtotalAmount: count, setupFeeAmount: count, couponDiscountAmount: count, pointUsedAmount: count,
-  finalAmount: count, availablePoints: count, userCouponId: id.nullable(),
+  finalAmount: count, availablePoints: count, userCouponId: id.nullable(), expectedPoints: count.nullable().optional(),
+  itemExpectedPoints: z.array(z.object({ cartItemId: id, expectedPoints: count })).optional(),
   coupons: z.array(z.object({ userCouponId: id, name: z.string(), serverRoomId: id.nullable(), expiresAt: time, discountAmount: count })) })
 export type OrderBenefitQuote = z.infer<typeof benefitQuote>
 const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: z.number().int().positive().safe() })

@@ -193,6 +193,19 @@ function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [complete, setComplete] = useState(false)
+  const [linkState, setLinkState] = useState<'checking' | 'ready' | 'invalid' | 'unavailable'>('checking')
+  const [validationAttempt, setValidationAttempt] = useState(0)
+  useEffect(() => {
+    if (!api || !token) { setLinkState('invalid'); return }
+    let current = true
+    setLinkState('checking')
+    void api.validatePasswordResetToken(token)
+      .then(() => { if (current) setLinkState('ready') })
+      .catch((cause: unknown) => {
+        if (current) setLinkState(cause instanceof ApiClientError && cause.code === 'A017' ? 'invalid' : 'unavailable')
+      })
+    return () => { current = false }
+  }, [api, token, validationAttempt])
   const validPasswordFormat = /^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%])[A-Za-z0-9!@#$%]{8,16}$/.test(password)
   const validPassword = validPasswordFormat
   const invalidPasswordCharacters = /[^A-Za-z0-9!@#$%]/.test(password)
@@ -201,25 +214,29 @@ function ResetPasswordPage() {
     : passwordTouched && !validPasswordFormat ? '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.' : undefined)
   const confirmationError = confirmationTouched && password !== confirmation ? '비밀번호가 일치하지 않습니다.' : undefined
   async function submit() {
-    if (!api || !token) { setError('비밀번호 재설정 링크가 올바르지 않습니다.'); return }
+    if (!api || !token || linkState !== 'ready') return
     if (!validPassword) { setError(passwordError || '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'); return }
     if (password !== confirmation) { setError('비밀번호가 일치하지 않습니다.'); return }
     setBusy(true); setError('')
     try { await api.confirmPasswordReset(token, password, confirmation); setComplete(true) }
     catch (cause) {
       if (cause instanceof ApiClientError && cause.code === 'A006') setPasswordPolicyError('8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.')
+      else if (cause instanceof ApiClientError && cause.code === 'A017') setLinkState('invalid')
       else setError(cause instanceof Error ? cause.message : '비밀번호를 재설정하지 못했습니다.')
     }
     finally { setBusy(false) }
   }
   const helperText = '8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'
   return <><LoginPage />
-    <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={() => navigate('/login', { replace: true })} onConfirm={() => { void submit() }} showClose={false} title="비밀번호 재설정">
-      <div className="popup-form">
+    <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={() => navigate('/login', { replace: true })} onConfirm={linkState === 'ready' ? () => { void submit() } : undefined} showClose={linkState !== 'ready'} title="비밀번호 재설정">
+      {linkState === 'checking' ? <p role="status">재설정 링크를 확인하고 있습니다.</p> : null}
+      {linkState === 'invalid' ? <p role="alert">재설정 링크가 유효하지 않거나 만료되었거나 이미 사용되었습니다. <Link to="/account/find-password">비밀번호 재설정 메일을 다시 요청해 주세요.</Link></p> : null}
+      {linkState === 'unavailable' ? <div><p role="alert">재설정 링크를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.</p><Button onClick={() => setValidationAttempt(attempt => attempt + 1)} type="button" variant="secondary">다시 시도</Button></div> : null}
+      {linkState === 'ready' ? <div className="popup-form">
         <PasswordField autoComplete="new-password" error={passwordError} helperText={helperText} label="새 비밀번호" maxLength={16} onChange={(event) => { setPasswordTouched(true); setPasswordPolicyError(''); setPassword(event.target.value); setError('') }} required value={password} />
         <PasswordField autoComplete="new-password" error={confirmationError} helperText={helperText} label="비밀번호 확인" maxLength={16} onChange={(event) => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} required value={confirmation} />
         {error ? <p className="form-error" role="alert">{error}</p> : null}
-      </div>
+      </div> : null}
     </Modal>
     <Modal confirmLabel="로그인하기" isOpen={complete} onClose={() => navigate('/login', { replace: true, state: { passwordReset: true } })} onConfirm={() => navigate('/login', { replace: true, state: { passwordReset: true } })} showClose={false} title="비밀번호가 변경되었습니다."><p>새로 설정한 비밀번호로 다시 로그인해 주세요.</p></Modal>
   </>

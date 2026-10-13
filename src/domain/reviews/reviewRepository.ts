@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const reviewDraftSchema = z.object({
-  rating: z.number().int().min(1, '별점을 선택해 주세요.').max(5),
+  rating: z.number().int().min(1, '상품 만족도를 선택해 주세요.').max(5),
   body: z.string().trim().min(10, '후기는 10자 이상으로 등록하실 수 있습니다.').max(500, '후기 내용은 500자 이하로 입력해 주세요.'),
 })
 export const productReviewSchema = reviewDraftSchema.extend({

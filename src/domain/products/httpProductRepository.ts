@@ -22,7 +22,7 @@ export function createHttpProductRepository(client: ApiClient): ProductRepositor
         || Object.values(query.details).some((values) => values?.length)) throw new UnsupportedProductFilterError()
       // Comparison prices are separate from the unchanged checkout billing unit and unit price.
       const serverRoomIds = query.rooms.map(value => z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().positive().safe()).parse(value))
-      const dto = await api.list({ categoryCode: query.categoryCode, page: query.page - 1, size: query.pageSize,
+      const dto = await api.list({ categoryCode: query.categoryCode, keyword: query.keyword, page: query.page - 1, size: query.pageSize,
         serverRoomIds, instantOnly: query.instantOnly, saleAvailableOnly: query.saleAvailableOnly,
         filterOptionIds: query.filterOptionIds, minPrice: query.minPrice, maxPrice: query.maxPrice, priceBasis: query.priceBasis,
         keyboardConnectionStatus: query.keyboardConnectionStatus, mouseConnectionStatus: query.mouseConnectionStatus,
@@ -42,6 +42,13 @@ export function createHttpProductRepository(client: ApiClient): ProductRepositor
         const product = await api.getReviewed(productNo, reviewId, organizationId, signal)
         return mapCatalogProduct({ ...product, availability: 'SOLD_OUT', instantAvailable: false })
       } catch (error) {
+        if (error instanceof ApiClientError && error.code === 'PD001') return null
+        throw error
+      }
+    },
+    async getPurchased(productNo, orderItemId, organizationId, signal) {
+      try { return mapCatalogProduct(await api.getPurchased(productNo, orderItemId, organizationId, signal)) }
+      catch (error) {
         if (error instanceof ApiClientError && error.code === 'PD001') return null
         throw error
       }

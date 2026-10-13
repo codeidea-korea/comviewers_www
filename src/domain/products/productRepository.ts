@@ -7,4 +7,5 @@ export interface ProductRepository {
   list(query: ProductListQuery, signal?: AbortSignal): Promise<ProductPage>
   get(productNo: string, signal?: AbortSignal): Promise<Product | null>
   getReviewed?(productNo: string, reviewId: string, organizationId: string, signal?: AbortSignal): Promise<Product | null>
+  getPurchased?(productNo: string, orderItemId: string, organizationId: string, signal?: AbortSignal): Promise<Product | null>
 }

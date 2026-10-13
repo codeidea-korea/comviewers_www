@@ -39,7 +39,7 @@ const pointReasonLabels: Readonly<Record<string, string>> = {
   order_payment: '주문 결제 사용',
   refund_restore: '환불 포인트 복원',
   expiration: '포인트 소멸',
-  signup: '회원가입 적립',
+  signup: '가입 축하 무료 포인트',
   admin_adjustment: '포인트 조정',
 }
 

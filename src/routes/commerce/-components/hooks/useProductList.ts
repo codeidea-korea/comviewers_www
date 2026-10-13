@@ -27,6 +27,7 @@ function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductL
   const candidate = {
     page: Number(params.get('page') ?? 1), pageSize: 12,
     categoryCode,
+    keyword: params.get('keyword')?.trim() || undefined,
     instantOnly: params.has('instantOnly') ? params.get('instantOnly') !== 'false' : defaultInstantOnly, rooms: params.getAll('room'),
     line: params.get('line') ?? '전체', ip: params.get('ip') ?? '전체', purpose: params.get('purpose') ?? '전체',
     details: readDetails(params.get('details')),
@@ -72,6 +73,8 @@ export function useProductList() {
       const next = new URLSearchParams(previous)
       if (changes.rooms !== undefined || changes.categoryCode !== undefined) next.delete('couponProducts')
       next.set('page', String(nextQuery.page))
+      if (nextQuery.keyword) next.set('keyword', nextQuery.keyword)
+      else next.delete('keyword')
       next.set('instantOnly', String(nextQuery.instantOnly))
       next.delete('room')
       nextQuery.rooms.forEach((room) => next.append('room', room))
@@ -107,10 +110,11 @@ export function useProductList() {
     facets: result.data?.facets ?? null, capabilities: products.capabilities, instantOnly: query.instantOnly,
     selectedRooms: new Set(query.rooms), detailSelections: query.details, selectorSelections,
     setCurrentPage: (page: number) => updateQuery({ page }, false),
+    setKeyword: (keyword: string) => updateQuery({ keyword: keyword.trim() || undefined }),
     setInstantOnly: (instantOnly: boolean) => updateQuery({ instantOnly }),
     setSelectedRooms: (rooms: Set<string>) => updateQuery({ rooms: [...rooms] }),
     setDetailSelections: (update: Update<DetailSelections>) => updateQuery({ details: resolve(update, query.details) }),
     setSelectorSelections: (update: Update<Selectors>) => updateQuery(resolve(update, selectorSelections)),
-    resetFilters: () => updateQuery({ instantOnly: defaultInstantOnly, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {}, filterOptionIds: [], priceBasis: undefined, minPrice: undefined, maxPrice: undefined, keyboardConnectionStatus: undefined, mouseConnectionStatus: undefined, saleAvailableOnly: false, sort: 'newest' }),
+    resetFilters: () => updateQuery({ keyword: undefined, instantOnly: defaultInstantOnly, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {}, filterOptionIds: [], priceBasis: undefined, minPrice: undefined, maxPrice: undefined, keyboardConnectionStatus: undefined, mouseConnectionStatus: undefined, saleAvailableOnly: false, sort: 'newest' }),
   }
 }

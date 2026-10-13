@@ -4,7 +4,7 @@ import { catalogProductNoSchema } from './catalog'
 import { productReviewResponseSchema } from './productReviews'
 
 const id = z.union([z.string().regex(/^[1-9]\d{0,18}$/), z.number().int().positive().safe().transform(String)])
-export const productReviewEditSchema = z.object({ rating: z.number().int().min(1).max(5), content: z.string().trim().min(10).max(500) }).strict()
+export const productReviewEditSchema = z.object({ rating: z.number().int().min(1, '상품 만족도를 선택해 주세요.').max(5), content: z.string().trim().min(10, '후기는 10자 이상으로 등록하실 수 있습니다.').max(500, '후기 내용은 500자 이하로 입력해 주세요.') }).strict()
 export const productReviewCreateSchema = productReviewEditSchema.extend({ rentalId: id.optional(), orderItemId: id.optional() })
   .refine(value => Boolean(value.rentalId) !== Boolean(value.orderItemId))
 export const savedProductReviewSchema = productReviewResponseSchema

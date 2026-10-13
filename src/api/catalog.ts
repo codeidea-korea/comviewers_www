@@ -20,6 +20,7 @@ const statusQuery = z.string().trim().toLowerCase().transform((value) => value |
 
 export const catalogListQuerySchema = z.object({
   categoryCode,
+  keyword: z.string().trim().max(100).optional(),
   filterOptionIds: z.array(id).transform((ids) => [...new Set(ids)].sort((a, b) => a - b))
     .pipe(z.array(id).max(50)).optional(),
   keyboardConnectionStatus: statusQuery,
@@ -131,6 +132,13 @@ export function createCatalogApi(client: ApiClient) {
       const id = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(reviewId)
       const customerOrganizationId = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(organizationId)
       return client.request(`/api/v1/my/products/${encodeURIComponent(parsed)}/reviews/${id}`, catalogDetailSchema,
+        { signal, authenticated: true, customerOrganizationId })
+    },
+    getPurchased(productNo: string, orderItemId: string, organizationId: string, signal?: AbortSignal): Promise<CatalogDetail> {
+      const parsed = catalogProductNoSchema.parse(productNo)
+      const id = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(orderItemId)
+      const customerOrganizationId = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(organizationId)
+      return client.request(`/api/v1/my/products/${encodeURIComponent(parsed)}/order-items/${id}`, catalogDetailSchema,
         { signal, authenticated: true, customerOrganizationId })
     },
     categories(signal?: AbortSignal): Promise<CatalogCategory[]> {

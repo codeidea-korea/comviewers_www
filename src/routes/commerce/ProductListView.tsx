@@ -38,7 +38,10 @@ export function ProductListPage() {
   const [mobileViewport, setMobileViewport] = useState(() => matchesMedia('(max-width: 767px)'))
   const [view, setView] = useState<'cards' | 'list'>('cards')
   const [cartPopupOpen, setCartPopupOpen] = useState(false)
+  const [keyword, setKeyword] = useState(productList.catalogSelections.keyword ?? '')
+  useEffect(() => { setKeyword(productList.catalogSelections.keyword ?? '') }, [productList.catalogSelections.keyword])
   const hasAdjustableFilters = productList.catalogSelections.rooms.length > 0
+    || Boolean(productList.catalogSelections.keyword)
     || productList.catalogSelections.line !== '전체'
     || productList.catalogSelections.ip !== '전체'
     || productList.catalogSelections.purpose !== '전체'
@@ -123,6 +126,11 @@ export function ProductListPage() {
           {filterOpen && !filterDrawer ? <div className="product-filter-rail"><ProductFilter controls={productList} detailSelections={detailSelections} facets={facets} filterRef={filterRef} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} /></div> : null}
           <section className="products-content">
           {showCatalogControls ? <ProductCatalogFilterControls controls={productList} mobileFilterTrigger={!filterOpen && mobileViewport ? <button disabled={productList.filterMetadataPending} aria-label={locale === 'ko' ? '상세 필터 열기' : t('filter.open')} className="product-filter-trigger product-filter-trigger--mobile" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button"><img alt="" src={filterTuneIcon} /><span>{locale === 'ko' ? '상세 필터' : t('filter.open')}</span></button> : null} /> : null}
+          {showCatalogControls ? <form className="product-name-search" onSubmit={event => { event.preventDefault(); productList.setKeyword(keyword) }}>
+            <label htmlFor="product-name-search">상품명 검색</label>
+            <input id="product-name-search" maxLength={100} onChange={event => setKeyword(event.target.value)} placeholder="상품명을 입력해 주세요." value={keyword} />
+            <button type="submit">검색</button>
+          </form> : null}
           {showCatalogControls ? <div className="product-results-toolbar" ref={resultsToolbarRef}>
             <div><span className="product-result-count notranslate" translate="no">{locale === 'ko' ? <><span>총</span><span><strong>{resultTotal}</strong>개</span><span>상품</span></> : <TranslatedText id="product.totalCount" values={{ count: resultTotal }} />}</span><span className="product-results-toolbar__divider" /><label className="product-availability-switch"><Checkbox disabled={capabilities?.instantOnly === false} aria-label={t('product.instantOnly')} checked={instantOnly} onChange={(event) => setInstantOnly(event.target.checked)} role="switch" variant="switch" /><span className="product-availability-switch__track" aria-hidden="true" /><TranslatedText id="product.instantOnly" /></label></div>
             <div className="product-view-toggle notranslate" translate="no"><button aria-label={t('product.cardView')} aria-pressed={view === 'cards'} onClick={() => setView('cards')} type="button"><img alt="" src={viewGridIcon} /></button><button aria-label={t('product.listView')} aria-pressed={view === 'list'} onClick={() => setView('list')} type="button"><img alt="" src={viewListIcon} /></button></div>
