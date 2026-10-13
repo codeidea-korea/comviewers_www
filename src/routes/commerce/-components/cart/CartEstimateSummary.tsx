@@ -26,13 +26,13 @@ export function CartEstimateSummary({ estimate, selectedCount, disabled, quoteEr
           <div className="cart-summary__main"><dt><TranslatedText id="nav.parts" /></dt><dd><CartMoney value={estimate.partTotal} /></dd></div>
         </div>
         <div aria-hidden="true" className="cart-summary__divider" />
-        <div className="purchase-summary__points cart-summary__points"><dt><TranslatedText id="cart.pointsToEarn" /></dt><dd className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{estimate.pointTotal === null ? <span>-</span> : locale === 'ko' ? <><span>{estimate.pointTotal}</span><span>점</span></> : <span>{t('money.pointAmount', { points: estimate.pointTotal })}</span>}</dd></div>
+        <div className="purchase-summary__points cart-summary__points"><dt><TranslatedText id="cart.pointsToEarn" /></dt><dd className="notranslate" translate="no">{estimate.pointTotal === null ? <span>-</span> : locale === 'ko' ? <><span>{estimate.pointTotal}</span><span>점</span></> : <span>{t('money.pointAmount', { points: estimate.pointTotal })}</span>}</dd></div>
         <div aria-hidden="true" className="cart-summary__divider" />
         <div className="purchase-summary__total cart-summary__total"><dt><TranslatedText id="cart.estimatedPayment" /></dt><dd><CartMoney value={estimate.expectedTotal} /></dd></div>
         <div aria-hidden="true" className="cart-summary__divider" />
       </dl>
       <p><TranslatedText id="cart.benefitsAtCheckout" /></p>
     </div>
-    <div className="purchase-summary__actions cart-summary__actions"><button className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined} disabled={disabled || !selectedCount} onClick={onPurchase} type="button">{locale === 'ko' ? <><strong>선택 상품 {selectedCount}개</strong> 구매하기</> : <strong>{t('cart.purchaseSelected', { count: selectedCount })}</strong>}</button><button onClick={onPrevious} type="button"><TranslatedText id="common.previousPage" /></button></div>
+    <div className="purchase-summary__actions cart-summary__actions"><button className="notranslate" translate="no" disabled={disabled || !selectedCount} onClick={onPurchase} type="button">{locale === 'ko' ? <><strong>선택 상품 {selectedCount}개</strong> 구매하기</> : <strong>{t('cart.purchaseSelected', { count: selectedCount })}</strong>}</button><button onClick={onPrevious} type="button"><TranslatedText id="common.previousPage" /></button></div>
   </aside>
 }

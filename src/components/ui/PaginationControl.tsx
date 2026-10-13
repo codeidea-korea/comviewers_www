@@ -34,7 +34,7 @@ export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: P
   const pages = createPageItems(safeCurrent, safeTotal)
 
   return (
-    <nav aria-label="페이지 이동" className={['pagination', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>
+    <nav aria-label="페이지 이동" className="pagination notranslate" translate="no">
       <button aria-label={t('common.previousPage')} className="pagination__arrow" disabled={safeCurrent === 1} onClick={() => onPageChange?.(safeCurrent - 1)} type="button">
         <img alt="" src={chevronLeft} />
       </button>

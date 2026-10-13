@@ -4,5 +4,5 @@ export function CartMoney({ className = '', value }: { className?: string; value
   const { locale, t } = useTranslation()
   if (value === null) return <span className={`cart-money${className ? ` ${className}` : ''}`}>-</span>
   const amount = value.toLocaleString('ko-KR')
-  return <span className={`cart-money${import.meta.env.DEV ? ' notranslate' : ''}${className ? ` ${className}` : ''}`} translate={import.meta.env.DEV ? 'no' : undefined}>{locale === 'ko' ? <><span>{amount}</span><span>원</span></> : <span>{t('money.krwAmount', { amount })}</span>}</span>
+  return <span className={`cart-money notranslate${className ? ` ${className}` : ''}`} translate="no">{locale === 'ko' ? <><span>{amount}</span><span>원</span></> : <span>{t('money.krwAmount', { amount })}</span>}</span>
 }

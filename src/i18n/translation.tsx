@@ -11,5 +11,5 @@ export function useTranslation() {
 /** React owns this text; Google must not replace its DOM nodes. */
 export function TranslatedText({ id, values, className }: { id: TranslationKey; values?: Values; className?: string }) {
   const { t } = useTranslation()
-  return <span className={[import.meta.env.DEV ? 'notranslate' : '', className].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>{t(id, values)}</span>
+  return <span className={['notranslate', className].filter(Boolean).join(' ')} translate="no">{t(id, values)}</span>
 }

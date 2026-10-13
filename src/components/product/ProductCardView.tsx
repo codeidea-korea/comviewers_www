@@ -27,7 +27,7 @@ function ProductSpec({ className = '', label, value, tone }: { className?: strin
 function PriceValue({ amount, compact = false }: { amount: number | null; compact?: boolean }) {
   const { locale, t } = useTranslation()
   return (
-    <strong translate={import.meta.env.DEV ? 'no' : undefined} className={`${import.meta.env.DEV ? 'notranslate' : ''} ${compact ? 'product-card__price-value product-card__price-value--compact' : 'product-card__price-value'}`}>
+    <strong translate="no" className={`notranslate ${compact ? 'product-card__price-value product-card__price-value--compact' : 'product-card__price-value'}`}>
       {amount === null ? <b>{t('common.noInformation')}</b> : locale === 'ko' ? <><b>{formatPrice(amount)}</b><small>원</small></> : <b>{t('money.krwAmount', { amount: formatPrice(amount) })}</b>}
     </strong>
   )
@@ -50,12 +50,12 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">
-          <ProductSpec label={<TranslatedText id="product.number" />} value={<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.productId}</span>} />
-          <ProductSpec className="product-card__spec--os" label="OS" value={visual.label || product.os ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{visual.label ?? product.os}</span> : <TranslatedText id="common.noInformation" />} />
-          <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec label={<TranslatedText id="product.number" />} value={<span className="notranslate" translate="no">{product.productId}</span>} />
+          <ProductSpec className="product-card__spec--os" label="OS" value={visual.label || product.os ? <span className="notranslate" translate="no">{visual.label ?? product.os}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className="notranslate" translate="no">{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--ram" label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--disk" label="DISK" tone="gray" value={product.disk ?? <TranslatedText id="common.noInformation" />} />
-          <ProductSpec className="product-card__spec--gpu" label="GPU" tone="red" value={product.gpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.gpu}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--gpu" label="GPU" tone="red" value={product.gpu ? <span className="notranslate" translate="no">{product.gpu}</span> : <TranslatedText id="common.noInformation" />} />
           {isLarge ? (
             <>
               <ProductSpec

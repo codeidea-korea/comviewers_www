@@ -11,7 +11,7 @@ export function isTranslationLocale(value: string): value is TranslationLocale {
 }
 
 function storedLocale(): PageLocale {
-  if (!import.meta.env?.DEV || typeof window === 'undefined') return 'ko'
+  if (typeof window === 'undefined') return 'ko'
   try {
     const value = window.sessionStorage.getItem(storageKey) ?? 'ko'
     return isTranslationLocale(value) ? value : 'ko'
@@ -31,7 +31,7 @@ export function subscribeTranslation(listener: () => void) {
 export function getTranslationLocale(): PageLocale { return currentLocale }
 
 export function setTranslationLocale(value: string) {
-  const next = import.meta.env?.DEV && isTranslationLocale(value) ? value : 'ko'
+  const next = isTranslationLocale(value) ? value : 'ko'
   if (currentLocale === next) return
   currentLocale = next
   try { window.sessionStorage.setItem(storageKey, next) }

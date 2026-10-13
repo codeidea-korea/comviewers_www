@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 import { getTranslationLocale, isTranslationLocale, setTranslationLocale, useTranslation } from '../../i18n/translation'
+import { LanguageMenu, type LanguageChoice } from './LanguageMenu'
 import './google-translate-trial.css'
 
 type TranslateWindow = Window & {
@@ -25,26 +26,21 @@ function resetTranslation() {
 function isPublicTrialPage(pathname: string) {
   return pathname === '/' || /^\/(?:products|support)(?:\/[^/]+)?$/.test(pathname)
     || ['/company', '/terms', '/privacy'].includes(pathname)
+    || pathname === '/community/posts' || pathname === '/community/reviews'
+    || /^\/community\/posts\/(?!new$)[^/]+$/.test(pathname)
 }
 
-/** Development-only trial. Loading requires an explicit click on a public page. */
+/** Google translation loads after a language choice on public pages. */
 export function GoogleTranslateTrial() {
   const { pathname } = useLocation()
-  if (!import.meta.env.DEV) return null
   if (!isPublicTrialPage(pathname)) return <ManualTranslationControls />
   return <TranslateWidget />
 }
 
 export function ManualTranslationControls() {
   const { locale } = useTranslation()
-  if (!import.meta.env.DEV) return null
   return <div className="google-translate-trial notranslate" translate="no">
-    <select aria-label="페이지 번역 언어" value={locale} onChange={event => { clearTranslationCookie(); setTranslationLocale(event.target.value) }}>
-      <option value="ko">한국어</option><option value="vi">Tiếng Việt</option>
-      <option value="ja">日本語</option><option value="en">English</option>
-      <option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option>
-    </select>
-    {locale !== 'ko' ? <button type="button" onClick={() => { clearTranslationCookie(); setTranslationLocale('ko') }}>번역 종료</button> : null}
+    <LanguageMenu locale={locale} onSelect={value => { clearTranslationCookie(); setTranslationLocale(value) }} />
   </div>
 }
 
@@ -53,6 +49,7 @@ function googleLanguageCookie() {
 }
 
 function TranslateWidget() {
+  const { locale } = useTranslation()
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const started = useRef(false)
   const mounted = useRef(false)
@@ -60,6 +57,62 @@ function TranslateWidget() {
   const readyCallback = useRef<(() => void) | undefined>(undefined)
   const observer = useRef<MutationObserver | undefined>(undefined)
   const languageCookie = useRef('')
+
+  const start = useCallback(() => {
+    if (started.current) return
+    clearTranslationCookie()
+    languageCookie.current = googleLanguageCookie()
+    started.current = true
+    setStatus('loading')
+    const host = window as TranslateWindow
+    const fail = (reason: 'timeout' | 'script' | 'api' | 'container' | 'widget') => {
+      console.warn(`Google translation unavailable: ${reason}`)
+      clearTimeout(timer.current)
+      observer.current?.disconnect()
+      document.getElementById(scriptId)?.remove()
+      document.getElementById(widgetId)?.replaceChildren()
+      if (host.comviewersTranslateReady === readyCallback.current) delete host.comviewersTranslateReady
+      started.current = false
+      if (mounted.current) {
+        setTranslationLocale('ko')
+        setStatus('error')
+      }
+    }
+    const initialize = () => {
+      if (!mounted.current) return
+      const TranslateElement = host.google?.translate?.TranslateElement
+      if (!TranslateElement) { fail('api'); return }
+      try {
+        const container = document.getElementById(widgetId)
+        if (!container) { fail('container'); return }
+        observer.current = new MutationObserver(() => {
+          const select = container.querySelector<HTMLSelectElement>('select.goog-te-combo')
+          if (!select?.querySelector('option[value="en"]')) return
+          clearTimeout(timer.current)
+          observer.current?.disconnect()
+          if (mounted.current) setStatus('ready')
+          const locale = getTranslationLocale()
+          if (locale !== 'ko' && select.value !== locale) {
+            select.value = locale
+            select.dispatchEvent(new Event('change', { bubbles: true }))
+          }
+        })
+        observer.current.observe(container, { childList: true, subtree: true })
+        new TranslateElement({ pageLanguage: 'ko', includedLanguages: 'en,ja,zh-CN,zh-TW', autoDisplay: false }, widgetId)
+      } catch { fail('widget') }
+    }
+    readyCallback.current = initialize
+    host.comviewersTranslateReady = initialize
+    timer.current = setTimeout(() => fail('timeout'), 15000)
+    if (host.google?.translate?.TranslateElement) { initialize(); return }
+    if (document.getElementById(scriptId)) return
+    const script = document.createElement('script')
+    script.id = scriptId
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=comviewersTranslateReady'
+    script.async = true
+    script.onerror = () => fail('script')
+    document.head.appendChild(script)
+  }, [])
 
   useEffect(() => {
     mounted.current = true
@@ -101,8 +154,13 @@ function TranslateWidget() {
       window.location.assign(target.href)
     }
     document.addEventListener('click', followLink, true)
+    const resumeTimer = window.setTimeout(() => {
+      const savedLocale = getTranslationLocale()
+      if (savedLocale !== 'ko' && savedLocale !== 'vi') start()
+    }, 0)
     return () => {
       mounted.current = false
+      window.clearTimeout(resumeTimer)
       document.removeEventListener('change', onLanguageChange, true)
       window.clearInterval(languageTimer)
       clearTimeout(timer.current)
@@ -119,61 +177,28 @@ function TranslateWidget() {
         window.location.reload()
       }
     }
-  }, [])
+  }, [start])
 
-  const start = () => {
-    if (started.current) return
-    clearTranslationCookie()
-    languageCookie.current = googleLanguageCookie()
-    started.current = true
-    setStatus('loading')
-    const host = window as TranslateWindow
-    const fail = () => {
-      clearTimeout(timer.current)
-      observer.current?.disconnect()
-      if (mounted.current) setStatus('error')
+  const selectLanguage = (value: LanguageChoice) => {
+    if (value === 'ko') {
+      if (started.current) resetTranslation()
+      else { clearTranslationCookie(); setTranslationLocale('ko') }
+      return
     }
-    const initialize = () => {
-      if (!mounted.current) return
-      const TranslateElement = host.google?.translate?.TranslateElement
-      if (!TranslateElement) { fail(); return }
-      try {
-        const container = document.getElementById(widgetId)
-        if (!container) { fail(); return }
-        observer.current = new MutationObserver(() => {
-          const select = container.querySelector<HTMLSelectElement>('select.goog-te-combo')
-          if (!select?.querySelector('option[value="en"]')) return
-          clearTimeout(timer.current)
-          observer.current?.disconnect()
-          if (mounted.current) setStatus('ready')
-          const locale = getTranslationLocale()
-          if (locale !== 'ko' && select.value !== locale) {
-            select.value = locale
-            select.dispatchEvent(new Event('change', { bubbles: true }))
-          }
-        })
-        observer.current.observe(container, { childList: true, subtree: true })
-        new TranslateElement({ pageLanguage: 'ko', includedLanguages: 'en,ja,zh-CN,zh-TW,vi', autoDisplay: false }, widgetId)
-      } catch { fail() }
+    setTranslationLocale(value)
+    if (status === 'ready') {
+      const select = document.getElementById(widgetId)?.querySelector<HTMLSelectElement>('select.goog-te-combo')
+      if (select && select.value !== value) {
+        select.value = value
+        select.dispatchEvent(new Event('change', { bubbles: true }))
+      }
+      return
     }
-    readyCallback.current = initialize
-    host.comviewersTranslateReady = initialize
-    timer.current = setTimeout(fail, 15000)
-    if (host.google?.translate?.TranslateElement) { initialize(); return }
-    if (document.getElementById(scriptId)) return
-    const script = document.createElement('script')
-    script.id = scriptId
-    script.src = 'https://translate.google.com/translate_a/element.js?cb=comviewersTranslateReady'
-    script.async = true
-    script.onerror = fail
-    document.head.appendChild(script)
+    if (status !== 'loading') start()
   }
 
   return <div className="google-translate-trial notranslate" translate="no">
-    {status === 'idle' ? <button type="button" onClick={start}>🌐 페이지 번역</button> : null}
-    {status === 'loading' ? <span role="status">번역기 불러오는 중…</span> : null}
-    <div id={widgetId} data-active={status !== 'idle' ? 'true' : undefined} />
-    {status === 'error' ? <span className="google-translate-trial__error" role="alert">번역기를 불러오지 못했습니다.</span> : null}
-    {status !== 'idle' ? <button type="button" onClick={resetTranslation}>번역 종료</button> : null}
+    <LanguageMenu locale={locale} onSelect={selectLanguage} status={status} />
+    <div id={widgetId} data-active={status === 'loading' || status === 'ready' ? 'true' : undefined} />
   </div>
 }

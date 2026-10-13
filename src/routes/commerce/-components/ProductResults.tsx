@@ -21,7 +21,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
   const openProduct = () => {
     const path = `/products/${product.productId}`
-    if (import.meta.env.DEV && document.getElementById('comviewers-google-translate')?.dataset.active === 'true') {
+    if (document.getElementById('comviewers-google-translate')?.dataset.active === 'true') {
       window.location.assign(path)
       return
     }
@@ -62,7 +62,7 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
   const partOnly = products.length > 0 && products.every((product) => product.pricingType === 'one_time' && product.billingUnit === 'unit')
   return (
 <div className="product-table-wrap">
-              <table className={['product-list-table', import.meta.env.DEV ? 'notranslate' : ''].filter(Boolean).join(' ')} translate={import.meta.env.DEV ? 'no' : undefined}>
+              <table className="product-list-table notranslate" translate="no">
                 <caption className="sr-only">RCPC 상품 목록</caption>
                 <colgroup>
                   <col style={{ width: '52px' }} />

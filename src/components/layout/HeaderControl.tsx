@@ -1,6 +1,6 @@
 import { SessionControls } from '../../app/session/SessionControls'
 import { useSession } from '../../app/session/SessionProvider'
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import logoPrimary from '../../assets/figma/logo-primary.png'
 import logoWhite from '../../assets/figma/logo-white.png'
@@ -67,16 +67,18 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
           <p>게임부터 작업까지, 원하는 PC 환경을 RCPC로 간편하게</p>
           <div className="site-header__utility-actions">
             <nav aria-label="사용자 메뉴" className="utility-menu notranslate" translate="no">
-              {visibleUtilityItems.map((item) => item.id === 'login'
-                ? <SessionControls key={item.id} loginLabel="로그인" />
-                : (
-                  <Link key={item.id} onClick={item.id === 'cart' && onCartClick ? (event) => { event.preventDefault(); onCartClick() } : undefined} to={item.href}>
-                    <MenuLabel item={item} />
-                    {item.id === 'cart' && cartCount !== undefined ? <span className="cart-count">{cartCount}</span> : null}
-                  </Link>
-                ))}
+              {visibleUtilityItems.map((item) => <Fragment key={item.id}>
+                {item.id === 'login'
+                  ? <SessionControls loginLabel="로그인" />
+                  : (
+                    <Link onClick={item.id === 'cart' && onCartClick ? (event) => { event.preventDefault(); onCartClick() } : undefined} to={item.href}>
+                      <MenuLabel item={item} />
+                      {item.id === 'cart' && cartCount !== undefined ? <span className="cart-count">{cartCount}</span> : null}
+                    </Link>
+                  )}
+                {item.id === 'cart' ? <GoogleTranslateTrial /> : null}
+              </Fragment>)}
             </nav>
-            <GoogleTranslateTrial />
           </div>
         </div>
       </div>
