@@ -1,0 +1,45 @@
+/* RCPC and favorites share connection-cell geometry and original 16px action icons. */
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) div.rcpc-wan-ip.rcpc-wan-ip--compact {
+  column-gap: 4px;
+  font-size: 12px;
+  grid-template-columns: 80px minmax(0, 1fr) 16px;
+  min-width: 0;
+  width: 100%;
+}
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access.rcpc-remote-access--compact article.rcpc-remote-provider--compact {
+  align-items: start;
+  column-gap: 4px;
+  grid-template-columns: 80px minmax(0, 1fr);
+  min-width: 0;
+  width: 100%;
+}
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact h4.rcpc-remote-provider__heading {
+  box-sizing: border-box;
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding-left: 24px;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact h4.rcpc-remote-provider__heading img {
+  height: 20px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 20px;
+}
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) div.rcpc-wan-ip.rcpc-wan-ip--compact b { font-size: 14px; font-weight: 400; }
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) div.rcpc-wan-ip.rcpc-wan-ip--compact b img { height: 20px; width: 20px; }
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider__line { gap: 4px; }
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider__actions { flex-shrink: 0; gap: 4px; }
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider--compact button,
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) div.rcpc-wan-ip.rcpc-wan-ip--compact button { flex-shrink: 0; height: 16px; padding: 0; width: 16px; }
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider--compact button img,
+:is(.rcpc-list__connect, .mypage-home-rcpc__connection) div.rcpc-wan-ip.rcpc-wan-ip--compact button img { height: 16px; object-fit: contain; width: 16px; }

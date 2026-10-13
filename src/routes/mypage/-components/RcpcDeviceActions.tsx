@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MyRcpcItem } from '@/api/myRcpc'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { RcpcRebootSurface } from '@/components/mypage/RcpcDialogsControl'
-import copyIcon from '@/assets/figma/icon-content-copy.svg'
 import eyeIcon from '@/assets/figma/scrap-eye.svg'
 import webIcon from '@/assets/figma/icon-connect-web.svg'
 import { Button } from '@/components/ui/ButtonControl'
@@ -99,6 +98,6 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
   }
   const hide = () => { hiddenByUser.current = true; sequence.current += 1; setValue(null) }
   const label = registered === false ? '미등록' : !allowed ? '이용 불가' : pendingAction === 'reveal' ? '확인 중…' : value ?? (failed ? '조회 실패' : registered === true || verified ? '숨김' : '확인 전')
-  if (compact) return <div className="rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && pendingAction !== 'reveal' && Boolean(value)}/><button aria-label={`WAN IP ${value ? '숨기기' : '보기'}`} aria-pressed={Boolean(value)} type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}><img alt="" src={eyeIcon}/></button><button aria-label="WAN IP 복사" type="button" disabled={!available || pending} onClick={() => void act('copy')}><img alt="" src={copyIcon}/></button>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
+  if (compact) return <div className="rcpc-wan-ip rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && pendingAction !== 'reveal' && Boolean(value)}/><button aria-label={`WAN IP ${value ? '숨기기' : '보기'}`} aria-pressed={Boolean(value)} type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}><img alt="" src={eyeIcon}/></button>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
   return <div>WAN IP: <span>{label}</span> <button type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}>{value ? '숨기기' : '표시'}</button> <button type="button" disabled={!available || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
 }

@@ -19,6 +19,7 @@ import { ProfileAvatar } from './ProfileAvatar'
 import windowsBackground from '@/assets/figma/windows-card-render.png'
 import windowIcon from '@/assets/figma/icon-window.png'
 import moreIcon from '@/assets/figma/notice-zoom-in.svg'
+import groupChevron from '@/assets/figma/mypage-group-chevron.png'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 import type { SortConfig } from '@/components/ui/SortButtonControl'
 
@@ -104,7 +105,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
 
       <section className="mypage-home-section mypage-home-section--rcpc">
         {heading(favoriteHeading, detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc')}
-        <div className="mypage-home-mobile-heading"><Link to={detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc'}>{favoriteHeading} <span aria-hidden="true">›</span></Link><button aria-expanded={mobileFavoriteSortOpen} aria-haspopup="dialog" className="mypage-mobile-filter-trigger" onClick={() => setMobileFavoriteSortOpen(true)} type="button">{mobileFavoriteSortLabels[favoriteSort.key] ?? '서버 상태'}<img alt="" src={sortIcon}/></button></div>
+        <div className="mypage-home-mobile-heading"><Link to={detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc'}>{favoriteHeading} <img alt="" height={24} src={groupChevron} width={24}/></Link><button aria-expanded={mobileFavoriteSortOpen} aria-haspopup="dialog" className="mypage-mobile-filter-trigger" onClick={() => setMobileFavoriteSortOpen(true)} type="button">{mobileFavoriteSortLabels[favoriteSort.key] ?? '서버 상태'}<img alt="" src={sortIcon}/></button></div>
         <AccountQueryState pending={favoritePending} error={favoriteError} retry={refetchFavorites}/>
         {favoriteItems ? <RcpcDashboardTable api={rcpcs} canEditAlias={owner} canExtend={commerce} emptyMessage={detailMode ? '선택한 RCPC를 찾을 수 없습니다.' : '즐겨찾기로 등록된 RCPC가 없습니다.'} items={favoriteItems} mutations={owner ? myAccount.rcpcMutations : undefined} onAliasSaved={refetchFavorites} onSelectedChange={setSelectedFavorites} onSort={setFavoriteSort} selectable={detailMode} selected={selectedFavorites} sortConfig={favoriteSort} mobileVariant="rcpc" showAccessValuesByDefault/> : null}
       </section>

@@ -4,10 +4,12 @@ import anydeskIcon from '@/assets/figma/icon-connect-anydesk.svg'
 import teamviewerIcon from '@/assets/figma/icon-connect-teamviewer.svg'
 import copyIcon from '@/assets/figma/icon-content-copy.svg'
 import eyeIcon from '@/assets/figma/scrap-eye.svg'
+import eyeClosedIcon from '@/assets/figma/remote-eye-closed.png'
 import type { MyRcpcDetail, MyRcpcItem, RemoteAccessType } from '@/api/myRcpc'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { ApiClientError } from '@/api/httpClient'
 import { TooltipText } from '@/components/ui/TooltipControl'
+import './rcpc-connection.css'
 
 type Revealed = Awaited<ReturnType<MyRcpcReadServices['reveal']>>
 
@@ -143,7 +145,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
   if (compact) return <article className="rcpc-remote-provider--compact">{providerHeading}
     <div className="rcpc-remote-provider__credentials">
       <div className="rcpc-remote-provider__line"><TooltipText text={`ID ${displayedId}`} tooltipText={displayedId} enabled={Boolean(revealed?.remoteId ?? visibleId)}/><button aria-label={`${providerName} ID 복사`} aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}><img alt="" src={copyIcon}/></button></div>
-      <div className="rcpc-remote-provider__line"><TooltipText text={`PW ${displayedPassword}`} tooltipText={displayedPassword} enabled={passwordConfigured && Boolean(revealed?.password)}/><span className="rcpc-remote-provider__actions"><button aria-label={`${providerName} 비밀번호 ${revealed ? '숨기기' : '보기'}`} aria-pressed={Boolean(revealed)} aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId || !passwordConfigured} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}><img alt="" src={eyeIcon}/></button><button aria-label={`${providerName} 비밀번호 복사`} aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}><img alt="" src={copyIcon}/></button></span></div>
+      <div className="rcpc-remote-provider__line"><TooltipText text={`PW ${displayedPassword}`} tooltipText={displayedPassword} enabled={passwordConfigured && Boolean(revealed?.password)}/><span className="rcpc-remote-provider__actions">{maskedId && passwordConfigured ? <button aria-label={`${providerName} 비밀번호 ${revealed ? '숨기기' : '보기'}`} aria-pressed={Boolean(revealed)} aria-busy={Boolean(busy.reveal)} disabled={busy.reveal} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}><img alt="" height={16} src={revealed ? eyeIcon : eyeClosedIcon} width={16}/></button> : null}<button aria-label={`${providerName} 비밀번호 복사`} aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}><img alt="" src={copyIcon}/></button></span></div>
     </div>
     {message ? <Toast message={message} toastKey={toastKey}/> : null}
   </article>

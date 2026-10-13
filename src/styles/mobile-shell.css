@@ -505,15 +505,7 @@
     width: 100%;
   }
   .mypage-shell:has(.mypage-home) main { min-height: 0; }
-  .mypage-shell .mypage-home-summary,
-  .mypage-shell .mypage-home-columns,
   .mypage-shell .mypage-home-section--rcpc > .mypage-home-heading { display: none; }
-  .mypage-shell .mypage-home-columns:has(.mypage-home-posts) {
-    display: block;
-    margin-top: 24px;
-  }
-  .mypage-shell .mypage-home-columns:has(.mypage-home-posts) > div:first-child,
-  .mypage-shell .mypage-home-columns > div:last-child > section:not(.mypage-home-posts) { display: none; }
   .mypage-shell .mypage-home-posts { margin-top: 0; }
   .mypage-shell .mypage-home-section--rcpc {
     height: auto;
@@ -536,12 +528,7 @@
     gap: 2px;
     letter-spacing: -.03em;
   }
-  .mypage-home-mobile-heading > a span {
-    color: var(--color-black);
-    font-size: 25px;
-    font-weight: 400;
-    line-height: 20px;
-  }
+  .mypage-home-mobile-heading > a > img { display: block; flex: 0 0 24px; height: 24px; object-fit: contain; width: 24px; }
   .mypage-shell .mypage-home-mobile-heading .mypage-mobile-filter-trigger {
     border: 0;
     color: var(--color-gray-500);
