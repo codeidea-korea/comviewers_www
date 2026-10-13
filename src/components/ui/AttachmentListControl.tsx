@@ -20,7 +20,7 @@ export function AttachmentList({ attachments, className = '', downloadIcon, icon
   return <section className={`attachment-list${className ? ` ${className}` : ''}`}>
     <h2>첨부파일 <b>{attachments.length}개</b></h2>
     {attachments.map((attachment) => attachment.href
-      ? <a href={attachment.href} key={attachment.href} rel="noreferrer" target="_blank"><span>{attachment.name} <small>{attachmentFormat(attachment)}{attachment.size ? ` · ${attachment.size}` : ''}</small></span><img alt={iconAlt} aria-hidden={iconAlt ? undefined : 'true'} className="attachment-list__download" src={downloadIcon} /></a>
-      : <button key={attachment.name} type="button"><span>{attachment.name} <small>{attachmentFormat(attachment)}{attachment.size ? ` · ${attachment.size}` : ''}</small></span><img alt={iconAlt} aria-hidden={iconAlt ? undefined : 'true'} className="attachment-list__download" src={downloadIcon} /></button>)}
+      ? <a href={attachment.href} key={attachment.href} rel="noreferrer" target="_blank"><span className="attachment-list__filename" title={attachment.name}>{attachment.name} <small>{attachmentFormat(attachment)}{attachment.size ? ` · ${attachment.size}` : ''}</small></span><img alt={iconAlt} aria-hidden={iconAlt ? undefined : 'true'} className="attachment-list__download" src={downloadIcon} /></a>
+      : <button key={attachment.name} type="button"><span className="attachment-list__filename" title={attachment.name}>{attachment.name} <small>{attachmentFormat(attachment)}{attachment.size ? ` · ${attachment.size}` : ''}</small></span><img alt={iconAlt} aria-hidden={iconAlt ? undefined : 'true'} className="attachment-list__download" src={downloadIcon} /></button>)}
   </section>
 }
