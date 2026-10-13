@@ -14,13 +14,8 @@ type Revealed = Awaited<ReturnType<MyRcpcReadServices['reveal']>>
 type RemoteAccessItem = MyRcpcItem | MyRcpcDetail
 type RemoteAction = 'reveal' | 'remote_id' | 'password'
 
-const kstDateParts = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
-})
-
 function accessDeadline(serviceEndsAt: string): number {
-  const parts = Object.fromEntries(kstDateParts.formatToParts(new Date(serviceEndsAt)).map(part => [part.type, part.value]))
-  return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day) + 2) - 9 * 60 * 60 * 1000
+  return Date.parse(serviceEndsAt) + 48 * 60 * 60 * 1000
 }
 
 function remoteAccessErrorMessage(error: unknown): string {

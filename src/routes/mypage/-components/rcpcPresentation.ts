@@ -21,6 +21,12 @@ export function rentalPeriodText(item: RentalPeriodItem): string {
   const status = rentalOperationalStatus(item)
   if (status === 'rental_waiting') return '이용대기'
   if (status === 'terminated' || status === 'refunded') return '이용 종료'
+  const endsAt = item.serviceEndsAt ? Date.parse(item.serviceEndsAt) : NaN
+  const now = Date.now()
+  if (Number.isFinite(endsAt) && now >= endsAt) {
+    const elapsedDays = Math.floor((now - endsAt) / 86_400_000)
+    return elapsedDays === 0 ? '만료됨' : `${elapsedDays}일 지남`
+  }
   const days = rentalDaysRemaining(item)
   if (days === null) return '-'
   if (days < 0) return `${Math.abs(days)}일 지남`
@@ -30,13 +36,18 @@ export function rentalOperationalStatus(item: RentalPeriodItem) {
   if (endedRental(item.rentalStatus)) return item.rentalStatus
   if (item.usageStatus === 'ended') return 'terminated'
   if (item.operationalStatus === 'terminated' || item.operationalStatus === 'refunded' || item.operationalStatus === 'rental_waiting') return item.operationalStatus
-  // Recalculate date-derived states locally so an older response does not survive KST midnight.
+  // Recalculate time-derived states locally so an older response does not survive the 48-hour cutoff.
   const days = rentalDaysRemaining(item)
-  if (days !== null) return days <= -3 ? 'termination_waiting' : days <= 1 ? 'extension_waiting' : 'active'
+  if (gracePeriodElapsed(item)) return 'termination_waiting'
+  if (days !== null) return days <= 1 ? 'extension_waiting' : 'active'
   return item.operationalStatus ?? (item.usageStatus === 'extension_waiting' ? 'extension_waiting' : 'active')
 }
+const gracePeriodElapsed = (item: RentalPeriodItem, now = new Date()) => {
+  const endsAt = item.serviceEndsAt ? Date.parse(item.serviceEndsAt) : NaN
+  return Number.isFinite(endsAt) ? now.getTime() >= endsAt + 48 * 60 * 60 * 1000 : (rentalDaysRemaining(item, now) ?? 0) <= -2
+}
 export const extensionBlocked = (item: RentalPeriodItem) =>
-  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || (rentalDaysRemaining(item) ?? 0) <= -2 || ['termination_waiting', 'terminated', 'refunded'].includes(rentalOperationalStatus(item))
+  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || gracePeriodElapsed(item) || ['termination_waiting', 'terminated', 'refunded'].includes(rentalOperationalStatus(item))
 export const rentalServiceAccessible = (item: RentalPeriodItem) =>
   item.rentalStatus === 'active' && !extensionBlocked(item) && ['using', 'extension_waiting'].includes(item.usageStatus)
 export const traffic = (bytes: number | null) => bytes === null ? '-' : `${(bytes / 1_000_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 2 })} GB`
