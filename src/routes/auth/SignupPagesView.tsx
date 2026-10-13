@@ -7,12 +7,11 @@ import { useLocation } from 'react-router'
 
 function CompletePage() {
   const state = useLocation().state as { username?: string; name?: string; email?: string } | null
-  const result = { email: 'email@mydomain.com', username: 'loginid', name: '김컴뷰', ...state }
   return (
     <AuthPage variant="signup-complete"><AuthPanel result>
-      <AuthHeading title="회원가입 신청이 완료되었습니다." />
-      <div className="result-copy"><p><strong>{result.name}</strong>님의 회원가입을 위한 <u>이메일 인증</u>이 필요합니다.</p><p>입력하신 이메일 주소로 인증 메일을 발송했습니다.<br />이메일 인증을 완료하면 회원가입이 최종 완료되며 서비스를 이용할 수 있습니다.</p><dl><div><dt>이름</dt><dd>{result.name}</dd></div><div><dt>아이디</dt><dd>{result.username}</dd></div><div><dt>Email</dt><dd>{result.email}</dd></div></dl></div>
-      <Button as={Link} size="large" to="/">메인으로</Button>
+      <AuthHeading title="회원가입이 완료되었습니다." />
+      <div className="result-copy"><p>{state?.name ? <><strong>{state.name}</strong>님의 </> : null}회원가입이 완료되었습니다.</p><p>이제 가입한 아이디와 비밀번호로 로그인할 수 있습니다.</p>{state ? <dl>{state.name ? <div><dt>이름</dt><dd>{state.name}</dd></div> : null}{state.username ? <div><dt>아이디</dt><dd>{state.username}</dd></div> : null}{state.email ? <div><dt>Email</dt><dd>{state.email}</dd></div> : null}</dl> : null}</div>
+      <Button as={Link} size="large" to="/login">로그인하기</Button>
     </AuthPanel></AuthPage>
   )
 }

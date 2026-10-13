@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { useNavigate } from 'react-router'
 import { getPublicAccountApi, type RegistrationInput } from '@/api/publicAccount'
 import { clearSignupAgreements } from './signupDraft'
-import { listenForEmailVerification } from './emailVerificationChannel'
+import { deliverSignupCompletion, listenForEmailVerification } from './emailVerificationChannel'
 
 export interface PendingSignupSubmission {
   registration: Omit<RegistrationInput, 'emailVerificationProof' | 'profileImageUploadKey'>
@@ -70,6 +70,7 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
       pending.current = null
       setRequestId('')
       setAwaitingEmail('')
+      deliverSignupCompletion(current.requestId)
       navigate('/signup/complete', {
         replace: true,
         state: { username: registration.username, name: registration.name, email: current.email },
