@@ -110,6 +110,7 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
   windowOpening = true
   let control: PaymentWindow | undefined
   let requestPending = false
+  let requestRejected = false
   let unlockBackground: (() => void) | undefined
   try {
     const payload = validatedPayload(payment)
@@ -142,6 +143,7 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
           ...(customerMobilePhone ? { customerMobilePhone } : {}) })
       }).then(() => { requestPending = false; finish() }).catch(error => {
         requestPending = false
+        requestRejected = true
         const code = providerErrorCode(error)
         if (code === 'PAY_PROCESS_CANCELED' || code === 'USER_CANCEL' || code === 'PAYMENT_REQUEST_ABORTED') {
           finish(new PaymentWindowCancelledError('결제를 취소했습니다. 다시 시도할 수 있습니다.'))
@@ -150,7 +152,9 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
     })
   } finally {
     try {
-      if (control && requestPending) {
+      // A rejected request can leave the SDK iframe mounted over the checkout.
+      // Keep the successful redirect path untouched while cleaning up cancelled attempts.
+      if (control && (requestPending || requestRejected)) {
         try { await control.destroy() } catch (error) {
           if (providerErrorCode(error) !== 'NO_ACTIVE_PAYMENT_REQUEST') {
             throw new Error('결제창을 닫지 못했습니다. 페이지를 새로고침해 주세요.')
