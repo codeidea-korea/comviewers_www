@@ -33,7 +33,7 @@ export function OrganizationSelector() {
     {error && <span role="alert">{error}</span>}
   </label>
 }
-export function SessionControls({ loginLabel = '로그인' }: { loginLabel?: string } = {}) {
+export function SessionControls({ loginLabel = '로그인', appearance = 'default' }: { loginLabel?: string; appearance?: 'default' | 'mobile-menu' } = {}) {
   const session = useSession()
   const auth = useAuthentication()
   const profileImage = useSessionProfileImage()
@@ -61,6 +61,7 @@ export function SessionControls({ loginLabel = '로그인' }: { loginLabel?: str
   if (session.status === 'anonymous') return <span className="session-controls"><Link to="/login">{loginLabel === '로그인' ? <TranslatedText id="nav.login" /> : loginLabel === '로그인하기' ? <TranslatedText id="auth.loginAction" /> : loginLabel}</Link>{auth.logoutNotice && <span role="status">{auth.logoutNotice}</span>}</span>
   if (session.status === 'password-change-required') return <span className="session-controls"><span>비밀번호 변경 필요</span><button type="button" onClick={() => { void auth.logout().catch(() => setError('로그아웃 상태를 다시 확인해 주세요.')) }}><TranslatedText id="nav.logout" /></button>{error && <span role="alert">{error}</span>}</span>
   const displayName = session.customerSession?.displayName?.trim() || '회원'
+  if (appearance === 'mobile-menu') return <span className="session-controls session-controls--mobile-menu"><Link to="/mypage"><TranslatedText id="nav.myPage" /></Link><button type="button" onClick={() => { void auth.logout().catch(() => setError('로그아웃 상태를 다시 확인해 주세요.')) }}><TranslatedText id="nav.logout" /></button>{session.organizationIds.length > 1 ? <OrganizationSelector/> : null}{error ? <span role="alert">{error}</span> : null}</span>
   return <span className="session-controls">
     <details className="session-user-menu" ref={menuRef}>
       <summary><img key={profileImage || 'default'} alt="" aria-hidden="true" src={profileImage || userIcon} onError={event => { if (profileImage && event.currentTarget.getAttribute('src') !== userIcon) event.currentTarget.src = userIcon }} /><span>{displayName}</span></summary>

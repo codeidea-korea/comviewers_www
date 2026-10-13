@@ -40,7 +40,7 @@ export function GoogleTranslateTrial() {
 export function ManualTranslationControls({ compact = false }: { compact?: boolean } = {}) {
   const { locale } = useTranslation()
   return <div className="google-translate-trial notranslate" translate="no">
-    <LanguageMenu locale={locale} triggerLabel={compact ? ({ ko: 'KOR', en: 'ENG', ja: 'JPN', 'zh-CN': 'CHN', 'zh-TW': 'TWN', vi: 'VIE' }[locale]) : undefined} onSelect={value => { clearTranslationCookie(); setTranslationLocale(value) }} />
+    <LanguageMenu locale={locale} triggerLabel={compact ? ({ ko: '한국어', en: 'English', ja: '日本語', 'zh-CN': '简体中文', 'zh-TW': '繁體中文', vi: 'Tiếng Việt' }[locale]) : undefined} onSelect={value => { clearTranslationCookie(); setTranslationLocale(value) }} />
   </div>
 }
 

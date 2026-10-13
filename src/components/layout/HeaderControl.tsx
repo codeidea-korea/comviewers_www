@@ -62,7 +62,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
   }
 
   return (
-    <header className={`site-header site-header--${state}${scrolled ? ' site-header--scrolled' : ''}`}>
+    <header className={`site-header site-header--${state}${scrolled ? ' site-header--scrolled' : ''}${mobileOpen ? ' site-header--menu-open' : ''}`}>
       <div className="site-header__utility">
         <div className="site-header__inner">
           <p>게임부터 작업까지, 원하는 PC 환경을 RCPC로 간편하게</p>
@@ -86,7 +86,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
       <div className="site-header__primary">
         <div className="site-header__inner">
           <Link className="site-logo" to={restricted ? '/mypage/rcpc' : '/'}>
-            <picture><source media="(min-width: 768px)" srcSet={logoPrimary}/><img alt="ComViewers" src={isMain && !scrolled ? logoWhite : logoPrimary} /></picture>
+            <picture><source media="(min-width: 768px)" srcSet={logoPrimary}/><img alt="ComViewers" src={isMain && !scrolled && !mobileOpen ? logoWhite : logoPrimary} /></picture>
           </Link>
           <nav aria-label="주 메뉴" className="main-menu">
             {visibleMenuItems.map((item) => <Link key={item.id} to={item.href}><MenuLabel item={item} /></Link>)}
@@ -110,7 +110,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
         <div className="mobile-site-menu__main">
           {visibleMenuItems.map((item) => <Link key={item.id} onClick={closeMobileMenu} to={item.href}><MenuLabel item={item} /></Link>)}
         </div>
-        <div className="mobile-site-menu__auth notranslate" translate="no"><SessionControls />
+        <div className="mobile-site-menu__auth notranslate" translate="no"><SessionControls appearance="mobile-menu" />
           {visibleUtilityItems.filter(item => item.id !== 'cart' && item.id !== 'login').map((item) => (
             <Link key={item.id} onClick={(event) => { closeMobileMenu(); if (item.id === 'cart' && onCartClick) { event.preventDefault(); onCartClick() } }} to={item.href}>
               <MenuLabel item={item} />{item.id === 'cart' && cartCount !== undefined ? <span className="cart-count">{cartCount}</span> : null}

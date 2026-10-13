@@ -16,7 +16,6 @@ import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 import { managerScopedPath } from './-components/managerPortalPath'
 import { productNoSearchSchema } from '@/api/productNo'
 import { TranslatedText, type TranslationKey } from '../../i18n/translation'
-import { ManualTranslationControls } from '../../components/layout/GoogleTranslateTrial'
 import { PageBackButton } from '@/components/common/PageBackButton'
 
 interface MyPageMenuItem { id: string; label: string; href: string; disabled?: boolean }
@@ -162,8 +161,7 @@ export function MyPageLayout({ backTo, children, footerVariant = 'default', mobi
         onSearchOpen={() => { setMobileMenuOpen(false); setMobileSearchOpen(true) }}
       />}
       {mobileMenuOpen ? <nav aria-label="모바일 마이페이지 메뉴" className="mypage-mobile-menu" id="mypage-mobile-menu">
-        <ManualTranslationControls />
-        {isManager ? <button className="mypage-mobile-menu__exit" onClick={exitMyPage} type="button">로그아웃</button> : <Link className="mypage-mobile-menu__exit" onClick={() => setMobileMenuOpen(false)} to="/">쇼핑몰 홈으로 이동</Link>}
+        {isManager ? <button className="mypage-mobile-menu__exit" onClick={exitMyPage} type="button">로그아웃</button> : null}
         {menu.map((group) => (
           <section className={group.items.length ? 'has-children' : ''} key={group.id}>
             <h2>{group.href ? (group.disabled ? <span><MyPageMenuLabel item={group} /></span> : <Link onClick={() => setMobileMenuOpen(false)} className={isCurrentMenuPath(group.href) ? 'is-active' : undefined} state={group.opensPasswordGate ? profileEntryState : undefined} to={group.href}><MyPageMenuLabel item={group} /></Link>) : <MyPageMenuLabel item={group} />}</h2>

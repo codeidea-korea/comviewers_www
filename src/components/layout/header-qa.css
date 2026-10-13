@@ -6,4 +6,13 @@
 }
 @media (max-width: 767px) {
   .app-shell > header.site-header > :not(.mobile-site-menu) .google-translate-trial { display: none; }
+  .app-shell > header.site-header.site-header--menu-open,
+  .app-shell > header.site-header.site-header--menu-open .site-header__primary { background: var(--color-white); border-color: var(--color-gray-200); color: var(--color-black); }
+  .app-shell > header.site-header.site-header--menu-open .mobile-menu-toggle { color: var(--color-black); }
+  .app-shell > header.site-header.site-header--menu-open :is(.mobile-menu-toggle__close, .mobile-cart-button > img) { filter: none; }
+  .app-shell > header.site-header .mobile-menu-toggle__close { height: 24px; width: 24px; }
+  .app-shell > header.site-header .mobile-site-menu__auth { align-items: center; flex-direction: row; flex-wrap: wrap; gap: 12px; justify-content: center; min-height: 200px; padding-top: 12px; }
+  .app-shell > header.site-header .mobile-site-menu__auth .session-controls--mobile-menu { align-items: center; display: flex; gap: 12px; width: auto; }
+  .app-shell > header.site-header .session-controls--mobile-menu > :is(a, button) { background: transparent; border: 0; color: var(--color-black); font-size: 12px; height: 24px; padding: 0; text-decoration: none; }
+  .app-shell > header.site-header .session-controls--mobile-menu > button { border-left: 1px solid var(--color-gray-200); padding-left: 12px; }
 }
