@@ -260,4 +260,32 @@
   .mypage-shell .mypage-home .mypage-home-use__orders > p { flex-wrap: wrap; font-size: 14px; gap: 4px; height: auto; }
   .mypage-shell .mypage-home .mypage-home-use__tooltip { right: 0; }
   .mypage-shell .mypage-home .mypage-home-text-list { width: 100%; }
+  .mypage-shell .mypage-home,
+  .mypage-shell .mypage-home-section--rcpc,
+  .mypage-shell .mypage-home-section--rcpc > .mobile-rcpc-list { box-sizing: border-box; max-width: 100%; min-width: 0; }
+  .mypage-shell .mypage-home-mobile-heading { gap: 12px; min-width: 0; }
+  .mypage-shell .mypage-home-mobile-heading > a { flex: 1 1 0; min-width: 0; }
+  .mypage-shell .mypage-home-mobile-heading .mypage-mobile-filter-trigger { flex: 0 0 auto; white-space: nowrap; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-access--compact { min-width: 0; width: 100%; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider--compact { align-items: start; grid-template-columns: 80px minmax(0, 1fr); }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider--compact h4 { box-sizing: border-box; display: block; line-height: 20px; min-width: 0; overflow: hidden; padding-left: 24px; position: relative; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider--compact h4 img { left: 0; position: absolute; top: 0; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__empty { font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__line > :first-child { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__line > button,
+  .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__actions { flex-shrink: 0; }
+  .mypage-home .mobile-rcpc-card__period dd { align-items: center; flex-direction: row; gap: 4px; }
+  .mypage-home .mobile-rcpc-card__period strong { flex: 0 0 auto; }
+  .mypage-home .mobile-rcpc-card__period small { font-size: 10px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mypage-home .mobile-rcpc-card__spec { align-items: center; display: inline-flex; flex-shrink: 0; font-size: 12px; gap: 2px; }
+  .mypage-home .mobile-rcpc-card__spec button { color: var(--color-gray-600); font-size: 12px; }
+  .mypage-home .mobile-rcpc-card__facts dd { padding-inline: 4px; }
+  .mypage-home .mobile-rcpc-card > footer { height: auto; }
+  .mypage-home-section--rcpc > .mobile-rcpc-list { align-items: stretch; }
+  .mypage-home-section--rcpc > .mobile-rcpc-list > .mobile-rcpc-card { display: flex; flex-direction: column; min-height: 395px; }
+  .mypage-home .mobile-rcpc-card > header { flex: 0 0 auto; }
+  .mypage-home .mobile-rcpc-card__facts { display: flex; flex: 1 0 auto; flex-direction: column; }
+  .mypage-home .mobile-rcpc-card__facts > div { flex: 0 0 auto; }
+  .mypage-home .mobile-rcpc-card__facts > .mobile-rcpc-card__connection { flex: 1 0 auto; }
+  .mypage-home .mobile-rcpc-card > footer { flex: 0 0 auto; min-height: 86px; }
 }

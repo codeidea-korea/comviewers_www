@@ -94,10 +94,10 @@ function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations
     <header>
       <Checkbox aria-label={`${item.productNo} 선택`} checked={selected} disabled={unavailable} onChange={event => onSelectedChange(event.target.checked)}/>
       <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{rcpcDisplayName(item)}</span>{canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}</strong>
-      <span className="mobile-rcpc-card__spec"><RcpcSpecButton api={api} item={item} compact/></span>
+      <span className="mobile-rcpc-card__spec"><span>{item.productNo} </span><RcpcSpecButton api={api} item={item} compact/></span>
     </header>
     <dl className="mobile-rcpc-card__facts">
-      <div><dt>서버 위치</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>
+      <div><dt>서버실</dt><dd>{item.serverRoomRegion ? `${item.serverRoomRegion} ` : ''}{item.serverRoomName ?? '-'}</dd></div>
       <div className="mobile-rcpc-card__state"><dt>서버 상태</dt><dd><RcpcStatusContents item={item}/></dd></div>
       <div className="mobile-rcpc-card__period"><dt>이용 기간</dt><dd><RcpcTablePeriod item={item} inlineEndDate/></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
