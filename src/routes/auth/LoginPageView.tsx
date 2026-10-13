@@ -36,7 +36,7 @@ export function LoginPage() {
   const [rememberId, setRememberId] = useState(Boolean(savedId))
   const [loginError, setLoginError] = useState('')
   const [socialError, setSocialError] = useState('')
-  const [requiredCredentials, setRequiredCredentials] = useState<{ username: string; currentPassword: string } | null>(null)
+  const requiredCredentials = auth.requiredPasswordChange
   useEffect(() => { clearSocialLink() }, [])
 
   function rememberLoginId(username: string) {
@@ -57,9 +57,6 @@ export function LoginPage() {
       if (status === 'authenticated') {
         rememberLoginId(loginId.trim())
         navigate(returnPath, { replace: true })
-      } else {
-        // Keep the verified temporary credential only in this mounted login flow.
-        setRequiredCredentials({ username: loginId.trim(), currentPassword: password })
       }
     } catch { setLoginError('아이디 또는 비밀번호가 일치하지 않습니다.') }
     finally { setPassword(''); setPending(false) }
@@ -113,9 +110,8 @@ export function LoginPage() {
         {socialError ? <p aria-live="polite" className="auth-notice">{socialError}</p> : null}
       </AuthPanel>
       {requiredCredentials && session.status === 'password-change-required' ? <RequiredPasswordChangeModal
-        username={requiredCredentials.username} currentPassword={requiredCredentials.currentPassword}
-        onClose={() => { setRequiredCredentials(null); void auth.logout() }}
-        onComplete={() => { rememberLoginId(requiredCredentials.username); setRequiredCredentials(null); navigate(returnPath, { replace: true }) }}
+        onClose={() => { void auth.logout() }}
+        onComplete={() => { rememberLoginId(requiredCredentials.username); navigate(returnPath, { replace: true }) }}
       /> : null}
     </AuthPage>
   )

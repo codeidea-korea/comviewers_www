@@ -35,8 +35,9 @@ interface AuthController {
   restoring: boolean
   logoutNotice: string
   socialLoginAvailable: boolean
+  requiredPasswordChange: { username: string } | null
   login(username: string, password: string, autoLogin?: boolean): Promise<'authenticated' | 'password-change-required'>
-  changeRequiredPassword(input: RequiredPasswordChangeInput): Promise<void>
+  changeRequiredPassword(newPassword: string): Promise<void>
   managerLogin(organizationCode: string, username: string, password: string): Promise<void>
   startSocialLogin(provider: SocialAuthProvider): void
   loadSocialSignupContext(): Promise<SocialSignupContext>
@@ -58,6 +59,8 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
   const store = useSessionStore()
   const session = useSession()
   const [logoutNotice, setLogoutNotice] = useState('')
+  const [requiredPasswordChange, setRequiredPasswordChange] = useState<{ username: string } | null>(null)
+  const requiredPasswordCredentials = useRef<{ userId: string; username: string; currentPassword: string } | null>(null)
   const [restoring, setRestoring] = useState(() => Boolean(adapter?.restore && store.getSnapshot().status === 'anonymous'))
   const finalRefreshExpiry = useRef<number | null>(null)
   useEffect(() => {
@@ -118,13 +121,15 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
     return () => abort.abort()
   }, [adapter, session, store])
   const controller = useMemo<AuthController>(() => ({
-    restoring, logoutNotice, socialLoginAvailable: Boolean(adapter?.socialLoginUrl),
+    restoring, logoutNotice, socialLoginAvailable: Boolean(adapter?.socialLoginUrl), requiredPasswordChange,
     async login(username, password, autoLogin = false) {
       if (restoring) throw new Error('로그인 상태를 확인하고 있습니다. 잠시 후 다시 시도해 주세요.')
       const credentials = loginCredentialsSchema.safeParse({ username, password, autoLogin })
       if (!credentials.success) throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.')
       if (!adapter) throw new Error('현재 로그인할 수 없습니다. 잠시 후 다시 시도해 주세요.')
       setLogoutNotice('')
+      requiredPasswordCredentials.current = null
+      setRequiredPasswordChange(null)
       const expectedRevision = store.getSnapshot().revision
       let result: Awaited<ReturnType<AuthAdapter['login']>>
       try { result = await adapter.login(credentials.data) }
@@ -132,22 +137,32 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       store.establishFromVerifiedResponse(result.response, { expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
       const session = store.getSnapshot()
       if (session.status === 'anonymous') throw new Error('로그인하지 못했습니다.')
+      if (session.status === 'password-change-required') {
+        requiredPasswordCredentials.current = { userId: session.userId, username: credentials.data.username, currentPassword: credentials.data.password }
+        setRequiredPasswordChange({ username: credentials.data.username })
+      }
       return session.status
     },
-    async changeRequiredPassword(input) {
+    async changeRequiredPassword(newPassword) {
       const current = store.getSnapshot()
-      if (current.status !== 'password-change-required' || current.role !== 'USER' || !adapter?.changeRequiredPassword) {
+      const credentials = requiredPasswordCredentials.current
+      if (current.status !== 'password-change-required' || current.role !== 'USER' || !adapter?.changeRequiredPassword
+        || !credentials || credentials.userId !== current.userId) {
         throw new Error('로그인부터 다시 진행해 주세요.')
       }
-      const result = await adapter.changeRequiredPassword(input)
+      const result = await adapter.changeRequiredPassword({ username: credentials.username, currentPassword: credentials.currentPassword, newPassword })
       if (store.getSnapshot().revision !== current.revision) throw new Error('이전 로그인 요청입니다. 새 비밀번호로 다시 로그인해 주세요.')
       const identity = changedPasswordIdentitySchema.safeParse(result.response)
       if (!identity.success || identity.data.userId !== current.userId) {
         store.logout()
+        requiredPasswordCredentials.current = null
+        setRequiredPasswordChange(null)
         await adapter.logout?.({ accessToken: null })
         throw new Error('로그인 상태를 확인할 수 없습니다. 새 비밀번호로 다시 로그인해 주세요.')
       }
       store.establishFromVerifiedResponse(result.response, { expectedRevision: current.revision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
+      requiredPasswordCredentials.current = null
+      setRequiredPasswordChange(null)
     },
     async managerLogin(organizationCode, username, password) {
       if (restoring) throw new Error('로그인 상태를 확인하고 있습니다. 잠시 후 다시 시도해 주세요.')
@@ -189,6 +204,8 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
     async logout() {
       const accessToken = store.getAccessToken()
       store.logout()
+      requiredPasswordCredentials.current = null
+      setRequiredPasswordChange(null)
       const loggedOutRevision = store.getSnapshot().revision
       setLogoutNotice('')
       if (adapter?.logout) {
@@ -196,7 +213,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
         catch { if (store.getSnapshot().revision === loggedOutRevision) setLogoutNotice('이 기기에서는 로그아웃했습니다. 서버 로그아웃을 완료하지 못했습니다.') }
       }
     },
-  }), [adapter, store, logoutNotice, restoring])
+  }), [adapter, store, logoutNotice, restoring, requiredPasswordChange])
   return <AuthContext.Provider value={controller}>{children}</AuthContext.Provider>
 }
 export function useAuthentication(): AuthController {

@@ -6,13 +6,11 @@ import { PasswordField } from '../../AuthComponentsView'
 import { passwordSchema } from '../profileValidation'
 
 type Props = {
-  username: string
-  currentPassword: string
   onClose: () => void
   onComplete: () => void
 }
 
-export function RequiredPasswordChangeModal({ username, currentPassword, onClose, onComplete }: Props) {
+export function RequiredPasswordChangeModal({ onClose, onComplete }: Props) {
   const auth = useAuthentication()
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -22,8 +20,7 @@ export function RequiredPasswordChangeModal({ username, currentPassword, onClose
   const [busy, setBusy] = useState(false)
   const locked = useRef(false)
   const parsed = passwordSchema.safeParse(password)
-  const passwordError = !parsed.success ? parsed.error.issues[0]?.message
-    : password === currentPassword ? '임시 비밀번호와 다른 비밀번호를 입력해 주세요.' : undefined
+  const passwordError = !parsed.success ? parsed.error.issues[0]?.message : undefined
   const confirmationError = !confirmation ? '비밀번호 확인을 입력해 주세요.'
     : password !== confirmation ? '비밀번호가 일치하지 않습니다.' : undefined
 
@@ -33,7 +30,7 @@ export function RequiredPasswordChangeModal({ username, currentPassword, onClose
     if (passwordError || confirmationError) return
     locked.current = true; setBusy(true); setError('')
     try {
-      await auth.changeRequiredPassword({ username, currentPassword, newPassword: password })
+      await auth.changeRequiredPassword(password)
       setPassword(''); setConfirmation('')
       onComplete()
     } catch (failure) {

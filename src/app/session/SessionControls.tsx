@@ -77,7 +77,7 @@ export function SessionNotice({ recoveryPath }: { recoveryPath?: string }) {
   const session = useSession()
   return session.status === 'password-change-required' ? <div className="session-notice" role="status">
     <p>비밀번호를 변경한 후 다시 로그인해 주세요.</p>
-    {recoveryPath ? <Link to={recoveryPath}>비밀번호 찾기</Link> : <p>계정 관리자에게 비밀번호 변경을 요청해 주세요.</p>}
+    {recoveryPath ? <Link to={recoveryPath}>비밀번호 찾기</Link> : <p>임시 비밀번호로 다시 로그인하면 비밀번호 변경 창이 열립니다.</p>}
     <SessionControls />
   </div> : null
 }
