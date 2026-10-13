@@ -1,0 +1,21 @@
+.format-waiting-server-state[data-ui='format-waiting-server-state'] {
+  color: var(--color-black);
+  flex: 0 0 auto;
+  height: 28px;
+  min-width: 76px;
+  white-space: nowrap;
+}
+.format-waiting-server-state__icon { align-items: center; display: inline-flex; flex: 0 0 24px; height: 24px; justify-content: center; width: 24px; }
+.format-waiting-server-state[data-ui='format-waiting-server-state'] .format-waiting-server-state__icon > img[data-status='disabled'] {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  filter: brightness(0);
+  height: 8.33333px;
+  max-height: none;
+  padding: 0;
+  width: 16.6667px;
+}
+@media (max-width: 767px) {
+  .mypage-shell .mypage-home-rcpc__state > .format-waiting-server-state[data-ui='format-waiting-server-state'] { margin-left: 4px; }
+}

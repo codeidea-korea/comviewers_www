@@ -1,4 +1,5 @@
 import type { MyRcpcItem } from '@/api/myRcpc'
+import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
 import serverDisabledIcon from '@/assets/figma/icon-server-disabled.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
@@ -8,7 +9,7 @@ import { endedRental, rentalOperationalStatus } from '../rcpcPresentation'
 export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
   const rentalStatus = rentalOperationalStatus(item)
   if (rentalStatus === 'termination_waiting') {
-    return <><img alt="" data-status="disabled" src={serverDisabledIcon}/><span>포맷대기</span></>
+    return <FormatWaitingServerState/>
   }
   if (endedRental(item.rentalStatus)) {
     return <><img alt="" data-status="disabled" src={serverDisabledIcon}/><span>종료</span></>

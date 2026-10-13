@@ -30,6 +30,7 @@ import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
 import { PageBackButton } from '@/components/common/PageBackButton'
+import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
 import './orders-mobile.css'
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
@@ -318,7 +319,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </RelativeLink>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}{item.replacementSourceProductNo ? ' · 교체이용' : null}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state">{displayRentalStatus === 'termination_waiting' ? <FormatWaitingServerState/> : <><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</>}{item.replacementSourceProductNo ? ' · 교체이용' : null}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (
