@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import type { createCustomerProfileMutations } from '@/api/customerProfileMutations'
 import type { AccountProfileRead } from '@/api/myAccountSchemas'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
@@ -12,7 +12,6 @@ import { TextField } from '@/components/ui/TextFieldControl'
 import { ProfileEditor } from './ProfileEditor'
 import { useAuthentication, type SocialAuthProvider } from '@/app/session/AuthProvider'
 import { SocialLoginButtons } from '@/routes/auth/AuthComponentsView'
-import { consumeSocialProfileReauthEntry } from '@/routes/auth/socialProfileReauthEntry'
 
 type ProfileMutations = ReturnType<typeof createCustomerProfileMutations>
 
@@ -29,9 +28,10 @@ export function ProfilePageContent({ api, mutations, withdrawal }: { api: Pick<M
 }
 function SocialProfileGate({ mutations, profile, withdrawal }: { mutations: ProfileMutations; profile: AccountProfileRead; withdrawal?: CustomerWithdrawalApi }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const auth = useAuthentication()
-  const [returnedFromSocialAuth] = useState(consumeSocialProfileReauthEntry)
-  const status = useQuery({ queryKey: ['my-account', 'social-reauth-status', profile.username], queryFn: mutations.socialReauthStatus, enabled: returnedFromSocialAuth, refetchOnMount: 'always' })
+  const returnedFromSocialAuth = location.state?.socialProfileReauthReturned === true
+  const status = useQuery({ queryKey: ['my-account', 'social-reauth-status', profile.username, location.key], queryFn: mutations.socialReauthStatus, enabled: returnedFromSocialAuth, refetchOnMount: 'always' })
   const offerReauth = !returnedFromSocialAuth || status.data?.confirmed === false || status.isError
   const linked = useQuery({ queryKey: ['my-account', 'social-providers', profile.username], queryFn: () => auth.linkedSocialProviders(), enabled: offerReauth })
   const start = useMutation({ mutationFn: (provider: SocialAuthProvider) => mutations.startSocialReauth(provider), onSuccess: ({ authorizationUrl }) => window.location.assign(authorizationUrl) })

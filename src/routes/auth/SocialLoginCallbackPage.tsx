@@ -6,7 +6,6 @@ import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import { AuthHeading, AuthPage, AuthPanel } from './AuthComponentsView'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { clearSocialLink } from './socialLinkIntent'
-import { markSocialProfileReauthEntry } from './socialProfileReauthEntry'
 
 function SocialProfileReauthReturn() {
   const navigate = useNavigate()
@@ -14,8 +13,7 @@ function SocialProfileReauthReturn() {
   useEffect(() => {
     if (redirected.current) return
     redirected.current = true
-    markSocialProfileReauthEntry()
-    void navigate('/mypage/profile', { replace: true })
+    void navigate('/mypage/profile', { replace: true, state: { socialProfileReauthReturned: true } })
   }, [navigate])
   return <LoadingState className="route-loading--compact" label="본인 확인을 완료하고 있습니다." />
 }
