@@ -1,4 +1,7 @@
 .profile-settings-page .profile-catalog { margin-inline: 0; }
+.profile-settings-page .profile-catalog.profile-form .profile-catalog__email > div { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); }
+.profile-settings-page .profile-catalog.profile-form .profile-catalog__email > div select { border-radius: 0; min-width: 0; width: 100%; }
+.profile-settings-page .profile-catalog.profile-form .profile-catalog__actions > .button--secondary:not(:disabled) { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 .profile-catalog.profile-form > .profile-catalog__field { display: block; }
 .profile-catalog.profile-form .profile-catalog__field > span { color: var(--color-gray-600); font-size: 14px; font-weight: 400; letter-spacing: -.02em; line-height: 24px; }
 .profile-catalog .profile-catalog__field input { width: 100%; }
