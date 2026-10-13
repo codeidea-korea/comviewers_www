@@ -31,7 +31,7 @@ function ColocationDraftForm({ initialDraft }: { initialDraft: ColocationDraft |
   const issueMessage = (...fields: string[]) => hasIssue(...fields) ? <small className="colocation-field-error" role="alert">* {validationIssue?.message}</small> : null
   return (
     <AppShell className="colocation-shell">
-      <section className="colocation-page colocation-page--multiroom">
+      <section className="colocation-page">
         <form className="colocation-card" onSubmit={submit}>
           <header><h1>입점신청</h1><p>ComViewers와 함께 RCPC 서비스를 운영할 서버실 파트너를 모집합니다.<br />입점에 필요한 정보를 제출해 주시면 검토 후 안내드리겠습니다.</p>{issueMessage('form')}</header>
           <fieldset><legend>사업자 정보</legend><div className="colocation-grid"><label className={hasIssue('businessName') ? 'has-error' : ''}><span><b>*</b>상호명</span><input aria-invalid={hasIssue('businessName')} defaultValue={fixture.businessName ?? ''} maxLength={150} name="businessName" placeholder="사업자등록증에 기재된 상호명" required />{issueMessage('businessName')}</label><label className={hasIssue('businessNumber') ? 'has-error' : ''}><span><b>*</b>사업자등록번호</span><input aria-invalid={hasIssue('businessNumber')} name="businessNumber" inputMode="numeric" onInput={event => { event.currentTarget.value = event.currentTarget.value.replace(/\D/g, '').slice(0, 10) }} defaultValue={fixture.businessNumber?.replace(/\D/g, '')} placeholder="000-00-00000" required />{issueMessage('businessNumber')}</label><label className={hasIssue('representative') ? 'has-error' : ''}><span><b>*</b>대표자명</span><input aria-invalid={hasIssue('representative')} maxLength={100} name="representative" defaultValue={fixture.representative} placeholder="대표자명 입력" required />{issueMessage('representative')}</label></div></fieldset>

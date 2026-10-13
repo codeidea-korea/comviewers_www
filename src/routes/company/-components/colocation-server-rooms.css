@@ -1,28 +1,6 @@
-/* Figma 781:58614 (700px form / 680px content), 2344:102561 (room blocks). */
-.colocation-page--multiroom .colocation-card { max-width: 700px; padding-left: 10px; padding-right: 10px; }
-.colocation-page--multiroom .colocation-card .colocation-server-rooms { border: 0; border-radius: 8px; box-shadow: 0 16px 16px rgb(12 12 13 / 10%), 0 4px 2px rgb(12 12 13 / 5%); outline: 1px solid #d9d9d9; padding: 0; }
-.colocation-page--multiroom .colocation-card .colocation-server-rooms legend { color: #1e1e1e; font-size: 16px; font-weight: 700; line-height: 22px; margin-bottom: 27px; padding: 0; width: 100%; }
-.colocation-server-rooms__list { display: flex; flex-direction: column; gap: 27px; }
-.colocation-server-room { background: var(--color-gray-100); min-height: 143px; padding: 8px 37px 8px 19px; position: relative; }
-.colocation-server-room__row { align-items: start; display: grid; gap: 20px; grid-template-columns: 200px minmax(0, 1fr); min-height: 87px; }
-.colocation-server-room__row--messenger { min-height: 40px; }
-.colocation-server-room__row > *, .colocation-server-room__messenger > *, .colocation-server-room .text-field__control { min-width: 0; }
-.colocation-server-room__label { align-items: center; color: #1e1e1e; display: flex; font-size: 16px; gap: 10px; line-height: 22px; }
-.colocation-card .colocation-server-room__label b { color: #ec221f; font-weight: 400; }
-.colocation-server-room .text-field__label:empty { display: none; }
-.colocation-server-room .text-field__control { background: var(--color-white); border: 1px solid #d9d9d9; border-radius: 8px; height: 40px; padding: 0 16px; }
-.colocation-server-room .text-field__control input { color: #1e1e1e; font-size: 16px; font-weight: 400; letter-spacing: normal; }
-.colocation-server-room .text-field__control input::placeholder { color: #1e1e1e; }
-.colocation-server-room .text-field__message { color: #ec221f; font-size: 14px; line-height: 20px; margin-top: 8px; }
-.colocation-server-room__messenger { align-items: start; display: grid; gap: 21px; grid-template-columns: 146px minmax(0, 1fr); }
-.colocation-server-room__messenger > select { appearance: none; background: var(--color-white) url('../../../assets/figma/selector-chevron-down.svg') right 16px center / 12px 7.4px no-repeat; border: 1px solid #d9d9d9; border-radius: 8px; color: #1e1e1e; font-size: 16px; height: 40px; min-width: 0; padding: 0 36px 0 16px; width: 100%; }
-.colocation-server-room__remove { align-items: center; background: transparent; border: 0; display: flex; height: 24px; justify-content: center; padding: 5px; position: absolute; right: 5px; top: 8px; width: 24px; }
-.colocation-server-rooms__list .colocation-server-rooms__add { background: var(--color-gray-100); border: 1px dashed var(--color-gray-600); border-radius: 0; color: #1e1e1e; font-size: 14px; font-weight: 400; height: 41px; min-height: 41px; padding: 10px; width: 100%; }
-
-/* Extend the existing colocation form's 767px stacking and messenger grid. */
-@media (max-width: 767px) {
-  .colocation-server-room { display: flex; flex-direction: column; gap: 20px; }
-  .colocation-server-room__row { gap: 7px; grid-template-columns: minmax(0, 1fr); min-height: 0; }
-  .colocation-server-room__messenger { gap: 8px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
-  .colocation-server-room .text-field__control input { max-width: 100%; width: 100%; }
-}
+/* Fieldset, legend, inputs and messenger layout use the existing colocation form styles. */
+.colocation-server-rooms__list { display: flex; flex-direction: column; gap: 26px; }
+.colocation-server-room { min-width: 0; position: relative; }
+.colocation-server-room > label { min-width: 0; }
+.colocation-server-room__remove { align-items: center; background: transparent; border: 0; display: flex; height: 24px; justify-content: center; padding: 5px; position: absolute; right: 0; top: 0; width: 24px; }
+.colocation-server-rooms__list .colocation-server-rooms__add { border-style: dashed; width: 100%; }
