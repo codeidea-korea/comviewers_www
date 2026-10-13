@@ -11,8 +11,9 @@ const languages: readonly { value: LanguageChoice; label: string }[] = [
   { value: 'zh-TW', label: '繁體中文' },
 ]
 
-export function LanguageMenu({ locale, onSelect, status }: {
+export function LanguageMenu({ locale, onSelect, status, triggerLabel = 'Language' }: {
   locale: PageLocale
+  triggerLabel?: string
   onSelect: (value: LanguageChoice) => void
   status?: 'idle' | 'loading' | 'ready' | 'error'
 }) {
@@ -53,7 +54,7 @@ export function LanguageMenu({ locale, onSelect, status }: {
       onClick={() => setOpen(current => !current)}
       ref={triggerRef}
       type="button"
-    >Language<span aria-hidden="true" className="language-menu__chevron" /></button>
+    >{triggerLabel}<span aria-hidden="true" className="language-menu__chevron" /></button>
     {open ? <div aria-label="번역 언어" className="language-menu__list" id={menuId} role="group">
       {languages.map(language => <button
         aria-pressed={language.value === locale}

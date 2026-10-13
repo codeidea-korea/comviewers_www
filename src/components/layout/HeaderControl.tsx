@@ -9,7 +9,7 @@ import closeIcon from '../../assets/figma/inquiry-modal-close.svg'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import { menuItems, utilityMenuItems } from '../../navigation/menuItems'
 import { useMobileOverlay } from '../ui/useMobileOverlay'
-import { GoogleTranslateTrial } from './GoogleTranslateTrial'
+import { GoogleTranslateTrial, ManualTranslationControls } from './GoogleTranslateTrial'
 import { TranslatedText, useTranslation, type TranslationKey } from '../../i18n/translation'
 
 const menuTranslationKeys: Readonly<Record<string, TranslationKey>> = {
@@ -115,6 +115,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
               <MenuLabel item={item} />{item.id === 'cart' && cartCount !== undefined ? <span className="cart-count">{cartCount}</span> : null}
             </Link>
           ))}
+          <ManualTranslationControls compact />
         </div>
       </nav> : null}
     </header>

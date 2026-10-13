@@ -37,10 +37,10 @@ export function GoogleTranslateTrial() {
   return <TranslateWidget />
 }
 
-export function ManualTranslationControls() {
+export function ManualTranslationControls({ compact = false }: { compact?: boolean } = {}) {
   const { locale } = useTranslation()
   return <div className="google-translate-trial notranslate" translate="no">
-    <LanguageMenu locale={locale} onSelect={value => { clearTranslationCookie(); setTranslationLocale(value) }} />
+    <LanguageMenu locale={locale} triggerLabel={compact ? ({ ko: 'KOR', en: 'ENG', ja: 'JPN', 'zh-CN': 'CHN', 'zh-TW': 'TWN', vi: 'VIE' }[locale]) : undefined} onSelect={value => { clearTranslationCookie(); setTranslationLocale(value) }} />
   </div>
 }
 
