@@ -9,14 +9,13 @@ import keyboardIcon from '../../../assets/figma/keyboard.svg'
 import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
 import mouseIcon from '../../../assets/figma/mouse.svg'
 import shoppingBagIcon from '../../../assets/figma/shopping-bag.svg'
-import linkOffIcon from '../../../assets/figma/link-off.svg'
-import serverLinkIcon from '../../../assets/figma/server-link.svg'
+import countryEmptyIcon from '../../../assets/figma/product-country-empty.png'
+import { ProductServerState } from '../../../components/product/ProductServerStateView'
 function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Product) => void; product: Product }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const mouseActive = product.mouseIncluded === true
   const keyboardActive = product.keyboardIncluded === true
-  const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
   const openProduct = () => {
@@ -38,17 +37,16 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       <td><span className="tag tag--red">{product.gpu ?? t('common.noInformation')}</span></td>
       <td>
         <span className="product-table-peripherals">
-          <i className={`is-mouse${product.mouseIncluded === null ? ' is-unknown' : ''}`} title={product.mouseIncluded === null ? '마우스 정보 없음' : undefined}>{product.mouseIncluded === null ? t('common.noInformation') : <img alt={mouseActive ? '마우스 사용 가능' : '마우스 사용 불가'} src={mouseActive ? mouseActiveIcon : mouseIcon} />}</i>
-          <i className={`is-keyboard${product.keyboardIncluded === null ? ' is-unknown' : ''}`} title={product.keyboardIncluded === null ? '키보드 정보 없음' : undefined}>{product.keyboardIncluded === null ? t('common.noInformation') : <img alt={keyboardActive ? '키보드 사용 가능' : '키보드 사용 불가'} src={keyboardActive ? keyboardActiveIcon : keyboardIcon} />}</i>
+          <i className="is-mouse"><img alt={product.mouseIncluded === null ? '마우스 정보 없음' : mouseActive ? '마우스 사용 가능' : '마우스 사용 불가'} src={mouseActive ? mouseActiveIcon : mouseIcon} /></i>
+          <i className="is-keyboard"><img alt={product.keyboardIncluded === null ? '키보드 정보 없음' : keyboardActive ? '키보드 사용 가능' : '키보드 사용 불가'} src={keyboardActive ? keyboardActiveIcon : keyboardIcon} /></i>
         </span>
       </td>
       <td>
         <span className="product-table-country">
-          <span className="product-table-country__name">{product.country === "Korea" ? <img alt="대한민국" src={flagKorea} /> : null}<span>{product.country ?? t('common.noInformation')}</span></span>
-          <small>{product.ip ?? t('common.noInformation')}</small>
+          {product.country && product.ip ? <><span className="product-table-country__name">{product.country === "Korea" ? <img alt="대한민국" src={flagKorea} /> : null}<span>{product.country}</span></span><small>{product.ip}</small></> : <img alt="국가/IP 정보 없음" height={20} src={countryEmptyIcon} width={20} />}
         </span>
       </td>
-      <td>{product.serverState === null ? t('common.noInformation') : <span className={`product-table-status${serverOnline ? ' is-online' : ''}`}><img alt={serverOnline ? t('product.connected') : t('product.disconnected')} src={serverOnline ? serverLinkIcon : linkOffIcon} /></span>}</td>
+      <td><ProductServerState state={product.serverState} /></td>
       <td className="product-table-price"><strong>{t('money.krwAmount', { amount: product.setupFee.toLocaleString('ko-KR') })}</strong></td>
       <td className="product-table-price"><strong>{productPrice === null ? t('common.noInformation') : t('money.krwAmount', { amount: productPrice.toLocaleString('ko-KR') })}</strong></td>
       <td><button disabled={productPrice === null} aria-label={`${product.productId} 장바구니 담기`} onClick={() => onAddToCart(product)} type="button"><img alt="" src={shoppingBagIcon} /></button></td>

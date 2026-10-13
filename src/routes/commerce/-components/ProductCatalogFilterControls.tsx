@@ -3,11 +3,18 @@ import { DropdownSelect, GroupedMultiSelect, useDismissibleSelect } from '@/comp
 import filterChevronUpIcon from '@/assets/figma/filter-chevron-up.svg'
 import filterTuneIcon from '@/assets/figma/filter-tune.svg'
 import productListCloseIcon from '@/assets/figma/product-list-close.svg'
+import mobileCloseIcon from '@/assets/figma/product-filter-close-mobile.png'
 import restartAltIcon from '@/assets/figma/restart-alt.svg'
 import selectorChevronDownIcon from '@/assets/figma/selector-chevron-down.svg'
 import type { ProductCatalogControls } from './ProductFiltersView'
 import './product-catalog-filter-controls.css'
 import { TranslatedText, useTranslation, type TranslationKey } from '@/i18n/translation'
+
+function FilterCloseIcon() {
+  // Preserve the Figma x component's 24px canvas padding on mobile instead
+  // of enlarging its cropped 14px glyph to fill the existing icon slot.
+  return <picture className="selected-filters__close"><source media="(max-width: 767px)" srcSet={mobileCloseIcon} /><img alt="" src={productListCloseIcon} /></picture>
+}
 
 function MetadataNotice({ controls }: { controls: ProductCatalogControls }) {
   const { t } = useTranslation()
@@ -84,11 +91,11 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
     </div>
     {roomNotice ? <p role="alert">{roomNotice}</p> : null}
     <div className={`selected-filters${hasSelectedFilters ? '' : ' is-empty'}`}><div className="selected-filters__title"><img alt="" src={filterTuneIcon} /><span><TranslatedText id="filter.title" /></span></div><div className="selected-filters__body"><div className="selected-filters__tags">
-      {selectedRoomLabels.length ? <button aria-label={`${t('filter.serverRoom')} ${selectedLabel(selectedRoomLabels)} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ rooms: [] })}><span className="notranslate" translate="no">{t('filter.serverRoom')} {selectedLabel(selectedRoomLabels)}</span><img alt="" src={productListCloseIcon} /></button> : null}
-      {tags.map(tag => <button aria-label={`${tag.label} 필터 해제`} key={tag.id} className="selected-filters__tag" type="button" onClick={tag.remove}>{tag.label}<img alt="" src={productListCloseIcon} /></button>)}
-      {selected.minPrice !== undefined || selected.maxPrice !== undefined ? <button aria-label={`${priceLabel} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ minPrice: undefined, maxPrice: undefined })}><TranslatedText id={selected.priceBasis === 'unit' ? 'money.productAmount' : 'money.monthlyRental'} /> <TranslatedText id="money.krwAmount" values={{ amount: selected.minPrice?.toLocaleString('ko-KR') ?? '0' }} /> ~ {selected.maxPrice === undefined ? '제한 없음' : <TranslatedText id="money.krwAmount" values={{ amount: selected.maxPrice.toLocaleString('ko-KR') }} />}<img alt="" src={productListCloseIcon} /></button> : null}
-      {selected.keyboardConnectionStatus ? <button aria-label="키보드 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ keyboardConnectionStatus: undefined })}>키보드 조건<img alt="" src={productListCloseIcon} /></button> : null}
-      {selected.mouseConnectionStatus ? <button aria-label="마우스 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ mouseConnectionStatus: undefined })}>마우스 조건<img alt="" src={productListCloseIcon} /></button> : null}
+      {selectedRoomLabels.length ? <button aria-label={`${t('filter.serverRoom')} ${selectedLabel(selectedRoomLabels)} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ rooms: [] })}><span className="notranslate" translate="no">{t('filter.serverRoom')} {selectedLabel(selectedRoomLabels)}</span><FilterCloseIcon /></button> : null}
+      {tags.map(tag => <button aria-label={`${tag.label} 필터 해제`} key={tag.id} className="selected-filters__tag" type="button" onClick={tag.remove}>{tag.label}<FilterCloseIcon /></button>)}
+      {selected.minPrice !== undefined || selected.maxPrice !== undefined ? <button aria-label={`${priceLabel} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ minPrice: undefined, maxPrice: undefined })}><TranslatedText id={selected.priceBasis === 'unit' ? 'money.productAmount' : 'money.monthlyRental'} /> <TranslatedText id="money.krwAmount" values={{ amount: selected.minPrice?.toLocaleString('ko-KR') ?? '0' }} /> ~ {selected.maxPrice === undefined ? '제한 없음' : <TranslatedText id="money.krwAmount" values={{ amount: selected.maxPrice.toLocaleString('ko-KR') }} />}<FilterCloseIcon /></button> : null}
+      {selected.keyboardConnectionStatus ? <button aria-label="키보드 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ keyboardConnectionStatus: undefined })}>키보드 조건<FilterCloseIcon /></button> : null}
+      {selected.mouseConnectionStatus ? <button aria-label="마우스 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ mouseConnectionStatus: undefined })}>마우스 조건<FilterCloseIcon /></button> : null}
     </div><button className="selected-filters__reset" type="button" onClick={controls.resetFilters}><TranslatedText id="common.reset" /> <img alt="" src={restartAltIcon} /></button></div></div>
   </>
 }

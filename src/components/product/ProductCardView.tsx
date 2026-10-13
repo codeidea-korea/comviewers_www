@@ -7,8 +7,8 @@ import keyboardActiveIcon from '../../assets/figma/keyboard-active.svg'
 import keyboardIcon from '../../assets/figma/keyboard.svg'
 import mouseActiveIcon from '../../assets/figma/mouse-active.svg'
 import mouseIcon from '../../assets/figma/mouse.svg'
-import serverLinkIcon from '../../assets/figma/server-link.svg'
-import serverOffIcon from '../../assets/figma/link-off.svg'
+import countryEmptyIcon from '../../assets/figma/product-country-empty.png'
+import { ProductServerState } from './ProductServerStateView'
 import shoppingBagIcon from '../../assets/figma/shopping-bag.svg'
 import { ProductOsOverlay } from './ProductOsOverlay'
 import { productOsVisual } from './productOsVisual'
@@ -37,7 +37,6 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
   const isLarge = size === 'large'
   const hasMouse = Boolean(product.mouseIncluded)
   const hasKeyboard = Boolean(product.keyboardIncluded)
-  const serverOnline = product.serverState === 'online'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
   const visual = productOsVisual(product.osFilterValue, part, product.image)
@@ -62,8 +61,8 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
                 label={<TranslatedText id="product.peripherals" />}
                 value={(
                   <span className="product-card__peripherals">
-                    <span className={`product-card__mouse${hasMouse ? ' is-active' : ''}`}>{product.mouseIncluded === null ? "—" : <img alt="" src={hasMouse ? mouseActiveIcon : mouseIcon} />}</span>
-                    <span className={`product-card__keyboard${hasKeyboard ? ' is-active' : ''}`}>{product.keyboardIncluded === null ? "—" : <img alt="" src={hasKeyboard ? keyboardActiveIcon : keyboardIcon} />}</span>
+                    <span className={`product-card__mouse${hasMouse ? ' is-active' : ''}`}><img alt="" src={hasMouse ? mouseActiveIcon : mouseIcon} /></span>
+                    <span className={`product-card__keyboard${hasKeyboard ? ' is-active' : ''}`}><img alt="" src={hasKeyboard ? keyboardActiveIcon : keyboardIcon} /></span>
                     <span className="sr-only">{product.mouseIncluded === null ? '마우스 정보 없음' : hasMouse ? '마우스 포함' : '마우스 미포함'}, {product.keyboardIncluded === null ? '키보드 정보 없음' : hasKeyboard ? '키보드 포함' : '키보드 미포함'}</span>
                   </span>
                 )}
@@ -71,11 +70,11 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
               <ProductSpec
                 className="product-card__spec--ip"
                 label="IP"
-                value={<>{product.country === "Korea" ? <img alt="대한민국" className="flag" src={flagKorea} /> : null}<span>{product.country ?? "국가 정보 없음"}</span><small>{product.ip ?? "IP 정보 없음"}</small></>}
+                value={product.country && product.ip ? <>{product.country === "Korea" ? <img alt="대한민국" className="flag" src={flagKorea} /> : null}<span>{product.country}</span><small>{product.ip}</small></> : <img alt="국가/IP 정보 없음" className="flag" height={20} src={countryEmptyIcon} width={20} />}
               />
               <ProductSpec
                 label={<TranslatedText id="product.serverStatus" />}
-                value={product.serverState === null ? <TranslatedText id="common.noInformation" /> : <span className={`product-card__server-state${serverOnline ? '' : ' is-waiting'}`}><img alt="" src={serverOnline ? serverLinkIcon : serverOffIcon} /><span className="sr-only"><TranslatedText id={serverOnline ? 'product.connected' : 'product.disconnected'} /></span></span>}
+                value={<ProductServerState state={product.serverState} />}
               />
             </>
           ) : null}
