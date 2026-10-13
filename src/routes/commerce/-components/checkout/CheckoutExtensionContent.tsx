@@ -26,7 +26,7 @@ import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } f
 type CreatedOrder = { orderNo: string; finalAmount: number }
 type Attempt = {
   body: ExtensionCheckoutInput; quote: ExtensionQuote; benefits: OrderBenefitQuote
-  preparation: Omit<CheckoutPaymentPreparation, 'orderNo' | 'finalAmount'>; created?: CreatedOrder
+  preparation: Omit<CheckoutPaymentPreparation, 'orderNo' | 'finalAmount'>; created?: CreatedOrder; receiptLocked?: boolean
 }
 
 export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutState }) {
@@ -44,6 +44,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
   const windowAbort = useRef<AbortController | null>(null)
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const customerCancelled = useRef(false)
+  const [paymentRetryReady, setPaymentRetryReady] = useState(false)
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null)
   useEffect(() => () => windowAbort.current?.abort(), [])
@@ -85,9 +86,16 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     customerCancelled.current ||= cancelled
     if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     let status: string
-    try { status = (await checkout.abandon(providerOrderId, customerCancelled.current)).status }
+    try { status = (await checkout.abandon(providerOrderId, customerCancelled.current, true)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
     if (windowAbort.current?.signal.aborted) return
+    if (status === 'retryable') {
+      setUnresolvedOrderId(null)
+      customerCancelled.current = false
+      setPaymentRetryReady(true)
+      setPaymentNotice('결제창을 닫았습니다. 결제수단을 다시 선택해 결제할 수 있습니다.')
+      return
+    }
     if (status === 'approved') {
       await invalidate()
       const orderNo = attemptRef.current?.created?.orderNo
@@ -96,6 +104,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     }
     if (status === 'cancelled' || status === 'failed') {
       setUnresolvedOrderId(null)
+      setPaymentRetryReady(false)
       customerCancelled.current = false
       const closedOrderNo = attemptRef.current?.created?.orderNo
       if (closedOrderNo) {
@@ -131,6 +140,11 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     if (!created || created.finalAmount !== current.benefits.finalAmount) throw new Error('주문 금액을 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     const payment = await checkout.preparePayment({ ...current.preparation, ...created })
     if (controller.signal.aborted) return
+    if (payment.orderNo !== created.orderNo || payment.amount !== created.finalAmount)
+      throw new Error('주문 금액을 확인할 수 없습니다. 주문내역을 확인해 주세요.')
+    current = { ...current, receiptLocked: current.receiptLocked || payment.paymentMethod === 'virtual_account' }
+    attemptRef.current = current
+    setAttempt(current)
     if (payment.paymentStatus === 'approved') {
       await invalidate()
       if (!controller.signal.aborted) navigate(`/checkout/complete?paymentId=${payment.paymentId}`)
@@ -148,6 +162,20 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     setAvailabilityError(null)
     setPaymentNotice(null)
     let current = attemptRef.current
+    if (current && paymentRetryReady) {
+      const draft = form.validate()
+      if (!draft || !current.created) return
+      if ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay)) {
+        setAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
+        return
+      }
+      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
+      current = { ...current, preparation: { payment, cashReceiptType: draft.receiptType,
+        cashReceiptIdentifier: draft.receiptIdentifier, idempotencyKey: crypto.randomUUID() } }
+      attemptRef.current = current
+      setAttempt(current)
+      setPaymentRetryReady(false)
+    }
     if (!current) {
       const draft = form.validate()
       if (!draft || !quoteReady || !quote.data?.eligible || !quote.data.benefits) return
@@ -192,11 +220,12 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
         <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={Boolean(attempt)} pending={!attempt && quote.isFetching}
           error={attempt ? null : quote.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={resetDiscounts} onReset={resetDiscounts} />
         {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
-        <fieldset className="checkout-input-fields" disabled={Boolean(attempt)}><CheckoutCustomer form={form} pending={profile.isPending} />{showReceipt && <CheckoutReceipt form={form} />}</fieldset>
+        <fieldset className="checkout-input-fields" disabled={Boolean(attempt)}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
+        {showReceipt && <fieldset className="checkout-input-fields" disabled={Boolean(attempt) && (!paymentRetryReady || !!attempt?.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
         {canRevise && <Button variant="secondary" onClick={() => { attemptRef.current = null; setAttempt(null); submit.reset(); retryQuotes() }}>입력 수정 후 견적 다시 확인</Button>}
       </div><CheckoutSummary variant={hasPurchase ? 'cart' : 'extension'} extensionAmount={hasPurchase && current.items.length ? current.extensionAmount : undefined} quote={currentSummary!} benefits={shownBenefits} form={form} directEasyPayMethods={methods.data}
         paymentAvailabilityError={availabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setAvailabilityError(null); setPaymentNotice(null) }}
-        refreshing={!attempt && !quoteReady} locked={Boolean(attempt)} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+        refreshing={!attempt && !quoteReady} locked={Boolean(attempt) && !paymentRetryReady} retryPayment={paymentRetryReady} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>
 }

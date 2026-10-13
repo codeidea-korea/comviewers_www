@@ -23,7 +23,7 @@ const benefitQuote = z.object({ subtotalAmount: count, setupFeeAmount: count, co
 export type OrderBenefitQuote = z.infer<typeof benefitQuote>
 const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: z.number().int().positive().safe() })
 const confirmation = z.object({ paymentId: id, orderId: z.string(), providerPaymentId: z.string(), status: z.string(), approved: z.boolean(), replayed: z.boolean(), virtualAccount: z.object({ bankCode: z.string(), accountNumber: z.string(), customerName: z.string().nullable(), dueDate: z.string() }).nullable() })
-const abandonment = z.object({ status: z.enum(['cancelled', 'failed', 'pending', 'approved']) })
+const abandonment = z.object({ status: z.enum(['cancelled', 'failed', 'pending', 'approved', 'retryable']) })
 const directEasyPayMethods = z.object({ naverPay: z.boolean(), kakaoPay: z.boolean() })
 export type DirectEasyPayMethods = z.infer<typeof directEasyPayMethods>
 export type PaymentAbandonment = z.infer<typeof abandonment>
@@ -47,7 +47,7 @@ export function createOrdersPaymentsApi(client: ApiClient, organizationId: strin
     settleInternal: (orderNo: string, key: string) => client.request('/api/v1/payments/internal/settle', prepared, { ...scoped, method: 'POST', body: { orderNo }, idempotencyKey: z.uuidv4().parse(key) }),
     confirm: (body: PaymentConfirmationRequest, key: string) => client.request('/api/v1/payments/toss/confirm', confirmation, { ...scoped, method: 'POST', body: confirmationRequest.parse(body), idempotencyKey: z.uuidv4().parse(key) }),
     refresh: (providerOrderId: string, key: string) => client.request('/api/v1/payments/toss/refresh', confirmation, { ...scoped, method: 'POST', body: { orderId: providerOrderId }, idempotencyKey: z.uuidv4().parse(key) }),
-    abandon: (providerOrderId: string, customerCancelled = false) => client.request(`/api/v1/payments/toss/abandon?customerCancelled=${customerCancelled}`, abandonment, { ...scoped, method: 'POST', body: { orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/).parse(providerOrderId) } }),
+    abandon: (providerOrderId: string, customerCancelled = false, allowRetry = false) => client.request('/api/v1/payments/toss/abandon', abandonment, { ...scoped, method: 'POST', query: { customerCancelled, allowRetry }, body: { orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/).parse(providerOrderId) } }),
     payment: (paymentId: number, signal?: AbortSignal) => client.request(`/api/v1/payments/${id.parse(paymentId)}`, detail, { ...scoped, signal }),
   }
 }

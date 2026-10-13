@@ -23,7 +23,8 @@ import './checkout-mobile.css'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
 import { CheckoutExtensionContent } from './-components/checkout/CheckoutExtensionContent'
 
-type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote }
+type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote;
+  created?: { orderNo: string; finalAmount: number }; receiptLocked?: boolean }
 
 function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const { checkout, myAccount } = useServices()
@@ -32,6 +33,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const invalidateCatalog = useInvalidateProductCatalog()
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const unresolvedCustomerCancellation = useRef(false)
+  const [paymentRetryReady, setPaymentRetryReady] = useState(false)
   const [couponId, setCouponId] = useState<number | null>(null)
   const [points, setPoints] = useState('0')
   const [paymentAvailabilityError, setPaymentAvailabilityError] = useState<string | null>(null)
@@ -75,12 +77,21 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     unresolvedCustomerCancellation.current ||= customerCancelled
     if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     let status: string
-    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current)).status }
+    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current, true)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
+    if (windowAbort.current?.signal.aborted) return
+    if (status === 'retryable') {
+      setUnresolvedOrderId(null)
+      unresolvedCustomerCancellation.current = false
+      setPaymentRetryReady(true)
+      setPaymentNotice('결제창을 닫았습니다. 결제수단을 다시 선택해 결제할 수 있습니다.')
+      return
+    }
     if (status === 'cancelled' || status === 'failed') {
       attemptRef.current = null
       setAttempt(null)
       setUnresolvedOrderId(null)
+      setPaymentRetryReady(false)
       unresolvedCustomerCancellation.current = false
       setPaymentNotice(status === 'failed' ? '결제에 실패했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.' : '결제를 취소했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.')
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
@@ -92,13 +103,22 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   }
   const submit = useMutation({ mutationFn: async (current: CheckoutAttempt) => {
     if (unresolvedOrderId) return checkAbandonedPayment(unresolvedOrderId)
-    if (!checkout.start) throw new Error('현재 주문을 진행할 수 없습니다.')
+    if (!checkout.start || (current.created && !checkout.preparePayment)) throw new Error('현재 주문을 진행할 수 없습니다.')
     const controller = new AbortController()
     windowAbort.current = controller
     let payment
-    try { payment = await checkout.start(current.input) }
+    try { payment = current.created
+      ? await checkout.preparePayment!({ ...current.input, ...current.created })
+      : await checkout.start(current.input) }
     catch { throw new Error('주문 또는 결제 준비를 완료하지 못했습니다. 다시 시도하거나 주문내역을 확인해 주세요.') }
     if (controller.signal.aborted) return
+    if (payment.amount !== current.benefits.finalAmount
+      || (current.created && payment.orderNo !== current.created.orderNo))
+      throw new Error('주문 금액을 확인할 수 없습니다. 주문내역을 확인해 주세요.')
+    const preparedAttempt = { ...current, created: { orderNo: payment.orderNo, finalAmount: payment.amount },
+      receiptLocked: current.receiptLocked || payment.paymentMethod === 'virtual_account' }
+    attemptRef.current = preparedAttempt
+    setAttempt(preparedAttempt)
     if (payment.paymentStatus === 'approved') {
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
       if (!controller.signal.aborted) navigate(`/checkout/complete?paymentId=${payment.paymentId}`)
@@ -120,6 +140,21 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     setPaymentAvailabilityError(null)
     setPaymentNotice(null)
     let current = attemptRef.current
+    if (current && paymentRetryReady) {
+      const draft = form.validate()
+      if (!draft || !current.created) return
+      if ((draft.payment === 'naver-pay' && !availableDirectEasyPay?.naverPay)
+        || (draft.payment === 'kakao-pay' && !availableDirectEasyPay?.kakaoPay)) {
+        setPaymentAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
+        return
+      }
+      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
+      current = { ...current, input: { ...current.input, payment, cashReceiptType: draft.receiptType,
+        cashReceiptIdentifier: draft.receiptIdentifier, idempotencyKey: crypto.randomUUID() } }
+      attemptRef.current = current
+      setAttempt(current)
+      setPaymentRetryReady(false)
+    }
     if (!current) {
       const draft = form.validate()
       if (!draft || !result.data?.checkoutEligible || !benefits.data || !benefitReady || result.isFetching) return
@@ -155,8 +190,9 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
                 <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">장바구니로 이동</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인'}</Button></div>
               </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
               {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
-              <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} />{showReceipt && <CheckoutReceipt form={form} />}</fieldset>
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+              <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
+              {showReceipt && <fieldset className="checkout-input-fields" disabled={!!attempt && (!paymentRetryReady || !!attempt.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt && !paymentRetryReady} retryPayment={paymentRetryReady} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>
 }
