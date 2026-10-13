@@ -7,6 +7,7 @@ import { OrderPurchaseConfirmDialog } from '@/components/mypage/OrderDialogsCont
 
 import { accountDate } from '../shared/AccountReadCommon'
 import { OrderReview } from './OrderReview'
+import { currentOrderPcAssetId } from './orderRentalPresentation'
 import { useServices } from '@/app/ServiceProvider'
 import { RcpcExtensionCheckout } from '../RcpcExtensionCheckout'
 import { PartPurchaseActions } from './PartPurchaseActions'
@@ -40,10 +41,10 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
   if (terminal) return <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
-  const active = paid && ['using', 'replacement_using'].includes(item.customerRentalStatus) && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
+  const active = paid && item.customerRentalStatus === 'active' && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const canExtend = !cManager && !item.refundPending
     && paid
-    && ['using', 'extension_waiting'].includes(item.customerRentalStatus)
+    && (item.customerRentalStatus === 'active' || item.customerRentalStatus === 'extension_waiting')
     && item.rentalStatus === 'active'
     && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const now = Date.now()
@@ -97,12 +98,12 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
   const { myAccount } = useServices()
 
   const paid = paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
-  const active = paid && !item.refundPending && ['using', 'replacement_using'].includes(item.customerRentalStatus)
+  const active = paid && !item.refundPending && item.customerRentalStatus === 'active'
     && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
-  const inquiryPcAssetId = item.customerRentalStatus === 'replacement_using' ? item.currentPcAssetId ?? item.pcAssetId : item.pcAssetId
+  const inquiryPcAssetId = currentOrderPcAssetId(item)
 
   if (item.billingUnit === 'unit' && !item.rentalId) return null
   return <div className="order-catalog-item__action-support">
@@ -112,6 +113,6 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
       : item.rentalId && myAccount.inquiryApi && active
         ? null
         : <Button size="small" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
-    <InquiryAction disabled={!item.rentalId || !inquiryPcAssetId || item.customerRentalStatus === 'replacement_completed'} fixedTarget initialIds={inquiryPcAssetId ? [Number(inquiryPcAssetId)] : []} />
+    <InquiryAction disabled={!item.rentalId || !inquiryPcAssetId} fixedTarget initialIds={inquiryPcAssetId ? [Number(inquiryPcAssetId)] : []} />
   </div>
 }

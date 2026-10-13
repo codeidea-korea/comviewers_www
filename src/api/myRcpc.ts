@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { productNoResponseSchema, productNoSearchSchema } from './productNo'
 import type { ApiClient } from './httpClient'
 import { createExtensionCheckoutApi } from './extensionCheckout'
+import { rentalOperationalStatusSchema } from './rentalOperationalStatus'
 
 const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
@@ -25,8 +26,8 @@ const pcSpec = z.object({
 export const myRcpcItemSchema = z.object({
   rentalId: id, pcAssetId: id, productNo: productNoResponseSchema, managementNo: text, serverRoomId: id.nullable(), serverRoomName: text,
   productTitle: text, orderedAt: instant, serviceStartedAt: instant, serviceEndsAt: instant.optional(),
-  serverRoomRegion: text, serverStatus: z.enum(['needs_attention', 'format_waiting', 'extension_waiting', 'running', 'ended']),
-  operationalStatus: z.enum(['active', 'extension_waiting', 'termination_waiting', 'rental_waiting', 'terminated', 'refunded']).optional(),
+  serverRoomRegion: text, serverStatus: z.enum(['needs_attention', 'running']),
+  operationalStatus: rentalOperationalStatusSchema.nullable().optional(),
   usageStatus: z.enum(['using', 'extension_waiting', 'ended', 'other']), rentalStatus: status, serviceEndExclusiveDate: z.iso.date().nullable(), connectionStatus: z.string(),
   presenceLastSeenAt: instant, secondsSinceLastSeen: count.nullable(), trafficCounterEpoch: count.nullable(),
   trafficDownloadTotalBytes: count.nullable(), trafficUploadTotalBytes: count.nullable(), trafficObservedAt: instant, preference,

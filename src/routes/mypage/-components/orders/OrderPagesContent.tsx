@@ -16,6 +16,7 @@ import { InquiryRefundApplication } from '../InquiryRefundApplication'
 import { accountDateRange } from '../shared/AccountDatePresets'
 import { AccountInfo, ReadPages, accountDate, accountStatus, useAccountRead } from '../shared/AccountReadCommon'
 import { OrderItemActions } from './OrderItemActions'
+import { currentOrderPcAssetId, isReplacementOriginal } from './orderRentalPresentation'
 import { OrderProductDescription } from './OrderProductDescription'
 import { OrderRefundSummary } from './OrderRefundSummary'
 import { MyPagePeriodDialog } from '../shared/MyPagePeriodDialog'
@@ -32,13 +33,12 @@ import { PageBackButton } from '@/components/common/PageBackButton'
 import './orders-mobile.css'
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
-  awaiting: 'rental.awaiting',
-  using: 'rental.using',
-  replacement_using: 'rental.replacementUsing',
+  new_registered: 'rental.newRegistered',
+  new_waiting: 'rental.newWaiting',
+  available: 'rental.available',
+  active: 'rental.using',
   extension_waiting: 'rental.extensionWaiting',
-  server_ended: 'rental.serverEnded',
-  replacement_completed: 'rental.replacementCompleted',
-  needs_attention: 'rental.needsAttention',
+  termination_waiting: 'rental.formatWaiting',
 }
 
 const orderTabs = [
@@ -77,15 +77,9 @@ const canApplyDirectRefund = (item: AccountOrderItem, paymentStatus: string, ord
   && !item.refundPending
   && paymentStatus === 'approved'
   && ['paid', 'completed'].includes(orderStatus)
-  && ['using', 'replacement_using'].includes(item.customerRentalStatus)
+  && item.customerRentalStatus === 'active'
   && item.rentalStatus === 'active'
   && ['paid', 'active', 'completed'].includes(item.itemStatus)
-
-const currentOrderPcAssetId = (item: AccountOrderItem) => {
-  if (item.customerRentalStatus === 'replacement_completed') return null
-  if (item.customerRentalStatus === 'replacement_using') return item.currentPcAssetId ?? item.pcAssetId
-  return item.pcAssetId
-}
 
 type DisplayOrderItem = AccountOrderItem & { replacementSourceProductNo?: string }
 
@@ -96,7 +90,7 @@ const displayOrderItems = (item: AccountOrderItem): DisplayOrderItem[] => {
     ...item,
     productNo: item.currentProductNo,
     pcAssetId: item.currentPcAssetId,
-    customerRentalStatus: 'replacement_using',
+    customerRentalStatus: item.currentRentalOperationalStatus ?? null,
     replacementSourceProductNo: item.productNo,
   }]
 }
@@ -129,13 +123,12 @@ const serverStatusIcons: Record<ServerIconStatus, string> = {
 }
 
 const rentalStatusIconKinds: Record<string, ServerIconStatus> = {
-  awaiting: 'waiting',
-  using: 'on',
-  replacement_using: 'on',
+  new_registered: 'waiting',
+  new_waiting: 'waiting',
+  available: 'on',
+  active: 'on',
   extension_waiting: 'waiting',
-  server_ended: 'off',
-  replacement_completed: 'disabled',
-  needs_attention: 'off',
+  termination_waiting: 'disabled',
 }
 
 const displayOrderDate = (value: string | null) => {
@@ -255,7 +248,6 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
             >
               <option value="">{t('rental.status')}</option>
               {Object.entries(rentalStatusKeys)
-                .filter(([value]) => value !== 'needs_attention')
                 .map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
           </label>
@@ -291,7 +283,8 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                   + (['approved', 'partially_refunded', 'refunded'].includes(order.paymentStatus)
                     ? `?orderItemId=${encodeURIComponent(String(item.orderItemId))}` : '')
                 const terminal = ['환불완료', '취소완료', '결제실패', '결제기한 만료'].includes(status)
-                const showRentalStatus = Boolean(item.rentalId) || (!terminal && Boolean(item.pcAssetId) && item.customerRentalStatus === 'awaiting')
+                const displayRentalStatus = item.customerRentalStatus
+                const showRentalStatus = displayRentalStatus !== null
                 const orderDetail = orderDetailByNo.get(order.orderNo)
                 return (
                   <article className={`order-catalog-item${terminal ? ' order-catalog-item--compact' : ''}`} key={displaySelectionId(item)}>
@@ -318,7 +311,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </RelativeLink>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={item.customerRentalStatus === 'server_ended' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[item.customerRentalStatus] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[item.customerRentalStatus] ?? 'off']} alt="" />{rentalStatusKeys[item.customerRentalStatus] ? <TranslatedText id={rentalStatusKeys[item.customerRentalStatus]} /> : accountStatus(item.customerRentalStatus)}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state"><img className={displayRentalStatus === 'termination_waiting' ? 'order-catalog-item__state-icon--ended' : undefined} data-status={rentalStatusIconKinds[displayRentalStatus ?? ''] ?? 'off'} src={serverStatusIcons[rentalStatusIconKinds[displayRentalStatus ?? ''] ?? 'off']} alt="" />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (
@@ -410,7 +403,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     ] as const : []),
   ] : []
   const content = <div className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label="주문내역으로 뒤로가기"/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
-    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? '교체 이용' : item.customerRentalStatus === 'replacement_completed' ? '교체 완료' : item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [['상품', item.title], ['수량', t('unit.quantity', { count: item.quantity })]] : [['PC사양', item.specSummary ?? '기록 없음'], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], ['이용기간', `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
+    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? '교체 이용' : isReplacementOriginal(item) ? '교체 완료' : item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [['상품', item.title], ['수량', t('unit.quantity', { count: item.quantity })]] : [['PC사양', item.specSummary ?? '기록 없음'], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], ['이용기간', `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
     <section className="order-full-section"><h2><TranslatedText id="order.paymentInformation" /></h2><AccountInfo rows={paymentRows}/></section>
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)

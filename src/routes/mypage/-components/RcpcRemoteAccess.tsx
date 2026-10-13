@@ -15,7 +15,10 @@ type RemoteAccessItem = MyRcpcItem | MyRcpcDetail
 type RemoteAction = 'reveal' | 'remote_id' | 'password'
 
 function accessDeadline(serviceEndsAt: string): number {
-  return Date.parse(serviceEndsAt) + 48 * 60 * 60 * 1000
+  const expiresAt = Date.parse(serviceEndsAt)
+  const dayMs = 86_400_000
+  const kstOffsetMs = 9 * 60 * 60 * 1000
+  return Math.floor((expiresAt + kstOffsetMs) / dayMs) * dayMs - kstOffsetMs + 2 * dayMs
 }
 
 function remoteAccessErrorMessage(error: unknown): string {
