@@ -53,9 +53,9 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
           <ProductSpec label={<TranslatedText id="product.number" />} value={<span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.productId}</span>} />
           <ProductSpec className="product-card__spec--os" label="OS" value={visual.label || product.os ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{visual.label ?? product.os}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
-          <ProductSpec label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
-          <ProductSpec label="DISK" tone="gray" value={product.disk ?? <TranslatedText id="common.noInformation" />} />
-          <ProductSpec label="GPU" tone="red" value={product.gpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.gpu}</span> : <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--ram" label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--disk" label="DISK" tone="gray" value={product.disk ?? <TranslatedText id="common.noInformation" />} />
+          <ProductSpec className="product-card__spec--gpu" label="GPU" tone="red" value={product.gpu ? <span className={import.meta.env.DEV ? 'notranslate' : undefined} translate={import.meta.env.DEV ? 'no' : undefined}>{product.gpu}</span> : <TranslatedText id="common.noInformation" />} />
           {isLarge ? (
             <>
               <ProductSpec

@@ -54,6 +54,8 @@
 .product-filter-rail .product-filter::before { display: none; }
 .product-filter-rail .product-filter__scroll { height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; padding: 30px; scrollbar-width: thin; }
 .product-filter-rail .product-filter__scroll:focus-visible { outline: 2px solid var(--color-black); outline-offset: -2px; }
+
+
 .product-filter-backdrop { background: rgb(0 0 0 / 28%); border: 0; bottom: 0; cursor: default; left: 0; padding: 0; position: absolute; right: 0; top: 0; z-index: 1; }
 .product-filter-drawer-layer { position: fixed; z-index: 1000; }
 .product-filter-drawer-layer .product-filter--drawer {
@@ -594,3 +596,14 @@
 /* Preserve the Figma content rail inside the independent product scroll region. */
 
 .commerce-shell--products > .app-shell__scroll-region::-webkit-scrollbar { display: none; }
+
+@media (min-width: 768px) {
+  .products-content .product-selector-field > button,
+  .products-content .server-room-select-panel { border-radius: 0; }
+  .product-filter-rail .product-filter__scroll { padding-right: 0; }
+  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) dd { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) dd > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .product-card--large .product-card__peripherals > span:not(.sr-only) { background: var(--color-gray-100); border-radius: 4px; box-sizing: border-box; padding: 0; }
+  .product-card--large .product-card__peripherals .product-card__mouse img { height: 16.667px; width: 11.667px; }
+  .product-card--large .product-card__peripherals .product-card__keyboard img { height: 11.667px; width: 16.667px; }
+}
