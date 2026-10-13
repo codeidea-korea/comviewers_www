@@ -1,0 +1,8 @@
+@media (max-width: 767px) {
+  .mypage-shell .inquiry-catalog .inquiry-catalog__filters { grid-template-columns: max-content minmax(0, 1fr) 20px; }
+  .mypage-shell .inquiry-catalog .inquiry-catalog__filters > label:nth-of-type(1) { grid-column: 1; justify-self: start; }
+  .mypage-shell .inquiry-catalog .inquiry-catalog__filters > label:nth-of-type(2) { grid-column: 2; justify-self: start; }
+  .mypage-shell .inquiry-catalog .inquiry-catalog__filters > .inquiry-catalog__search-toggle { grid-column: 3; justify-self: end; }
+  .mypage-shell .inquiry-catalog .inquiry-catalog__filters > .inquiry-catalog__search-form { display: none; }
+  .mypage-shell .inquiry-catalog .inquiry-catalog__filters select { color: var(--color-gray-500); -webkit-text-fill-color: var(--color-gray-500); }
+}

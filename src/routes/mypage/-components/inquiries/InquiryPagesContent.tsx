@@ -11,7 +11,7 @@ import { NativeSelect } from '@/components/ui/SelectControl'
 import { accountKstDate } from '@/lib/accountFormat'
 import mypageSearch from '@/assets/figma/mypage-search.svg'
 
-import { MyPageLayout } from '../../MypageComponentsView'
+import { MobileBottomSheet, MyPageLayout } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import { isAccountReadDenied } from '../accountReadAccess'
 import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
@@ -20,6 +20,7 @@ import { InquiryConversationDialog } from './InquiryConversationDialog'
 import { InquiryAction } from './InquiryAction'
 import { useMobileInquiryViewport } from './inquiryViewport'
 import { inquiryTypes, inquiryTypeLabel } from '../InquiryPresentation'
+import './inquiry-list-qa.css'
 
 const statuses = [
   { label: '접수', value: '접수' },
@@ -56,6 +57,11 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
   const rows = useQuery({ queryKey: ['operation-requests', api.organizationId, query], queryFn: ({ signal }) => api.list(query, signal) })
   const accessDenied = isAccountReadDenied(rows.error)
   const data = accessDenied ? { items: [], page: 0, size: 20, total: 0 } : rows.data
+  const search = () => {
+    if (accessDenied) return
+    setQuery(current => ({ ...current, page: 0, productNo: productSearch.trim() || undefined }))
+    setMobileSearchOpen(false)
+  }
   return <MyPageLayout title="문의 관리"><section className="inquiry-catalog">
     {!accessDenied && !rows.isPending && detailId && onCloseDetail ? <InquiryConversationDialog key={`${api.organizationId}:${detailId}`} api={api} id={detailId} onClose={onCloseDetail}/> : null}
     {!accessDenied && !rows.isPending && createOpen && <InquiryDialog api={api} rcpcApi={rcpcApi} initialIds={initialIds} initialProductNo={initialProductNo} onClose={() => setCreateOpen(false)}/>}
@@ -63,9 +69,12 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
       <button aria-expanded={mobileSearchOpen} aria-label="품번 검색 열기" className="inquiry-catalog__search-toggle" disabled={accessDenied} onClick={() => setMobileSearchOpen(open => !open)} type="button"><img alt="" src={mypageSearch}/></button>
       <label><span className="sr-only">문의 유형</span><NativeSelect disabled={accessDenied} value={query.requestType ?? ''} onChange={event => setQuery(current => ({ ...current, page: 0, requestType: (event.target.value || undefined) as OperationRequestQuery['requestType'] }))}><option value="">전체 문의 유형</option>{Object.entries(inquiryTypes).map(([code, label]) => <option key={code} value={code}>{label}</option>)}</NativeSelect></label>
       <label><span className="sr-only">처리 상태</span><NativeSelect disabled={accessDenied} value={query.customerVisibleStatus ?? ''} onChange={event => setQuery(current => ({ ...current, page: 0, customerVisibleStatus: (event.target.value || undefined) as OperationRequestQuery['customerVisibleStatus'] }))}><option value="">전체 처리 상태</option>{statuses.map(status => <option key={status.value} value={status.value}>{status.label}</option>)}</NativeSelect></label>
-      <form className={`inquiry-catalog__search-form${mobileSearchOpen ? ' is-mobile-open' : ''}`} onSubmit={event => { event.preventDefault(); if (accessDenied) return; setQuery(current => ({ ...current, page: 0, productNo: productSearch.trim() || undefined })); if (mobile) setMobileSearchOpen(false) }}><SearchField autoFocus={mobile && mobileSearchOpen} key={mobile && mobileSearchOpen ? 'mobile-search-open' : 'search'} disabled={accessDenied} className="inquiry-catalog__search" icon={mypageSearch} iconClassName="inquiry-catalog__search-icon" label="품번 검색" maxLength={16} placeholder="품번을 입력해 주세요." value={productSearch} onChange={event => setProductSearch(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16))}/><button className="sr-only" disabled={accessDenied} type="submit">검색</button></form>
+      <form className="inquiry-catalog__search-form" onSubmit={event => { event.preventDefault(); search() }}><SearchField disabled={accessDenied} className="inquiry-catalog__search" icon={mypageSearch} iconClassName="inquiry-catalog__search-icon" label="품번 검색" maxLength={16} placeholder="품번을 입력해 주세요." value={productSearch} onChange={event => setProductSearch(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16))}/><button className="sr-only" disabled={accessDenied} type="submit">검색</button></form>
       <button className="inquiry-catalog__create" disabled={accessDenied || rows.isPending} type="button" onClick={() => setCreateOpen(true)}>문의 접수</button>
     </div>
+    <MobileBottomSheet id="inquiry-product-search" label="검색" onClose={() => setMobileSearchOpen(false)} open={mobile && mobileSearchOpen && !accessDenied}>
+      <form onSubmit={event => { event.preventDefault(); search() }}><SearchField autoFocus className="mypage-mobile-search" controlClassName="mypage-mobile-search__control" label="품번 검색" maxLength={16} placeholder="품번 검색" value={productSearch} onChange={event => setProductSearch(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16))}/><button className="mypage-mobile-search__submit" type="submit">조회</button></form>
+    </MobileBottomSheet>
     {query.productNo ? <div className="inquiry-catalog__mobile-search-tag"><span>품번: {query.productNo}</span><button aria-label="품번 검색 조건 해제" disabled={accessDenied} onClick={() => { setProductSearch(''); setQuery(current => ({ ...current, page: 0, productNo: undefined })) }} type="button">×</button></div> : null}
     {!accessDenied ? <AccountQueryState pending={rows.isPending} error={rows.error} retry={rows.refetch}/> : null}
     {data ? <><div aria-label="문의 목록" className="inquiry-catalog__table" role="table"><div className="inquiry-catalog__head" role="row"><span role="columnheader">문의 유형</span><span role="columnheader">대상 RCPC</span><span role="columnheader">최근 메시지</span><span role="columnheader">최근 활동</span><span role="columnheader">문의 상태</span><span role="columnheader">등록일</span></div>{data.items.map(item => <div className="inquiry-catalog__row" key={item.operationRequestId} role="row">
