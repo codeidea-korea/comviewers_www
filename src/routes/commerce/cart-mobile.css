@@ -103,4 +103,8 @@
   .cart-page .cart-summary dl > .cart-summary__divider:last-child { margin-bottom: 0; }
   .cart-page .cart-summary__box > p { margin-top: 12px; position: static; }
   .cart-page .cart-summary__actions { height: auto; }
+  .cart-page .cart-selection-bar { border-bottom: 0; }
+  .cart-page .cart-item .cart-item__bottom { flex-wrap: nowrap; }
+  .cart-page .cart-item .cart-item__amount { min-width: 0; }
+  .cart-page .cart-summary { border-top: 4px solid var(--color-gray-200); box-sizing: border-box; margin-inline: -12px; padding: 30px 12px 0; width: calc(100% + 24px); }
 }
