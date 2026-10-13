@@ -267,8 +267,8 @@
 .post-detail > header h1 { font-size: 30px; font-weight: 800; min-height: 36px; letter-spacing: -.03em; line-height: 36px; }
 .post-detail__attachment-icon { display: inline-block; height: 20px; margin-left: 8px; object-fit: contain; vertical-align: middle; width: 16px; }
 .post-detail > header p { height: 44px; margin-top: 20px; }
-.post-avatar { background: var(--color-blue-500); height: 44px; overflow: hidden; padding: 3px; width: 44px; }
-.post-avatar__mark { background: white; box-shadow: 9px 0 white, 0 9px white, 9px 9px white; display: block; height: 8px; transform: translate(-4.5px, -4.5px); width: 8px; }
+.post-avatar { background: transparent; flex-shrink: 0; height: 44px; overflow: hidden; padding: 0; width: 44px; }
+.post-avatar__image { display: block; height: 100%; object-fit: cover; width: 100%; }
 .post-detail__author { align-items: flex-start; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
 .post-detail__author strong { color: var(--color-gray-800); font-size: 18px; font-weight: 600; line-height: 16px; }
 .post-detail > header .post-detail__author small { align-items: center; display: flex; gap: 4px; line-height: 16px; margin: 0; }
@@ -469,7 +469,6 @@
 
 /* Original Figma document asset: do not recreate its folded corner with CSS. */
 .post-list img.post-list__document { border: 0; border-radius: 0; display: block; flex: 0 0 auto; height: 13.3333px; margin-left: 8px; position: static; width: 10.6667px; }
-.post-avatar img.post-avatar__mark { background: transparent; box-shadow: none; display: block; filter: brightness(0) invert(1); height: 16px; transform: none; width: 16px; }
 
 /* Company value cards follow the Figma hover expansion instead of snapping content into the layout. */
 .company-catalog-benefits article { overflow: hidden; transition: background-color .7s ease,color .7s ease; }
