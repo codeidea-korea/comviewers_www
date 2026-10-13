@@ -181,6 +181,14 @@ function PasswordSentPage() {
 function ResetPasswordPage() {
   const api = getPublicAccountApi()
   const navigate = useNavigate()
+  const [mobileViewport, setMobileViewport] = useState(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 767px)').matches)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined
+    const media = window.matchMedia('(max-width: 767px)')
+    const updateViewport = () => setMobileViewport(media.matches)
+    media.addEventListener('change', updateViewport)
+    return () => media.removeEventListener('change', updateViewport)
+  }, [])
   const [token] = useState(() => new URLSearchParams(window.location.search).get('token') ?? '')
   useEffect(() => {
     window.history.replaceState(window.history.state, '', window.location.pathname)
@@ -228,16 +236,28 @@ function ResetPasswordPage() {
     finally { setBusy(false) }
   }
   const helperText = '8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'
-  return <><LoginPage />
-    <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={() => navigate('/login', { replace: true })} onConfirm={linkState === 'ready' ? () => { void submit() } : undefined} showClose={linkState !== 'ready'} title="비밀번호 재설정">
+  const resetContent = <>
       {linkState === 'checking' ? <p role="status">재설정 링크를 확인하고 있습니다.</p> : null}
       {linkState === 'invalid' ? <p role="alert">재설정 링크가 유효하지 않거나 만료되었거나 이미 사용되었습니다. <Link to="/account/find-password">비밀번호 재설정 메일을 다시 요청해 주세요.</Link></p> : null}
       {linkState === 'unavailable' ? <div><p role="alert">재설정 링크를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.</p><Button onClick={() => setValidationAttempt(attempt => attempt + 1)} type="button" variant="secondary">다시 시도</Button></div> : null}
       {linkState === 'ready' ? <div className="popup-form">
         <PasswordField autoComplete="new-password" error={passwordError} helperText={helperText} label="새 비밀번호" maxLength={16} onChange={(event) => { setPasswordTouched(true); setPasswordPolicyError(''); setPassword(event.target.value); setError('') }} required value={password} />
         <PasswordField autoComplete="new-password" error={confirmationError} helperText={helperText} label="비밀번호 확인" maxLength={16} onChange={(event) => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} required value={confirmation} />
-        {error ? <p className="form-error" role="alert">{error}</p> : null}
+        {error ? <p className="form-error" role="alert">* {error}</p> : null}
       </div> : null}
+    </>
+  const goToLogin = () => navigate('/login', { replace: true, state: complete ? { passwordReset: true } : undefined })
+  if (mobileViewport) return <AuthPage variant="reset-password"><AuthPanel>
+    <AuthHeading title={complete ? '비밀번호가 변경되었습니다.' : '비밀번호 재설정'} />
+    <div className="auth-form">
+      {complete ? <p>새로 설정한 비밀번호로 다시 로그인해 주세요.</p> : resetContent}
+      {!complete && linkState === 'ready' ? <Button disabled={busy || !validPassword || password !== confirmation} onClick={() => { void submit() }} size="large" type="button">{busy ? '변경 중…' : '확인'}</Button> : null}
+      {complete || linkState === 'invalid' || linkState === 'unavailable' ? <Button onClick={goToLogin} size="large" type="button">로그인하기</Button> : null}
+    </div>
+  </AuthPanel></AuthPage>
+  return <><LoginPage />
+    <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={goToLogin} onConfirm={linkState === 'ready' ? () => { void submit() } : undefined} showClose={linkState !== 'ready'} title="비밀번호 재설정">
+      {resetContent}
     </Modal>
     <Modal confirmLabel="로그인하기" isOpen={complete} onClose={() => navigate('/login', { replace: true, state: { passwordReset: true } })} onConfirm={() => navigate('/login', { replace: true, state: { passwordReset: true } })} showClose={false} title="비밀번호가 변경되었습니다."><p>새로 설정한 비밀번호로 다시 로그인해 주세요.</p></Modal>
   </>

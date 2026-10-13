@@ -58,7 +58,7 @@ export function RequiredPasswordChangeModal({ onClose, onComplete }: Props) {
         error={confirmationTouched ? confirmationError : undefined} value={confirmation}
         onChange={event => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} />
       <button type="submit" hidden disabled={busy}>변경 후 로그인</button>
-      {error ? <p className="form-error" role="alert">{error}</p> : null}
+      {error ? <p className="form-error" role="alert">* {error}</p> : null}
     </form>
   </Modal>
 }
