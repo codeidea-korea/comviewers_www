@@ -138,7 +138,7 @@ export function CustomerCapabilityGate({ children }: { children: ReactNode }) {
   const capability = session.customerSession
   if (capability.myPageOnly && communityWriteRoute) return <Navigate to="/community/posts" replace />
   if (capability.myPageOnly && !isMyPageOnlyPathAllowed(pathname)) return <Navigate to="/mypage/rcpc" replace />
-  const commerceRoute = /^\/(cart|checkout)(?:\/|$)/.test(pathname) || /^\/mypage\/(orders|storage|points|coupons|extension-checkout|replacement-checkout)(?:\/|$)/.test(pathname)
+  const commerceRoute = /^\/(cart|checkout)(?:\/|$)/.test(pathname) || /^\/mypage\/(orders|storage|points|coupons|extension-checkout)(?:\/|$)/.test(pathname)
   const managersRoute = /^\/mypage\/managers(?:\/|$)/.test(pathname)
   if ((commerceRoute && !capability.commerceAvailable) || (managersRoute && !capability.cManagerManagementAvailable)) return <main className="session-notice"><p><TranslatedText id="auth.accessDenied" /></p><Link to="/mypage/rcpc">이용 RCPC로 이동</Link><SessionControls /></main>
   return children

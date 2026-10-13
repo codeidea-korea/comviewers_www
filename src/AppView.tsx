@@ -33,7 +33,6 @@ const LoginMethodsPage = lazy(() => import('./routes/mypage/LoginMethodsPageView
 const RcpcDetailPage = lazy(() => import('./routes/mypage/RcpcPagesView').then(module => ({ default: module.RcpcDetailPage })))
 const RcpcListPage = lazy(() => import('./routes/mypage/RcpcPagesView').then(module => ({ default: module.RcpcListPage })))
 const ExtensionCheckoutPage = lazy(() => import('./routes/mypage/ExtensionCheckoutPage').then(module => ({ default: module.ExtensionCheckoutPage })))
-const ReplacementCheckoutPage = lazy(() => import('./routes/mypage/ReplacementCheckoutPage').then(module => ({ default: module.ReplacementCheckoutPage })))
 const CommunityPostDetailPage = lazy(() => import('./routes/community/CommunityPostDetailPageView').then(module => ({ default: module.CommunityPostDetailPage })))
 const CommunityPostListPage = lazy(() => import('./routes/community/CommunityPostListPageView').then(module => ({ default: module.CommunityPostListPage })))
 const RentalReviewListPage = lazy(() => import('./routes/community/RentalReviewPagesView').then(module => ({ default: module.RentalReviewListPage })))
@@ -106,7 +105,6 @@ export function App() {
       <Route path="mypage" element={<SessionRouteGate requireOrganization><MypageHomePage /></SessionRouteGate>} />
       <Route path="mypage/rcpc" element={<SessionRouteGate requireOrganization><RcpcListPage /></SessionRouteGate>} />
       <Route path="mypage/extension-checkout" element={<SessionRouteGate requireOrganization><ExtensionCheckoutPage /></SessionRouteGate>} />
-      <Route path="mypage/replacement-checkout/:changeId" element={<SessionRouteGate requireOrganization><ReplacementCheckoutPage /></SessionRouteGate>} />
       <Route path="mypage/rcpc/:rcpcId" element={<SessionRouteGate requireOrganization><RcpcDetailPage /></SessionRouteGate>} />
       <Route path="mypage/favorites" element={<SessionRouteGate requireOrganization><FavoritesPage /></SessionRouteGate>} />
       <Route path="mypage/favorites/settings" element={<SessionRouteGate requireOrganization><FavoritesPage settings /></SessionRouteGate>} />

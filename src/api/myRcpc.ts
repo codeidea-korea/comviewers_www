@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { productNoResponseSchema, productNoSearchSchema } from './productNo'
 import type { ApiClient } from './httpClient'
 import { createExtensionCheckoutApi } from './extensionCheckout'
-import { createRentalChangeCheckoutApi } from './rentalChangeCheckout'
 
 const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
@@ -95,7 +94,6 @@ export function createMyRcpcApi(client: ApiClient, organizationId: string) {
   return {
     organizationId: customerOrganizationId,
     extensionCheckout: createExtensionCheckoutApi(client, customerOrganizationId),
-    changeCheckout: createRentalChangeCheckoutApi(client, customerOrganizationId),
     rebootStatus: (rentalId: number, signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/reboot`, rebootStatusSchema, { ...context, signal }),
     reboot: (rentalId: number, idempotencyKey: string) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/reboot`, rebootStatusSchema, { ...context, method: 'POST', idempotencyKey: z.uuid().parse(idempotencyKey) }),
     wanIp: (rentalId: number, action: 'reveal' | 'copy', signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/wan-ip/${z.enum(['reveal', 'copy']).parse(action)}`, z.object({ wanIp: z.string().min(1).max(45) }), { ...context, method: 'POST', signal }),
