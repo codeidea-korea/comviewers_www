@@ -110,7 +110,6 @@ export function useProductList() {
     facets: result.data?.facets ?? null, capabilities: products.capabilities, instantOnly: query.instantOnly,
     selectedRooms: new Set(query.rooms), detailSelections: query.details, selectorSelections,
     setCurrentPage: (page: number) => updateQuery({ page }, false),
-    setKeyword: (keyword: string) => updateQuery({ keyword: keyword.trim() || undefined }),
     setInstantOnly: (instantOnly: boolean) => updateQuery({ instantOnly }),
     setSelectedRooms: (rooms: Set<string>) => updateQuery({ rooms: [...rooms] }),
     setDetailSelections: (update: Update<DetailSelections>) => updateQuery({ details: resolve(update, query.details) }),
