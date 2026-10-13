@@ -187,14 +187,14 @@
   .rcpc-popup-layer--extension .rcpc-extension-dialog > footer { bottom: auto; flex: 0 0 auto; grid-template-columns: repeat(2, minmax(0, 1fr)); height: auto; left: auto; min-height: 74px; padding: 12px 12px max(12px, env(safe-area-inset-bottom)); position: static; right: auto; }
   .rcpc-popup-layer--extension .rcpc-extension-dialog > footer > :is(button, a) { align-items: center; display: flex; height: 50px; justify-content: center; min-width: 0; width: 100%; }
 
-  /* Local Figma 839:28829: tabs, compact filters, then RCPC heading. */
+  /* Local Figma 839:28829: RCPC heading, tabs, then compact filters. */
   .mypage-shell .rcpc-list-page { display: flex; flex-direction: column; }
   .mypage-shell .rcpc-list-page > * { order: 4; }
-  .mypage-shell .rcpc-list-page > .mypage-tabs { order: 1; }
-  .mypage-shell .rcpc-list-page > .mypage-toolbar { align-items: center; flex-direction: row; flex-wrap: nowrap; gap: 8px; height: 40px; order: 2; padding: 0; }
+  .mypage-shell .rcpc-list-page > .mypage-tabs { order: 2; }
+  .mypage-shell .rcpc-list-page > .mypage-toolbar { align-items: center; flex-direction: row; flex-wrap: nowrap; gap: 8px; height: 40px; order: 3; padding: 0; }
   .mypage-shell .rcpc-list-page > .mypage-toolbar > div { display: flex; gap: 8px; justify-content: flex-end; min-width: 0; width: auto; }
   .mypage-shell .rcpc-list-page .mypage-toolbar select[data-ui='native-select'] { appearance: none; background: transparent url('../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; border: 0; border-radius: 0; color: var(--color-gray-500); font-size: 14px; height: 24px; max-width: 120px; min-width: 0; padding: 0 16px 0 0; width: auto; -webkit-text-fill-color: var(--color-gray-500); }
-  .mypage-shell .rcpc-list-page > .mobile-list-page-heading--rcpc { margin: 12px 0 16px; order: 3; }
+  .mypage-shell .rcpc-list-page > .mobile-list-page-heading--rcpc { margin: 0 0 12px; order: 1; }
   .mobile-list-page-heading--rcpc h1 { font-size: 20px; line-height: 24px; }
   .mobile-list-page-heading--rcpc button { align-items: center; display: inline-flex; gap: 4px; }
   .mobile-list-page-heading--rcpc button img { height: 14.263px; object-fit: contain; width: 10px; }
@@ -215,7 +215,7 @@
   .mypage-shell .rcpc-bulk-actions > section > button,
   .mypage-shell .favorites-results__toolbar .rcpc-bulk-actions > button,
   .mypage-shell .favorites-results__toolbar .rcpc-bulk-actions > section > button { font-size: 12px; padding-inline: 4px; text-align: center; width: 100%; }
-  .mypage-shell .rcpc-list-page .rcpc-list__bulk-actions { align-items: center; flex-direction: row; gap: 8px; min-height: 40px; padding: 0 0 12px; }
+  .mypage-shell .rcpc-list-page .rcpc-list__bulk-actions { display: none; }
   .mypage-shell .rcpc-list-page .rcpc-list__bulk-select { flex-shrink: 0; font-size: 14px; font-weight: 500; gap: 8px; }
   .mypage-shell .rcpc-list-page .rcpc-bulk-actions { justify-content: flex-end; width: auto; }
   .mypage-shell .rcpc-list-page .rcpc-bulk-actions > button,
