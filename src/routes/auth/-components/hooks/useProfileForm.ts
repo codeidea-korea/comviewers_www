@@ -199,8 +199,14 @@ export function useProfileForm() {
     if (signupCoordinator.awaitingEmail) setNotice('프로필 이미지가 변경되었습니다. 회원가입을 다시 신청해 주세요.')
     signupCoordinator.cancel(); setProfileImageError(''); setProfileImage(file)
   }
+  async function resendVerification() {
+    setNotice('')
+    if (await signupCoordinator.resend()) {
+      setNotice('새 인증 메일을 발송했습니다. 이전 인증 링크는 사용할 수 없습니다.')
+    }
+  }
   return { profile, profilePreview, setProfilePreview, setProfileImage: selectProfileImage,
     error: error || signupCoordinator.error, setError, notice, profileImageError, setProfileImageError, usernameFeedback, fieldErrors, busy: busy || signupCoordinator.busy, complete,
-    awaitingVerification: signupCoordinator.awaitingEmail === email, restartSignup: signupCoordinator.cancel,
+    awaitingVerification: signupCoordinator.awaitingEmail === email, restartSignup: signupCoordinator.cancel, resendVerification,
     checkedUsername, checkUsername, setField, setFieldValue, submit }
 }

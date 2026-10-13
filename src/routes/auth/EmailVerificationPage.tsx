@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { getPublicAccountApi } from '@/api/publicAccount'
+import { ApiClientError } from '@/api/httpClient'
 import { AppShell } from '@/components/layout/AppShellView'
 import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import { Button } from '@/components/ui/ButtonControl'
@@ -46,7 +47,11 @@ export function EmailVerificationPage() {
       stopCompletionListener.current = listenForSignupCompletion(message.requestId, () => setSignupCompleted(true))
       setResult(message)
       await sendResult(message)
-    } catch (cause) { setError(cause instanceof Error ? cause.message : '이메일 인증을 완료하지 못했습니다.') }
+    } catch (cause) {
+      setError(cause instanceof ApiClientError && cause.code === 'A009'
+        ? '인증 링크가 만료되었거나 이미 사용되었거나 유효하지 않습니다. 회원가입 화면에서 인증 메일을 다시 발송해 주세요.'
+        : cause instanceof Error ? cause.message : '이메일 인증을 완료하지 못했습니다.')
+    }
     finally { setBusy(false) }
   }
 

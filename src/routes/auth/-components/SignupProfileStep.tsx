@@ -18,7 +18,7 @@ export function SignupProfileStep() {
 
 function StandardSignupProfileStep() {
   const { profile, profilePreview, setProfilePreview, setProfileImage,
-    error, setError, notice, profileImageError, usernameFeedback, fieldErrors, busy, complete, awaitingVerification, restartSignup,
+    error, setError, notice, profileImageError, usernameFeedback, fieldErrors, busy, complete, awaitingVerification, restartSignup, resendVerification,
     checkedUsername, checkUsername, setField, setFieldValue, submit } = useProfileForm()
 
   if (awaitingVerification) {
@@ -32,6 +32,7 @@ function StandardSignupProfileStep() {
         {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
       </div>
       <div className="result-actions signup-request-actions">
+        <Button disabled={busy} onClick={() => { void resendVerification() }} size="large" variant="secondary">{busy ? '발송 중…' : '인증 메일 재발송'}</Button>
         {error ? <Button onClick={restartSignup} size="large" variant="secondary">다시 입력하기</Button> : null}
         <Button as={Link} size="large" to="/">메인으로</Button>
       </div>

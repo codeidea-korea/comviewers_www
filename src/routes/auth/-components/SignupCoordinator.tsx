@@ -20,6 +20,7 @@ interface SignupCoordinatorValue {
   busy: boolean
   error: string
   begin: (requestId: string, email: string, submission: PendingSignupSubmission) => void
+  resend: () => Promise<boolean>
   cancel: () => void
 }
 
@@ -30,6 +31,7 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
   const navigate = useNavigate()
   const pending = useRef<PendingSignup | null>(null)
   const registering = useRef(false)
+  const resending = useRef(false)
   const [requestId, setRequestId] = useState('')
   const [awaitingEmail, setAwaitingEmail] = useState('')
   const [busy, setBusy] = useState(false)
@@ -48,6 +50,27 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
     setAwaitingEmail(email)
     setError('')
   }, [])
+
+  const resend = useCallback(async () => {
+    const current = pending.current
+    if (!api || !current || registering.current || resending.current) return false
+    resending.current = true
+    setBusy(true)
+    setError('')
+    try {
+      const requested = await api.requestEmailVerification(current.email, current.submission.registration.nickname)
+      if (pending.current !== current) return false
+      pending.current = { ...current, requestId: requested.requestId }
+      setRequestId(requested.requestId)
+      return true
+    } catch (cause) {
+      if (pending.current === current) setError(cause instanceof Error ? cause.message : '인증 메일을 다시 보내지 못했습니다.')
+      return false
+    } finally {
+      resending.current = false
+      setBusy(false)
+    }
+  }, [api])
 
   useEffect(() => listenForEmailVerification(requestId, async (result) => {
     const current = pending.current
@@ -83,7 +106,7 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
     }
   }), [api, navigate, requestId])
 
-  return <SignupCoordinatorContext.Provider value={{ awaitingEmail, begin, busy, cancel, error }}>
+  return <SignupCoordinatorContext.Provider value={{ awaitingEmail, begin, resend, busy, cancel, error }}>
     {children}
   </SignupCoordinatorContext.Provider>
 }
