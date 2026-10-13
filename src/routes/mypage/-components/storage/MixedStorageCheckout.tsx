@@ -28,7 +28,7 @@ export function MixedStorageCheckout({api,children}:{api:MyAccountReadServices;c
   const valid=groups.rentals.valid&&groups.parts.valid&&count>0&&count<=100&&Number.isSafeInteger(amount)&&Number.isSafeInteger(points)
   const stateClass=availableCount>0?'':groups.parts.state==='pending'?' is-loading':groups.parts.state==='error'?' is-error':' is-empty'
   return <SelectionContext.Provider value={selection}><div className={`storage-catalog__body${stateClass}`}><section className="storage-catalog__items">
-    <div className="storage-catalog__toolbar"><label><input aria-label="예약상품 전체 선택" ref={node=>{if(node)node.indeterminate=count>0&&!allSelected}} checked={allSelected} disabled={Boolean(attempt)||availableCount===0||groups.rentals.state!=='ready'||groups.parts.state!=='ready'} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> 상품 정보</label><span>주문정보</span><span>소계</span></div>
+    <div className="storage-catalog__toolbar"><label><input aria-label="예약상품 전체 선택" ref={node=>{if(node)node.indeterminate=count>0&&!allSelected}} checked={allSelected} disabled={Boolean(attempt)||availableCount===0||groups.rentals.state!=='ready'||groups.parts.state!=='ready'} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> 모두 선택</label><span>주문정보</span><span>소계</span></div>
     {children}</section>{availableCount>0?<aside className="purchase-summary cart-summary"><h2>주문 예상 금액</h2><div className="purchase-summary__box cart-summary__box"><dl>
     <div className="purchase-summary__products cart-summary__products">
       <div className="cart-summary__main"><dt>렌탈상품</dt><dd>{groups.rentals.valid?accountMoney(groups.rentals.amount):'기간 확인 필요'}</dd></div>
