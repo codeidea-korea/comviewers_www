@@ -1,5 +1,5 @@
 import type { AccountManager } from '@/domain/myAccount/managerServices'
-import { PopupLayer } from '@/components/ui/PopupLayerControl'
+import { ManagerSurface as PopupLayer } from './ManagerSurface'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 
 export function ManagerSettingsDialog({ managers, onClose, onEdit }: {

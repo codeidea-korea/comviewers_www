@@ -1,7 +1,8 @@
 import { isActiveManager } from '@/domain/myAccount/managerServices'
 import { useRef, useState } from 'react'
 import { Modal } from '@/components/ui/ModalControl'
-import { PopupLayer } from '@/components/ui/PopupLayerControl'
+import { ManagerSurface as PopupLayer } from './-components/modals/ManagerSurface'
+import { useMobileInquiryViewport } from './-components/inquiries/inquiryViewport'
 import { DialogActions } from '@/components/ui/DialogActionsControl'
 import { ApiClientError } from '@/api/httpClient'
 import { Toast, useToastMessage } from '@/components/ui/ToastControl'
@@ -12,6 +13,7 @@ import { ManagerSettingsDialog } from './-components/modals/ManagerSettingsDialo
 
 type ManagerDialog = { kind: 'closed' } | { kind: 'settings' } | { kind: 'create' } | { kind: 'edit'; id: string } | { kind: 'delete'; id: string } | { kind: 'assign' | 'unassign'; ids: string[] } | { kind: 'unavailable'; action: 'assign' | 'unassign' }
 function ManagersContent() {
+  const mobile = useMobileInquiryViewport()
   const account = useManagers()
   const [dialog, setDialog] = useState<ManagerDialog>({ kind: 'closed' })
   const [openMenuRow, setOpenMenuRow] = useState<string | null>(null)
@@ -69,7 +71,7 @@ function ManagersContent() {
     return managers.some(manager => manager.assignedRcpcIds.includes(id) || (rcpc ? manager.assignedRcpcIds.includes(rcpc.rcpcId) : false))
   }) ? '담당자 변경' : '담당자 설정'
   return <>
-    <ManagerCatalog selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onSettings={() => open({ kind: 'settings' })} onCreate={() => { setEditingFromSettings(false); open({ kind: 'create' }) }} onEdit={(id) => { setEditingFromSettings(false); open({ kind: 'edit', id }) }} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} onCloseMenu={() => setOpenMenuRow(null)} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} />
+    {!mobile || !['settings', 'create', 'edit', 'assign'].includes(dialog.kind) ? <ManagerCatalog selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onSettings={() => open({ kind: 'settings' })} onCreate={() => { setEditingFromSettings(false); open({ kind: 'create' }) }} onEdit={(id) => { setEditingFromSettings(false); open({ kind: 'edit', id }) }} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} onCloseMenu={() => setOpenMenuRow(null)} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} /> : null}
     {dialog.kind === 'settings' ? <ManagerSettingsDialog managers={managers} onClose={close} onEdit={id => { setEditingFromSettings(true); open({ kind: 'edit', id }) }}/> : null}
     <Toast message={notice} toastKey={toastKey} />
     {(dialog.kind === 'create' || dialog.kind === 'edit') && <PopupLayer isOpen className="manager-preview manager-preview--create" dialogClassName="manager-modal manager-modal--register manager-modal--editor" onClose={close} showTitle={false} title={dialog.kind === 'create' ? '담당자 등록' : '담당자 수정'}>
