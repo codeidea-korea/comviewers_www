@@ -69,6 +69,8 @@
   .checkout-page.checkout-page--service .commerce-field > input,
   .checkout-page.checkout-page--service .commerce-field > select,
   .checkout-page.checkout-page--service .commerce-field > div:not(.commerce-field__error) { height: 50px; min-height: 50px; }
+  .checkout-page.checkout-page--service .checkout-customer .commerce-field:has(> .email-fields) { height: auto; }
+  .checkout-page.checkout-page--service .checkout-customer .commerce-field > div.email-fields:not(.commerce-field__error) { height: 50px; min-height: 50px; }
   .checkout-page.checkout-page--service :is(.email-fields, .phone-fields, .messenger-fields) {
     align-items: center;
     display: grid;
@@ -76,6 +78,8 @@
     width: 100%;
   }
   .checkout-page.checkout-page--service .email-fields { grid-template-columns: minmax(0, 1fr) 13px minmax(0, 1fr) minmax(0, 1fr); }
+  .checkout-page.checkout-page--service .email-fields > span { color: var(--color-gray-500); }
+  .checkout-page.checkout-page--service .email-fields > select { grid-column: auto; }
   .checkout-page.checkout-page--service .phone-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .checkout-page.checkout-page--service .messenger-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .checkout-page.checkout-page--service :is(.email-fields, .phone-fields, .messenger-fields) > :is(input, select) {
