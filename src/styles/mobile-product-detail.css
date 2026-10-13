@@ -113,4 +113,6 @@
     height: 220px;
     margin-top: 64px;
   }
+  .commerce-shell.product-detail-page .site-footer { display: block; }
+  .product-detail-page .detail-bottom-banner > .content-container { display: none; }
 }
