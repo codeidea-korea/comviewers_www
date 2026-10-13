@@ -1,5 +1,22 @@
 .home-mobile-break { display: none; }
 
+.app-shell--home main { word-break: keep-all; }
+
+.app-shell--home .home-product-grid .product-card__spec {
+  grid-template-columns: 40px minmax(0, 1fr);
+}
+
+.app-shell--home .home-product-grid :is(
+  .product-card__spec--ram,
+  .product-card__spec--disk,
+  .product-card__spec--gpu
+) > dd {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .home-section-heading__arrow {
   align-items: center;
   display: inline-flex;
