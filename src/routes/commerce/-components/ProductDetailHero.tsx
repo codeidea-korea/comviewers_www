@@ -53,7 +53,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
             <p><span><b>{part ? '상품 금액' : `${unit === 'thirty_day' ? '월' : unit === 'hour' ? '시간' : '일'} 렌탈료`}</b><small>{part ? '1개' : periodDescription} 기준</small></span><strong>{formatWon(rentalUnitPrice)}</strong></p>
             {!part && <p><b>적립 포인트</b><strong>{product.pointRate === null ? '정보 없음' : <><span>렌탈금액의</span> {product.pointRate}%</>}</strong></p>}
           </div>
-          {canSelectPeriod ? <p className="product-detail-notice">{part ? '수량은' : '이용기간은'} <b>{part ? '1개' : periodDescription} 단위</b>로 {minimum}~{maximum}{unitLabel}까지 선택할 수 있습니다.</p> : <p>단가 또는 선택 가능한 {part ? '수량' : '이용기간'}을 확인할 수 없어 장바구니에 담을 수 없습니다.</p>}
+          {canSelectPeriod ? <p className="product-detail-notice">{!part && unit === 'thirty_day' ? <>결제 수량은 <b>1개월 단위로 추가</b>되며, 최대 {maximum}개월까지 결제하실 수 있습니다. 1개월은 30일을 기준으로 계산됩니다.</> : <>{part ? '수량은' : '이용기간은'} <b>{part ? '1개' : periodDescription} 단위</b>로 {minimum}~{maximum}{unitLabel}까지 선택할 수 있습니다.</>}</p> : <p>단가 또는 선택 가능한 {part ? '수량' : '이용기간'}을 확인할 수 없어 장바구니에 담을 수 없습니다.</p>}
           <QuantityStepper label={part ? '수량' : '이용기간'} value={quantity} minimum={minimum} maximum={maximum} unit={unitLabel} disabled={!canSelectPeriod} onChange={setQuantity} />
           <div className="product-detail-total"><span>총 금액</span><strong><b>{safeTotalAmount === null ? '계산 불가' : safeTotalAmount.toLocaleString('ko-KR')}</b><small>원</small></strong></div>
           <div className="product-detail-actions">
