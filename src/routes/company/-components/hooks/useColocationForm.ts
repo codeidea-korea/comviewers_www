@@ -146,7 +146,8 @@ export function useColocationForm(initialDraft: ColocationDraft | null) {
     submitLabel: '입점 신청',
     pendingLabel: '제출 중…',
     completeTitle: '입점 신청 완료',
-    completeMessage: '입점 신청이 접수되었습니다. 제출하신 정보를 검토한 후 담당자 연락처로 결과를 안내해 드리겠습니다.',
+    completeMessage: '입점 신청이 접수되었습니다.',
+    completeDescription: '제출하신 정보를 검토한 후 담당자 연락처로 결과를 안내해 드리겠습니다.',
     terms: terms.data, termsPending: terms.isPending, termsError: terms.isError || (terms.isSuccess && !terms.data), retryTerms: () => void terms.refetch(),
     closeComplete: () => { setCompleteOpen(false); navigate('/') },
     updateFiles, submit }

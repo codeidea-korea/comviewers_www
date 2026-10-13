@@ -11,8 +11,8 @@ import { ColocationServerRooms } from './-components/ColocationServerRooms'
 function SelectedFile({ file, onRemove }: { file: string; onRemove: () => void }) {
   const match = file.match(/^(.*?)(?:\s+(\d+\s*(?:mb|kb)))?$/i)
   return (
-    <span>
-      <span>{match?.[1] ?? file}{match?.[2] ? <small>{match[2]}</small> : null}</span>
+    <span className="colocation-file-list__item">
+      <span className="colocation-file-list__details"><span className="colocation-file-list__name" title={match?.[1] ?? file}>{match?.[1] ?? file}</span>{match?.[2] ? <small>{match[2]}</small> : null}</span>
       <button aria-label={`${file} 삭제`} onClick={onRemove} type="button">×</button>
     </span>
   )
@@ -26,7 +26,7 @@ export function ColocationApplyPage() {
 }
 
 function ColocationDraftForm({ initialDraft }: { initialDraft: ColocationDraft | null }) {
-  const { fixture, selectedFiles, removeFile, validationIssue, completeOpen, emailDomain, setEmailDomain, emailIdInput, updateEmailId, emailDomainInput, setEmailDomainInput, updateEmailDomainInput, phonePrefix, setPhonePrefix, serverRooms, addServerRoom, removeServerRoom, updateServerRoom, pending, submitLabel, pendingLabel, completeTitle, completeMessage, updateFiles, submit, terms, termsPending, termsError, retryTerms, closeComplete } = useColocationForm(initialDraft)
+  const { fixture, selectedFiles, removeFile, validationIssue, completeOpen, emailDomain, setEmailDomain, emailIdInput, updateEmailId, emailDomainInput, setEmailDomainInput, updateEmailDomainInput, phonePrefix, setPhonePrefix, serverRooms, addServerRoom, removeServerRoom, updateServerRoom, pending, submitLabel, pendingLabel, completeTitle, completeMessage, completeDescription, updateFiles, submit, terms, termsPending, termsError, retryTerms, closeComplete } = useColocationForm(initialDraft)
   const hasIssue = (...fields: string[]) => validationIssue !== null && fields.includes(validationIssue.field)
   const issueMessage = (...fields: string[]) => hasIssue(...fields) ? <small className="colocation-field-error" role="alert">* {validationIssue?.message}</small> : null
   return (
@@ -45,7 +45,7 @@ function ColocationDraftForm({ initialDraft }: { initialDraft: ColocationDraft |
           </fieldset>
           <button className="colocation-submit" disabled={pending || !terms} formNoValidate type="submit">{pending ? pendingLabel : submitLabel}</button>
         </form>
-        <Modal className="modal--colocation-complete" confirmLabel="닫기" isOpen={completeOpen} onClose={closeComplete} onConfirm={closeComplete} showClose={false} title={completeTitle}><div className="popup-copy"><p>{completeMessage}</p></div></Modal>
+        <Modal className="modal--colocation-complete" confirmLabel="닫기" isOpen={completeOpen} onClose={closeComplete} onConfirm={closeComplete} showClose={false} title={completeTitle}><div className="popup-copy"><p>{completeMessage}</p><p className="colocation-complete-description">{completeDescription}</p></div></Modal>
       </section>
     </AppShell>
   )

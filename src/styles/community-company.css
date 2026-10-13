@@ -406,6 +406,35 @@
 .colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box { background: white; border: 1px solid var(--color-gray-200); display: block; height: 116px; margin: 6px 0 0 26px; max-width: calc(100% - 26px); padding: 8px; position: relative; width: 574px; }
 .colocation-submit:disabled { background: var(--color-gray-100); color: var(--color-gray-500); cursor: default; }
 
+/* Live form uses the 281:11333 layout without fixing dynamic room/file heights. */
+.colocation-page:not(.colocation-page--compact) .colocation-card { border-radius: 12px; display: flex; flex-direction: column; gap: 40px; min-height: 0; padding: 60px; }
+.colocation-page:not(.colocation-page--compact) .colocation-card > header { padding: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-card > header h1 { line-height: 29px; }
+.colocation-page:not(.colocation-page--compact) .colocation-card > header p { margin-top: 8px; }
+.colocation-page:not(.colocation-page--compact) .colocation-card fieldset { margin: 0; padding: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-card legend { margin-bottom: 20px; padding: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-grid { gap: 20px; }
+.colocation-page:not(.colocation-page--compact) .colocation-grid label { gap: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-grid label > span { font-size: 14px; line-height: 24px; }
+.colocation-page:not(.colocation-page--compact) .colocation-grid :is(input, select) { font-size: 18px; font-weight: 500; height: 50px; padding: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-grid select[data-ui='native-select'] { appearance: none; background: transparent url('../assets/figma/selector-chevron-down.svg') right 4px center / 12px 7.4px no-repeat; border-radius: 0; padding-right: 24px; }
+.colocation-page:not(.colocation-page--compact) .email-control { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) minmax(0, 1fr); }
+.colocation-page:not(.colocation-page--compact) .email-control > :is(input, select) { min-width: 0; width: 100%; }
+.colocation-page:not(.colocation-page--compact) .phone-control { gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.colocation-page:not(.colocation-page--compact) .messenger-control { gap: 12px; }
+.colocation-card .colocation-help { font-size: 14px; line-height: 24px; }
+.colocation-page:not(.colocation-page--compact) .colocation-file { border-radius: 4px; margin-top: 20px; }
+.colocation-card .colocation-file-list { gap: 8px; margin-top: 8px; }
+.colocation-card .colocation-file-list > .colocation-file-list__item { align-items: center; background: var(--color-gray-50); border: 0; border-radius: 4px; display: flex; gap: 8px; height: 50px; min-width: 0; padding: 0 16px; width: 100%; }
+.colocation-file-list__details { align-items: center; display: flex; flex: 1; font-size: 14px; gap: 4px; min-width: 0; }
+.colocation-file-list__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.colocation-file-list__details small { color: var(--color-gray-500); flex-shrink: 0; font-size: 14px; }
+.colocation-card .colocation-file-list button { align-items: center; background: var(--color-gray-800); border-radius: 50%; color: white; display: flex; flex: 0 0 20px; float: none; font-size: 14px; height: 20px; justify-content: center; line-height: 1; padding: 0; width: 20px; }
+.colocation-card .colocation-consent > label { align-items: center; display: flex; font-size: 14px; }
+.colocation-page:not(.colocation-page--compact) .colocation-submit { border-radius: 4px; height: 50px; margin: 0; }
+.modal.modal--colocation-complete { height: auto; min-height: 265px; }
+.modal--colocation-complete .colocation-complete-description { color: var(--color-gray-700); font-size: 16px; line-height: 24px; }
+
 /* 4-03 rental-review catalog geometry and exported Figma vectors. */
 .community-tabs { border-color: var(--color-gray-200); }
 .community-tabs a { font-weight: 500; }

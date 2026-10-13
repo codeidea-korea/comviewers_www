@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/ButtonControl'
 import type { ColocationServerRoom } from '@/domain/colocation/draftRepository'
 import { messengerOptionLabel, messengerOptions } from '@/lib/formOptions'
 import closeIcon from '@/assets/figma/product-list-close.svg'
+import addIcon from '@/assets/figma/icon-add.svg'
 import { colocationRoomFieldName } from './colocationInput'
 import './colocation-server-rooms.css'
 
@@ -50,7 +51,7 @@ export function ColocationServerRooms({ rooms, pending, validationIssue, onAdd, 
             </div>
           )
         })}
-        <Button className="colocation-server-rooms__add" disabled={pending} onClick={onAdd} variant="secondary">+ 서버실 추가</Button>
+        <Button className="colocation-server-rooms__add" disabled={pending} onClick={onAdd} variant="secondary">서버실 추가 <img alt="" src={addIcon} /></Button>
       </div>
     </fieldset>
   )

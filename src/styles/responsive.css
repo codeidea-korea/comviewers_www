@@ -884,6 +884,7 @@
   .colocation-page:not(.colocation-page--compact) .colocation-grid__wide { grid-column: auto; }
   .colocation-page:not(.colocation-page--compact) .email-control,
   .colocation-page:not(.colocation-page--compact) .phone-control { align-items: stretch; flex-direction: column; }
+  .colocation-page:not(.colocation-page--compact) .email-control { display: flex; }
   .colocation-page:not(.colocation-page--compact) .email-control i,
   .colocation-page:not(.colocation-page--compact) .phone-control i { display: none; }
   .colocation-page:not(.colocation-page--compact) .email-control input,
@@ -895,6 +896,7 @@
   .colocation-page:not(.colocation-page--compact) .messenger-control { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
   .colocation-page:not(.colocation-page--compact) .colocation-grid label { min-width: 0; }
   .colocation-page:not(.colocation-page--compact) .colocation-grid :is(input, select) { box-sizing: border-box; max-width: 100%; min-width: 0; }
+  .colocation-page:not(.colocation-page--compact) .email-control select { flex: none; min-height: 50px; width: 100%; }
   .colocation-page:not(.colocation-page--compact) .colocation-grid select[data-ui='native-select'] { appearance: none; background: transparent url('../assets/figma/selector-chevron-down.svg') right 4px center / 12px 7.4px no-repeat; border-radius: 0; color: var(--color-black); font-size: 16px; padding: 0 24px 0 0; -webkit-text-fill-color: var(--color-black); }
   .colocation-page:not(.colocation-page--compact) .colocation-help > b { color: var(--color-gray-500); font-weight: 400; }
   .colocation-page:not(.colocation-page--compact) .colocation-file { border-radius: 4px; box-sizing: border-box; }
