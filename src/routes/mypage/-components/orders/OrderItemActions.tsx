@@ -38,7 +38,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] })])
   }, onSettled: () => { busy.current = false } })
   const confirmedAt = confirmation.data?.confirmedAt ?? item.purchaseConfirmedAt
-  const paid = !item.refundPending && paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
+  const paid = !item.refundPending && ['approved', 'partially_refunded'].includes(paymentStatus) && ['paid', 'completed'].includes(orderStatus)
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
@@ -99,7 +99,7 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
   const { t } = useTranslation()
   const { myAccount } = useServices()
 
-  const paid = paymentStatus === 'approved' && ['paid', 'completed'].includes(orderStatus)
+  const paid = ['approved', 'partially_refunded'].includes(paymentStatus) && ['paid', 'completed'].includes(orderStatus)
   const active = paid && !item.refundPending && item.customerRentalStatus === 'active'
     && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)

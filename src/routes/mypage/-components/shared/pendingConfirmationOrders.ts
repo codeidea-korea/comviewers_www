@@ -9,7 +9,7 @@ export async function pendingOrders(api: MyAccountReadServices, signal: AbortSig
     const next = await api.orders({ page, size: 100, category: 'completed', pendingPurchaseConfirmation: true }, signal)
     orders = [...orders, ...next.items]
   }
-  return orders.filter(order => order.paymentStatus === 'approved' && ['paid', 'completed'].includes(order.orderStatus))
+  return orders.filter(order => ['approved', 'partially_refunded'].includes(order.paymentStatus) && ['paid', 'completed'].includes(order.orderStatus))
     .map(order => ({ ...order, items: order.items.filter(item => !item.purchaseConfirmedAt && !item.refundPending
       && item.rentalStatus === 'active'
       && item.serviceStartedAt && item.serviceEndsAt
