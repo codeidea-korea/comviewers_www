@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { DialogActions } from '../ui/DialogActionsControl'
 import { Modal } from '../ui/ModalControl'
 import { PopupLayer } from '../ui/PopupLayerControl'
-import { NativeSelect } from '../ui/SelectControl'
 import backIcon from '@/assets/figma/mypage-mobile-back.png'
 import './rcpc-extension-qa.css'
 
@@ -77,20 +76,14 @@ export interface RcpcRebootSurfaceProps extends Omit<RcpcSurfaceProps, 'rcpc'> {
 const extensionHeaders = ['상품', '연장 기간', '현재 종료일', '예상 연장 종료', '월 렌탈비', '결제 예정금액']
 
 export function RcpcExtensionSurface({ action, busy = false, dateValue = '', error, extensionMode, itemCount, onClose, onDateChange, onModeChange, onPeriodChange, periodValue = '30', rcpc, rows, targets, totalAmount = '견적 미조회', returnFocusRef }: RcpcExtensionSurfaceProps) {
-  const [room, setRoom] = useState('')
   const products = targets?.length ? targets : [rcpc]
   const displayRows: readonly RcpcExtensionDisplayRow[] = rows?.length ? rows : products.map((target) => ({ key: target.rcpcId, product: String(target.rcpcId), location: target.location, period: '—', currentEnd: '—', nextEnd: '—', monthlyFee: '—', payment: '—' }))
-  const roomNames = [...new Set([...products.map(target => target.location), ...displayRows.map(row => row.location)].filter((value): value is string => Boolean(value)))]
-  const activeRoom = roomNames.includes(room) ? room : ''
-  const visibleProducts = activeRoom ? products.filter(target => target.location === activeRoom) : products
-  const visibleRows = activeRoom ? displayRows.filter(row => row.location === activeRoom) : displayRows
-  const roomSelect = (label: string) => <NativeSelect aria-label={label} onChange={event => setRoom(event.target.value)} value={activeRoom}><option value="">서버실 선택</option>{roomNames.map(name => <option key={name} value={name}>{name}</option>)}</NativeSelect>
   return (
     <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--extension" dialogClassName="rcpc-extension-dialog" initialFocus="dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} showTitle={false} title="기간 연장">
       <h2><button aria-label="기간 연장 닫기" className="rcpc-extension-dialog__back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button>기간 연장</h2>
       <div aria-busy={busy} className="rcpc-extension-dialog__scroll">
-        <div className="rcpc-extension-dialog__products-heading"><h3>선택 품목</h3>{roomSelect('선택 품목 서버실')}</div>
-        <div aria-label="선택 품목" className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{visibleProducts.map((target) => <article key={target.rcpcId}><strong><span className="rcpc-extension-product__alias">{target.alias ? `${target.alias} · ` : ''}</span>품번 {target.rcpcId}{target.location ? ` · ${target.location}` : ''}</strong><p className="rcpc-extension-product__expiry">현재 만료일 {target.currentEnd ?? '확인 중'}</p><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || '사양 정보가 없습니다.'}</p></article>)}</div>
+        <div className="rcpc-extension-dialog__products-heading"><h3>선택 품목</h3></div>
+        <div aria-label="선택 품목" className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{products.map((target) => <article key={target.rcpcId}><strong><span className="rcpc-extension-product__alias">{target.alias ? `${target.alias} · ` : ''}</span>품번 {target.rcpcId}{target.location ? ` · ${target.location}` : ''}</strong><p className="rcpc-extension-product__expiry">현재 만료일 {target.currentEnd ?? '확인 중'}</p><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || '사양 정보가 없습니다.'}</p></article>)}</div>
         <h3>연장 방식 선택</h3>
         <div className="rcpc-extension-dialog__modes">
           <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'period'} disabled={busy} name="extension-mode" onChange={() => onModeChange('period')} type="radio" /><span><strong>기간 선택</strong><small>선택한 기간 만큼 연장됩니다.</small></span></label><fieldset aria-label="연장 기간" disabled={busy}><legend className="sr-only">연장 기간</legend><div className="rcpc-extension-dialog__periods">{[['30', '1개월'], ['60', '2개월'], ['90', '3개월']].map(([value, label]) => <button aria-pressed={extensionMode === 'period' && periodValue === value} key={value} onClick={() => { onModeChange('period'); onPeriodChange?.(value) }} type="button">{label}</button>)}</div></fieldset></div>
@@ -99,13 +92,13 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
         <p className="rcpc-extension-dialog__help">ㆍ선택한 방식에 따라 각 RCPC의 연장 기간이 계산됩니다.<br />ㆍ연장 시에는 렌탈비만 추가되며, 상품별 결제 예정금액은 다를 수 있습니다.<br />ㆍ30일 상품은 (월 렌탈료 ÷ 30) × 연장 일수로 계산한 뒤, 상품별 금액의 소수점 이하를 반올림합니다.</p>
         {busy ? <p role="status">연장 견적을 확인하고 있습니다.</p> : null}
         {error ? <p role="alert">{error}</p> : null}
-        <div className="rcpc-extension-results-toolbar">{roomSelect('기간연장 주문서 서버실')}</div>
         <div className="rcpc-extension-results-scroll" tabIndex={0}>
-          <div className={`rcpc-extension-results${visibleRows.length === 1 ? ' rcpc-extension-results--single' : ''}`}>
+          <div className={`rcpc-extension-results${displayRows.length === 1 ? ' rcpc-extension-results--single' : ''}`}>
             <div className="rcpc-extension-results__header">{extensionHeaders.map((header) => <span key={header}>{header}</span>)}</div>
-            {visibleRows.map((row) => <div className={row.warning ? 'is-warning' : undefined} key={row.key}>{[row.product, row.period, row.currentEnd, row.nextEnd, row.monthlyFee, row.payment].map((value, index) => <span data-label={extensionHeaders[index]} key={index}>{value}</span>)}</div>)}
+            {displayRows.map((row) => <div className={row.warning ? 'is-warning' : undefined} key={row.key}>{[row.product, row.period, row.currentEnd, row.nextEnd, row.monthlyFee, row.payment].map((value, index) => <span data-label={extensionHeaders[index]} key={index}>{value}</span>)}</div>)}
           </div>
         </div>
+        <div aria-label="기간 연장 견적" className="rcpc-extension-mobile-results" tabIndex={0}>{displayRows.map(row => <article className={`rcpc-extension-mobile-card${row.warning ? ' is-warning' : ''}`} key={row.key}><strong>{row.product}</strong><dl>{[row.period, row.currentEnd, row.nextEnd, row.monthlyFee, row.payment].map((value, index) => <div key={extensionHeaders[index + 1]}><dt>{extensionHeaders[index + 1]}</dt><dd>{value}</dd></div>)}</dl></article>)}</div>
         <div className="rcpc-extension-total"><small>선택 상품 <b>{itemCount ?? displayRows.length}개</b></small><strong>총 결제 금액 <b>{totalAmount}</b></strong></div>
       </div>
       <DialogActions><button onClick={onClose} type="button">취소</button>{action ?? <button disabled type="button">연장 결제하기</button>}</DialogActions>

@@ -1,8 +1,6 @@
 .rcpc-extension-dialog__back { display: none; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__scroll > .rcpc-extension-dialog__products-heading { align-items: center; display: flex; justify-content: space-between; order: 0; }
 .rcpc-extension-dialog__products-heading h3 { margin: 0; }
-.rcpc-extension-dialog__products-heading select,
-.rcpc-extension-results-toolbar select { background: var(--color-white); border: 0; color: var(--color-gray-500); font: inherit; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__scroll > h3:first-of-type { margin-top: 30px; order: 2; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row { align-items: stretch; flex-direction: column; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row > fieldset,
@@ -10,8 +8,7 @@
 .rcpc-extension-dialog__periods { gap: 12px; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__periods button { border: 1px solid var(--color-gray-200); border-radius: 4px; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__periods button[aria-pressed='true'] { background: var(--color-white); border-color: var(--color-black); color: var(--color-black); }
-.rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results-toolbar { display: flex; justify-content: flex-end; margin-top: 30px; order: 6; }
-.rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results-scroll { margin-top: 8px; order: 7; }
+.rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results-scroll { margin-top: 30px; order: 7; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-total { order: 8; }
 @media (max-width: 767px) {
   .rcpc-popup-layer--extension .rcpc-extension-dialog > h2 { align-items: center; display: flex; gap: 4px; }
@@ -19,11 +16,20 @@
   .rcpc-extension-dialog__back img { height: 24px; object-fit: contain; width: 24px; }
   .rcpc-extension-product__alias,
   .rcpc-extension-product__expiry { display: none; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results-scroll { max-width: 100%; overflow-x: auto; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results { display: flex; gap: 8px; max-width: none; width: max-content; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results > div:not(.rcpc-extension-results__header) { flex: 0 0 250px; margin-bottom: 0; width: 250px; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results.rcpc-extension-results--single { width: 100%; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results.rcpc-extension-results--single > div:not(.rcpc-extension-results__header) { flex: 1; width: 100%; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results > div:not(.rcpc-extension-results__header) > span:first-child { display: block; font-weight: 600; }
-  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results > div:not(.rcpc-extension-results__header) > span:first-child::before { content: none; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row { gap: 8px; padding: 24px 16px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row:has(input[type='radio']:checked) { border-color: var(--color-black); }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row > label { flex: none; min-height: 0; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__modes strong { line-height: 19px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog__modes small { line-height: 17px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__periods { gap: 4px; grid-template-columns: minmax(0, 1fr); }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__periods button { color: var(--color-gray-500); font-size: 16px; font-weight: 500; height: 43px; line-height: 19px; padding: 0 16px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__periods button[aria-pressed='true'] { color: var(--color-black); }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results-scroll { display: none; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-results { margin-top: 30px; order: 7; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-card { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 12px; width: 250px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-card > strong { font-size: 16px; line-height: 19px; overflow-wrap: anywhere; padding-bottom: 0; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-card dl { border-top: 1px solid var(--color-gray-200); }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-card dl > div { border-bottom: 1px solid var(--color-gray-200); border-top: 0; grid-template-columns: 100px minmax(0, 1fr); min-height: 41px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-card :is(dt, dd) { align-items: center; display: flex; line-height: 17px; min-height: 40px; min-width: 0; overflow-wrap: anywhere; padding: 8px 4px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-mobile-card.is-warning dd { background: var(--color-primary-200); }
 }

@@ -22,6 +22,30 @@
 .refund-application-page__header h2 { margin: 0; }
 .refund-application-page__header button { background: transparent; border: 0; padding: 0; }
 .refund-application-page__header img { height: 24px; width: 24px; }
+.modal--refund-application > .refund-application-page__header,
+.modal--refund-application > .refund-application__actions { flex-shrink: 0; }
+.modal--refund-application > .modal__content { scrollbar-color: var(--color-gray-400) transparent; scrollbar-width: thin; }
+.modal--refund-application > .modal__content::-webkit-scrollbar { width: 4px; }
+.modal--refund-application > .modal__content::-webkit-scrollbar-track { background: transparent; }
+.modal--refund-application > .modal__content::-webkit-scrollbar-thumb { background: var(--color-gray-400); border-radius: 999px; }
+.modal--refund-application .refund-application__summary { border-width: 4px; }
+.refund-application__quote-details { position: relative; }
+.refund-application__quote-status { align-items: center; background: var(--color-white); display: flex; inset: 0; justify-content: center; position: absolute; z-index: 1; }
+.refund-application__quote-status > .refund-application__loading { min-height: 0; }
+.modal--refund-application .refund-application .refund-application__phone { margin-top: 30px; }
+.refund-application__phone > legend { font-size: 16px; font-weight: 400; line-height: 19px; margin-bottom: 12px; }
+.refund-application__phone > div { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.refund-application .refund-application__phone :is(input, select) { background: var(--color-white); border: 0; border-bottom: 1px solid var(--color-black); border-radius: 0; color: var(--color-black); font-size: 18px; font-weight: 500; height: 50px; letter-spacing: -.03em; min-width: 0; padding: 4px 0; width: 100%; }
+.refund-application .refund-application__phone select { appearance: none; background: var(--color-white) url('../../../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; padding-right: 24px; }
+.refund-application__agreement-row { align-items: flex-start; display: flex; gap: 8px; justify-content: space-between; }
+.refund-application__agreement-row > .refund-application__agreement { min-width: 0; }
+.refund-application .refund-application__agreement > .checkbox__input { margin: 0; }
+.refund-application__agreement-row .refund-application__agreement > span { display: block; font-weight: 400; }
+.refund-application__agreement-row > a { color: var(--color-system-error); flex-shrink: 0; font-size: 12px; text-decoration: underline; }
+.modal--refund-application > .refund-application__actions { background: var(--color-white); display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 30px; }
+.refund-application__actions > button { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); font-size: 16px; font-weight: 500; height: 50px; min-width: 0; padding: 0 20px; }
+.refund-application__actions > button:last-child { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }
+.refund-application__actions > button:disabled { background: var(--color-gray-100); border-color: var(--color-gray-100); color: var(--color-gray-400); }
 @media (max-width: 767px) {
   .inquiry-mobile-page.inquiry-flow-page { min-height: 100dvh; overflow-x: hidden; overflow-y: auto; }
   .inquiry-flow-page > .inquiry-preview-dialog { border: 0; border-radius: 0; display: flex; flex-direction: column; height: auto; min-height: 100dvh; left: auto; max-height: none; position: static; top: auto; transform: none; width: 100%; }
@@ -31,5 +55,6 @@
   .inquiry-flow-page > .refund-application-page { border: 0; border-radius: 0; max-height: none; min-height: 100dvh; width: 100%; }
   .inquiry-flow-page .refund-application-page .modal__content { max-height: none; overflow: visible; }
   .refund-application-page .refund-application__table-scroll { max-width: 100%; overflow-x: auto; }
-  .refund-application-page .refund-application footer { position: static; }
+  .refund-application__agreement-row { flex-wrap: wrap; }
+  .refund-application__actions > button { padding: 0 8px; }
 }
