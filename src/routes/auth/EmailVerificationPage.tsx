@@ -54,9 +54,15 @@ export function EmailVerificationPage() {
         if (attempt < deliveryRetryAttempts - 1) await wait(deliveryRetryDelayMs)
       }
     } catch (cause) {
-      setError(cause instanceof ApiClientError && cause.code === 'A009'
-        ? cause.message === expiredLinkMessage ? expiredLinkMessage : invalidLinkMessage
-        : cause instanceof Error ? cause.message : '이메일 인증을 완료하지 못했습니다.')
+      if (cause instanceof ApiClientError && cause.code === 'A027') {
+        setError(expiredLinkMessage)
+      } else if (cause instanceof ApiClientError && cause.code === 'A028') {
+        setError(invalidLinkMessage)
+      } else if (cause instanceof ApiClientError && cause.code === 'A009') {
+        setError(cause.message === expiredLinkMessage ? expiredLinkMessage : invalidLinkMessage)
+      } else {
+        setError(cause instanceof Error ? cause.message : '이메일 인증을 완료하지 못했습니다.')
+      }
     }
     finally { setBusy(false) }
   }
