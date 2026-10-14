@@ -112,6 +112,15 @@
   border: 0;
 }
 
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__selection-notice {
+  color: var(--color-system-error);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
 @media (min-width: 768px) {
   .inquiry-preview-layer > .inquiry-preview-dialog.inquiry-product-choice {
     padding: 30px;

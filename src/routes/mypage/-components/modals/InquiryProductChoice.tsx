@@ -22,7 +22,7 @@ export function ProductChoiceRow({ checked = false, disabled = false, onCheckedC
 
 type ServerRoomFilter = { value: number | null; options: readonly { id: number; name: string }[]; onChange: (id: number | null) => void }
 
-export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, lockedIds = [], maxSelection = 20, filters, notice, onClose, onEmpty, onNext, onSelectedChange, selectedIds, products, serverRoomFilter, standalone = false, title = '상품 선택' }: { actionLabel?: string; allowEmpty?: boolean; lockedIds?: readonly number[]; maxSelection?: number; filters?: ReactNode; notice?: ReactNode; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (ids: number[]) => void; selectedIds: readonly number[]; products: InquiryChoice[]; serverRoomFilter?: ServerRoomFilter; standalone?: boolean; title?: string }) {
+export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, lockedIds = [], maxSelection = 20, filters, notice, selectionNotice, onClose, onEmpty, onNext, onSelectedChange, selectedIds, products, serverRoomFilter, standalone = false, title = '상품 선택' }: { actionLabel?: string; allowEmpty?: boolean; lockedIds?: readonly number[]; maxSelection?: number; filters?: ReactNode; notice?: ReactNode; selectionNotice?: string; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (ids: number[]) => void; selectedIds: readonly number[]; products: InquiryChoice[]; serverRoomFilter?: ServerRoomFilter; standalone?: boolean; title?: string }) {
   const selectedCount = selectedIds.length
   const allSelected = products.length > 0 && products.every(product => selectedIds.includes(Number(product.rcpcId)))
   const overLimit = selectedCount > maxSelection
@@ -40,6 +40,7 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
       <footer>
         {overLimit ? <p className="inquiry-product-choice__limit" role="alert">최대 {maxSelection}대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요.</p> : null}
         {missingTargets ? <p role="alert">선택한 문의 대상 RCPC를 확인할 수 없습니다. 다시 확인해 주세요.</p> : null}
+        {selectionNotice ? <p className="inquiry-product-choice__selection-notice" role="alert">{selectionNotice}</p> : null}
         {allowEmpty ? <button onClick={() => { onSelectedChange([]); (onEmpty ?? onNext)() }} type="button">선택안함</button> : null}
         <button disabled={!selectedCount || overLimit || missingTargets} onClick={onNext} type="button"><span aria-live="polite">{selectedCount ? <><b>{selectedCount}대</b> {actionLabel}</> : '다음'}</span></button>
       </footer>

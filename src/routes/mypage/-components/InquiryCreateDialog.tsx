@@ -107,7 +107,8 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
         ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
         : rcpcs.isError
           ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
-          : visibleProducts.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}{productNotice ? <p role="alert">{productNotice}</p> : null}</>}
+          : visibleProducts.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}</>}
+      selectionNotice={productNotice}
       onClose={closeProductPicker}
       onEmpty={() => { setSelectedIds([]); setProductNotice(''); setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); create.reset(); setStep('type') }}
       onNext={() => {

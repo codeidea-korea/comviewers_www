@@ -84,8 +84,9 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
         actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '추가하기'}
         allowEmpty={false}
         maxSelection={Math.max(0, 20 - total)}
-        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !visibleProducts.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{businessNotice ? <p role="alert">{businessNotice}</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
+        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !visibleProducts.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
         onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }}
+        selectionNotice={businessNotice}
         onNext={submit}
         onSelectedChange={(ids) => {
           attempt.current = null
