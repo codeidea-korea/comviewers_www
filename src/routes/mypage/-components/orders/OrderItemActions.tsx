@@ -60,7 +60,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   </>
   if (variant === 'purchase-summary') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</Button> : null}
-    {item.expectedPoints !== null ? <b>포인트 {item.expectedPoints.toLocaleString('ko-KR')}P 받기</b> : null}
+    {item.expectedPoints !== null ? <b><img alt="" src={tollIcon}/>포인트 {item.expectedPoints.toLocaleString('ko-KR')}P 받기</b> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>

@@ -3,6 +3,9 @@
 .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row .mypage-tabs button { font-size: 16px; }
 .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row > a.benefit-tabs-row__policy { align-self: center; color: var(--color-gray-500); gap: 10px; height: 19px; min-height: 19px; padding: 0; width: 119px; }
 .order-period-layer .order-period-dialog footer button:first-child { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+.mypage-shell .points-catalog .point-carousel__track > article { height: auto; min-height: 117.12px; }
+.mypage-shell .points-catalog .point-carousel article > b { max-width: 100%; right: 0; white-space: nowrap; }
+.mypage-shell .points-catalog .point-carousel article > b > img { flex-shrink: 0; object-fit: contain; }
 @media (max-width: 767px) {
   .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row nav.mypage-tabs { flex: 1 1 auto; min-width: 0; width: auto; }
   .mypage-shell .points-catalog .point-carousel { height: auto; overflow: visible; }

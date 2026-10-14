@@ -176,6 +176,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
             <>
               <BenefitTable
                 ariaLabel="포인트 내역"
+                mobileVariant="rcpc"
                 columns={[
                   { key: 'occurredAt', label: '일시', sortValue: item => Date.parse(item.occurredAt), renderCell: item => accountDate(item.occurredAt).slice(0, 19) },
                   { key: 'reason', label: '내용', sortValue: item => pointReasonLabel(item.reason, item.amount), renderCell: item => pointReasonLabel(item.reason, item.amount) },
