@@ -1,11 +1,12 @@
 import type { Product } from '../../domain/products/types'
-import { TranslatedText, useTranslation } from '../../i18n/translation'
-import onlineIcon from '../../assets/figma/product-server-online.png'
-import offlineIcon from '../../assets/figma/product-server-offline.png'
+import { useTranslation } from '../../i18n/translation'
+import onlineIcon from '../../assets/figma/icon-server-on.svg'
+import offlineIcon from '../../assets/figma/icon-server-off.svg'
+import unknownIcon from '../../assets/figma/icon-server-disabled.svg'
 
-// Figma serverState 406:8734: on 406:8733 / off 406:8732, 24×24.
 export function ProductServerState({ state }: { state: Product['serverState'] }) {
   const { t } = useTranslation()
-  if (state === null) return <TranslatedText id="common.noInformation" />
-  return <img alt={t(state === 'online' ? 'product.connected' : 'product.disconnected')} className="product-server-state" height={24} src={state === 'online' ? onlineIcon : offlineIcon} width={24} />
+  const label = t(state === null ? 'common.noInformation' : state === 'online' ? 'product.connected' : 'product.disconnected')
+  const icon = state === null ? unknownIcon : state === 'online' ? onlineIcon : offlineIcon
+  return <span className={`product-server-state is-${state ?? 'unknown'}`} title={label}><img alt={label} src={icon} /></span>
 }

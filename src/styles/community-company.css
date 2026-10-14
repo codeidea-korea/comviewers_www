@@ -488,9 +488,9 @@
 .post-editor--flow .post-files .file-select { margin: 12px 0; position: static; top: auto; }
 .post-editor--flow .post-files--error { height: auto; }
 .post-editor--flow .post-files__error { margin: 0 0 12px; position: static; }
-.post-editor--flow .post-files > div,.post-editor--flow .post-files > div:nth-of-type(1),.post-editor--flow .post-files > div:nth-of-type(2),.post-editor--flow .post-files > div:nth-of-type(3) { align-items: center; border-radius: 4px; display: flex; gap: 12px; height: 50px; justify-content: space-between; left: auto; position: static; top: auto; width: 720px; }
+.post-editor--flow .post-files > div,.post-editor--flow .post-files > div:nth-of-type(1),.post-editor--flow .post-files > div:nth-of-type(2),.post-editor--flow .post-files > div:nth-of-type(3) { align-items: center; border-radius: 4px; display: flex; gap: 12px; height: 50px; justify-content: flex-start; left: auto; position: static; top: auto; width: 720px; }
 .post-editor--flow .post-files > div + div { margin-top: 8px; }
-.post-files__info { align-items: center; display: flex; flex: 1 1 0; gap: 4px; min-width: 0; }
+.post-files__info { align-items: center; display: flex; flex: 0 1 auto; gap: 4px; min-width: 0; }
 .post-files__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .post-files__info > small,.post-files > div > button { flex-shrink: 0; white-space: nowrap; }
 .post-editor--flow .post-editor__actions { height: auto; left: auto; margin: 54px 0 0; position: static; top: auto; width: 714px; }

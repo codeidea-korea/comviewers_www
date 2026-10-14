@@ -31,7 +31,7 @@ export function mapCatalogProduct(dto: CatalogListItem | CatalogDetail): Product
     pointRate: dto.pricing.pointRate,
     minRentalUnits: 'minUnits' in dto && ['hour', 'day', 'thirty_day'].includes(dto.pricing.billingUnit) ? dto.minUnits : null,
     maxRentalUnits: 'maxUnits' in dto && ['hour', 'day', 'thirty_day'].includes(dto.pricing.billingUnit) ? dto.maxUnits : null,
-    serverState: connectionStatus === 'ONLINE' ? 'online' : connectionStatus === 'OFFLINE' || connectionStatus === 'STALE' ? 'offline' : null, mouseIncluded: mouse, keyboardIncluded: keyboard,
+    serverState: connectionStatus === 'ONLINE' ? 'online' : connectionStatus === 'OFFLINE' || connectionStatus === 'STALE' || connectionStatus === 'NEVER_CONNECTED' ? 'offline' : null, mouseIncluded: mouse, keyboardIncluded: keyboard,
     peripherals: mouse === null || keyboard === null ? null : [...(mouse ? ['mouse'] : []), ...(keyboard ? ['keyboard'] : [])],
     refundPolicy: 'refundPolicy' in dto ? dto.refundPolicy : null,
   })

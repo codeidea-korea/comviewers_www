@@ -15,7 +15,7 @@ export function HomeCallToAction() {
           <h2>지금 필요한 PC 환경을<br />ComViewers에서 바로 이용해보세요.</h2>
           <Link className="button button--large home-outline-button" to="/products">
             <span>RCPC 상품 보기</span>
-            <Icon name="chevron-right" size={20} tone="inverse" />
+            <span aria-hidden="true" className="home-outline-button__icon"><Icon name="chevron-right" size={20} tone="inverse" /></span>
           </Link>
         </div>
       </section>

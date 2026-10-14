@@ -2,12 +2,8 @@ import { useState } from 'react'
 import type { Product } from '../../../domain/products/types'
 import { Button } from '../../../components/ui/ButtonControl'
 import shoppingBag from '../../../assets/figma/shopping-bag.svg'
-import serverLinkIcon from '../../../assets/figma/server-link.svg'
-import serverOffIcon from '../../../assets/figma/icon-server-off.svg'
-import mouseIcon from '../../../assets/figma/mouse.svg'
-import keyboardIcon from '../../../assets/figma/keyboard.svg'
-import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
-import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
+import { ProductServerState } from '@/components/product/ProductServerStateView'
+import { ProductPeripherals } from '@/components/product/ProductPeripherals'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { productOsVisual } from '@/components/product/productOsVisual'
 import { ProductOsOverlay } from '@/components/product/ProductOsOverlay'
@@ -37,15 +33,12 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
         <div className="product-detail-buy">
           <h1><span><span>품번</span><b>{product.productId}</b></span><small>{product.serverRoomProvider ? `${product.serverRoomProvider}/` : ''}{product.serverRoom}</small></h1>
           {part && <h2>{product.title ?? product.productId}</h2>}
-          {part ? <p>{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : '수량형 일회성 상품입니다.'}</p> : <p className={`product-detail-availability${product.available ? '' : ' is-waiting'}`}>{product.serverState !== null ? <i className="product-detail-availability__icon"><img alt="" src={product.serverState === 'online' ? serverLinkIcon : serverOffIcon} /></i> : null}{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : product.available === null ? '즉시 이용 가능 여부가 제공되지 않았습니다.' : product.available ? '구매 즉시 접속 가능합니다.' : '대기 중인 서버로, 주문 완료 시 1~24시간 이내로 관리자가 확인 후 접속 가능합니다.'}</p>}
+          {part ? <p>{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : '수량형 일회성 상품입니다.'}</p> : <p className="product-detail-availability"><ProductServerState state={product.serverState} />{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : product.available === null ? '즉시 이용 가능 여부가 제공되지 않았습니다.' : product.available ? '구매 즉시 접속 가능합니다.' : '대기 중인 서버로, 주문 완료 시 1~24시간 이내로 관리자가 확인 후 접속 가능합니다.'}</p>}
           {part ? <p style={{ whiteSpace: 'pre-wrap' }}>{product.description || '등록된 상품 설명이 없습니다.'}</p> : <dl className="product-detail-specs">
             {specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? "정보 없음"}</dd></div>)}
             <div>
               <dt>주변기기</dt>
-              <dd className="product-detail-peripherals">
-                {product.mouseIncluded === null ? <span className="product-detail-peripherals__unknown">마우스 정보 없음</span> : <i className="is-mouse"><img alt={product.mouseIncluded ? '마우스 제공' : '마우스 미제공'} src={product.mouseIncluded ? mouseActiveIcon : mouseIcon} /></i>}
-                {product.keyboardIncluded === null ? <span className="product-detail-peripherals__unknown">키보드 정보 없음</span> : <i className="is-keyboard"><img alt={product.keyboardIncluded ? '키보드 제공' : '키보드 미제공'} src={product.keyboardIncluded ? keyboardActiveIcon : keyboardIcon} /></i>}
-              </dd>
+              <dd><ProductPeripherals mouseIncluded={product.mouseIncluded} keyboardIncluded={product.keyboardIncluded} /></dd>
             </div>
           </dl>}
           <div className="product-detail-prices">

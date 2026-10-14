@@ -77,8 +77,8 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
                       {item.id === 'cart' && cartCount !== undefined ? <span className="cart-count">{cartCount}</span> : null}
                     </Link>
                   )}
-                {item.id === 'cart' ? <GoogleTranslateTrial /> : null}
               </Fragment>)}
+              <GoogleTranslateTrial />
             </nav>
           </div>
         </div>

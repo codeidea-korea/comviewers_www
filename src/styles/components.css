@@ -259,7 +259,12 @@
 .product-card__peripherals img { height: 20px; object-fit: contain; width: 20px; }
 .product-card__peripherals .product-card__mouse img { height: 16.667px; width: 11.667px; }
 .product-card__peripherals .product-card__keyboard img { height: 11.667px; width: 16.667px; }
-.product-server-state { height: 24px; object-fit: contain; width: 24px; }
+.product-server-state { align-items: center; border-radius: 50%; display: inline-flex; flex: 0 0 24px; height: 24px; justify-content: center; vertical-align: middle; width: 24px; }
+.product-server-state.is-online { background: var(--color-surface-success-soft); }
+.product-server-state.is-offline { background: var(--color-surface-error-soft); }
+.product-server-state > img { height: 8.33333px; object-fit: contain; width: 16.6667px; }
+.product-server-state.is-offline > img { height: 16.5px; width: 17.1667px; }
+.product-server-state.is-unknown > img { height: 24px; width: 24px; }
 .product-card__server-state { align-items: center; background: var(--color-surface-success-soft); border-radius: 999px; display: inline-flex; height: 24px; justify-content: center; width: 24px; }
 .product-card__server-state.is-waiting { background: var(--color-surface-error-soft); }
 .product-card__server-state img { height: 10px; object-fit: contain; width: 20px; }

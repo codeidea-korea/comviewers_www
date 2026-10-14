@@ -3,10 +3,7 @@ import { TranslatedText, useTranslation } from '../../i18n/translation'
 import type { Product } from '../../domain/products/types'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
 import flagKorea from '../../assets/figma/flag-korea.png'
-import keyboardActiveIcon from '../../assets/figma/keyboard-active.svg'
-import keyboardIcon from '../../assets/figma/keyboard.svg'
-import mouseActiveIcon from '../../assets/figma/mouse-active.svg'
-import mouseIcon from '../../assets/figma/mouse.svg'
+import { ProductPeripherals } from './ProductPeripherals'
 import countryEmptyIcon from '../../assets/figma/product-country-empty.png'
 import { ProductServerState } from './ProductServerStateView'
 import shoppingBagIcon from '../../assets/figma/shopping-bag.svg'
@@ -35,8 +32,6 @@ function PriceValue({ amount, compact = false }: { amount: number | null; compac
 
 export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddToCart?: (product: Product) => void; product: Product; size?: 'medium' | 'large' }) {
   const isLarge = size === 'large'
-  const hasMouse = Boolean(product.mouseIncluded)
-  const hasKeyboard = Boolean(product.keyboardIncluded)
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
   const visual = productOsVisual(product.osFilterValue, part, product.image)
@@ -59,13 +54,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
             <>
               <ProductSpec
                 label={<TranslatedText id="product.peripherals" />}
-                value={(
-                  <span className="product-card__peripherals">
-                    <span className={`product-card__mouse${hasMouse ? ' is-active' : ''}`}><img alt="" src={hasMouse ? mouseActiveIcon : mouseIcon} /></span>
-                    <span className={`product-card__keyboard${hasKeyboard ? ' is-active' : ''}`}><img alt="" src={hasKeyboard ? keyboardActiveIcon : keyboardIcon} /></span>
-                    <span className="sr-only">{product.mouseIncluded === null ? '마우스 정보 없음' : hasMouse ? '마우스 포함' : '마우스 미포함'}, {product.keyboardIncluded === null ? '키보드 정보 없음' : hasKeyboard ? '키보드 포함' : '키보드 미포함'}</span>
-                  </span>
-                )}
+                value={<ProductPeripherals mouseIncluded={product.mouseIncluded} keyboardIncluded={product.keyboardIncluded} />}
               />
               <ProductSpec
                 className="product-card__spec--ip"
