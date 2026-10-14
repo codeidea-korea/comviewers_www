@@ -1,7 +1,7 @@
-import securityAccess from '../../../assets/figma/store/security-access.png'
-import securityNetwork from '../../../assets/figma/store/security-network.png'
-import securityRemote from '../../../assets/figma/store/security-remote.png'
-import securityStatus from '../../../assets/figma/store/security-status.png'
+import securityAccess from '../../../assets/figma/store/security-access-icon.png'
+import securityNetwork from '../../../assets/figma/store/security-network-icon.png'
+import securityRemote from '../../../assets/figma/store/security-remote-icon.png'
+import securityStatus from '../../../assets/figma/store/security-status-icon.png'
 import { SectionHeading } from './HomeSectionHeading'
 
 const securityItems = [

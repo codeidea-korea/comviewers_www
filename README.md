@@ -1,5 +1,11 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-14 보안 안내 아이콘 Figma crop 반영
+
+보안·안정성 안내의 142×142px 이미지 박스에 투명 여백을 포함한 원본 PNG 전체를 넣어 실제 그림이 Figma보다 작게 표시됐다. 현재 Figma `MlM5yHJYk6qwwHsi9Icl84`의 보안 섹션 `235:2224`를 읽기 전용으로 직접 조회해 아이콘 `235:2235`, `235:2241`, `235:2247`, `235:2253`의 142×142px 박스와 각각의 IMAGE/STRETCH transform을 확인했다. 아이콘 노드를 2배 PNG(284×284px)로 export한 `security-*-icon.png` 네 파일로 import를 교체해 Figma 확대·crop을 반영했다. 기존 원본 PNG와 카드/이미지 박스 크기는 유지한다.
+
+Figma 최종 수정은 2026-10-14 17:36:03 KST, 조회 버전은 `2410136879740821623`이다. L1/L2/L0 정적 diff·이미지 크기/투명 영역·import/CSS 참조·문서 링크만 확인했다. 테스트 파일·테스트·빌드·lint·typecheck·브라우저 실행 검증·배포는 수행하지 않았다.
+
 ## 2026-10-14 STEP 안내 탭 회색 단계 복원
 
 메인 이용 절차의 STEP 1~4 탭에서 비활성 배경이 모두 같은 회색으로 지정되어 있었다. 저장된 Figma `MlM5yHJYk6qwwHsi9Icl84`의 메인 `235:1837` [기준 이미지](../comviewers-pub/.figma/visual-qa/store.home.desktop/figma.png)에서 확인한 `#BDBDBD → #E0E0E0 → #EEEEEE`를 기존 gray-400/300/200 토큰으로 적용했다. 각 카드의 붉은 활성 STEP을 제외한 비활성 탭 순서에 따라 왼쪽에서 오른쪽으로 밝아진다.
