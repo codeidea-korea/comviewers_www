@@ -3,7 +3,10 @@
 .mypage-shell .favorites-page .favorites-results__filters select { border-bottom: 0; height: 24px; width: auto; }
 .mypage-shell .favorites-page .favorites-results__summary { border-bottom: 1px solid var(--color-gray-200); }
 .mypage-shell .favorites-page .favorites-results .favorites-results__toolbar { border-top: 0; }
-.mypage-shell .favorites-page :is(.mypage-home-rcpc__state, .mobile-rcpc-card__state) img[data-status] { background: transparent; }
+@media (min-width: 768px) {
+  .mypage-shell .mypage-layout:has(.favorites-page) > .mypage-sidebar { margin-top: 0; }
+  .mypage-shell .favorites-page .favorites-results__filters span.rcpc-filter-select > select[data-ui='native-select'] { border: 0; color: var(--color-gray-700); font-size: 14px; font-weight: 500; height: 24px; letter-spacing: -.03em; min-width: 180px; padding: 0 20px 0 0; }
+}
 @media (max-width: 767px) {
   .mypage-shell:has(.favorites-page) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .favorites-page .favorites-results__summary { align-items: center; display: flex; flex-wrap: wrap; }
@@ -15,8 +18,6 @@
   .mypage-shell .favorites-page .mobile-rcpc-card > header { column-gap: 4px; }
   .mypage-shell .favorites-page .mobile-rcpc-card > header strong { flex: 0 1 auto; }
   .mypage-shell .favorites-page .mobile-rcpc-card > header > .mobile-rcpc-card__spec { margin-left: auto; }
-  .mypage-shell .favorites-page .rcpc-list__connect .rcpc-wan-ip--compact { column-gap: 4px; grid-template-columns: 80px minmax(0, 1fr) 14px 14px; }
-  .mypage-shell .favorites-page .rcpc-list__connect .rcpc-remote-provider--compact { align-items: start; column-gap: 8px; grid-template-columns: max-content minmax(0, 1fr); }
-  .mypage-shell .favorites-page .rcpc-list__connect .rcpc-remote-provider__line > :first-child { flex: 1 1 auto; min-width: 0; }
-  .mypage-shell .favorites-page .rcpc-list__connect .rcpc-remote-provider__line > button { flex-shrink: 0; }
+  .mypage-shell .favorites-page .favorites-results .favorites-results__toolbar > label { font-size: 16px; font-weight: 600; line-height: 24px; }
+  .mypage-shell .favorites-page .favorites-mobile-sort-control button { align-items: center; display: inline-flex; gap: 2px; }
 }

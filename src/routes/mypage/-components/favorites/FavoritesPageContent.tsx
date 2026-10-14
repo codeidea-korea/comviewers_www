@@ -25,7 +25,6 @@ import { canManageFavorites, FavoritesManageOnly } from '../favoritesAccess'
 import { orderFavoriteGroups } from './orderFavoriteGroups'
 import groupUnfoldIcon from '@/assets/figma/favorites-group-unfold.svg'
 import groupSettingsIcon from '@/assets/figma/favorites-group-settings.svg'
-import mobileSortIcon from '@/assets/figma/icon-unfold-less.svg'
 import groupCheckIcon from '@/assets/figma/favorites-group-check.svg'
 import groupChevronUpIcon from '@/assets/figma/favorites-group-chevron-up.svg'
 import dragIcon from '@/assets/figma/icon-drag-indicator.svg'
@@ -77,7 +76,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   const [selectedGroup, setSelectedGroup] = useState<GroupSelection>('all')
   const [selectedRentals, setSelectedRentals] = useState<ReadonlySet<number>>(() => new Set())
   const [refundRentalIds, setRefundRentalIds] = useState<readonly number[] | null>(null)
-  const refundTriggerRef = useRef<HTMLButtonElement>(null)
+  const refundTriggerRef = useRef<HTMLElement | null>(null)
   const [page, setPage] = useState(0)
   const [filters, setFilters] = useState<MyRcpcQuery>({ size: 20, sort: 'serverStatus', sortDirection: 'asc' })
   const [mobileSortOpen, setMobileSortOpen] = useState(false)
@@ -202,13 +201,13 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       </div>
       <header className="favorites-results__toolbar">
         <label><Checkbox aria-label="전체 RCPC 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>모두선택</label>
-        <RcpcSelectionMenu label="선택한 즐겨찾기 RCPC 처리" className="rcpc-list-bulk-actions">
+        <RcpcSelectionMenu label="선택한 즐겨찾기 RCPC 처리" className="rcpc-list-bulk-actions" nativeOnMobile>
           <FavoritesManageOnly allowed={canManage}><button type="button" disabled={assignment.isPending || selectedRentals.size === 0} onClick={openAssignment}>그룹 변경</button></FavoritesManageOnly>
           <InquiryAction key={`${api.organizationId}:${inquiryTargets.map(item => item.pcAssetId).join(',')}`} appearance="text" disabled={inquiryTargets.length === 0} fixedTarget initialIds={inquiryTargets.map(item => item.pcAssetId)} initialTargets={inquiryTargets} />
-          <button disabled={selectedRentalIds.length === 0 || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button>
+          <button disabled={selectedRentalIds.length === 0 || !myAccount.inquiryApi} onClick={() => { refundTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setRefundRentalIds([...selectedRentalIds]) }} type="button">해지신청</button>
           {canExtend && selectedExtensionItems.length ? <RcpcExtensionCheckout key={selectedExtensionItems.map(item => item.rentalId).join(',')} api={api} rentalIds={selectedExtensionItems.map(item => item.rentalId)} displayTargets={selectedExtensionItems.map(extensionTarget)} triggerLabel="기간연장"/> : <button type="button" disabled>기간연장</button>}
         </RcpcSelectionMenu>
-        <div className="favorites-mobile-sort-control"><button aria-expanded={!accessDenied && mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">{mobileSortLabels[filters.sort ?? 'serverStatus'] ?? '서버 상태'} <img alt="" src={mobileSortIcon}/></button></div>
+        <div className="favorites-mobile-sort-control"><button aria-expanded={!accessDenied && mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">{mobileSortLabels[filters.sort ?? 'serverStatus'] ?? '서버 상태'} <span aria-hidden="true" className="rcpc-status-sort-icon"/></button></div>
       </header>
       {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedRentals(new Set()) }} returnFocusRef={refundTriggerRef}/> : null}
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
