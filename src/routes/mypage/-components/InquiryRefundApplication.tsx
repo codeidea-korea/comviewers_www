@@ -204,14 +204,15 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
         </section>
         <section className="refund-application__breakdown" aria-label="환불 예상금액 상세보기">
           <h3>환불 예상금액 상세보기</h3>
-          <div className="refund-application__table-scroll"><table><thead><tr><th>RCPC</th><th>남은기간 / 정산금</th><th>이용기간 공제율 / 공제금</th><th>세팅비</th><th>조기종료 포맷비</th><th>적립금 사용금액</th><th>쿠폰 사용금액</th><th>공제금액 합계</th><th>환불 금액</th><th>적립금 복원금액</th></tr></thead><tbody>{quote.data.items.map(item => {
+          <div className="refund-application__table-scroll"><table><thead><tr><th>RCPC</th><th>남은기간 / 정산금</th><th>이용기간 공제율 / 공제금</th><th>세팅비</th><th>조기종료 포맷비</th><th>적립금 사용금액</th><th>만료 포인트 제외</th><th>쿠폰 사용금액</th><th>공제금액 합계</th><th>환불 금액</th><th>적립금 복원금액</th></tr></thead><tbody>{quote.data.items.map(item => {
             const target = selectedTargets.find(candidate => candidate.orderItemId === item.orderItemId)
-            const deductionTotal = item.usedDaysDeduction + item.dailyQuantityDeduction + item.setupFee + item.formatFee + item.promotionalPointDeduction + item.purchaseConfirmationPointReversal + item.couponDeduction
-            return <tr key={item.orderItemId}><td>{target?.alias || item.productNo}</td><td>{item.remainingDays}일 / {displayMoney(item.remainingSettlement, 8)}</td><td>{item.usedDays}일 {item.usedDaysRateBasisPoints / 100}% / {displayMoney(item.usedDaysDeduction, 8)}</td><td>{displayMoney(item.setupFee)}</td><td>{displayMoney(item.formatFee)}</td><td>{displayMoney(item.promotionalPointDeduction)}</td><td>{displayMoney(item.couponDeduction)}</td><td>{displayMoney(deductionTotal, 8)}</td><td>{displayMoney(method === 'point' ? item.pointAmount : item.cashAmount)}</td><td>{method === 'point' ? '0P' : `${item.pointAmount.toLocaleString('ko-KR')}P`}</td></tr>
+            const expiredPointDeduction = item.pointRestorationAllocation?.plan.expiredAmount ?? 0
+            const deductionTotal = item.usedDaysDeduction + item.dailyQuantityDeduction + item.setupFee + item.formatFee + item.promotionalPointDeduction + item.purchaseConfirmationPointReversal + item.couponDeduction + expiredPointDeduction
+            return <tr key={item.orderItemId}><td>{target?.alias || item.productNo}</td><td>{item.remainingDays}일 / {displayMoney(item.remainingSettlement, 8)}</td><td>{item.usedDays}일 {item.usedDaysRateBasisPoints / 100}% / {displayMoney(item.usedDaysDeduction, 8)}</td><td>{displayMoney(item.setupFee)}</td><td>{displayMoney(item.formatFee)}</td><td>{displayMoney(item.promotionalPointDeduction)}</td><td>{expiredPointDeduction.toLocaleString('ko-KR')}P</td><td>{displayMoney(item.couponDeduction)}</td><td>{displayMoney(deductionTotal, 8)}</td><td>{displayMoney(method === 'point' ? item.pointAmount : item.cashAmount)}</td><td>{method === 'point' ? '0P' : `${item.pointAmount.toLocaleString('ko-KR')}P`}</td></tr>
           })}</tbody></table></div>
         </section>
         <section className="refund-application__bulk"><h3>다량 중도해지 공제</h3><dl><div><dt>해지 요청 건 수</dt><dd>{dailyQuantity}건</dd></div><div><dt>공제율</dt><dd>{dailyRate}%</dd></div><div><dt>공제금</dt><dd>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</dd></div></dl></section>
-        <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 부분적으로 복원됩니다.</li></ul>
+        <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 환불 산정 비율에 따라 기존 유형과 만료일을 유지하여 복원됩니다.</li><li>만료된 포인트에 해당하는 금액은 환불·복원 대상에서 제외됩니다.</li></ul>
         {methodChoices}
         {quote.data.bankRequired ? <fieldset className="refund-application__bank"><legend>환불 계좌정보</legend><select required aria-label="은행명" value={bank.code} onChange={(event) => {
           const selectedBank = bankOptions.find(([code]) => code === event.target.value)

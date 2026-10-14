@@ -3,7 +3,7 @@ import { z } from 'zod'
 const channelName = 'comviewers.email-verification'
 const resultSchema = z.object({ requestId: z.string().min(1), verificationProof: z.string().min(1).max(200), expiresAt: z.string() })
 const receivedSchema = z.object({ type: z.literal('received'), requestId: z.string().min(1) })
-const signupCompletedSchema = z.object({ type: z.literal('signup-completed'), requestId: z.string().min(1) })
+const signupCompletedSchema = z.object({ type: z.literal('signup-completed'), requestId: z.string().min(1), signupBonusPoints: z.number().int().nonnegative().optional() })
 export type EmailVerificationResult = z.infer<typeof resultSchema>
 
 export function listenForEmailVerification(requestId: string, receive: (result: EmailVerificationResult) => void) {
@@ -33,20 +33,20 @@ export function deliverEmailVerification(result: EmailVerificationResult): Promi
   })
 }
 
-export function listenForSignupCompletion(requestId: string, receive: () => void) {
+export function listenForSignupCompletion(requestId: string, receive: (signupBonusPoints?: number) => void) {
   if (!requestId || typeof BroadcastChannel === 'undefined') return () => {}
   const channel = new BroadcastChannel(channelName)
   channel.onmessage = (event: MessageEvent<unknown>) => {
     const parsed = signupCompletedSchema.safeParse(event.data)
-    if (parsed.success && parsed.data.requestId === requestId) receive()
+    if (parsed.success && parsed.data.requestId === requestId) receive(parsed.data.signupBonusPoints)
   }
   return () => channel.close()
 }
 
-export function deliverSignupCompletion(requestId: string) {
+export function deliverSignupCompletion(requestId: string, signupBonusPoints?: number) {
   if (typeof BroadcastChannel === 'undefined') return
   const channel = new BroadcastChannel(channelName)
-  channel.postMessage({ type: 'signup-completed', requestId })
+  channel.postMessage({ type: 'signup-completed', requestId, signupBonusPoints })
   channel.close()
 }
 
@@ -58,5 +58,5 @@ export function verificationTokenFromLink(input: string) {
     const token = url.searchParams.get('token') ?? ''
     if (['https:', 'http:'].includes(url.protocol) && /^[A-Za-z0-9_-]{43}$/.test(token)) return token
   } catch { /* Invalid links are reported by the caller; no URL is fetched. */ }
-  throw new Error('메일에 있는 인증 링크를 확인해 주세요.')
+  throw new Error('이미 사용되었거나 유효하지 않은 링크입니다.')
 }

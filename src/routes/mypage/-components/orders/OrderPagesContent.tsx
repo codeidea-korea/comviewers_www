@@ -19,6 +19,7 @@ import { OrderItemActions } from './OrderItemActions'
 import { currentOrderPcAssetId, isReplacementOriginal } from './orderRentalPresentation'
 import { OrderProductDescription } from './OrderProductDescription'
 import { OrderRefundSummary } from './OrderRefundSummary'
+import { orderRefundAmounts } from './orderRefundDisplay'
 import { MyPagePeriodDialog } from '../shared/MyPagePeriodDialog'
 import windowsCard from '@/assets/figma/cart-product-waiting.png'
 import windowsLogo from '@/assets/figma/windows-logo.svg'
@@ -390,6 +391,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     ['쿠폰 할인', formatPaymentAmount(order.couponDiscountAmount)],
     ['결제방식', paymentMethod ? paymentMethods[paymentMethod] ?? paymentMethod : '-'],
     ['결제금액', formatPaymentAmount(order.finalAmount)],
+    ['주문상태', order.items.some(item => item.refundPending) ? t('refund.requested') : accountStatus(order.orderStatus)],
     ['결제상태', display && rowStatusKeys[display.label] ? t(rowStatusKeys[display.label]) : display?.label ?? accountStatus(order.paymentStatus)],
     ...(payment?.method === 'virtual_account' && (display?.waitingForDeposit || display?.label === '결제완료') ? [
       ['입금은행', payment.bankName ?? '-'],
@@ -404,15 +406,17 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)
       const refundProduct = refundedItem ? [refundedItem.productNo, refundedItem.serverRoomName].filter(Boolean).join(' · ') : '주문 전체'
-      const pointRefund = refund.method === 'point'
-      const refundAmount = pointRefund
-        ? refund.approvedPointAmount ?? refund.requestedPointAmount
-        : refund.approvedAmount ?? refund.requestedAmount
+      const refundAmount = orderRefundAmounts(refund)
+      const refundAmountLabel = [
+        refundAmount.cash > 0 || refundAmount.points === 0 ? formatPaymentAmount(refundAmount.cash) : null,
+        refundAmount.points > 0 ? t('money.pointAmount', { points: refundAmount.points.toLocaleString('ko-KR') }) : null,
+      ].filter(Boolean).join(' + ')
       return <AccountInfo key={refund.requestId} rows={[
         ['환불상품', refundProduct],
         ['환불신청일자', accountDate(refund.requestedAt).slice(0, 19)],
-        [t('refund.method'), refund.method === 'point' ? t('nav.points') : refund.method === 'cash' ? t('refund.originalMethod') : refund.method],
-        [t('refund.expectedAmount'), pointRefund ? t('money.pointAmount', { points: refundAmount.toLocaleString('ko-KR') }) : t('money.krwAmount', { amount: refundAmount.toLocaleString('ko-KR') })],
+        [t('refund.method'), refund.method === 'point' ? t('nav.points') : refund.method === 'cash' ? t('refund.originalMethod') : refund.method === 'mixed' ? `${t('refund.originalMethod')} + ${t('nav.points')}` : refund.method],
+        ['원결제금액', formatPaymentAmount(refundedItem ? Math.max(0, refundedItem.amount - refundedItem.couponDiscountAmount - refundedItem.pointUsedAmount) : order.finalAmount)],
+        [refund.status === 'paid' ? '최종 환불금액' : t('refund.expectedAmount'), refundAmountLabel],
         ['환불상태', refundStatusKeys[refund.status] ? t(refundStatusKeys[refund.status]) : refund.status],
         [t('refund.restoredPoints'), t('money.pointAmount', { points: (refund.restoredPoints ?? 0).toLocaleString('ko-KR') })],
       ]}/>

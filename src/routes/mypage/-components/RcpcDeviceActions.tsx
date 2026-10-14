@@ -27,7 +27,7 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
   const [open, setOpen] = useState(false)
   const key = useRef(crypto.randomUUID())
   const client = useQueryClient()
-  const canRequest = rentalServiceAccessible(item) && item.connectionStatus.toUpperCase() === 'ONLINE'
+  const canRequest = rentalServiceAccessible(item) && item.serverStatus === 'running' && item.connectionStatus.toUpperCase() === 'ONLINE'
   const queryKey = ['my-rcpcs', api.organizationId, 'reboot', item.rentalId] as const
   const status = useQuery({ queryKey, enabled: canRequest, queryFn: ({ signal }) => api.rebootStatus(item.rentalId, signal),
     retry: false, refetchInterval: query => query.state.data?.pending ? 5000 : 30000 })
@@ -41,7 +41,7 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
   return <><span className="rcpc-reboot-control"><Button size="small" variant="secondary" disabled={!canRequest || !status.data?.available || status.data.pending || request.isPending} onClick={() => setOpen(true)}>재부팅</Button>
     </span>
     <RcpcRebootSurface isOpen={open} rcpc={{ rcpcId: item.productNo }}
-      confirmDisabled={request.isPending || !status.data?.available} onClose={() => { if (!request.isPending) setOpen(false) }} onConfirm={() => request.mutate()} />
+      confirmDisabled={!canRequest || request.isPending || !status.data?.available || status.data.pending} onClose={() => { if (!request.isPending) setOpen(false) }} onConfirm={() => { if (canRequest && status.data?.available && !status.data.pending && !request.isPending) request.mutate() }} />
     </>
 }
 

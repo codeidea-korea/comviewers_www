@@ -18,7 +18,7 @@ const signupTerm = z.object({
 })
 const verificationRequest = z.object({ requestId: z.string().min(1), expiresAt: dateTime })
 const verificationConfirmation = z.object({ verificationProof: z.string().min(1), expiresAt: dateTime, requestId: z.string().optional().nullable() })
-const registration = z.object({ userId: id, username: z.string().min(1), name: z.string().min(1), email: z.email() })
+const registration = z.object({ userId: id, username: z.string().min(1), name: z.string().min(1), email: z.email(), signupBonusPoints: z.number().int().nonnegative().optional() })
 
 export type SignupTerm = z.infer<typeof signupTerm>
 export class NicknameUnavailableError extends Error {}
