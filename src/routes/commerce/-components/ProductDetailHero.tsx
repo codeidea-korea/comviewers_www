@@ -43,8 +43,8 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
             <div>
               <dt>주변기기</dt>
               <dd className="product-detail-peripherals">
-                {product.mouseIncluded === null ? <span className="product-detail-peripherals__unknown">마우스 정보 없음</span> : <i><img alt={product.mouseIncluded ? '마우스 제공' : '마우스 미제공'} src={product.mouseIncluded ? mouseActiveIcon : mouseIcon} /></i>}
-                {product.keyboardIncluded === null ? <span className="product-detail-peripherals__unknown">키보드 정보 없음</span> : <i><img alt={product.keyboardIncluded ? '키보드 제공' : '키보드 미제공'} src={product.keyboardIncluded ? keyboardActiveIcon : keyboardIcon} /></i>}
+                {product.mouseIncluded === null ? <span className="product-detail-peripherals__unknown">마우스 정보 없음</span> : <i className="is-mouse"><img alt={product.mouseIncluded ? '마우스 제공' : '마우스 미제공'} src={product.mouseIncluded ? mouseActiveIcon : mouseIcon} /></i>}
+                {product.keyboardIncluded === null ? <span className="product-detail-peripherals__unknown">키보드 정보 없음</span> : <i className="is-keyboard"><img alt={product.keyboardIncluded ? '키보드 제공' : '키보드 미제공'} src={product.keyboardIncluded ? keyboardActiveIcon : keyboardIcon} /></i>}
               </dd>
             </div>
           </dl>}

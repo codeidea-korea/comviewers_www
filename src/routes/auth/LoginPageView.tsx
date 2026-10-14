@@ -93,12 +93,12 @@ export function LoginPage({ redirectAuthenticated = true }: { redirectAuthentica
             required
             value={password}
           />
+          {loginError ? <p aria-live="polite" className="auth-notice auth-notice--error">{loginError}</p> : null}
           <div className="auth-check-row">
             <Checkbox disabled={pending} checked={autoLogin} name="auto-login" onChange={(event) => setAutoLogin(event.target.checked)}>자동 로그인 사용</Checkbox>
             <Checkbox disabled={pending} checked={rememberId} name="remember-id" onChange={(event) => setRememberId(event.target.checked)}>아이디 저장</Checkbox>
           </div>
           <Button disabled={pending || !loginId || !password} size="large" type="submit">로그인</Button>
-          {loginError ? <p aria-live="polite" className="auth-notice auth-notice--error">{loginError}</p> : null}
           <AuthLinks />
         </form>
         <SocialLoginButtons onSelect={(provider) => {
