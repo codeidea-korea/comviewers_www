@@ -11,7 +11,8 @@
   .app-shell > header.site-header.site-header--menu-open .site-header__primary { background: var(--color-white); border-color: var(--color-gray-200); color: var(--color-black); }
   .app-shell > header.site-header.site-header--menu-open .mobile-menu-toggle { color: var(--color-black); }
   .app-shell > header.site-header.site-header--menu-open :is(.mobile-menu-toggle__close, .mobile-cart-button > img) { filter: none; }
-  .app-shell > header.site-header .mobile-menu-toggle__close { height: 24px; width: 24px; }
+  /* Original 871:27640: 14px glyph at (5, 5) inside the 24px click frame. */
+  .app-shell > header.site-header .mobile-menu-toggle__close { height: 14px; width: 14px; }
   .app-shell > header.site-header .mobile-site-menu { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .app-shell > header.site-header :is(.mobile-menu-toggle, .mobile-cart-button, .mobile-menu-backdrop, .mobile-site-menu button) { -webkit-appearance: none; appearance: none; }
   .app-shell > header.site-header .mobile-site-menu__auth { align-items: center; display: flex; flex: 0 0 auto; flex-direction: row; flex-wrap: wrap; gap: 0; justify-content: center; min-height: 200px; padding-top: 12px; }
@@ -55,6 +56,14 @@
     transform: translateY(-50%);
     width: 1px;
   }
+}
+
+@media (max-width: 767px) {
+  .mypage-shell .mypage-mobile-header .mypage-mobile-menu-toggle > img { height: 14px; width: 14px; }
+  .mypage-shell .mypage-mobile-header__back-icon { display: block; flex: 0 0 24px; height: 24px; position: relative; width: 24px; }
+  .mypage-shell .mypage-mobile-header__back-icon > img { height: 12px; left: 8px; position: absolute; top: 6px; width: 7.4px; }
+  .mypage-shell .mypage-mobile-header__exit--menu { font-size: 14px; padding: 0 12px; }
+  .mypage-shell .mypage-mobile-header.is-menu-open > .mypage-mobile-header__title { left: 50%; position: absolute; transform: translateX(-50%); }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {

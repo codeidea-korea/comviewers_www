@@ -6,7 +6,7 @@ import { useSessionProfileImage } from './useSessionProfileImage'
 import type { SessionRole } from './sessionStore'
 import { Modal } from '../../components/ui/ModalControl'
 import { LoadingState } from '../../components/ui/LoadingStateControl'
-import userIcon from '../../assets/figma/icon-user.png'
+import userIcon from '../../assets/figma/user-profile.svg'
 import { isMyPageOnlyPathAllowed, loginPathWithReturnTo } from './sessionRouteNavigation'
 import { managerOrganizationCode } from '@/routes/mypage/-components/managerPortalPath'
 import { TranslatedText } from '../../i18n/translation'
@@ -37,6 +37,7 @@ export function SessionControls({ loginLabel = '로그인', appearance = 'defaul
   const session = useSession()
   const auth = useAuthentication()
   const profileImage = useSessionProfileImage()
+  const [failedProfileImage, setFailedProfileImage] = useState<string | null>(null)
   const [error, setError] = useState('')
   const menuRef = useRef<HTMLDetailsElement>(null)
   useEffect(() => {
@@ -61,10 +62,11 @@ export function SessionControls({ loginLabel = '로그인', appearance = 'defaul
   if (session.status === 'anonymous') return <span className="session-controls"><Link to="/login">{loginLabel === '로그인' ? <TranslatedText id="nav.login" /> : loginLabel === '로그인하기' ? <TranslatedText id="auth.loginAction" /> : loginLabel}</Link>{auth.logoutNotice && <span role="status">{auth.logoutNotice}</span>}</span>
   if (session.status === 'password-change-required') return <span className="session-controls"><span>비밀번호 변경 필요</span><button type="button" onClick={() => { void auth.logout().catch(() => setError('로그아웃 상태를 다시 확인해 주세요.')) }}><TranslatedText id="nav.logout" /></button>{error && <span role="alert">{error}</span>}</span>
   const displayName = session.customerSession?.displayName?.trim() || '회원'
+  const hasProfileImage = Boolean(profileImage && profileImage !== failedProfileImage)
   if (appearance === 'mobile-menu') return <span className="session-controls session-controls--mobile-menu"><Link to="/mypage"><TranslatedText id="nav.myPage" /></Link><button type="button" onClick={() => { void auth.logout().catch(() => setError('로그아웃 상태를 다시 확인해 주세요.')) }}><TranslatedText id="nav.logout" /></button>{session.organizationIds.length > 1 ? <OrganizationSelector/> : null}{error ? <span role="alert">{error}</span> : null}</span>
   return <span className="session-controls">
     <details className="session-user-menu" ref={menuRef}>
-      <summary><img key={profileImage || 'default'} alt="" aria-hidden="true" src={profileImage || userIcon} onError={event => { if (profileImage && event.currentTarget.getAttribute('src') !== userIcon) event.currentTarget.src = userIcon }} /><span>{displayName}</span></summary>
+      <summary><img key={hasProfileImage ? profileImage : 'default'} alt="" aria-hidden="true" className={hasProfileImage ? undefined : 'is-default'} src={hasProfileImage ? profileImage : userIcon} onError={() => { if (hasProfileImage) setFailedProfileImage(profileImage) }} /><span>{displayName}</span></summary>
       <div>
         <OrganizationSelector />
         <Link to="/mypage"><TranslatedText id="nav.myPage" /></Link>

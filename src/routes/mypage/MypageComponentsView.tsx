@@ -11,7 +11,7 @@ import { MyPageProductSearch } from './-components/MyPageProductSearch'
 import { SearchField } from '@/components/ui/SearchFieldControl'
 import { useMobileOverlay } from '@/components/ui/useMobileOverlay'
 import searchIcon from '@/assets/figma/mypage-search.svg'
-import backIcon from '@/assets/figma/mypage-mobile-back.png'
+import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 import { managerScopedPath } from './-components/managerPortalPath'
 import { productNoSearchSchema } from '@/api/productNo'
@@ -81,13 +81,13 @@ export function MyPageMobileHeader({ exitLabel = '쇼핑몰', menuOpen = false, 
   return (
     <header className={`mypage-mobile-header${menuOpen ? ' is-menu-open' : ''}`}>
       {menuOpen
-        ? <strong className="mypage-mobile-header__title">{title}</strong>
+        ? <>{onExit ? <button className="mypage-mobile-header__exit mypage-mobile-header__exit--menu" onClick={onExit} type="button">{exitLabel}</button> : <Link aria-label="쇼핑몰 홈으로 이동" className="mypage-mobile-header__exit mypage-mobile-header__exit--menu" to="/">홈으로</Link>}<strong className="mypage-mobile-header__title">{title}</strong></>
         : <button aria-label="마이페이지 뒤로가기" className="mypage-mobile-header__back" onClick={onBack} type="button">
-          <img alt="" src={backIcon} />
+          <span aria-hidden="true" className="mypage-mobile-header__back-icon"><img alt="" src={backIcon} /></span>
           <span>{title}</span>
         </button>}
       <div className="mypage-mobile-header__actions">
-        {onExit ? <button className="mypage-mobile-header__exit" onClick={onExit} type="button">{exitLabel}</button> : <Link aria-label="쇼핑몰 홈으로 이동" className="mypage-mobile-header__exit mypage-mobile-header__exit--home" to="/"><svg aria-hidden="true" fill="none" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3V10Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg></Link>}
+        {!menuOpen ? onExit ? <button className="mypage-mobile-header__exit" onClick={onExit} type="button">{exitLabel}</button> : <Link aria-label="쇼핑몰 홈으로 이동" className="mypage-mobile-header__exit mypage-mobile-header__exit--home" to="/"><svg aria-hidden="true" fill="none" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3V10Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg></Link> : null}
         {showSearch && !menuOpen ? <button aria-controls="mypage-mobile-search" aria-label="품번 검색 열기" className="mobile-icon-button" onClick={onSearchOpen} type="button"><img alt="" src={searchIcon} /></button> : null}
         {showMenu ? <button aria-controls="mypage-mobile-menu" aria-expanded={menuOpen} aria-label={menuOpen ? '마이페이지 메뉴 닫기' : '마이페이지 메뉴 열기'} className={`mypage-mobile-menu-toggle${menuOpen ? ' is-open' : ''}`} onClick={onMenuToggle} type="button">{menuOpen ? <img alt="" src={closeIcon} /> : <><span /><span /><span /></>}</button> : null}
       </div>
