@@ -122,10 +122,22 @@
   }
 }
 
+/* Original 579:18243: inquiry-detail addition has its own header and action. */
+.inquiry-preview-dialog.inquiry-product-choice--addition { display: flex; flex-direction: column; width: 500px; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > header { flex: 0 0 24px; gap: 4px; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > header > .inquiry-flow-back { margin: 0; position: relative; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > header > .inquiry-flow-back img { height: 12px; left: 8px; position: absolute; top: 6px; width: 7.4px; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > header > button:last-child img { height: 14px; width: 14px; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > .inquiry-product-choice__products { flex: 1; max-height: none; min-height: 0; overflow-y: auto; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > footer { bottom: auto; flex: 0 0 auto; left: auto; margin-top: 40px; position: static; right: auto; }
+.inquiry-preview-dialog.inquiry-product-choice--addition > footer button { border-radius: 4px; font-size: 16px; font-weight: 500; }
+
 @media (max-width: 767px) {
   /* User-approved: use the existing PC list's 20px leading space on mobile. */
   .inquiry-preview-dialog.inquiry-product-choice > .inquiry-product-choice__products { margin-top: 0; padding-top: 20px; }
   .inquiry-flow-page > .inquiry-preview-dialog.inquiry-product-choice {
     width: 100%;
   }
+  .inquiry-mobile-page > .inquiry-preview-dialog.inquiry-product-choice--addition { border-radius: 0; height: 100dvh; left: auto; max-height: none; padding: 16px; position: static; top: auto; transform: none; width: 100%; }
+  .inquiry-mobile-page > .inquiry-product-choice--addition > footer { margin-top: 12px; padding-bottom: env(safe-area-inset-bottom); }
 }

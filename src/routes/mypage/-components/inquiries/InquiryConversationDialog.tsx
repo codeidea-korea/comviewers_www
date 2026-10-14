@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { DialogLayer } from '@/components/ui/DialogLayerControl'
 import { Button } from '@/components/ui/ButtonControl'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { useSession } from '@/app/session/SessionProvider'
 import modalClose from '@/assets/figma/inquiry-modal-close.svg'
-import backChevron from '@/assets/figma/chevron-left.svg'
 import moreVertical from '@/assets/figma/comment-more-fill.svg'
 import productThumb from '@/assets/figma/windows-card-render.png'
 import { AccountQueryState } from '../AccountQueryState'
@@ -61,6 +61,8 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const [productMenuOpen, setProductMenuOpen] = useState(false)
   const [productsOpen, setProductsOpen] = useState(false)
   const [addingProducts, setAddingProducts] = useState(false)
+  const additionCloseRef = useRef<(() => void) | null>(null)
+  const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
   const { myAccount } = useServices()
   const rcpcDetails = useQuery({ ...serverPresenceQueryOptions, queryKey: ['my-rcpcs', myAccount.rcpcApi?.organizationId, 'authorized-options'], enabled: productsOpen && Boolean(myAccount.rcpcApi), queryFn: ({ signal }) => loadAuthorizedRcpcs(myAccount.rcpcApi!, signal) })
   const [refundOpen, setRefundOpen] = useState(false)
@@ -130,16 +132,21 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   }
   const close = onClose
   const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : '문의'
+  const selectProductMenu = (action: 'products' | 'add') => {
+    setProductMenuOpen(false)
+    if (action === 'add' && (closed || targetCount >= 20 || !myAccount.rcpcApi)) return
+    setProductsOpen(action === 'products')
+    setAddingProducts(action === 'add')
+  }
   const conversation = <section aria-label={standalone ? '문의 상세' : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>
-        {standalone ? <button aria-label="문의 목록으로" onClick={close} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}
-        <button aria-expanded={productMenuOpen} aria-haspopup="menu" aria-label="문의 메뉴" className="inquiry-chat__products-trigger" onClick={() => setProductMenuOpen((open) => !open)} type="button"><img alt="" src={moreVertical}/></button>
+        {standalone ? <select aria-label="문의 메뉴" className="inquiry-chat__native-menu" disabled={!chat.data} value="" onChange={event => { const action = event.currentTarget.value; event.currentTarget.value = ''; if (action === 'products' || action === 'add') selectProductMenu(action) }}><option value="">더보기</option><option value="products">문의 상품</option><option value="add" disabled={closed || targetCount >= 20 || !myAccount.rcpcApi}>문의 상품 추가</option></select> : <button aria-expanded={productMenuOpen} aria-haspopup="menu" aria-label="문의 메뉴" className="inquiry-chat__products-trigger" onClick={() => setProductMenuOpen((open) => !open)} type="button"><img alt="" src={moreVertical}/></button>}
         <h2>[{chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] {type}</h2>
-        {!standalone ? <button aria-label="닫기" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button> : null}
+        <button aria-label="닫기" className="inquiry-chat__close" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
       </header>
       {productMenuOpen && chat.data ? <div className="inquiry-chat__menu" role="menu" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setProductMenuOpen(false) } }}>
-        <button onClick={() => { setProductMenuOpen(false); setProductsOpen(true) }} role="menuitem" type="button">문의 상품</button>
-        {standalone ? <button disabled={closed || targetCount >= 20} onClick={() => { setProductMenuOpen(false); setAddingProducts(true) }} type="button">문의 상품 추가</button> : <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap((target) => target.pcAssetId === null ? [] : [target.pcAssetId])} total={chat.data.operationRequest.targets.length} closed={closed}/>}
+        <button onClick={() => selectProductMenu('products')} role="menuitem" type="button">문의 상품</button>
+        <button disabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onClick={() => selectProductMenu('add')} role="menuitem" type="button">문의 상품 추가</button>
       </div> : null}
       <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
@@ -179,9 +186,9 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
         {send.isError ? <p role="alert">{send.error.message}</p> : null}
       </form>) : null}
     </section>
-  const content = standalone && addingProducts && !closed && chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap(target => target.pcAssetId === null ? [] : [target.pcAssetId])} total={targetCount} closed={closed} pickerOpen onClosePicker={() => setAddingProducts(false)} showTrigger={false}/> : productsOpen && chat.data ? <InquiryChatProducts targets={chat.data.operationRequest.targets} rcpcItems={rcpcDetails.data} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
+  const content = addingProducts && !closed && chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap(target => target.pcAssetId === null ? [] : [target.pcAssetId])} total={targetCount} closed={closed} embedded pickerOpen closeRequestRef={additionCloseRef} onOutcome={setOutcome} onClosePicker={() => setAddingProducts(false)} showTrigger={false}/> : productsOpen && chat.data ? <InquiryChatProducts targets={chat.data.operationRequest.targets} status={customerStatusLabel(chat.data.operationRequest.customerVisibleStatus)} rcpcItems={rcpcDetails.data} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
     <AccountQueryState pending={rcpcDetails.isPending && rcpcDetails.fetchStatus !== 'idle'} error={rcpcDetails.error} retry={rcpcDetails.refetch}/>
     {productConversation ? <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/> : null}
   </InquiryChatProducts> : conversation
-  return standalone ? content : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" isOpen onClose={close} showTitle={false} title={productsOpen ? '문의 상품' : '문의 상세'}>{content}</DialogLayer>
+  return <><Toast message={outcome} toastKey={toastKey}/>{standalone ? content : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" focusKey={addingProducts ? 'add-products' : productsOpen ? 'products' : 'chat'} isOpen onClose={addingProducts && !closed ? () => additionCloseRef.current?.() : close} showTitle={false} title={addingProducts ? '문의 상품 추가' : productsOpen ? '문의 상품' : '문의 상세'}>{content}</DialogLayer>}</>
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { ApiClientError } from '@/api/httpClient'
@@ -13,14 +13,14 @@ import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from './inquiry
 import { useMobileInquiryViewport } from './inquiries/inquiryViewport'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
-export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean; pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean }) {
+export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean; pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean; embedded?: boolean; closeRequestRef?: RefObject<(() => void) | null>; onOutcome?: (message: string) => void }) {
   const { myAccount } = useServices()
   return myAccount.rcpcApi ? <TargetPicker {...props} rcpcApi={myAccount.rcpcApi}/> : null
 }
 
-function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pickerOpen, onClosePicker, showTrigger = true }: {
+function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pickerOpen, onClosePicker, showTrigger = true, embedded = false, closeRequestRef, onOutcome }: {
   api: InquiryReadServices; rcpcApi: MyRcpcReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean
-  pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean
+  pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean; embedded?: boolean; closeRequestRef?: RefObject<(() => void) | null>; onOutcome?: (message: string) => void
 }) {
   const client = useQueryClient()
   const chatKey = ['operation-requests', api.organizationId, 'chat', requestId] as const
@@ -29,7 +29,6 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const setOpen = (value: boolean) => { setLocalOpen(value); if (!value) onClosePicker?.() }
   const mobile = useMobileInquiryViewport()
   const [selected, setSelected] = useState<readonly number[]>([])
-  const [serverRoomId, setServerRoomId] = useState<number | null>(null)
   const [businessNotice, setBusinessNotice] = useState('')
   const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
   const pending = useRef(false)
@@ -39,15 +38,14 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const available = (options.data ?? []).filter((item) => !existingIds.includes(item.pcAssetId)
     && item.rentalStatus === 'active')
   const products = useMemo(() => sortInquiryChoices(available), [available])
-  const serverRooms = products.flatMap(product => product.serverRoomId === null ? [] : [{ id: product.serverRoomId, name: product.location ?? '서버실 정보 없음' }])
-    .filter((room, index, rooms) => rooms.findIndex(candidate => candidate.id === room.id) === index)
-  const visibleProducts = serverRoomId === null ? products : products.filter(product => product.serverRoomId === serverRoomId)
   const save = useMutation({ mutationFn: async () => {
     if (!attempt.current) throw new Error('추가할 상품을 선택해 주세요.')
     return api.addTargets(requestId, attempt.current.ids, attempt.current.key)
   }, onSuccess: async (result) => {
     attempt.current = null; setSelected([]); setOpen(false)
-    setOutcome(`문의 상품 ${result.addedPcAssetIds.length}개를 추가했습니다. 총 ${result.totalTargetCount}개입니다.`)
+    const message = `문의 상품 ${result.addedPcAssetIds.length}개를 추가했습니다. 총 ${result.totalTargetCount}개입니다.`
+    if (onOutcome) onOutcome(message)
+    else setOutcome(message)
     await Promise.all([
       client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] }),
       client.invalidateQueries({ queryKey: chatKey, exact: true }),
@@ -78,15 +76,23 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
     }
     pending.current = true; save.mutate()
   }
+  const closePicker = () => { if (!pending.current) { attempt.current = null; setOpen(false) } }
+  useLayoutEffect(() => {
+    if (!closeRequestRef) return
+    closeRequestRef.current = closePicker
+    return () => { closeRequestRef.current = null }
+  })
   if (closed) return null
   const picker = <ProductChoiceContent
         standalone={mobile}
-        title={`문의 상품 추가 (${selected.length})`}
+        title={`문의 상품 추가 (${products.length})`}
+        variant="addition"
+        busy={save.isPending}
         actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '추가하기'}
         allowEmpty={false}
         maxSelection={Math.max(0, 20 - total)}
-        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !visibleProducts.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
-        onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }}
+        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
+        onClose={closePicker}
         selectionNotice={businessNotice}
         onNext={submit}
         onSelectedChange={(ids) => {
@@ -94,23 +100,13 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
           setBusinessNotice('')
           setSelected([...new Set(ids)])
         }}
-        products={visibleProducts}
-        serverRoomFilter={{
-          value: serverRoomId,
-          options: serverRooms,
-          onChange: id => {
-            if (id === serverRoomId || (id !== null && !serverRooms.some(room => room.id === id))) return
-            attempt.current = null
-            setBusinessNotice('')
-            setSelected([])
-            setServerRoomId(id)
-          },
-        }}
+        products={products}
         selectedIds={selected}
       />
+  if (embedded && open) return <><Toast message={outcome} toastKey={toastKey}/>{picker}</>
   return <section aria-label="문의 상품 추가">
     <Toast message={outcome} toastKey={toastKey} />
     {showTrigger ? <button aria-label="문의 상품 추가" type="button" disabled={total >= 20 || save.isPending} onClick={() => setOpen(!open)}>문의 상품 추가</button> : null}
-    {open && !closed ? mobile ? <main className="inquiry-mobile-page inquiry-flow-page">{picker}</main> : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }} showTitle={false} title="문의 상품 추가">{picker}</DialogLayer> : null}
+    {open && !closed ? mobile ? <main className="inquiry-mobile-page inquiry-flow-page">{picker}</main> : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={closePicker} showTitle={false} title="문의 상품 추가">{picker}</DialogLayer> : null}
   </section>
 }
