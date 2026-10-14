@@ -158,7 +158,7 @@
 .company-catalog-cta { height: 608px; margin-top: 4px; }
 .company-catalog-cta > div { height: 608px; }
 .company-catalog-cta h2 { font-size: 32px; line-height: normal; font-weight: 800; letter-spacing: -.03em; }
-.company-catalog-cta a { align-items: center; box-sizing: border-box; display: inline-flex; gap: 8px; height: 50px; justify-content: center; line-height: normal; margin-top: 60px; padding: 0 16px; width: 161px; border: 2px solid var(--color-white-alpha-30); border-radius: 4px; font-size: 16px; font-weight: 500; letter-spacing: -.03em; }
+.company-catalog-cta a { align-items: center; box-sizing: border-box; display: inline-flex; gap: 8px; height: 50px; justify-content: center; line-height: normal; margin-top: 60px; min-width: 161px; padding: 0 16px; white-space: nowrap; width: max-content; border: 2px solid var(--color-white-alpha-30); border-radius: 4px; font-size: 16px; font-weight: 500; letter-spacing: -.03em; }
 .company-catalog-cta a > span { align-items: center; display: inline-flex; }
 .company-catalog-cta a > img { display: block; flex: 0 0 20px; height: 20px; object-fit: contain; width: 20px; }
 .community-hero--support::after { background: none; }
