@@ -9,11 +9,12 @@ import { type InquiryChoice } from '../inquiryChoice'
 import './inquiry-product-choice.css'
 
 export function ProductChoiceRow({ checked = false, disabled = false, onCheckedChange = () => {}, product }: { checked?: boolean; disabled?: boolean; onCheckedChange?: (checked: boolean) => void; product: InquiryChoice }) {
+  const aliasLabel = product.alias || '별명 미설정'
   const formatDate = (value: string) => value.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$1.$2.$3')
   return (
     <label className="inquiry-product-choice__row">
       <Checkbox checked={checked} disabled={disabled} onChange={(event) => onCheckedChange(event.target.checked)} />
-      <span><b title={`${product.alias} · ${product.productNo}`}>{product.alias} · {product.productNo}</b><small title={product.location}>{product.location}</small><em className="inquiry-product-choice__state" data-status={product.statusRank === 3 ? 'on' : 'off'}><i><img alt="" src={product.statusRank === 3 ? serverOnIcon : serverOffIcon} /></i>{product.state}</em></span>
+      <span><b title={`${aliasLabel} · ${product.productNo}`}>{aliasLabel} · {product.productNo}</b><small title={product.location}>{product.location}</small><em className="inquiry-product-choice__state" data-status={product.statusRank === 3 ? 'on' : 'off'}><i><img alt="" src={product.statusRank === 3 ? serverOnIcon : serverOffIcon} /></i>{product.state}</em></span>
       <p>{product.spec}</p>
       <small><span>주문일 <b>{formatDate(product.orderDate)}</b></span><i/><span>이용기간 <b>{formatDate(product.period)}</b></span></small>
     </label>

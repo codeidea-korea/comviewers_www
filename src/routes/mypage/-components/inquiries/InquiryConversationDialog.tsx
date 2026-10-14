@@ -31,7 +31,7 @@ type TimelineEntry = { kind: 'message'; time: number; message: Chat['messages'][
 
 function InquiryChatProduct({ target, onSelect }: { target: ChatTarget; onSelect: (productNo: string) => void }) {
   return <article className="inquiry-chat__product">
-    <span>문의 상품</span><img alt="RCPC 상품" src={productThumb}/><div><button type="button" onClick={() => target.productNo && onSelect(target.productNo)}>{target.productNo ? `${target.alias ? `${target.alias}·` : ''}${target.productNo}` : '상품 정보 없음'}</button><em>{target.serverRoomName ?? '서버실 정보 없음'}</em></div>
+    <span>문의 상품</span><img alt="RCPC 상품" src={productThumb}/><div><small>{target.productNo ?? '상품 정보 없음'}</small><button type="button" onClick={() => target.productNo && onSelect(target.productNo)}>{target.alias?.trim() || '별명없음'}</button><em>{target.serverRoomName ?? '서버실 정보 없음'}</em></div>
   </article>
 }
 

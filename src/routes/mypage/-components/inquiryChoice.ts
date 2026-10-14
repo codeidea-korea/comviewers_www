@@ -37,7 +37,7 @@ export function toInquiryChoice(item: MyRcpcItem): InquiryChoice {
   return {
     selectionId: String(item.pcAssetId),
     rcpcId: item.pcAssetId,
-    alias: item.preference.alias || '별명 미설정',
+    alias: item.preference.alias || '',
     productNo: item.productNo,
     productName: item.productTitle ?? '상품명 정보 없음',
     serverRoomId: item.serverRoomId,
