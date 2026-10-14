@@ -22,7 +22,7 @@ function safeReturnPath(value: string | null) {
   return value?.startsWith('/') && !value.startsWith('//') ? value : '/mypage'
 }
 
-export function LoginPage() {
+export function LoginPage({ redirectAuthenticated = true }: { redirectAuthenticated?: boolean } = {}) {
   const auth = useAuthentication()
   const session = useSession()
   const navigate = useNavigate()
@@ -63,7 +63,7 @@ export function LoginPage() {
   }
 
   if (auth.restoring) return <AuthPage><AuthPanel><LoadingState label="로그인 상태를 확인하고 있습니다." /></AuthPanel></AuthPage>
-  if (session.status === 'authenticated' && Date.now() < session.expiresAt) return <Navigate to={returnPath} replace />
+  if (redirectAuthenticated && session.status === 'authenticated' && Date.now() < session.expiresAt) return <Navigate to={returnPath} replace />
 
   return (
     <AuthPage>

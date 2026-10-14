@@ -181,6 +181,7 @@ function PasswordSentPage() {
 function ResetPasswordPage() {
   const api = getPublicAccountApi()
   const navigate = useNavigate()
+  const { search } = useLocation()
   const [mobileViewport, setMobileViewport] = useState(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 767px)').matches)
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return undefined
@@ -189,7 +190,8 @@ function ResetPasswordPage() {
     media.addEventListener('change', updateViewport)
     return () => media.removeEventListener('change', updateViewport)
   }, [])
-  const [token] = useState(() => new URLSearchParams(window.location.search).get('token') ?? '')
+  // Router's original query survives session-scope remounts after URL sanitization.
+  const [token] = useState(() => new URLSearchParams(search).get('token') ?? '')
   useEffect(() => {
     window.history.replaceState(window.history.state, '', window.location.pathname)
   }, [])
@@ -255,7 +257,7 @@ function ResetPasswordPage() {
       {complete || linkState === 'invalid' || linkState === 'unavailable' ? <Button onClick={goToLogin} size="large" type="button">로그인하기</Button> : null}
     </div>
   </AuthPanel></AuthPage>
-  return <><LoginPage />
+  return <><LoginPage redirectAuthenticated={false} />
     <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={goToLogin} onConfirm={linkState === 'ready' ? () => { void submit() } : undefined} showClose={linkState !== 'ready'} title="비밀번호 재설정">
       {resetContent}
     </Modal>
