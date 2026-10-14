@@ -18,7 +18,7 @@ export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
     return <><img alt="" data-status="waiting" src={serverWaitingIcon}/><span>연장대기</span></>
   }
 
-  const status = item.serverStatus === 'running' ? 'on' : 'off'
+  const status = item.connectionStatus.toUpperCase() === 'ONLINE' ? 'on' : 'off'
   const icon = status === 'on' ? serverOnIcon : serverOffIcon
 
   return <><img alt="" data-status={status} src={icon}/><span>{status === 'on' ? '실행 중' : '확인 필요'}</span></>

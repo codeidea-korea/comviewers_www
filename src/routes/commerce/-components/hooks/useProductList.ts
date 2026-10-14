@@ -7,6 +7,7 @@ import { useServices } from '@/app/ServiceProvider'
 import { UnsupportedProductFilterError } from '@/domain/products/httpProductRepository'
 import { detailSelectionsSchema, productPageSchema, productQuerySchema } from '@/domain/products/schemas'
 import type { DetailSelections, ProductListQuery } from '@/domain/products/types'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 type Selectors = Pick<ProductListQuery, 'line' | 'ip' | 'purpose'>
 type Update<T> = T | ((current: T) => T)
@@ -57,6 +58,7 @@ export function useProductList() {
     && !metadata.data.priceBuckets.some(bucket => bucket.priceBasis === 'monthly') ? 'unit' : 'monthly'
   const query: ProductListQuery = { ...storedQuery, priceBasis: storedQuery.categoryCode === 'parts' ? 'unit' : storedQuery.priceBasis ?? defaultPriceBasis }
   const result = useQuery({
+    ...serverPresenceQueryOptions,
     queryKey: productQueryKeys.list(query),
     queryFn: async ({ signal }) => productPageSchema.parse(await products.list(query, signal)),
     placeholderData: (previous, previousQuery) => {

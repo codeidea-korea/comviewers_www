@@ -11,6 +11,7 @@ import { sortInquiryChoices } from './inquiryChoice'
 import { ProductChoiceContent } from './modals/InquiryProductChoice'
 import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from './inquiryServerRoomScope'
 import { useMobileInquiryViewport } from './inquiries/inquiryViewport'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean; pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean }) {
   const { myAccount } = useServices()
@@ -33,7 +34,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
   const pending = useRef(false)
   const attempt = useRef<{ ids: readonly number[]; key: string } | null>(null)
-  const options = useQuery({ queryKey: ['my-rcpcs', rcpcApi.organizationId, 'inquiry-addition-options'],
+  const options = useQuery({ ...serverPresenceQueryOptions, queryKey: ['my-rcpcs', rcpcApi.organizationId, 'inquiry-addition-options'],
     queryFn: ({ signal }) => loadAuthorizedRcpcs(rcpcApi, signal), enabled: open && !closed })
   const available = (options.data ?? []).filter((item) => !existingIds.includes(item.pcAssetId)
     && item.rentalStatus === 'active')

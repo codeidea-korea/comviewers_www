@@ -22,6 +22,7 @@ import moreIcon from '@/assets/figma/notice-zoom-in.svg'
 import groupChevron from '@/assets/figma/mypage-group-chevron.png'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 import type { SortConfig } from '@/components/ui/SortButtonControl'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 type SortKey = NonNullable<MyRcpcQuery['sort']>
 
@@ -69,9 +70,9 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
     queryFn: ({ signal }) => read.profile(signal), retry: false })
   const benefits = useQuery({ queryKey: ['my-account', 'read', 'benefits'], enabled: commerce,
     queryFn: ({ signal }) => read.benefits(signal), retry: false })
-  const favorites = useQuery({ queryKey: ['my-account', 'read', 'home-favorites', favoriteSort],
+  const favorites = useQuery({ ...serverPresenceQueryOptions, queryKey: ['my-account', 'read', 'home-favorites', favoriteSort],
     enabled: !detailMode, queryFn: ({ signal }) => rcpcs.list({ favorite: true, page: 0, size: 5, sort: favoriteSort.key, sortDirection: favoriteSort.direction }, signal), retry: false })
-  const detail = useQuery({ queryKey: ['my-rcpcs', rcpcs.organizationId, 'detail-surface', detailRentalId],
+  const detail = useQuery({ ...serverPresenceQueryOptions, queryKey: ['my-rcpcs', rcpcs.organizationId, 'detail-surface', detailRentalId],
     enabled: detailMode && Number.isSafeInteger(detailRentalId) && detailRentalId > 0,
     queryFn: ({ signal }) => rcpcs.detail(detailRentalId, signal), retry: false })
   const summary = useQuery({ queryKey: ['my-account', 'read', 'home-rcpc-summary'],

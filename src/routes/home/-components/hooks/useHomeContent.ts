@@ -3,12 +3,13 @@ import { useServices } from '@/app/ServiceProvider'
 import { usePublicCatalogQueryClient } from '@/app/PublicCatalogQueryProvider'
 import { productPageSchema } from '@/domain/products/schemas'
 import { useArticlePage, usePostPage, useReviewPage } from '@/routes/community/-components/hooks/useContent'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 export function useHomeContent(recommendedUseOptionId: number | null) {
   const { products } = useServices()
   const publicCatalogClient = usePublicCatalogQueryClient()
   const query = { categoryCode: 'rcpc', page: 1, pageSize: 8, instantOnly: false, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {}, filterOptionIds: recommendedUseOptionId ? [recommendedUseOptionId] : [] }
-  const recommended = useQuery({ queryKey: ['products', 'home', query], queryFn: async () => productPageSchema.parse(await products.list(query)) }, publicCatalogClient)
+  const recommended = useQuery({ ...serverPresenceQueryOptions, queryKey: ['products', 'home', query], queryFn: async ({ signal }) => productPageSchema.parse(await products.list(query, signal)) }, publicCatalogClient)
   const recommendedUseMetadata = useQuery({
     queryKey: ['product-filter-metadata', 'rcpc'],
     enabled: Boolean(products.filterMetadata),

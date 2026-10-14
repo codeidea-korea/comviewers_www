@@ -10,6 +10,7 @@ export function mapCatalogProduct(dto: CatalogListItem | CatalogDetail): Product
   const spec = dto.spec
   const mouse = deviceState(dto.inputDeviceStatus.mouseConnectionStatus)
   const keyboard = deviceState(dto.inputDeviceStatus.keyboardConnectionStatus)
+  const connectionStatus = 'connectionStatus' in dto ? dto.connectionStatus : null
   const disks = [spec?.ssdGb == null ? null : `SSD/${spec.ssdGb}GB`, spec?.hddGb == null ? null : `HDD/${spec.hddGb}GB`].filter((value) => value !== null)
   return productSchema.parse({
     id: dto.productNo, productId: dto.productNo,
@@ -30,7 +31,7 @@ export function mapCatalogProduct(dto: CatalogListItem | CatalogDetail): Product
     pointRate: dto.pricing.pointRate,
     minRentalUnits: 'minUnits' in dto && ['hour', 'day', 'thirty_day'].includes(dto.pricing.billingUnit) ? dto.minUnits : null,
     maxRentalUnits: 'maxUnits' in dto && ['hour', 'day', 'thirty_day'].includes(dto.pricing.billingUnit) ? dto.maxUnits : null,
-    serverState: 'connectionStatus' in dto && dto.connectionStatus === 'ONLINE' ? 'online' : 'connectionStatus' in dto && dto.connectionStatus === 'OFFLINE' ? 'offline' : null, mouseIncluded: mouse, keyboardIncluded: keyboard,
+    serverState: connectionStatus === 'ONLINE' ? 'online' : connectionStatus === 'OFFLINE' || connectionStatus === 'STALE' ? 'offline' : null, mouseIncluded: mouse, keyboardIncluded: keyboard,
     peripherals: mouse === null || keyboard === null ? null : [...(mouse ? ['mouse'] : []), ...(keyboard ? ['keyboard'] : [])],
     refundPolicy: 'refundPolicy' in dto ? dto.refundPolicy : null,
   })

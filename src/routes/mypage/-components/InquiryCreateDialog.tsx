@@ -12,6 +12,7 @@ import { inquiryTypes } from './InquiryPresentation'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
 import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from './inquiryServerRoomScope'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 import './inquiry-flow-qa.css'
 
 type Props = {
@@ -42,6 +43,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const [addingProducts, setAddingProducts] = useState(false)
   const submitting = useRef(false)
   const rcpcs = useQuery({
+    ...serverPresenceQueryOptions,
     queryKey: ['my-rcpcs', rcpcApi.organizationId, 'authorized-options'],
     queryFn: ({ signal }) => loadAuthorizedRcpcs(rcpcApi, signal),
   })

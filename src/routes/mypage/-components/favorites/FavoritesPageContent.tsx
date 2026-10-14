@@ -34,6 +34,7 @@ import backIcon from '@/assets/figma/chevron-left.svg'
 import closeIcon from '@/assets/figma/inquiry-modal-close.svg'
 import { RcpcSelectionMenu } from '../RcpcSelectionMenu'
 import { RcpcFilterSelect } from '../RcpcFilterSelect'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 import './favorites-qa.css'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
@@ -89,6 +90,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     queryFn: ({ signal }) => mutations.groups(signal),
   })
   const rows = useQuery({
+    ...serverPresenceQueryOptions,
     queryKey: ['my-rcpcs', api.organizationId, 'favorites', selectedGroup, page, filters],
     queryFn: ({ signal }) => api.list({
       ...filters,

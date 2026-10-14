@@ -14,6 +14,7 @@ import { isAccountReadDenied } from '../accountReadAccess'
 import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
 import { RcpcListSurface } from '../RcpcListSurface'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -62,6 +63,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     queryFn: ({ signal }) => api.filterOptions(signal),
   })
   const rows = useQuery({
+    ...serverPresenceQueryOptions,
     queryKey: ['my-rcpcs', api.organizationId, query],
     queryFn: ({ signal }) => api.list(query, signal),
   })

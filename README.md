@@ -1,5 +1,11 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-14 서버 연결 상태와 60초 갱신
+
+상품 목록·상세의 ComBar `STALE`을 OFFLINE과 같은 기존 연결 끊김 표시로 매핑하고 ONLINE은 연결, 미관측/연결 이력 없음은 기존 정보 없음 표시를 유지한다. 마이페이지 RCPC 공통 아이콘은 일반 연결 표시에서 `connectionStatus=ONLINE`을 사용하며 포맷대기·계약 종료·연장대기 우선 표시는 유지한다. 주문 내역의 렌탈 상태 아이콘은 실시간 연결 상태로 바꾸지 않는다.
+
+`serverPresenceQueryOptions`의 60초 foreground 재조회를 상품 목록·상세·홈 추천, 이용 RCPC·즐겨찾기·마이페이지 홈/상세, 문의 작성·대상 추가·문의상품 조회에 적용했다. 계정·금융·후기·사양 전용 조회에는 추가하지 않았다. [ADR 0009](../docs/decisions/0009-combar-redis-presence.md#2026-10-14-웹-서버-상태-표시와-갱신-통일)를 따른다. L2/L0 정적 diff·import/매핑·호출/조회 옵션·우선 상태 참조만 확인했다. 테스트 파일·테스트·빌드·lint·typecheck·브라우저/API·DB·배포는 미실행이다.
+
 ## 2026-10-14 실제 환불 견적의 복원 예정 포인트 표시
 
 실제 로컬 QA의 포인트 환불 견적에서 서버 복원 계획 6,877P가 고객 화면에 0P로 표시됐다. `operationRequests.ts`의 Zod plan에 `restoredAmount`를 수용하고 `InquiryRefundApplication.tsx`는 계획값을 우선 표시한다. 값이 없는 구 응답은 기존 fallback을 유지하며 서버 계산·신청 payload·지급 경로는 변경하지 않는다. 만료 원천 안내는 [ADR 0036](../docs/decisions/0036-point-types-and-coupon-operational-status.md#2026-10-14-유효-잔액과-환불-만료-예외-계약)의 최초 성공 환불 지급부터 30일 1회·재연장 없음으로 맞췄다.

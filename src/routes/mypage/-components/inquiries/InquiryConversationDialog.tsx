@@ -19,6 +19,7 @@ import { managerScopedPath } from '../managerPortalPath'
 import { InquiryChatProducts } from './InquiryChatProducts'
 import { useServices } from '@/app/ServiceProvider'
 import { loadAuthorizedRcpcs } from '../rcpcPresentation'
+import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 import './inquiry-detail-qa.css'
 
 const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
@@ -61,7 +62,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const [productsOpen, setProductsOpen] = useState(false)
   const [addingProducts, setAddingProducts] = useState(false)
   const { myAccount } = useServices()
-  const rcpcDetails = useQuery({ queryKey: ['my-rcpcs', myAccount.rcpcApi?.organizationId, 'authorized-options'], enabled: productsOpen && Boolean(myAccount.rcpcApi), queryFn: ({ signal }) => loadAuthorizedRcpcs(myAccount.rcpcApi!, signal) })
+  const rcpcDetails = useQuery({ ...serverPresenceQueryOptions, queryKey: ['my-rcpcs', myAccount.rcpcApi?.organizationId, 'authorized-options'], enabled: productsOpen && Boolean(myAccount.rcpcApi), queryFn: ({ signal }) => loadAuthorizedRcpcs(myAccount.rcpcApi!, signal) })
   const [refundOpen, setRefundOpen] = useState(false)
   const lastRead = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
