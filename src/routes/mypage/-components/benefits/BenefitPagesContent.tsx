@@ -50,6 +50,13 @@ function pointReasonLabel(reason: string | null, amount: number) {
   return /^[a-z0-9_]+$/i.test(reason) ? (amount >= 0 ? '포인트 적립' : '포인트 사용') : reason
 }
 
+function pointTypeLabel(pointType: string | null | undefined) {
+  if (pointType === 'general') return '일반'
+  if (pointType === 'free') return '무료'
+  if (pointType === 'mixed') return '일반·무료'
+  return '-'
+}
+
 export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
   const [page, setPage] = useState(0)
   const carouselViewport = useRef<HTMLDivElement>(null)
@@ -181,6 +188,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                   { key: 'occurredAt', label: '일시', sortValue: item => Date.parse(item.occurredAt), renderCell: item => accountDate(item.occurredAt).slice(0, 19) },
                   { key: 'reason', label: '내용', sortValue: item => pointReasonLabel(item.reason, item.amount), renderCell: item => pointReasonLabel(item.reason, item.amount) },
                   { key: 'type', label: '구분', sortValue: item => item.amount >= 0 ? '적립' : '사용', renderCell: item => item.amount >= 0 ? '적립' : '사용' },
+                  { key: 'pointType', label: '유형', sortValue: item => pointTypeLabel(item.pointType), renderCell: item => pointTypeLabel(item.pointType) },
                   { key: 'amount', label: '포인트', sortValue: item => item.amount, renderCell: item => `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P` },
                   { key: 'expirationDates', label: '만료일시', renderCell: item => item.amount <= 0
                     ? '-'
