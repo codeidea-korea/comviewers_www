@@ -1,4 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router'
+import { useAuthentication } from '@/app/session/AuthProvider'
 import { getPublicAccountApi } from '@/api/publicAccount'
 import { ApiClientError } from '@/api/httpClient'
 import { AppShell } from '@/components/layout/AppShellView'
@@ -17,7 +19,10 @@ function wait(ms: number) {
 }
 
 export function EmailVerificationPage() {
-  const [token] = useState(() => new URL(window.location.href).searchParams.get('token') ?? '')
+  const { search } = useLocation()
+  const { restoring } = useAuthentication()
+  // Router's original query survives auth-scope remounts after URL sanitization.
+  const [token] = useState(() => new URLSearchParams(search).get('token') ?? '')
   const [urlSanitized, setUrlSanitized] = useState(false)
   const [emailVerified, setEmailVerified] = useState(false)
   const [signupCompleted, setSignupCompleted] = useState(false)
@@ -32,7 +37,8 @@ export function EmailVerificationPage() {
   useEffect(() => () => { stopCompletionListener.current?.() }, [])
 
   async function confirm() {
-    if (busy) return
+    // Restoration remounts this page; settle it before consuming the one-use link.
+    if (busy || restoring) return
     let linkToken: string
     try { linkToken = verificationTokenFromLink(token) }
     catch { setError(invalidLinkMessage); return }
@@ -80,7 +86,7 @@ export function EmailVerificationPage() {
             <Button as={Link} size="large" to="/">메인으로</Button>
           ) : emailVerified ? null : token ? (
             <>
-              <Button disabled={busy} size="large" onClick={() => { void confirm() }}>
+              <Button disabled={busy || restoring} size="large" onClick={() => { void confirm() }}>
                 {busy ? '인증 중…' : '이메일 인증하기'}
               </Button>
             </>
