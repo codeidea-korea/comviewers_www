@@ -10,6 +10,7 @@ const requestType = z.enum(['inquiry', 'as_request', 'setup_change', 'refund_can
 export const operationRequestItemSchema = z.object({
   operationRequestId: id, requestNo: z.string(), requestType: z.string(),
   customerVisibleStatus: status, title: z.string(), lastMessage: z.string().nullable(), targetCount: count, targetProductNos: z.string().nullable(),
+  lastMessageAuthorType: z.enum(['customer', 'server_room', 'headquarters']).nullable().optional(),
   createdAt: instant, lastActivityAt: instant.nullable(),
 })
 export const operationRequestPageSchema = z.object({ items: z.array(operationRequestItemSchema), page: count, size: z.number().int().min(1).max(100), total: count })
@@ -46,7 +47,8 @@ const refundQuote = z.object({ items: z.array(z.object({ operationRequestTargetI
   policyVersionId: id, cashAmount: count, pointAmount: count, couponDeduction: count, usedDays: count, remainingDays: count, bankRequired: z.boolean(), refundMethod: z.string(),
     dailyQuantity: count, usedDaysRateBasisPoints: count, dailyQuantityRateBasisPoints: count, remainingSettlement: z.number().nonnegative(),
     usedDaysDeduction: z.number().nonnegative(), dailyQuantityDeduction: z.number().nonnegative(), setupFee: count, formatFee: count,
-    promotionalPointDeduction: count, purchaseConfirmationPointReversal: count })),
+    promotionalPointDeduction: count, purchaseConfirmationPointReversal: count,
+    pointRestorationAllocation: z.object({ plan: z.object({ expiredAmount: count }) }).nullish() })),
   cashTotal: count, pointTotal: count, bankRequired: z.boolean(), fingerprint: z.string().regex(/^[a-f0-9]{64}$/), quotedAt: z.string(), policyExplanation: z.string() })
 const refundSubmission = z.object({ quote: refundQuoteRequest, expectedFingerprint: z.string().regex(/^[a-f0-9]{64}$/), reason: z.string().trim().min(1).max(2000),
   contactPhone: z.string().trim().regex(/^(?:[0-9+() -]{8,30})?$/), refundPolicyAgreed: z.literal(true), terminationAgreed: z.literal(true),

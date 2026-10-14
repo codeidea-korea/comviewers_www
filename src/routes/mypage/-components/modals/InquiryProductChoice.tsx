@@ -17,7 +17,7 @@ export function ProductChoiceRow({ checked = false, onCheckedChange = () => {}, 
   )
 }
 
-export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, maxSelection = 20, notice, onClose, onEmpty, onNext, onSelectedChange, selectedIndexes, products, standalone = false, title = '상품 선택' }: { actionLabel?: string; allowEmpty?: boolean; maxSelection?: number; notice?: ReactNode; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (indexes: number[]) => void; selectedIndexes: number[]; products: InquiryChoice[]; standalone?: boolean; title?: string }) {
+export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, maxSelection = 20, filters, notice, onClose, onEmpty, onNext, onSelectedChange, selectedIndexes, products, standalone = false, title = '상품 선택' }: { actionLabel?: string; allowEmpty?: boolean; maxSelection?: number; filters?: ReactNode; notice?: ReactNode; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (indexes: number[]) => void; selectedIndexes: number[]; products: InquiryChoice[]; standalone?: boolean; title?: string }) {
   const selectedCount = selectedIndexes.length
   const allSelected = products.length > 0 && products.every((_, index) => selectedIndexes.includes(index))
   const overLimit = selectedCount > maxSelection
@@ -27,6 +27,7 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
   return (
     <section aria-label={standalone ? title : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-product-choice${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>{standalone || title !== '상품 선택' ? <button aria-label="이전 화면으로" className="inquiry-flow-back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button> : null}<h2>{title}</h2>{!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button> : null}</header>
+      {filters}
       <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={!products.length} onChange={event => onSelectedChange(event.target.checked ? products.map((_, index) => index) : [])} /><span>모두선택</span></label>
       <div className="inquiry-product-choice__products">{notice}{products.map((product, index) => <ProductChoiceRow checked={selectedIndexes.includes(index)} key={product.selectionId} onCheckedChange={(checked) => changeOne(index, checked)} product={product} />)}</div>
       <footer>

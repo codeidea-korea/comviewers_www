@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { getPublicAccountApi, type RegistrationInput } from '@/api/publicAccount'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { clearSignupAgreements } from './signupDraft'
 import { deliverSignupCompletion, listenForEmailVerification } from './emailVerificationChannel'
 
@@ -29,6 +30,7 @@ const SignupCoordinatorContext = createContext<SignupCoordinatorValue | null>(nu
 export function SignupCoordinatorProvider({ children }: { children: ReactNode }) {
   const api = getPublicAccountApi()
   const navigate = useNavigate()
+  const { message, toastKey, setMessage } = useToastMessage()
   const pending = useRef<PendingSignup | null>(null)
   const registering = useRef(false)
   const resending = useRef(false)
@@ -93,7 +95,8 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
       pending.current = null
       setRequestId('')
       setAwaitingEmail('')
-      deliverSignupCompletion(current.requestId)
+      deliverSignupCompletion(current.requestId, registration.signupBonusPoints)
+      if (registration.signupBonusPoints === 100) setMessage('회원가입 축하 포인트 100P가 지급되었습니다.')
       navigate('/signup/complete', {
         replace: true,
         state: { username: registration.username, name: registration.name, email: current.email },
@@ -104,10 +107,11 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
       registering.current = false
       setBusy(false)
     }
-  }), [api, navigate, requestId])
+  }), [api, navigate, requestId, setMessage])
 
   return <SignupCoordinatorContext.Provider value={{ awaitingEmail, begin, resend, busy, cancel, error }}>
     {children}
+    <Toast message={message} toastKey={toastKey} />
   </SignupCoordinatorContext.Provider>
 }
 

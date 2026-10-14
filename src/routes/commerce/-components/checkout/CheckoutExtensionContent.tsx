@@ -211,7 +211,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
       {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel="선택 상품의 예상 금액을 불러오는 중입니다." errorMessage={quote.error?.message} onRetry={retryQuotes}>
         <p>주문할 상품을 다시 선택해 주세요.</p><Button as={RelativeLink} size="large" to={fromStorage ? '/mypage/storage' : '/mypage/rcpc'}>목록으로 이동</Button>
       </CommerceCartState> : current ? <div className="checkout-layout" aria-busy={!attempt && quote.isFetching}><div className="checkout-main">
-        {hasPurchase && currentSummary && <CheckoutProducts items={currentSummary.items} />}
+        {hasPurchase && currentSummary && <CheckoutProducts items={currentSummary.items} benefits={shownBenefits} refreshing={!attempt && !quoteReady} />}
         {current.items.length > 0 && <CheckoutExtensionProducts quote={current} mixed={hasPurchase} />}
         {!attempt && (!quote.isFetching && current.eligible && !benefitsMatch) && <div className="checkout-product-error">
           <p role="alert">선택한 상품의 상태 또는 금액이 변경되었습니다. 다시 확인해 주세요.</p>

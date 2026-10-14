@@ -27,6 +27,7 @@ function StandardSignupProfileStep() {
       <div className="result-copy signup-request-copy">
         <p><strong>{profile.name}</strong>님의 회원가입을 위한 <u>이메일 인증</u>이 필요합니다.</p>
         <p>입력하신 이메일 주소로 인증 메일을 발송했습니다.<br />이메일 인증을 완료하면 회원가입이 최종 완료되며 서비스를 이용할 수 있습니다.</p>
+        <p>인증 링크는 발송 후 24시간 동안 유효합니다.<br />메일 재발송 시 이전 링크는 즉시 만료되며, 인증을 완료한 링크는 다시 사용할 수 없습니다.</p>
         <dl><div><dt>이름</dt><dd>{profile.name}</dd></div><div><dt>아이디</dt><dd>{profile.loginId}</dd></div><div><dt>Email</dt><dd>{profile.emailId}@{profile.emailDomain}</dd></div></dl>
         {notice ? <p aria-live="polite" className="auth-notice">{notice}</p> : null}
         {error ? <p aria-live="polite" className="form-error">{error}</p> : null}

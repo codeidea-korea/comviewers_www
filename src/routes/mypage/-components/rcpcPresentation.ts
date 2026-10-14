@@ -44,6 +44,7 @@ export function rentalOperationalStatus(item: RentalPeriodItem) {
 }
 const rentalStartsLater = (item: RentalPeriodItem) => Boolean(item.serviceStartedAt && Date.parse(item.serviceStartedAt) > Date.now())
 const gracePeriodElapsed = (item: RentalPeriodItem, now = new Date()) => (rentalDaysRemaining(item, now) ?? 0) <= -2
+export const rentalActionsEnded = (item: RentalPeriodItem) => endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalOperationalStatus(item) === 'termination_waiting'
 export const extensionBlocked = (item: RentalPeriodItem) =>
   endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalStartsLater(item) || gracePeriodElapsed(item)
   || (rentalOperationalStatus(item) !== 'active' && rentalOperationalStatus(item) !== 'extension_waiting')

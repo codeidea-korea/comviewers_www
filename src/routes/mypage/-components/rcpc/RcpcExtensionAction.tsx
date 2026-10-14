@@ -3,12 +3,13 @@ import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServi
 import { Button } from '@/components/ui/ButtonControl'
 import { useSession } from '@/app/session/SessionProvider'
 import { RcpcExtensionCheckout } from '../RcpcExtensionCheckout'
-import { extensionBlocked, extensionTarget } from '../rcpcPresentation'
+import { extensionBlocked, extensionTarget, rentalActionsEnded } from '../rcpcPresentation'
 import { CManagerExtensionRequestAction } from './CManagerExtensionRequestAction'
 
 export function RcpcExtensionAction({ api, canExtend, item, showUnavailable = false }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem; showUnavailable?: boolean }) {
   const session = useSession()
   const cManager = session.status === 'authenticated' && session.customerSession?.memberRole === 'c_manager'
+  if (rentalActionsEnded(item)) return null
   if (cManager) {
     if (extensionBlocked(item)) return <Button disabled size="small">기간연장 조회</Button>
     return <CManagerExtensionRequestAction api={api} item={item}/>

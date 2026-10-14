@@ -44,6 +44,8 @@ const pointReasonLabels: Readonly<Record<string, string>> = {
   admin_adjustment: '포인트 조정',
 }
 
+const pointTypeLabel = (value: string | null | undefined) => value === 'general' ? '일반' : value === 'free' ? '무료' : value === 'mixed' ? '일반·무료' : ''
+
 function pointReasonLabel(reason: string | null, amount: number) {
   if (!reason) return amount >= 0 ? '포인트 적립' : '포인트 사용'
   if (pointReasonLabels[reason]) return pointReasonLabels[reason]
@@ -177,11 +179,13 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
               <BenefitTable
                 ariaLabel="포인트 내역"
                 columns={[
-                  { key: 'occurredAt', label: '일자', sortValue: item => Date.parse(item.occurredAt), renderCell: item => accountDate(item.occurredAt).slice(0, 10) },
+                  { key: 'occurredAt', label: '일시', sortValue: item => Date.parse(item.occurredAt), renderCell: item => accountDate(item.occurredAt).slice(0, 19) },
                   { key: 'reason', label: '내용', sortValue: item => pointReasonLabel(item.reason, item.amount), renderCell: item => pointReasonLabel(item.reason, item.amount) },
-                  { key: 'type', label: '구분', sortValue: item => item.amount >= 0 ? '적립' : '사용', renderCell: item => item.amount >= 0 ? '적립' : '사용' },
+                  { key: 'type', label: '구분 · 유형', sortValue: item => item.amount >= 0 ? '적립' : '사용', renderCell: item => <span className="point-expiration-dates"><span>{item.amount >= 0 ? '적립' : '사용'}{pointTypeLabel(item.pointType) ? ` · ${pointTypeLabel(item.pointType)}` : ''}</span>{item.pointLots.map((lot, index) => <span key={index}>{pointTypeLabel(lot.pointType) || '유형 확인 필요'} {lot.amount.toLocaleString('ko-KR')}P</span>)}</span> },
                   { key: 'amount', label: '포인트', sortValue: item => item.amount, renderCell: item => `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P` },
-                  { key: 'expirationDates', label: '만료기한', renderCell: item => item.expirationDates.length
+                  { key: 'expirationDates', label: '만료일시', renderCell: item => item.amount > 0 && item.pointLots.length
+                    ? <span className="point-expiration-dates">{item.pointLots.map((lot, index) => <span key={index}>{pointTypeLabel(lot.pointType)} · {accountDate(lot.expiresAt).slice(0, 19)}</span>)}</span>
+                    : item.expirationDates.length
                     ? <span className="point-expiration-dates">{item.expirationDates.map(date => <span key={date}>{date.replaceAll('-', '.')}</span>)}</span>
                     : '-' },
                 ]}

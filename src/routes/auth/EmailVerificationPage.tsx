@@ -3,6 +3,7 @@ import { getPublicAccountApi } from '@/api/publicAccount'
 import { ApiClientError } from '@/api/httpClient'
 import { AppShell } from '@/components/layout/AppShellView'
 import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { Button } from '@/components/ui/ButtonControl'
 import { deliverEmailVerification, listenForSignupCompletion, verificationTokenFromLink, type EmailVerificationResult } from './-components/emailVerificationChannel'
 
@@ -16,6 +17,7 @@ export function EmailVerificationPage() {
   const stopCompletionListener = useRef<(() => void) | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const { message: toastMessage, toastKey, setMessage } = useToastMessage()
   useLayoutEffect(() => {
     window.history.replaceState(window.history.state, '', window.location.pathname)
     setUrlSanitized(true)
@@ -44,12 +46,15 @@ export function EmailVerificationPage() {
       if (!value.requestId) throw new Error('인증 결과를 연결할 수 없습니다. 원래 화면에서 인증 메일을 다시 요청해 주세요.')
       const message = { ...value, requestId: value.requestId }
       stopCompletionListener.current?.()
-      stopCompletionListener.current = listenForSignupCompletion(message.requestId, () => setSignupCompleted(true))
+      stopCompletionListener.current = listenForSignupCompletion(message.requestId, (signupBonusPoints) => {
+        setSignupCompleted(true)
+        if (signupBonusPoints === 100) setMessage('회원가입 축하 포인트 100P가 지급되었습니다.')
+      })
       setResult(message)
       await sendResult(message)
     } catch (cause) {
       setError(cause instanceof ApiClientError && cause.code === 'A009'
-        ? '인증 링크가 만료되었거나 이미 사용되었거나 유효하지 않습니다. 회원가입 화면에서 인증 메일을 다시 발송해 주세요.'
+        ? '이미 사용되었거나 유효하지 않은 링크입니다.'
         : cause instanceof Error ? cause.message : '이메일 인증을 완료하지 못했습니다.')
     }
     finally { setBusy(false) }
@@ -86,12 +91,13 @@ export function EmailVerificationPage() {
             </>
           ) : (
             <>
-              <p role="alert">유효한 이메일 인증 링크로 접속해 주세요.</p>
+              <p role="alert">이미 사용되었거나 유효하지 않은 링크입니다.</p>
               <Button as={Link} size="large" to="/">메인으로</Button>
             </>
           )}
         </div>
       </section>
+      <Toast message={toastMessage} toastKey={toastKey} />
     </AppShell>
   )
 }

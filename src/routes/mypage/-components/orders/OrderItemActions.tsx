@@ -20,6 +20,8 @@ import { RefundWithdrawalAction } from './RefundWithdrawalAction'
 import tollIcon from '@/assets/figma/icon-toll.svg'
 import { useSession } from '@/app/session/SessionProvider'
 
+const rentalActionsClosed = (item: AccountOrderItem) => Boolean(item.rentalId) && (item.customerRentalStatus === 'termination_waiting' || ['terminated', 'refunded'].includes(item.rentalStatus ?? ''))
+
 export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatus, orderDetail, variant = 'default' }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; paymentStatus: string; orderStatus: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; variant?: 'default' | 'purchase-summary' | 'dashboard' }) {
   const { t } = useTranslation()
   const { myAccount } = useServices()
@@ -40,7 +42,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
-  if (terminal) return <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div>
+  if (terminal || rentalActionsClosed(item)) return variant === 'default' ? <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div> : null
   const active = paid && item.customerRentalStatus === 'active' && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const canExtend = !cManager && !item.refundPending
     && paid
@@ -105,12 +107,13 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
     || ['cancelled', 'refunded'].includes(item.itemStatus)
   const inquiryPcAssetId = currentOrderPcAssetId(item)
 
+  const actionsClosed = terminal || rentalActionsClosed(item)
   if (item.billingUnit === 'unit' && !item.rentalId) return null
   return <div className="order-catalog-item__action-support">
-    {item.rentalId && myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={!terminal && active} triggerLabel={t('order.terminationRequest')} /> : null}
+    {!actionsClosed && item.rentalId && myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={!terminal && active} triggerLabel={t('order.terminationRequest')} /> : null}
     {terminal ? null : item.refundPending && orderNo && orderDetail && myAccount.inquiryApi
       ? <RefundWithdrawalAction order={orderDetail} itemId={item.orderItemId} />
-      : item.rentalId && myAccount.inquiryApi && active
+      : actionsClosed || (item.rentalId && myAccount.inquiryApi && active)
         ? null
         : <Button size="small" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
     <InquiryAction disabled={!item.rentalId || !inquiryPcAssetId} fixedTarget initialIds={inquiryPcAssetId ? [Number(inquiryPcAssetId)] : []} />

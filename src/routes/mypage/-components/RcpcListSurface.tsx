@@ -11,7 +11,7 @@ import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton, RcpcTablePeriod } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, extensionTarget, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, extensionTarget, rentalActionsEnded, totalTraffic } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
 import { RcpcExtensionCheckout } from './RcpcExtensionCheckout'
@@ -54,6 +54,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length
   const selectedItems = items.filter(item => selectedAssetIds.includes(item.pcAssetId))
   const selectedRentalIds = selectedItems.map(item => item.rentalId)
+  const showRentalActions = items.some(item => !rentalActionsEnded(item))
   const toggle = (id: number, checked: boolean) => setSelectedAssetIds(previous => checked
     ? previous.includes(id) || previous.length >= 20 ? previous : [...previous, id]
     : previous.filter(value => value !== id))
@@ -70,8 +71,8 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
       <span className="sr-only" role="status">선택 {selectedAssetIds.length}대, 최대 20대</span>
       <RcpcSelectionMenu label="선택한 RCPC 처리" className="rcpc-list__bulk-action-buttons">
         <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} key={selectedAssetIds.join(',')}>문의</InquiryAction>
-        <button disabled={selectedRentalIds.length === 0 || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button>
-        {canExtend && selectedItems.length ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel="기간연장"/> : <button disabled type="button">기간연장</button>}
+        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button> : null}
+        {showRentalActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel="기간연장"/> : <button disabled type="button">기간연장</button> : null}
       </RcpcSelectionMenu>
     </div>
     {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundTriggerRef}/> : null}
