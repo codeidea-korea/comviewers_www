@@ -51,8 +51,9 @@ test('[source contract] 회원가입 이메일은 퍼블리싱 원본의 아이�
   assert.doesNotMatch(authComponents, /isDirectDomain \? <input aria-label="이메일 도메인"/)
 })
 
-test('signup registration maps only the duplicate account code to the PDF email message', () => {
+test('signup registration distinguishes duplicate email and pending/duplicate nickname errors', () => {
   assert.equal(signupRegistrationErrorMessage('U002'), '이미 존재하는 이메일입니다.')
-  assert.equal(signupRegistrationErrorMessage('U005'), undefined)
+  assert.equal(signupRegistrationErrorMessage('U005'), '이미 사용 중이거나 가입 요청 중인 닉네임입니다. 다른 닉네임을 입력해 주세요.')
+  assert.equal(signupRegistrationErrorMessage('UNKNOWN'), undefined)
   assert.equal(signupRegistrationErrorMessage(undefined), undefined)
 })

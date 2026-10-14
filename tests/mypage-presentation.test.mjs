@@ -5,6 +5,7 @@ import test from 'node:test'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router'
 import { withSourceModules } from './helpers/withSourceModules.mjs'
 
 import { totalTraffic } from '../src/routes/mypage/-components/rcpcPresentation.ts'
@@ -23,30 +24,38 @@ test('91일 이상 연장 행은 PDF 경고 문구로 표시한다', () => {
   assert.equal(extensionResultText({ addedDays: 30, amount: 50_000, eligible: true, reason: null }), '50,000원')
 })
 
-test('mobile RCPC render puts alias editing outside the title and shows product number only when an alias exists', async () => withSourceModules(async load => {
+test('mobile RCPC render puts alias editing outside the title and preserves the product detail link with or without alias', async () => withSourceModules(async load => {
   const { MobileRcpcCard } = await load('/src/routes/mypage/-components/RcpcListSurface.tsx')
   const { SessionProvider } = await load('/src/app/session/SessionProvider.tsx')
   const { ServiceProvider } = await load('/src/app/ServiceProvider.tsx')
   const snapshot = { status: 'authenticated', customerSession: { memberRole: 'owner' } }
   const store = { getSnapshot: () => snapshot, subscribe: () => () => {} }
   const client = new QueryClient()
-  const render = alias => renderToStaticMarkup(createElement(QueryClientProvider, { client },
+  const previousWindow = globalThis.window
+  const previousDocument = globalThis.document
+  globalThis.window = { location: { pathname: '/mypage/rcpc' } }
+  globalThis.document = { querySelector: () => null }
+  const render = alias => renderToStaticMarkup(createElement(MemoryRouter, null, createElement(QueryClientProvider, { client },
     createElement(SessionProvider, { store }, createElement(ServiceProvider, { services: { myAccount: {} } },
       createElement(MobileRcpcCard, { api: { organizationId: '7' }, canEditAlias: true, canExtend: false, mutations: {},
         onSelectedChange: () => {}, selected: false, selectionFull: false,
         item: { rentalId: 1, pcAssetId: 2, productNo: 'PC001', preference: { alias, favorite: false },
           serverStatus: 'ended', rentalStatus: 'terminated', serverRoomRegion: '서울', serverRoomName: '센터',
-          trafficDownloadTotalBytes: 1000, trafficUploadTotalBytes: 2000, serviceEndExclusiveDate: null } })))))
+          trafficDownloadTotalBytes: 1000, trafficUploadTotalBytes: 2000, serviceEndExclusiveDate: null } }))))))
   try {
     const withAlias = render('테스트 별명')
     const withoutAlias = render('')
     assert.match(withAlias, /<\/strong><button aria-label="PC001 RCPC 별명 수정"/)
-    assert.match(withAlias, /class="mobile-rcpc-card__spec"><span>PC001 /)
+    assert.match(withAlias, /class="mobile-rcpc-card__spec"><a href="rcpc\/1">PC001<\/a>/)
     assert.match(withoutAlias, /<\/strong><button aria-label="PC001 RCPC 별명 설정"/)
-    assert.doesNotMatch(withoutAlias, /class="mobile-rcpc-card__spec"><span>PC001 /)
+    assert.match(withoutAlias, /class="mobile-rcpc-card__spec"><a href="rcpc\/1">PC001<\/a>/)
     assert.match(withAlias, /서울 \/ 센터/)
     assert.match(withAlias, /트래픽 사용량/)
-  } finally { client.clear() }
+  } finally {
+    client.clear()
+    if (previousWindow === undefined) delete globalThis.window; else globalThis.window = previousWindow
+    if (previousDocument === undefined) delete globalThis.document; else globalThis.document = previousDocument
+  }
 }))
 
 test('[source contract] mobile title CSS declares truncation; this is not a layout measurement', () => {

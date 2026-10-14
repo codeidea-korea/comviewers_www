@@ -3,15 +3,12 @@ import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 
-import {
-  assignColocationEvidenceTypes,
-  colocationSubmissionErrorMessage,
-  hasRequiredColocationEvidenceTypes,
-} from '../src/routes/company/-components/colocationInput.ts'
+import { withSourceModules } from './helpers/withSourceModules.mjs'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
 
-test('입점 증빙은 파일명과 무관하게 첫 파일을 사업자등록증, 둘째를 통장사본으로 배정한다', () => {
+test('입점 증빙은 파일명과 무관하게 첫 파일을 사업자등록증, 둘째를 통장사본으로 배정한다', async () => withSourceModules(async load => {
+  const { assignColocationEvidenceTypes, hasRequiredColocationEvidenceTypes } = await load('/src/routes/company/-components/colocationInput.ts')
   assert.deepEqual(
     assignColocationEvidenceTypes(['사업자등록증.pdf', '통장 사본.png']),
     ['business_license', 'bankbook'],
@@ -31,19 +28,19 @@ test('입점 증빙은 파일명과 무관하게 첫 파일을 사업자등록�
     hasRequiredColocationEvidenceTypes(assignColocationEvidenceTypes(['사업자등록증.pdf', '통장사본.png'])),
     true,
   )
-})
+}))
 
-test('중복 신청 오류는 PDF 문구로 표시하고 다른 오류는 보존한다', () => {
+test('입점 신청은 서버가 구분한 중복 신청 오류와 다른 오류를 보존한다', async () => withSourceModules(async load => {
+  const { colocationSubmissionErrorMessage } = await load('/src/routes/company/-components/colocationInput.ts')
   assert.equal(
     colocationSubmissionErrorMessage(
       new Error('동일 사업자번호로 신청·검토 중이거나 승인된 입점 내역이 있습니다.'),
-      true,
     ),
-    '검토 중인 입점 신청 내역이 있습니다.',
+    '동일 사업자번호로 신청·검토 중이거나 승인된 입점 내역이 있습니다.',
   )
-  assert.equal(colocationSubmissionErrorMessage(new Error('서버 오류'), true), '서버 오류')
-  assert.equal(colocationSubmissionErrorMessage(null, true), '입점 신청을 제출하지 못했습니다.')
-})
+  assert.equal(colocationSubmissionErrorMessage(new Error('서버 오류')), '서버 오류')
+  assert.equal(colocationSubmissionErrorMessage(null), '입점 신청을 제출하지 못했습니다.')
+}))
 
 test('[source contract] 입점 신청 화면은 U58 PDF 문구를 유지하고 추론 UI를 노출하지 않는다', () => {
   const view = readFileSync(`${projectRoot}src/routes/company/ColocationApplyPageView.tsx`, 'utf8')
