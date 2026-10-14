@@ -1,11 +1,10 @@
 .mypage-shell .favorites-page > .favorites-group-toolbar { margin-left: 0; width: 100%; }
 .mypage-shell .favorites-page .favorites-results__summary .favorites-results__filters { display: flex; justify-content: flex-end; width: auto; }
-.mypage-shell .favorites-page .favorites-results__filters select { border-bottom: 0; height: 24px; width: auto; }
 .mypage-shell .favorites-page .favorites-results__summary { border-bottom: 1px solid var(--color-gray-200); }
 .mypage-shell .favorites-page .favorites-results .favorites-results__toolbar { border-top: 0; }
 @media (min-width: 768px) {
   .mypage-shell .mypage-layout:has(.favorites-page) > .mypage-sidebar { margin-top: 0; }
-  .mypage-shell .favorites-page .favorites-results__filters span.rcpc-filter-select > select[data-ui='native-select'] { border: 0; color: var(--color-gray-700); font-size: 14px; font-weight: 500; height: 24px; letter-spacing: -.03em; min-width: 180px; padding: 0 20px 0 0; }
+  .mypage-shell .favorites-page .favorites-results__summary .favorites-results__filters { gap: 8px; }
 }
 @media (max-width: 767px) {
   .mypage-shell:has(.favorites-page) .mypage-mobile-header__exit--home { display: none; }

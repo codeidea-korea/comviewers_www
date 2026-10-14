@@ -4,13 +4,16 @@
 .rcpc-filter-select > i,
 .rcpc-selection-menu__trigger > i { background: currentColor; display: block; flex: 0 0 16px; height: 16px; mask: url('../../../assets/figma/selector-chevron-down.svg') center / 12px 7.4px no-repeat; width: 16px; }
 .rcpc-filter-select > i { pointer-events: none; position: absolute; right: 0; }
-.mypage-shell :is(.rcpc-list-page, .favorites-page) span.rcpc-filter-select > select[data-ui='native-select'] { appearance: none; background-image: none; color: inherit; max-width: 100%; min-width: 0; padding-right: 20px; -webkit-text-fill-color: currentColor; }
+.mypage-shell :is(.rcpc-list-page, .favorites-page) span.rcpc-filter-select > select[data-ui='native-select'] { appearance: none; background-image: none; color: inherit; max-width: 100%; min-width: 0; padding: 0 20px 0 0; -webkit-text-fill-color: currentColor; }
 .rcpc-selection-menu { position: relative; }
 .rcpc-selection-menu__trigger { display: none; }
 .mypage-shell .rcpc-list-page > .mypage-toolbar { border-bottom: 1px solid var(--color-gray-200); }
 .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions > :not(:first-child) { align-self: center; border-left: 1px solid var(--color-gray-200); }
 .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions button:not(:disabled) { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 @media (min-width: 768px) {
+  /* QA 15: both pages use the effective RCPC filter style, without page overrides. */
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) span.rcpc-filter-select > select[data-ui='native-select'] { background-color: var(--color-white); border: 0; border-radius: 0; cursor: pointer; font-size: 14px; font-weight: 500; height: 24px; letter-spacing: -.03em; width: auto; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) span.rcpc-filter-select > select[data-ui='native-select']:disabled { cursor: not-allowed; }
   .mypage-shell .rcpc-bulk-actions button:not(:disabled) { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions > :not(:first-child) { border-left: 0; position: relative; }
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions > :not(:first-child)::before { background: var(--color-gray-300); content: ''; height: 8px; left: 0; position: absolute; top: 50%; transform: translateY(-50%); width: 1px; }
@@ -24,7 +27,7 @@
   .mypage-shell :is(.rcpc-list-page, .favorites-page, .manager-catalog) .rcpc-selection-menu__native { appearance: none; background: transparent url('../../../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; border: 0; border-radius: 0; color: var(--color-gray-500); display: block; font-size: 14px; font-weight: 400; height: 24px; letter-spacing: -.03em; min-width: 0; padding: 0 20px 0 0; -webkit-text-fill-color: var(--color-gray-500); }
   .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog) :is(.mypage-toolbar, .favorites-results__filters, .inquiry-catalog__filters) span.rcpc-filter-select { display: inline-grid; font-size: 14px; font-weight: 400; letter-spacing: -.03em; width: max-content; }
   .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog) .rcpc-filter-select__label { display: block; grid-area: 1 / 1; min-width: 0; overflow: hidden; padding-right: 20px; visibility: hidden; white-space: nowrap; }
-  .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog) :is(.mypage-toolbar, .favorites-results__filters, .inquiry-catalog__filters) span.rcpc-filter-select > select[data-ui='native-select'] { font: inherit; grid-area: 1 / 1; max-width: 100%; width: 100%; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog) :is(.mypage-toolbar, .favorites-results__filters, .inquiry-catalog__filters) span.rcpc-filter-select > select[data-ui='native-select'] { background-color: transparent; border: 0; border-radius: 0; font: inherit; grid-area: 1 / 1; height: 24px; max-width: 100%; width: 100%; }
   .mypage-shell .rcpc-list-page .mobile-list-page-heading--rcpc button { gap: 2px; }
   .rcpc-status-sort-icon { align-items: center; display: inline-flex; flex: 0 0 16px; height: 16px; justify-content: center; width: 16px; }
   .rcpc-status-sort-icon::before { background: currentColor; content: ''; height: 12px; mask: url('../../../assets/figma/icon-sync-alt.svg') center / contain no-repeat; transform: rotate(-90deg); width: 13.3333px; }
