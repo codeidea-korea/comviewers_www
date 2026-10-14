@@ -230,6 +230,7 @@
   /* Mobile dashboard, local Figma 768:19779 and card 839:27483. */
   .mypage-shell:has(.mypage-home) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .mypage-home-mobile-heading { margin-bottom: 12px; }
+  .mypage-shell .mypage-home > .mypage-home-section--rcpc { margin-top: 34px; margin-bottom: 0; }
   .mypage-shell .mypage-home-mobile-heading .mypage-mobile-filter-trigger { background: transparent; border-radius: 0; gap: 4px; padding: 0; }
   .mypage-home-mobile-heading .mypage-mobile-filter-trigger img { height: 14.263px; object-fit: contain; width: 10px; }
   .mypage-shell .mypage-home-section--rcpc > .mobile-rcpc-list { flex-direction: row; gap: 12px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; width: 100%; }
@@ -251,12 +252,12 @@
   .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__credentials { min-width: 0; }
   .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__line { gap: 4px; min-width: 0; }
   .mypage-home .mobile-rcpc-card__connection .rcpc-remote-provider__line > :first-child { min-width: 0; overflow-wrap: anywhere; }
-  .mypage-shell .mypage-home .mypage-home-columns { display: flex; flex-direction: column; gap: 24px; grid-template-columns: none; margin-top: 24px; width: 100%; }
-  .mypage-shell .mypage-home .mypage-home-columns > div { display: block; width: 100%; }
-  .mypage-shell .mypage-home .mypage-home-columns > div > section { display: block; height: auto; margin: 0 0 24px; width: 100%; }
-  .mypage-shell .mypage-home .mypage-home-use { height: auto; margin-top: 16px; }
+  .mypage-shell .mypage-home .mypage-home-columns { display: flex; flex-direction: column; gap: 34px; grid-template-columns: none; margin-top: 34px; width: 100%; }
+  .mypage-shell .mypage-home .mypage-home-columns > div { display: flex; flex-direction: column; gap: 34px; width: 100%; }
+  .mypage-shell .mypage-home .mypage-home-columns > div > section { display: block; height: auto; margin: 0; width: 100%; }
+  .mypage-shell .mypage-home .mypage-home-use { height: auto; margin-top: 20px; }
   .mypage-shell .mypage-home .mypage-home-use > div:first-child > span { min-width: 0; padding: 12px; }
-  .mypage-shell .mypage-home .mypage-home-use__orders { min-height: 0; padding: 12px; }
+  .mypage-shell .mypage-home .mypage-home-use__orders { min-height: 0; padding: 20px; }
   .mypage-shell .mypage-home .mypage-home-use__orders > p { flex-wrap: wrap; font-size: 14px; gap: 4px; height: auto; }
   .mypage-shell .mypage-home .mypage-home-use__tooltip { right: 0; }
   .mypage-shell .mypage-home .mypage-home-text-list { width: 100%; }
