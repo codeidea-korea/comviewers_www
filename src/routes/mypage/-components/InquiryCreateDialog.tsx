@@ -29,11 +29,12 @@ const requestCodes = ['as_request', 'setup_change', 'refund_cancel', 'inquiry'] 
 
 export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, fixedTarget = false, standalone = false, onClose, onCreated }: Props) {
   const session = useSession()
-  const hasFixedTarget = fixedTarget && initialIds.length > 0 && initialIds.length <= 20
+  const hasFixedTarget = fixedTarget
+  const fixedIds = [...new Set(initialIds)]
   const [step, setStep] = useState<'product' | 'type' | 'write' | 'refund'>(hasFixedTarget ? 'type' : 'product')
   const [refundRentalIds, setRefundRentalIds] = useState<number[]>([])
-  const [selectedIds, setSelectedIds] = useState<readonly number[]>(initialIds)
-  const [selectedRoomId, setSelectedRoomId] = useState('')
+  const [selectedIds, setSelectedIds] = useState<readonly number[]>(fixedIds)
+  const [serverRoomId, setServerRoomId] = useState<number | null>(null)
   const [typeIndex, setTypeIndex] = useState<number | null>(null)
   const [typeNotice, setTypeNotice] = useState('')
   const [productNotice, setProductNotice] = useState('')
@@ -44,21 +45,28 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     queryKey: ['my-rcpcs', rcpcApi.organizationId, 'authorized-options'],
     queryFn: ({ signal }) => loadAuthorizedRcpcs(rcpcApi, signal),
   })
-  const allProducts = useMemo(() => sortInquiryChoices(rcpcs.data ?? [], initialProductNo), [initialProductNo, rcpcs.data])
-  const rooms = [...new Map((rcpcs.data ?? []).flatMap(item => item.serverRoomId === null ? [] : [[item.serverRoomId, item.serverRoomName ?? '서버실 정보 없음'] as const])).entries()].sort((left, right) => left[1].localeCompare(right[1], 'ko'))
-  const products = allProducts.filter(product => !selectedRoomId || String(rcpcs.data?.find(item => item.pcAssetId === Number(product.rcpcId))?.serverRoomId) === selectedRoomId)
-  const selectedIndexes = products
-    .map((product, index) => selectedIds.includes(Number(product.rcpcId)) ? index : -1)
-    .filter((index) => index >= 0)
-  const selectedProducts = allProducts.filter(item => selectedIds.includes(Number(item.rcpcId)))
-    .filter((item, index, items) => items.findIndex(candidate => candidate.rcpcId === item.rcpcId) === index)
+  const products = useMemo(() => sortInquiryChoices(rcpcs.data ?? [], initialProductNo), [initialProductNo, rcpcs.data])
+  const serverRooms = products.flatMap(product => product.serverRoomId === null ? [] : [{ id: product.serverRoomId, name: product.location ?? '서버실 정보 없음' }])
+    .filter((room, index, rooms) => rooms.findIndex(candidate => candidate.id === room.id) === index)
+    .sort((left, right) => left.name.localeCompare(right.name, 'ko'))
+  const visibleProducts = hasFixedTarget || serverRoomId === null ? products : products.filter(product => product.serverRoomId === serverRoomId)
+  const selectedProducts = selectedIds.flatMap(id => products.filter(product => Number(product.rcpcId) === id))
+  const hasMissingTargets = selectedProducts.length !== selectedIds.length
+  const invalidFixedTarget = hasFixedTarget && (!fixedIds.length || fixedIds.length > 20 || fixedIds.some(id => !Number.isSafeInteger(id) || id <= 0))
   const codes = requestCodes
   const selectedCode = typeIndex === null ? undefined : codes[typeIndex]
+  const validateTargets = () => {
+    if (invalidFixedTarget || hasMissingTargets || (hasFixedTarget && !fixedIds.every(id => selectedIds.includes(id)))) return '문의 대상 RCPC를 확인할 수 없습니다. 다시 시도해 주세요.'
+    if (selectedIds.length > 20) return '최대 20대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요.'
+    if (!hasFixedTarget && serverRoomId !== null && selectedProducts.some(product => product.serverRoomId !== serverRoomId)) return '선택한 서버실의 문의 상품을 다시 확인해 주세요.'
+    if (!selectedIds.length && selectedCode !== 'inquiry') return '선택한 문의 유형은 문의 상품을 선택해 주세요.'
+    return ''
+  }
   const create = useMutation({
     mutationFn: () => {
       if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
-      if (hasFixedTarget && !initialIds.every(id => selectedProducts.some(product => Number(product.rcpcId) === id))) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
-      if (selectedProducts.length !== selectedIds.length || selectedProducts.length > 20) throw new Error('문의 대상 RCPC를 다시 선택해 주세요.')
+      const targetNotice = validateTargets()
+      if (targetNotice) throw new Error(targetNotice)
       if (!hasSameInquiryBusiness(selectedProducts)) throw new Error(bulkInquiryBusinessNotice)
       return api.create({
         requestType: selectedCode,
@@ -84,25 +92,35 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     <ProductChoiceContent
       standalone={standalone}
       allowEmpty={!hasFixedTarget}
-      filters={<label className="inquiry-product-choice__room"><span>서버실</span><NativeSelect aria-label="문의 상품 서버실" disabled={hasFixedTarget || rcpcs.isPending || rcpcs.isError} value={selectedRoomId} onChange={event => { setSelectedRoomId(event.target.value); setSelectedIds([]); setTypeIndex(null); setTypeNotice(''); setProductNotice(''); create.reset() }}><option value="">전체 서버실</option>{rooms.map(([id, name]) => <option key={id} value={String(id)}>{name}</option>)}</NativeSelect></label>}
+      lockedIds={hasFixedTarget ? fixedIds : []}
+      filters={hasFixedTarget ? undefined : <label className="inquiry-product-choice__room"><span>서버실</span><NativeSelect aria-label="문의 상품 서버실" disabled={rcpcs.isPending || rcpcs.isError} value={serverRoomId ?? ''} onChange={event => {
+          const id = event.target.value ? Number(event.target.value) : null
+          if (id === serverRoomId || (id !== null && !serverRooms.some(room => room.id === id))) return
+          setServerRoomId(id)
+          setSelectedIds([])
+          setTypeIndex(null)
+          setProductNotice('')
+          setTypeNotice('')
+          create.reset()
+        }}><option value="">전체 서버실</option>{serverRooms.map(room => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</NativeSelect></label>}
       notice={<>{rcpcs.isPending
         ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
         : rcpcs.isError
           ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
-          : products.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}{productNotice ? <p role="alert">{productNotice}</p> : null}</>}
+          : visibleProducts.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}{productNotice ? <p role="alert">{productNotice}</p> : null}</>}
       onClose={closeProductPicker}
       onEmpty={() => { setSelectedIds([]); setProductNotice(''); setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); create.reset(); setStep('type') }}
       onNext={() => {
+        if (hasMissingTargets || selectedIds.length > 20) return
         if (!hasSameInquiryBusiness(selectedProducts)) { setProductNotice(bulkInquiryBusinessNotice); return }
         setProductNotice('')
         if (addingProducts && selectedCode) { setAddingProducts(false); setStep('write') } else { setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); setStep('type') }
       }}
-      onSelectedChange={(indexes) => { setProductNotice(''); setSelectedIds([...new Set([
-        ...(hasFixedTarget ? initialIds : []),
-        ...indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger),
+      onSelectedChange={(ids) => { setProductNotice(''); setSelectedIds([...new Set([
+        ...(hasFixedTarget ? fixedIds : []), ...ids,
       ])]) }}
-      products={products}
-      selectedIndexes={selectedIndexes}
+      products={visibleProducts}
+      selectedIds={selectedIds}
     />, '상품 선택', 'inquiry-preview-layer inquiry-preview-layer--select-product', closeProductPicker)
 
   if (step === 'type') return showStep(
@@ -114,13 +132,9 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       notice={typeNotice}
       onNext={() => {
         if (!selectedCode) return
-        if (selectedProducts.length !== selectedIds.length || selectedProducts.length > 20) { setTypeNotice('문의 대상 RCPC를 다시 선택해 주세요.'); return }
-        if (hasFixedTarget && selectedProducts.length !== initialIds.length) {
-          setTypeNotice(rcpcs.isPending ? '문의 대상 RCPC를 확인하고 있습니다.' : '문의 대상 RCPC를 확인할 수 없습니다. 다시 시도해 주세요.')
-          return
-        }
-        if (selectedProducts.length === 0 && selectedCode !== 'inquiry') {
-          setTypeNotice('선택한 문의 유형은 문의 상품을 선택해 주세요.')
+        const targetNotice = validateTargets()
+        if (targetNotice) {
+          setTypeNotice(rcpcs.isPending ? '문의 대상 RCPC를 확인하고 있습니다.' : targetNotice)
           return
         }
         if (!hasSameInquiryBusiness(selectedProducts)) {
@@ -162,7 +176,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
         pending: create.isPending,
         onMessageChange: setMessage,
         onSend: () => {
-          if (!create.isPending && !submitting.current && selectedCode && (!hasFixedTarget || initialIds.every(id => selectedProducts.some(product => Number(product.rcpcId) === id))) && (selectedProducts.length > 0 || selectedCode === 'inquiry') && message.trim()) {
+          if (!create.isPending && !submitting.current && selectedCode && message.trim()) {
             submitting.current = true
             create.mutate()
           }

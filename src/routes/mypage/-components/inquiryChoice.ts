@@ -5,6 +5,7 @@ import { connectionLabels } from './rcpcPresentation'
 export type InquiryChoice = InquiryTarget & {
   productNo: string
   productName: string
+  serverRoomId: number | null
   state: string
   orderDate: string
   period: string
@@ -40,6 +41,7 @@ export function toInquiryChoice(item: MyRcpcItem): InquiryChoice {
     alias: item.preference.alias || '별명 미설정',
     productNo: item.productNo,
     productName: item.productTitle ?? '상품명 정보 없음',
+    serverRoomId: item.serverRoomId,
     location: item.serverRoomName ?? '서버실 정보 없음',
     serverRoomBusinessKey: item.serverRoomBusinessKey,
     state: connectionLabels[item.connectionStatus.toUpperCase()] ?? '미확인',
@@ -51,7 +53,11 @@ export function toInquiryChoice(item: MyRcpcItem): InquiryChoice {
 }
 
 export function sortInquiryChoices(items: readonly MyRcpcItem[], initialProductNo = ''): InquiryChoice[] {
-  return items.map(toInquiryChoice).sort((left, right) =>
+  // RCPC lists contain rental history; inquiry targets identify the asset, not each rental row.
+  const latestRentals = [...items].sort((left, right) => right.rentalId - left.rentalId)
+  const assetOptions = latestRentals.filter((item, index) =>
+    latestRentals.findIndex(candidate => candidate.pcAssetId === item.pcAssetId) === index)
+  return assetOptions.map(toInquiryChoice).sort((left, right) =>
     Number(right.productNo === initialProductNo) - Number(left.productNo === initialProductNo)
     || left.statusRank - right.statusRank
     || left.productNo.localeCompare(right.productNo, 'ko', { numeric: true }))

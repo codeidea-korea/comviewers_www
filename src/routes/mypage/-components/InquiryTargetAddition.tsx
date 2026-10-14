@@ -28,6 +28,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const setOpen = (value: boolean) => { setLocalOpen(value); if (!value) onClosePicker?.() }
   const mobile = useMobileInquiryViewport()
   const [selected, setSelected] = useState<readonly number[]>([])
+  const [serverRoomId, setServerRoomId] = useState<number | null>(null)
   const [businessNotice, setBusinessNotice] = useState('')
   const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
   const pending = useRef(false)
@@ -37,7 +38,9 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const available = (options.data ?? []).filter((item) => !existingIds.includes(item.pcAssetId)
     && item.rentalStatus === 'active')
   const products = useMemo(() => sortInquiryChoices(available), [available])
-  const selectedIndexes = products.map((product, index) => selected.includes(Number(product.rcpcId)) ? index : -1).filter((index) => index >= 0)
+  const serverRooms = products.flatMap(product => product.serverRoomId === null ? [] : [{ id: product.serverRoomId, name: product.location ?? '서버실 정보 없음' }])
+    .filter((room, index, rooms) => rooms.findIndex(candidate => candidate.id === room.id) === index)
+  const visibleProducts = serverRoomId === null ? products : products.filter(product => product.serverRoomId === serverRoomId)
   const save = useMutation({ mutationFn: async () => {
     if (!attempt.current) throw new Error('추가할 상품을 선택해 주세요.')
     return api.addTargets(requestId, attempt.current.ids, attempt.current.key)
@@ -57,12 +60,16 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const submit = () => {
     if (pending.current || closed) return
     if (!attempt.current) {
-      const ids = selected.filter((id) => available.some((item) => item.pcAssetId === id)).sort((a, b) => a - b)
+      if (selected.some(id => !available.some(item => item.pcAssetId === id))) {
+        setBusinessNotice('선택한 문의 대상 RCPC를 확인할 수 없습니다. 다시 확인해 주세요.')
+        return
+      }
+      const ids = [...new Set(selected)].sort((a, b) => a - b)
       if (!ids.length || ids.length + total > 20) return
-      const selectedTargets = available.filter(item => ids.includes(item.pcAssetId))
-      const existingTargets = (options.data ?? []).filter(item => existingIds.includes(item.pcAssetId))
+      const selectedTargets = products.filter(item => ids.includes(Number(item.rcpcId)))
+      const existingTargets = sortInquiryChoices(options.data ?? []).filter(item => existingIds.includes(Number(item.rcpcId)))
       // The API also checks existing targets absent from this caller's RCPC options (including products).
-      const knownTargets = existingIds.length === total && existingIds.every(id => existingTargets.some(item => item.pcAssetId === id))
+      const knownTargets = existingIds.length === total && existingIds.every(id => existingTargets.some(item => Number(item.rcpcId) === id))
         ? [...existingTargets, ...selectedTargets] : selectedTargets
       if (!hasSameInquiryBusiness(knownTargets)) { setBusinessNotice(bulkInquiryBusinessNotice); return }
       setBusinessNotice('')
@@ -73,15 +80,31 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   if (closed) return null
   const picker = <ProductChoiceContent
         standalone={mobile}
-        title={`문의 상품 추가 (${selectedIndexes.length})`}
+        title={`문의 상품 추가 (${selected.length})`}
         actionLabel={save.isPending ? '추가 중…' : save.isError ? '다시 확인' : '추가하기'}
         allowEmpty={false}
         maxSelection={Math.max(0, 20 - total)}
-        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{businessNotice ? <p role="alert">{businessNotice}</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
+        notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !visibleProducts.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}{businessNotice ? <p role="alert">{businessNotice}</p> : null}{save.isError ? <p role="alert">{save.error instanceof Error ? save.error.message : '처리 결과를 확인하지 못했습니다.'}</p> : null}</>}
         onClose={() => { if (!save.isPending) { attempt.current = null; setOpen(false) } }}
         onNext={submit}
-        onSelectedChange={(indexes) => { attempt.current = null; setBusinessNotice(''); setSelected(indexes.map((index) => Number(products[index]?.rcpcId)).filter(Number.isSafeInteger)) }}
-        products={products} selectedIndexes={selectedIndexes}
+        onSelectedChange={(ids) => {
+          attempt.current = null
+          setBusinessNotice('')
+          setSelected([...new Set(ids)])
+        }}
+        products={visibleProducts}
+        serverRoomFilter={{
+          value: serverRoomId,
+          options: serverRooms,
+          onChange: id => {
+            if (id === serverRoomId || (id !== null && !serverRooms.some(room => room.id === id))) return
+            attempt.current = null
+            setBusinessNotice('')
+            setSelected([])
+            setServerRoomId(id)
+          },
+        }}
+        selectedIds={selected}
       />
   return <section aria-label="문의 상품 추가">
     <Toast message={outcome} toastKey={toastKey} />

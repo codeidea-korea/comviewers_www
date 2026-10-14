@@ -649,6 +649,9 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .inquiry-product-choice__row > em { justify-self: start; }
 .inquiry-product-choice > header { flex-shrink: 0; }
 .inquiry-product-choice__all { align-items: center; border-bottom: 1px solid var(--color-gray-200); display: flex; flex-shrink: 0; font-size: 18px; font-weight: 600; gap: 8px; letter-spacing: -.36px; line-height: 24px; margin-top: 30px; padding-bottom: 12px; }
+.inquiry-product-choice__server-room { align-items: center; display: flex; flex-shrink: 0; gap: 12px; margin-top: 20px; }
+.inquiry-product-choice__server-room > span { flex-shrink: 0; font-size: 14px; }
+.inquiry-product-choice__server-room select { border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); flex: 1; font-size: 14px; height: 40px; min-width: 0; padding: 0 12px; }
 .inquiry-product-choice footer { flex-shrink: 0; grid-template-columns: 1fr; margin-top: 40px; position: static; }
 .inquiry-product-choice footer button { border-radius: 4px; font-size: 16px; font-weight: 500; letter-spacing: -.48px; width: 100%; }
 .inquiry-product-choice footer button:disabled { color: var(--color-gray-500); }
