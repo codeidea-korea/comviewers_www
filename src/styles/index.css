@@ -14,6 +14,7 @@
 @import './mobile-inquiry-chat.css';
 @import './mobile-community.css';
 @import './mobile-mypage-audit.css';
+@import './mypage-selection-actions.css';
 
 /* Dialogs are portalled to document.body. Let fixed positioning resolve
    every edge from the real viewport instead of a dynamic viewport unit. */

@@ -11,6 +11,7 @@ import { Checkbox } from '../../../components/ui/CheckboxControl'
 import { LoadingState } from '../../../components/ui/LoadingStateControl'
 import filterChevronUpIcon from '../../../assets/figma/filter-chevron-up.svg'
 import filterChevronBackwardIcon from '../../../assets/figma/filter-chevron-backward.svg'
+import chevronLeftIcon from '../../../assets/figma/chevron-left.svg'
 const componentFilterSections: { title: string; menus: FilterMenuDefinition[] }[] = [
   {
     title: '이용 조건',
@@ -368,7 +369,7 @@ export function ProductFilter({ controls, detailSelections = {}, drawer = false,
     </>
   return (
     <aside aria-label="상세 상품 필터" aria-modal={drawer || undefined} className={`product-filter${drawer ? ' product-filter--drawer' : ''}`} ref={filterRef} role={drawer ? 'dialog' : undefined} tabIndex={drawer ? -1 : undefined}>
-      {mobile ? <header className="product-filter-mobile-header"><button aria-label="상세 필터 닫기" onClick={onClose} type="button"><img alt="" src={filterChevronBackwardIcon} /></button><strong>상세 필터</strong></header> : null}
+      {mobile ? <header className="product-filter-mobile-header"><button aria-label="상세 필터 닫기" onClick={onClose} type="button"><img alt="" src={chevronLeftIcon} /></button><strong>상세 필터</strong></header> : null}
       {drawer && mobile ? <div aria-label="상세 필터 항목" className="product-filter__mobile-scroll" role="region" tabIndex={0}>{filterContent}</div>
         : !drawer && variant === 'product' ? <div aria-label="상세 필터 항목" className="product-filter__scroll" role="region" tabIndex={0}>{filterContent}</div> : filterContent}
       {drawer && mobile && controls ? <footer className="product-filter__mobile-actions">

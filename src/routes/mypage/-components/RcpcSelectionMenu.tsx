@@ -39,6 +39,6 @@ export function RcpcSelectionMenu({ children, label, className = '', nativeOnMob
       if (action && !action.button.disabled) action.button.click()
     }}><option value="">선택작업</option>{nativeActions.map((action, index) => <option disabled={action.disabled} key={index} value={index}>{action.label}</option>)}</select> : null}
     <button aria-controls={id} aria-expanded={open} className="rcpc-selection-menu__trigger" onClick={() => setOpen(value => !value)} ref={trigger} type="button">선택작업 <i aria-hidden="true" /></button>
-    <nav aria-label={label} className={`rcpc-bulk-actions ${className}`} id={id} ref={actions} onClick={event => { if (event.target instanceof Element && event.target.closest('button:not(:disabled)')) setOpen(false) }}>{children}</nav>
+    <nav aria-label={label} className={`rcpc-bulk-actions mypage-selection-actions ${className}`} id={id} ref={actions} onClick={event => { if (event.target instanceof Element && event.target.closest('button:not(:disabled)')) setOpen(false) }}>{children}</nav>
   </div>
 }

@@ -275,7 +275,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                   />
                   {selectableIds.length > 20 ? '최대 20개 선택' : '모두선택'}
                 </label>
-                <div className="orders-select-all__actions">
+                <div className="orders-select-all__actions mypage-selection-actions">
                   <InquiryAction appearance="text" disabled={selectedInquiryIds.length === 0} fixedTarget initialIds={selectedInquiryIds} onCreated={() => setSelected([])}>문의</InquiryAction>
                   {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel={t('order.terminationRequest')} /> : null}
                   {selectedRefundRentalIds.length === 0 || !myAccount.inquiryApi ? <button disabled type="button"><TranslatedText id="order.terminationRequest" /></button> : null}

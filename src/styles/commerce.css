@@ -94,10 +94,12 @@
 .product-filter-menu__content { padding: 12px 0 12px 12px; }
 .product-filter-price { color: var(--color-gray-500); display: flex; font-size: 14px; justify-content: space-between; letter-spacing: -.28px; line-height: 24px; }
 .product-filter-range { height: 12px; margin: 4px 0 12px; position: relative; width: 100%; }
-.product-filter-range input { appearance: none; background: transparent; height: 24px; inset: -6px 0; margin: 0; pointer-events: none; position: absolute; width: 100%; z-index: 2; }
+.product-filter-range input { -webkit-appearance: none; appearance: none; background: transparent; border: 0; border-radius: 0; box-shadow: none; height: 24px; inset: -6px 0; margin: 0; padding: 0; pointer-events: none; position: absolute; width: 100%; z-index: 2; }
 .product-filter-range input.product-filter-range__min-input { z-index: 3; }
-.product-filter-range input::-webkit-slider-thumb { appearance: none; cursor: ew-resize; height: 24px; pointer-events: auto; width: 20px; }
-.product-filter-range input::-moz-range-thumb { background: transparent; border: 0; cursor: ew-resize; height: 24px; pointer-events: auto; width: 20px; }
+/* Native controls only handle input; the separate track draws the visible handles. */
+.product-filter-range input::-webkit-slider-runnable-track { background: transparent; border: 0; box-shadow: none; }
+.product-filter-range input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; background: transparent; border: 0; border-radius: 0; box-shadow: none; cursor: ew-resize; height: 24px; pointer-events: auto; width: 20px; }
+.product-filter-range input::-moz-range-thumb { background: transparent; border: 0; border-radius: 0; cursor: ew-resize; height: 24px; pointer-events: auto; width: 20px; }
 .product-filter-range input:focus-visible { outline: 0; }
 .product-filter-range input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--color-primary-500); }
 .product-filter-range input:focus-visible::-moz-range-thumb { outline: 2px solid var(--color-primary-500); }

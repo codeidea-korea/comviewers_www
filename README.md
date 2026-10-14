@@ -1,5 +1,21 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-15 Safari 상품 상세 필터 표시 보완
+
+`SHOP_PRODUCT-001-GRID` QA의 월 렌탈료 슬라이더 흰 네모·모바일 헤더 여백·필터 버튼 아이콘 지적을 반영했다. [공통 슬라이더 스타일](src/styles/commerce.css)에 기존 모바일 drawer의 WebKit appearance·배경·테두리·그림자 초기화를 옮겨 데스크톱에도 적용한다. 별도 검은 4×12px 표시선과 투명 20×24px 조작 영역·포커스·금액 선택 처리는 유지한다. 현재 모바일에는 초기화가 이미 있었으므로 QA가 이전 배포본인지 데스크톱 Safari인지 실제 재검수에서 구분해야 한다.
+
+[모바일 스타일](src/styles/mobile-products.css)의 필터 버튼 아이콘은 원본 `filter-tune.svg`의 12×12px로 복원했다(기존 16×16px). [필터 헤더](src/routes/commerce/-components/ProductFiltersView.tsx)는 흰 배경의 흰색 데스크톱 화살표 대신 기존 검은색 `chevron-left.svg`를 원본 7.4×12px로 사용하며 버튼 너비를 24→16px로 줄여 제목 시작 위치를 36→28px로 조정했다. 외곽 12px 여백·56px 헤더 높이는 유지한다. 제목 위치는 사용자 QA 지적을 반영한 조정이며 최신 Figma 직접 실측값으로 확정한 수치는 아니다.
+
+L2/L0 정적 diff·DOM/CSS 우선순위·원본 SVG/경로·모바일/데스크톱 적용 범위·참조만 확인했다. 테스트 파일·테스트·빌드·lint·typecheck·실제 Safari/브라우저 검수·배포는 변경/실행하지 않았다.
+
+## 2026-10-15 마이페이지 선택 작업 텍스트 버튼 정합화
+
+`SHOP_MY-RCPC-001` QA 지적과 사용자 요청에 따라 이용 RCPC·즐겨찾기·주문내역·담당자 관리 목록의 선택 작업 텍스트 버튼을 공통 [스타일](src/styles/mypage-selection-actions.css)로 연결했다. 문의·해지신청·기간연장·그룹 변경·일괄 담당자 지정/해제는 활성/비활성 모두 기존 `--color-black`(`#121212`)을 사용하며 글자색과 WebKit 글자 채움색·불투명도를 함께 고정한다. 비활성 조건·선택 상태·클릭/확인 처리는 유지한다.
+
+버튼 전체 높이에 붙던 세로 테두리를 기존 RCPC 디자인 반영 규칙의 폭 1px·높이 8px·gray-300(`#E0E0E0`) 구분선으로 통일해 중앙에 표시한다. 모바일 RCPC/즐겨찾기/담당자 관리의 선택작업 메뉴에는 가로 작업용 구분선을 표시하지 않고, 주문내역의 가로 버튼 사이에는 유지한다. 공통 클래스는 [선택 메뉴](src/routes/mypage/-components/RcpcSelectionMenu.tsx)와 [주문내역](src/routes/mypage/-components/orders/OrderPagesContent.tsx)에 연결했다.
+
+L2/L0 정적 diff·DOM 경계·CSS 우선순위/비활성·모바일 규칙·문서 참조를 확인했다. 색상은 최신 사용자 지정값, 구분선 치수는 기존 디자인 반영 소스 기준이다. 현재 Figma 직접 조회·테스트 파일 변경·테스트·빌드·lint·typecheck·실제 브라우저 검수·배포는 수행하지 않았다.
+
 ## 2026-10-15 입점 신청 긴 첨부파일명 영역 초과 방지
 
 입점 신청의 증빙서류 첨부에서 긴 파일명이 `fieldset`의 기본 최소 너비를 늘려 폼 밖으로 나갈 수 있는 구조를 수정했다. [폼 스타일](src/styles/community-company.css)의 실제 신청 폼 `fieldset`과 첨부 목록에 `min-width: 0`·`max-width: 100%`를 적용해 기존 파일명 말줄임이 폼 안에서 동작하도록 제한했다. 파일명 전체는 기존 title로 확인하며 파일 선택·삭제와 신청 처리 흐름은 유지한다.
