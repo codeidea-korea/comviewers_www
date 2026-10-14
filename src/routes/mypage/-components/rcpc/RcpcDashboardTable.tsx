@@ -78,7 +78,7 @@ function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, onAli
     <div className="mypage-home-rcpc__server" role="cell"><span>{item.serverRoomRegion ?? '-'}<br />{item.serverRoomName ?? '-'}</span></div>
     <div className="mypage-home-rcpc__state" role="cell"><RcpcStatusContents item={item}/></div>
     <div className="mypage-home-rcpc__period" role="cell"><span><RcpcTablePeriod item={item}/></span></div>
-    <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div>
+    <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={!showAccessValuesByDefault || connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div>
     <div className="mypage-home-rcpc__traffic" role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
     <div className="mypage-home-rcpc__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
   </article>

@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MyRcpcItem } from '@/api/myRcpc'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { RcpcRebootSurface } from '@/components/mypage/RcpcDialogsControl'
-import eyeIcon from '@/assets/figma/scrap-eye.svg'
 import webIcon from '@/assets/figma/icon-connect-web.svg'
 import { Button } from '@/components/ui/ButtonControl'
 import { ApiClientError } from '@/api/httpClient'
@@ -44,40 +43,36 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
     </>
 }
 
-export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { api: MyRcpcReadServices; item: MyRcpcItem; compact?: boolean; autoReveal?: boolean }) {
+export function RcpcWanIp({ api, item, compact = false, autoReveal = true }: { api: MyRcpcReadServices; item: MyRcpcItem; compact?: boolean; autoReveal?: boolean }) {
   const [value, setValue] = useState<string | null>(null)
   const { message, setMessage, toastKey } = useToastMessage()
   const [pendingAction, setPendingAction] = useState<'reveal' | 'copy' | null>(null)
   const pending = pendingAction !== null
   const [failed, setFailed] = useState(false)
-  const [verified, setVerified] = useState(false)
   const sequence = useRef(0)
-  const hiddenByUser = useRef(false)
   const allowed = rentalServiceAccessible(item) && rentalOperationalStatus(item) === 'active'
   const registered = item.wanIpConfigured
   const available = allowed && registered !== false
-  useEffect(() => { sequence.current += 1; hiddenByUser.current = false; setValue(null); setMessage(''); setPendingAction(null); setFailed(false); setVerified(false) }, [api.organizationId, item.rentalId, registered, setMessage])
   useEffect(() => {
-    const clear = () => { hiddenByUser.current = true; sequence.current += 1; setValue(null); setMessage(''); setPendingAction(null) }
-    window.addEventListener('blur', clear)
-    return () => { sequence.current += 1; window.removeEventListener('blur', clear) }
-  }, [api.organizationId, item.rentalId, setMessage])
-  useEffect(() => { if (value === null) return; const timer = window.setTimeout(() => { hiddenByUser.current = true; setValue(null) }, 30000); return () => window.clearTimeout(timer) }, [value])
+    sequence.current += 1; setValue(null); setMessage(''); setPendingAction(null); setFailed(false)
+    return () => { sequence.current += 1 }
+  }, [api.organizationId, item.rentalId, registered, available, setMessage])
   useEffect(() => {
-    if (!autoReveal || !available || hiddenByUser.current) return
+    if (!autoReveal || !available) return
     const controller = new AbortController()
     const token = ++sequence.current
+    setPendingAction('reveal')
     void api.wanIp(item.rentalId, 'reveal', controller.signal).then(result => {
-      if (token === sequence.current && !hiddenByUser.current) { setValue(result.wanIp); setVerified(true); setFailed(false) }
+      if (!controller.signal.aborted && token === sequence.current) { setValue(result.wanIp); setFailed(false) }
     }).catch(error => {
       if (!controller.signal.aborted && token === sequence.current) { setFailed(true); setMessage(wanIpErrorMessage(error)) }
+    }).finally(() => {
+      if (!controller.signal.aborted && token === sequence.current) setPendingAction(null)
     })
     return () => { controller.abort(); sequence.current += 1 }
-  }, [api, item.rentalId, available, autoReveal, setMessage])
+  }, [api, item.rentalId, registered, available, autoReveal, setMessage])
   async function act(action: 'reveal' | 'copy') {
     if (!available || pending) return
-    if (action === 'copy' && value === null) hiddenByUser.current = true
-    if (action === 'reveal') hiddenByUser.current = false
     const token = ++sequence.current
     setPendingAction(action); setMessage('')
     if (action === 'reveal') setFailed(false)
@@ -87,7 +82,7 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
       if (token !== sequence.current) return
       readSucceeded = true
       if (action === 'copy') { await navigator.clipboard.writeText(result.wanIp); if (token === sequence.current) setMessage('복사되었습니다.') }
-      else { setValue(result.wanIp); setVerified(true) }
+      else setValue(result.wanIp)
     } catch (error) {
       if (token === sequence.current) {
         if (action === 'reveal') setFailed(!readSucceeded)
@@ -96,8 +91,7 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = false }: { 
     }
     finally { if (token === sequence.current) setPendingAction(null) }
   }
-  const hide = () => { hiddenByUser.current = true; sequence.current += 1; setValue(null) }
-  const label = registered === false ? '미등록' : !allowed ? '이용 불가' : pendingAction === 'reveal' ? '확인 중…' : value ?? (failed ? '조회 실패' : registered === true || verified ? '숨김' : '확인 전')
-  if (compact) return <div className="rcpc-wan-ip rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && pendingAction !== 'reveal' && Boolean(value)}/><button aria-label={`WAN IP ${value ? '숨기기' : '보기'}`} aria-pressed={Boolean(value)} type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}><img alt="" src={eyeIcon}/></button>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
-  return <div>WAN IP: <span>{label}</span> <button type="button" disabled={!available || pending} onClick={() => value ? hide() : void act('reveal')}>{value ? '숨기기' : '표시'}</button> <button type="button" disabled={!available || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
+  const label = registered === false ? '미등록' : !allowed ? '이용 불가' : pendingAction === 'reveal' ? '확인 중…' : value ?? (failed ? '조회 실패' : '확인 전')
+  if (compact) return <div className="rcpc-wan-ip rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && pendingAction !== 'reveal' && Boolean(value)}/>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
+  return <div>WAN IP: <span>{label}</span> <button type="button" disabled={!available || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
 }
