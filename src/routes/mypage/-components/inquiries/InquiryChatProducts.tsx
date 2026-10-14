@@ -24,6 +24,7 @@ export function InquiryChatProducts({ targets, status, standalone, onBack, onClo
       <button aria-label="닫기" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
     </header>
     <div className="inquiry-chat-products__list">
+      {children}
       {targets.map((target, index) => {
         const item = rcpcItems.find(item => item.pcAssetId === target.pcAssetId)
         const details = item ? toInquiryChoice(item) : undefined
@@ -33,6 +34,5 @@ export function InquiryChatProducts({ targets, status, standalone, onBack, onClo
         </div></article>
       })}
     </div>
-    {children}
   </section>
 }
