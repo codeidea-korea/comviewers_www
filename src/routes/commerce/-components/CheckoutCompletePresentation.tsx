@@ -38,7 +38,7 @@ interface Props {
 
 function CompleteProductTable({ product }: { product: CheckoutCompleteProduct }) {
   return <dl className="commerce-info-table complete-product-table">
-    <div className="complete-product-table__heading"><dt><span>품번</span><strong className="complete-product-table__title">{product.productNo}</strong></dt><dd><span className="sr-only">관리 서버실</span>{product.serverRoom}</dd></div>
+    <div className="complete-product-table__heading"><dt><span>품번</span><strong className="complete-product-table__title">{product.productNo}</strong></dt><dd className="complete-product-table__server-room" title={product.serverRoom}><span className="sr-only">관리 서버실</span>{product.serverRoom}</dd></div>
     <div><dt>{product.specLabel}</dt><dd>{product.spec}</dd></div>
     {product.monthlyRentalFee ? <div><dt>월 렌탈료</dt><dd>{product.monthlyRentalFee}</dd></div> : null}
     <div><dt>이용기간</dt><dd>{product.usagePeriod}</dd></div>
