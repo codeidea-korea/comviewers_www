@@ -1,6 +1,7 @@
 .manager-catalog .manager-catalog__select { align-items: center; display: flex; justify-content: space-between; }
 .manager-catalog .rcpc-selection-menu > nav { display: flex; gap: 12px; }
-.manager-catalog .rcpc-selection-menu button { background: transparent; border: 0; color: var(--color-black); font: inherit; padding: 0; }
+.manager-catalog .rcpc-selection-menu button { background: transparent; border: 0; color: var(--color-black); font: inherit; font-size: 14px; padding: 0; }
+.manager-catalog .rcpc-selection-menu > nav > button + button { border-left: 1px solid var(--color-gray-300); border-radius: 0; padding-left: 12px; }
 .manager-catalog .rcpc-selection-menu button:disabled { color: var(--color-gray-500); }
 .manager-filter-toolbar .manager-filter-menu { box-sizing: border-box; height: 400px; max-height: calc(100dvh - 48px); padding-inline: 8px; width: 291px; }
 .manager-modal .manager-editor-header { align-items: center; display: flex; gap: 4px; }
@@ -8,10 +9,14 @@
 .manager-modal .manager-editor-header > button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 .manager-modal .manager-editor-header > button[aria-label='담당자 삭제'] { flex: 0 0 auto; white-space: nowrap; }
 .manager-modal .manager-modal__field > .text-field__label-action button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
-.manager-modal input:disabled { background: var(--color-gray-100); color: var(--color-gray-500); padding-left: 0; -webkit-text-fill-color: var(--color-gray-500); }
+.manager-modal .manager-modal__field:has(input:disabled) > .text-field__control { background: transparent; border-color: var(--color-gray-400); }
+.manager-modal .manager-modal__field input:disabled { background: transparent; color: var(--color-gray-400); font-weight: 500; padding-left: 0; -webkit-text-fill-color: var(--color-gray-400); }
+.manager-settings-dialog__list > button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 @media (max-width: 767px) {
   .manager-catalog .rcpc-selection-menu > nav.rcpc-bulk-actions { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; display: none; flex-direction: column; padding: 8px; position: absolute; right: 0; top: 100%; width: max-content; z-index: 3; }
   .manager-catalog .rcpc-selection-menu.is-open > nav.rcpc-bulk-actions { display: flex; }
+  .manager-catalog .rcpc-selection-menu--native > :is(.rcpc-selection-menu__trigger, nav.rcpc-bulk-actions) { display: none; }
+  .manager-catalog .manager-filter-toolbar__controls > .manager-mobile-search-trigger { margin-left: auto; margin-right: 0; }
   .manager-settings-page .manager-modal { border-radius: 0; height: auto; max-height: none; min-height: 100dvh; overflow: visible; position: static; transform: none; width: 100%; }
   .manager-settings-page .manager-modal input { padding-left: 0; }
   .manager-settings-page .manager-modal footer button:not(:last-child):not(:disabled) { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
