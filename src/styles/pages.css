@@ -63,7 +63,9 @@
 .steps-grid { align-items: center; display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); }
 .steps-grid article { min-width: 0; }
 .step-tabs { align-items: flex-end; display: grid; grid-template-columns: repeat(4, 1fr); padding-right: 12px; }
-.step-tabs span { align-items: center; background: var(--color-gray-300); color: var(--color-white); display: flex; font-size: 16px; height: 27px; justify-content: center; padding: 0 2px; text-align: center; font-weight: 500; letter-spacing: -.03em; }
+.step-tabs span { align-items: center; background: var(--color-gray-400); color: var(--color-white); display: flex; font-size: 16px; height: 27px; justify-content: center; padding: 0 2px; text-align: center; font-weight: 500; letter-spacing: -.03em; }
+.step-tabs span:not(.is-active) ~ span:not(.is-active) { background: var(--color-gray-300); }
+.step-tabs span:not(.is-active) ~ span:not(.is-active) ~ span:not(.is-active) { background: var(--color-gray-200); }
 .step-tabs span:first-child { border-radius: 4px 0 0; }
 .step-tabs span:last-child { border-radius: 0 12px 0 0; }
 .step-tabs span.is-active { background: var(--color-primary-500); border-radius: 4px 12px 0 0; font-weight: 700; height: 35px; padding: 0 2px; }
