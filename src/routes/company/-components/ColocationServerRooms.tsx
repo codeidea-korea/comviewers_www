@@ -51,7 +51,7 @@ export function ColocationServerRooms({ rooms, pending, validationIssue, onAdd, 
             </div>
           )
         })}
-        <Button className="colocation-server-rooms__add" disabled={pending} onClick={onAdd} variant="secondary">서버실 추가 <img alt="" src={addIcon} /></Button>
+        <Button className="colocation-server-rooms__add" disabled={pending} onClick={onAdd} variant="secondary"><span>서버실 추가</span><img alt="" src={addIcon} /></Button>
       </div>
     </fieldset>
   )
