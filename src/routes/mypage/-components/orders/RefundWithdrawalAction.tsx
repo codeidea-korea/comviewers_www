@@ -6,13 +6,14 @@ import { useServices } from '@/app/ServiceProvider'
 import { Modal } from '@/components/ui/ModalControl'
 import { Button } from '@/components/ui/ButtonControl'
 
-export function RefundWithdrawalAction({ order, itemId }: { order: UseQueryResult<AccountOrderDetail, Error>; itemId: string }) {
+export function RefundWithdrawalAction({ order, itemId, rentalId }: { order: UseQueryResult<AccountOrderDetail, Error>; itemId: string; rentalId: string | null }) {
   const { t } = useTranslation()
   const { myAccount } = useServices()
   const client = useQueryClient()
   const [open, setOpen] = useState(false)
-  const refund = order.data?.refunds.find(entry => entry.orderItemId === itemId)
-    ?? order.data?.refunds.find(entry => entry.orderItemId === null)
+  const requestedRefunds = order.data?.refunds.filter(entry => entry.status === 'requested')
+  const refund = requestedRefunds?.find(entry => rentalId !== null && entry.rentalId === rentalId)
+    ?? requestedRefunds?.find(entry => entry.rentalId == null && entry.orderItemId === itemId)
   const requestId = Number(refund?.requestId)
   const canWithdraw = refund?.status === 'requested' && Number.isSafeInteger(requestId) && requestId > 0
   const cancel = useMutation({ mutationFn: async () => {

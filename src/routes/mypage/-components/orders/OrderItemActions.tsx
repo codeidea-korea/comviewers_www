@@ -112,7 +112,7 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
   return <div className="order-catalog-item__action-support">
     {!actionsClosed && item.rentalId && myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={[Number(item.rentalId)]} triggerEnabled={!terminal && active} triggerLabel={t('order.terminationRequest')} /> : null}
     {terminal ? null : item.refundPending && orderNo && orderDetail && myAccount.inquiryApi
-      ? <RefundWithdrawalAction order={orderDetail} itemId={item.orderItemId} />
+      ? <RefundWithdrawalAction order={orderDetail} itemId={item.orderItemId} rentalId={item.rentalId} />
       : actionsClosed || (item.rentalId && myAccount.inquiryApi && active)
         ? null
         : <Button size="small" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
