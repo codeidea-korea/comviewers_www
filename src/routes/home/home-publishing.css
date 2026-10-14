@@ -11,8 +11,7 @@
 .app-shell--home .button--large > :is(img, svg, .icon),
 .app-shell--home .button--large .button__icon,
 .app-shell--home .button--large .button__icon > :is(img, svg),
-.app-shell--home .button--large .usage-help__arrow,
-.app-shell--home .button--large .usage-help__arrow img {
+.app-shell--home .button--large .usage-help__arrow {
   flex: 0 0 20px;
   height: 20px;
   object-fit: contain;
@@ -31,7 +30,9 @@
   width: 20px;
 }
 
-.home-outline-button__icon > .icon {
+.home-outline-button__icon > .icon,
+.usage-help__arrow > img {
+  flex: 0 0 auto;
   height: 10px;
   width: 6.16667px;
 }
