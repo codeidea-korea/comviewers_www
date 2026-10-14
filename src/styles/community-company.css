@@ -413,7 +413,7 @@
 .colocation-page:not(.colocation-page--compact) .colocation-card > header { padding: 0; }
 .colocation-page:not(.colocation-page--compact) .colocation-card > header h1 { line-height: 29px; }
 .colocation-page:not(.colocation-page--compact) .colocation-card > header p { margin-top: 8px; }
-.colocation-page:not(.colocation-page--compact) .colocation-card fieldset { margin: 0; padding: 0; }
+.colocation-page:not(.colocation-page--compact) .colocation-card fieldset { margin: 0; max-width: 100%; min-width: 0; padding: 0; }
 .colocation-page:not(.colocation-page--compact) .colocation-card legend { margin-bottom: 20px; padding: 0; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid { gap: 20px; }
 .colocation-page:not(.colocation-page--compact) .colocation-grid label { gap: 0; }
@@ -426,7 +426,7 @@
 .colocation-page:not(.colocation-page--compact) .messenger-control { gap: 12px; }
 .colocation-card .colocation-help { font-size: 14px; line-height: 24px; }
 .colocation-page:not(.colocation-page--compact) .colocation-file { border-radius: 4px; margin-top: 20px; }
-.colocation-card .colocation-file-list { gap: 8px; margin-top: 8px; }
+.colocation-card .colocation-file-list { gap: 8px; margin-top: 8px; max-width: 100%; min-width: 0; }
 .colocation-card .colocation-file-list > .colocation-file-list__item { align-items: center; background: var(--color-gray-50); border: 0; border-radius: 4px; display: flex; gap: 8px; height: 50px; min-width: 0; padding: 0 16px; width: 100%; }
 .colocation-file-list__details { align-items: center; display: flex; flex: 1; font-size: 14px; gap: 4px; min-width: 0; }
 .colocation-file-list__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
