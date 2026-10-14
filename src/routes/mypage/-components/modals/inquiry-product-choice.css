@@ -1,0 +1,125 @@
+/* Figma 579:17136 / 579:16775: inquiry product selection. */
+.inquiry-preview-dialog.inquiry-product-choice {
+  box-sizing: border-box;
+  width: 501px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice > header > button:not(.inquiry-flow-back) img {
+  height: 24px;
+  width: 24px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice :is(.inquiry-product-choice__room, .inquiry-product-choice__server-room) {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 30px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice :is(.inquiry-product-choice__room, .inquiry-product-choice__server-room) > span {
+  color: var(--color-gray-600);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -.28px;
+  line-height: 24px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice :is(.inquiry-product-choice__room, .inquiry-product-choice__server-room) > select[data-ui='native-select'] {
+  appearance: none;
+  background: var(--color-white) url('../../../../assets/figma/inquiry-choice-chevron.svg') right center / 24px 24px no-repeat;
+  border: 0;
+  border-bottom: 1px solid var(--color-black);
+  border-radius: 0;
+  color: var(--color-black);
+  flex: none;
+  font-size: 18px;
+  font-weight: 500;
+  height: 50px;
+  letter-spacing: -.54px;
+  padding: 4px 28px 4px 0;
+  width: 100%;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__all {
+  margin-top: 30px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row {
+  column-gap: 6px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-rows: auto;
+  min-height: 0;
+  padding: 0 0 20px;
+  row-gap: 4px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row + .inquiry-product-choice__row {
+  margin-top: 20px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > .checkbox__input {
+  align-self: start;
+  margin-top: 5px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > span {
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 28px;
+  padding-left: 0;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > span b {
+  font-weight: 500;
+  letter-spacing: -.28px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > :is(p, small) {
+  grid-column: 2;
+  margin-block: 0;
+  padding-left: 0;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > p {
+  letter-spacing: -.36px;
+  line-height: normal;
+  overflow-wrap: anywhere;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > small {
+  flex-wrap: wrap;
+  letter-spacing: -.26px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__state {
+  font-weight: 500;
+  height: 28px;
+  letter-spacing: -.28px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__state[data-status='on'] img {
+  height: 20px;
+  width: 20px;
+}
+
+.inquiry-preview-dialog.inquiry-product-choice .checkbox__input--box:checked {
+  background: transparent url('../../../../assets/figma/inquiry-choice-checked.svg') center / 18px 18px no-repeat;
+  border: 0;
+}
+
+@media (min-width: 768px) {
+  .inquiry-preview-layer > .inquiry-preview-dialog.inquiry-product-choice {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .inquiry-flow-page > .inquiry-preview-dialog.inquiry-product-choice {
+    width: 100%;
+  }
+}

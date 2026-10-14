@@ -1,5 +1,5 @@
 import type { MyRcpcItem } from '@/api/myRcpc'
-import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
+import { TranslatedText } from '@/i18n/translation'
 import serverDisabledIcon from '@/assets/figma/icon-server-disabled.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
@@ -9,7 +9,7 @@ import { endedRental, rentalOperationalStatus } from '../rcpcPresentation'
 export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
   const rentalStatus = rentalOperationalStatus(item)
   if (rentalStatus === 'termination_waiting') {
-    return <FormatWaitingServerState/>
+    return <><img alt="" data-status="disabled" src={serverDisabledIcon}/><span><TranslatedText id="rental.formatWaiting"/></span></>
   }
   if (endedRental(item.rentalStatus)) {
     return <><img alt="" data-status="disabled" src={serverDisabledIcon}/><span>종료</span></>

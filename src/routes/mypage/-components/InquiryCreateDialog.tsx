@@ -11,7 +11,7 @@ import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { inquiryTypes } from './InquiryPresentation'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
-import { bulkInquiryBusinessNotice, hasSameInquiryBusiness } from './inquiryBusinessScope'
+import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from './inquiryServerRoomScope'
 import './inquiry-flow-qa.css'
 
 type Props = {
@@ -67,7 +67,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
       const targetNotice = validateTargets()
       if (targetNotice) throw new Error(targetNotice)
-      if (!hasSameInquiryBusiness(selectedProducts)) throw new Error(bulkInquiryBusinessNotice)
+      if (!hasSameInquiryServerRoom(selectedProducts)) throw new Error(bulkInquiryServerRoomNotice)
       return api.create({
         requestType: selectedCode,
         title: inquiryTypes[selectedCode],
@@ -112,7 +112,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onEmpty={() => { setSelectedIds([]); setProductNotice(''); setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); create.reset(); setStep('type') }}
       onNext={() => {
         if (hasMissingTargets || selectedIds.length > 20) return
-        if (!hasSameInquiryBusiness(selectedProducts)) { setProductNotice(bulkInquiryBusinessNotice); return }
+        if (!hasSameInquiryServerRoom(selectedProducts)) { setProductNotice(bulkInquiryServerRoomNotice); return }
         setProductNotice('')
         if (addingProducts && selectedCode) { setAddingProducts(false); setStep('write') } else { setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); setStep('type') }
       }}
@@ -137,8 +137,8 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
           setTypeNotice(rcpcs.isPending ? '문의 대상 RCPC를 확인하고 있습니다.' : targetNotice)
           return
         }
-        if (!hasSameInquiryBusiness(selectedProducts)) {
-          setTypeNotice(bulkInquiryBusinessNotice)
+        if (!hasSameInquiryServerRoom(selectedProducts)) {
+          setTypeNotice(bulkInquiryServerRoomNotice)
           return
         }
         if (selectedCode === 'refund_cancel' && !(session.status === 'authenticated' && session.customerSession?.commerceAvailable)) {

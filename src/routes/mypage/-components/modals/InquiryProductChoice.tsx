@@ -1,19 +1,21 @@
 import type { ReactNode } from 'react'
-import serverOnIcon from '../../../../assets/figma/icon-server-on.svg'
+import serverOnIcon from '@/assets/figma/inquiry-choice-connected.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
-import modalClose from '../../../../assets/figma/inquiry-modal-close.svg'
+import modalClose from '@/assets/figma/inquiry-choice-close.svg'
 import backIcon from '@/assets/figma/mypage-mobile-back.png'
 import { Checkbox } from '../../../../components/ui/CheckboxControl'
 import { NativeSelect } from '../../../../components/ui/SelectControl'
 import { type InquiryChoice } from '../inquiryChoice'
+import './inquiry-product-choice.css'
 
 export function ProductChoiceRow({ checked = false, disabled = false, onCheckedChange = () => {}, product }: { checked?: boolean; disabled?: boolean; onCheckedChange?: (checked: boolean) => void; product: InquiryChoice }) {
+  const formatDate = (value: string) => value.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$1.$2.$3')
   return (
     <label className="inquiry-product-choice__row">
       <Checkbox checked={checked} disabled={disabled} onChange={(event) => onCheckedChange(event.target.checked)} />
       <span><b title={`${product.alias} · ${product.productNo}`}>{product.alias} · {product.productNo}</b><small title={product.location}>{product.location}</small><em className="inquiry-product-choice__state" data-status={product.statusRank === 3 ? 'on' : 'off'}><i><img alt="" src={product.statusRank === 3 ? serverOnIcon : serverOffIcon} /></i>{product.state}</em></span>
       <p>{product.spec}</p>
-      <small><span>주문일 <b>{product.orderDate}</b></span><i/><span>이용기간 <b>{product.period}</b></span></small>
+      <small><span>주문일 <b>{formatDate(product.orderDate)}</b></span><i/><span>이용기간 <b>{formatDate(product.period)}</b></span></small>
     </label>
   )
 }
@@ -29,7 +31,7 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
     ? [...new Set([...selectedIds, id])]
     : selectedIds.filter(value => value !== id || lockedIds.includes(value)))
   return (
-    <section aria-label={standalone ? title : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-product-choice${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
+    <section aria-label={title} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-product-choice${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>{standalone || title !== '상품 선택' ? <button aria-label="이전 화면으로" className="inquiry-flow-back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button> : null}<h2>{title}</h2>{!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" src={modalClose} /></button> : null}</header>
       {filters}
       {serverRoomFilter ? <label className="inquiry-product-choice__server-room"><span>서버실</span><NativeSelect aria-label="문의 상품 서버실" disabled={!serverRoomFilter.options.length} onChange={event => serverRoomFilter.onChange(event.target.value ? Number(event.target.value) : null)} options={serverRoomFilter.options.map(room => ({ value: String(room.id), label: room.name }))} placeholder={{ label: '서버실 선택' }} value={serverRoomFilter.value ?? ''} /></label> : null}

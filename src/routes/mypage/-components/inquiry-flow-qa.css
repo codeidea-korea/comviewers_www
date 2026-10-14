@@ -2,13 +2,10 @@
 .inquiry-preview-dialog > header > .inquiry-flow-back img { height: 24px; width: 24px; }
 .inquiry-preview-dialog.inquiry-type-choice > header h2 { flex: 1; }
 .inquiry-preview-dialog.inquiry-type-choice > footer.inquiry-type-choice__actions--single { grid-template-columns: minmax(0, 1fr); }
-.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row { grid-template-columns: 18px minmax(0, 1fr); grid-template-rows: auto; gap: 4px; min-height: 0; }
-.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > span { flex-wrap: wrap; }
 .inquiry-product-choice .inquiry-product-choice__state { align-items: center; color: var(--color-black); display: inline-flex; font-size: 14px; font-style: normal; gap: 4px; white-space: nowrap; }
 .inquiry-product-choice .inquiry-product-choice__state i { align-items: center; background: var(--color-surface-success-soft); border-radius: 50%; display: flex; height: 24px; justify-content: center; width: 24px; }
 .inquiry-product-choice .inquiry-product-choice__state[data-status='off'] i { background: var(--color-surface-error-soft); }
 .inquiry-product-choice .inquiry-product-choice__state img { height: 8.333px; width: 16.667px; }
-.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__row > :is(p, small) { grid-column: 2; margin-block: 0; }
 .inquiry-product-choice__products,
 .inquiry-chat-products__list,
 .refund-application__candidates,

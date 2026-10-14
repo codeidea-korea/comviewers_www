@@ -9,7 +9,7 @@ import { AccountQueryState } from './AccountQueryState'
 import { loadAuthorizedRcpcs } from './rcpcPresentation'
 import { sortInquiryChoices } from './inquiryChoice'
 import { ProductChoiceContent } from './modals/InquiryProductChoice'
-import { bulkInquiryBusinessNotice, hasSameInquiryBusiness } from './inquiryBusinessScope'
+import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from './inquiryServerRoomScope'
 import { useMobileInquiryViewport } from './inquiries/inquiryViewport'
 
 export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean; pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean }) {
@@ -71,7 +71,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
       // The API also checks existing targets absent from this caller's RCPC options (including products).
       const knownTargets = existingIds.length === total && existingIds.every(id => existingTargets.some(item => Number(item.rcpcId) === id))
         ? [...existingTargets, ...selectedTargets] : selectedTargets
-      if (!hasSameInquiryBusiness(knownTargets)) { setBusinessNotice(bulkInquiryBusinessNotice); return }
+      if (!hasSameInquiryServerRoom(knownTargets)) { setBusinessNotice(bulkInquiryServerRoomNotice); return }
       setBusinessNotice('')
       attempt.current = { ids, key: `inquiry-targets:${crypto.randomUUID()}` }
     }

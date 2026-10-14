@@ -70,7 +70,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
       <Checkbox checked={allVisibleSelected} className="rcpc-list__bulk-select" disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)} visualClassName="">모두선택</Checkbox>
       <span className="sr-only" role="status">선택 {selectedAssetIds.length}대, 최대 20대</span>
       <RcpcSelectionMenu label="선택한 RCPC 처리" className="rcpc-list__bulk-action-buttons">
-        <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} key={selectedAssetIds.join(',')}>문의</InquiryAction>
+        <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} initialTargets={selectedItems} key={selectedAssetIds.join(',')}>문의</InquiryAction>
         {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button> : null}
         {showRentalActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel="기간연장"/> : <button disabled type="button">기간연장</button> : null}
       </RcpcSelectionMenu>

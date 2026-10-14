@@ -105,7 +105,9 @@
 .mypage-home-rcpc__actions span { display: grid; gap: 4px; grid-template-columns: 1fr 1fr; }
 .mypage-home-rcpc__actions button { background: #fff; border: 1px solid var(--color-gray-200); border-radius: 4px; font-size: 14px; height: 32px; }
 .mypage-home-rcpc__actions > a,.mypage-home-rcpc__actions > button { align-items: center; background: var(--color-black); border: 1px solid transparent; border-radius: 4px; color: white; display: flex; font-size: 14px; height: 32px; justify-content: center; margin-top: 4px; padding: 0; width: 100%; }.mypage-home-rcpc__actions > button:disabled { background: var(--color-gray-100); border-color: var(--color-gray-200); color: var(--color-gray-500); cursor: default; }
-.mypage-home-rcpc article.is-disabled { color: var(--color-gray-400); opacity: .55; }
+.mypage-home-rcpc article.is-disabled { color: var(--color-gray-400); }
+.mypage-home-rcpc article.is-disabled > div:not(.mypage-home-rcpc__state),
+.mypage-home-rcpc article.is-disabled > .mypage-home-rcpc__state > span { opacity: .55; }
 .mypage-home-columns { display: grid; gap: 60px; grid-template-columns: 458px 458px; height: 850px; margin-top: 60px; }
 .mypage-home-columns > div:first-child > section:first-child { height: 535px; }
 .mypage-home-use { display: flex; flex-direction: column; gap: 8px; height: 457px; margin-top: 20px; }
@@ -207,7 +209,10 @@
 .rcpc-list--table .rcpc-list__actions > section { width: 100%; }
 .rcpc-list--table .rcpc-list__actions > section > .button { box-sizing: border-box; width: 100%; }
 .rcpc-list--table .rcpc-list__actions > section > .button:not(:disabled) { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }
-.rcpc-list--table > article.is-ended { color: var(--color-gray-400); background: #fdfdfd; }.rcpc-list--table > article.is-ended > div:not(:last-child) { opacity: .55; }
+.rcpc-list--table > article.is-ended { color: var(--color-gray-400); background: #fdfdfd; }
+.rcpc-list--table > article.is-ended > div:not(:last-child):not(.rcpc-list__state),
+.rcpc-list--table > article.is-ended > .rcpc-list__state > span:not(.rcpc-list__state-value),
+.rcpc-list--table > article.is-ended > .rcpc-list__state > .rcpc-list__state-value > span { opacity: .55; }
 .rcpc-list-page > .pagination { height: 24px; margin-top: 60px; }
 .mypage-tabs--buttons button { align-items: center; background: white; border: 0; border-bottom: 3px solid transparent; display: flex; font-family: inherit; font-size: 14px; justify-content: center; min-width: 132px; padding: 0 24px; }
 .mypage-tabs--buttons button[aria-pressed='true'] { border-color: var(--color-black); font-weight: 700; }

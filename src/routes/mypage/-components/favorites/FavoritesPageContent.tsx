@@ -202,7 +202,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
         <label><Checkbox aria-label="전체 RCPC 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>모두선택</label>
         <RcpcSelectionMenu label="선택한 즐겨찾기 RCPC 처리" className="rcpc-list-bulk-actions">
           <FavoritesManageOnly allowed={canManage}><button type="button" disabled={assignment.isPending || selectedRentals.size === 0} onClick={openAssignment}>그룹 변경</button></FavoritesManageOnly>
-          <InquiryAction key={`${api.organizationId}:${inquiryTargets.map(item => item.pcAssetId).join(',')}`} appearance="text" disabled={inquiryTargets.length === 0} fixedTarget initialIds={inquiryTargets.map(item => item.pcAssetId)} />
+          <InquiryAction key={`${api.organizationId}:${inquiryTargets.map(item => item.pcAssetId).join(',')}`} appearance="text" disabled={inquiryTargets.length === 0} fixedTarget initialIds={inquiryTargets.map(item => item.pcAssetId)} initialTargets={inquiryTargets} />
           <button disabled={selectedRentalIds.length === 0 || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button>
           {canExtend && selectedExtensionItems.length ? <RcpcExtensionCheckout key={selectedExtensionItems.map(item => item.rentalId).join(',')} api={api} rentalIds={selectedExtensionItems.map(item => item.rentalId)} displayTargets={selectedExtensionItems.map(extensionTarget)} triggerLabel="기간연장"/> : <button type="button" disabled>기간연장</button>}
         </RcpcSelectionMenu>
