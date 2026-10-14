@@ -48,7 +48,7 @@ const refundQuote = z.object({ items: z.array(z.object({ operationRequestTargetI
     dailyQuantity: count, usedDaysRateBasisPoints: count, dailyQuantityRateBasisPoints: count, remainingSettlement: z.number().nonnegative(),
     usedDaysDeduction: z.number().nonnegative(), dailyQuantityDeduction: z.number().nonnegative(), setupFee: count, formatFee: count,
     promotionalPointDeduction: count, purchaseConfirmationPointReversal: count,
-    pointRestorationAllocation: z.object({ plan: z.object({ expiredAmount: count }) }).nullish() })),
+    pointRestorationAllocation: z.object({ plan: z.object({ expiredAmount: count, restoredAmount: count.optional() }) }).nullish() })),
   cashTotal: count, pointTotal: count, bankRequired: z.boolean(), fingerprint: z.string().regex(/^[a-f0-9]{64}$/), quotedAt: z.string(), policyExplanation: z.string() })
 const refundSubmission = z.object({ quote: refundQuoteRequest, expectedFingerprint: z.string().regex(/^[a-f0-9]{64}$/), reason: z.string().trim().min(1).max(2000),
   contactPhone: z.string().trim().regex(/^(?:[0-9+() -]{8,30})?$/), refundPolicyAgreed: z.literal(true), terminationAgreed: z.literal(true),
