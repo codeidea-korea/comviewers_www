@@ -75,6 +75,9 @@ export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, on
   const [productsOpen, setProductsOpen] = useState(false)
   const message = composer.message
   const setMessage = composer.onMessageChange
+  const submitMessage = () => {
+    if (!composer.pending && message.trim()) composer.onSend()
+  }
   const selectMenuItem = (action: () => void) => {
     setMenuOpen(false)
     action()
@@ -86,11 +89,15 @@ export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, on
       <div className="inquiry-chat__scroll">
         
         {selectedRcpcs.length > 1 ? <p className="inquiry-chat__bulk-summary">선택한 RCPC {selectedRcpcs.length}대 일괄 문의</p> : null}
-        {selectedRcpcs.map((rcpc) => <article className="inquiry-chat__product" data-order-id={rcpc.orderId} data-rcpc-id={rcpc.rcpcId} data-selection-id={rcpc.selectionId} key={rcpc.selectionId ?? String(rcpc.rcpcId)}><span>선택 품목</span><img alt="RCPC 상품" src={productThumb} /><div><small>{rcpc.rcpcId}</small><b>{rcpc.alias}</b><em>{rcpc.location ?? '서버실 정보 없음'}</em></div></article>)}
+        {selectedRcpcs.map((rcpc) => <article className="inquiry-chat__product" data-order-id={rcpc.orderId} data-rcpc-id={rcpc.rcpcId} data-selection-id={rcpc.selectionId} key={rcpc.selectionId ?? String(rcpc.rcpcId)}><span>선택 품목</span><img alt="RCPC 상품" src={productThumb} /><div><small>{rcpc.productNo}</small><b>{rcpc.alias}</b><em>{rcpc.location ?? '서버실 정보 없음'}</em></div></article>)}
         {!productsOpen ? <p className="inquiry-chat__system">문의 유형과 대상 RCPC를 확인한 뒤 내용을 작성해 주세요.</p> : null}
       </div>
       {composer.notice ? <p role={composer.notice === '문의 초안을 저장했습니다.' ? 'status' : 'alert'} className={`mypage-notice ${composer.notice === '문의 초안을 저장했습니다.' ? 'mypage-notice--success' : 'mypage-notice--error'}`}>{composer.notice}</p> : null}
-      {!productsOpen ? <footer className="inquiry-chat__draft-composer"><img alt="" src={addIcon} /><input maxLength={4000} disabled={composer.pending} aria-label="문의 메시지" onChange={(event) => setMessage(event.target.value)} placeholder="메시지를 입력해 주세요." value={message} /><button disabled={composer.pending || !message.trim()} onClick={composer.onSend} type="button">{composer.pending ? '처리 중…' : submitLabel}</button></footer> : null}
+      {!productsOpen ? <footer className="inquiry-chat__draft-composer"><img alt="" src={addIcon} /><input maxLength={4000} disabled={composer.pending} aria-label="문의 메시지" onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => {
+        if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
+        event.preventDefault()
+        submitMessage()
+      }} placeholder="메시지를 입력해 주세요." value={message} /><button disabled={composer.pending || !message.trim()} onClick={submitMessage} type="button">{composer.pending ? '처리 중…' : submitLabel}</button></footer> : null}
     </section>
   )
 }

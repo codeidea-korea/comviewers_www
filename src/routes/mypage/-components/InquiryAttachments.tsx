@@ -4,12 +4,16 @@ import { Button } from '@/components/ui/ButtonControl'
 
 export interface InquiryDraftAttachment { attachmentId: number; fileName: string; fileSize: number }
 
+const attachmentLimitNotice = '첨부파일은 한 개당 10MB 이하, 최대 5개까지 선택할 수 있습니다.'
+
 export function InquiryAttachments({ api, requestId, files, onChange, disabled, onBusy }: {
   api: InquiryReadServices; requestId: number; files: readonly InquiryDraftAttachment[];
   onChange: (files: readonly InquiryDraftAttachment[]) => void; disabled: boolean; onBusy: (busy: boolean) => void
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const limitReached = files.length >= 5
+  const notice = error || (limitReached ? attachmentLimitNotice : '')
   const lock = useRef(false)
   const change = useRef(onChange)
   change.current = onChange
@@ -25,7 +29,7 @@ export function InquiryAttachments({ api, requestId, files, onChange, disabled, 
     const incoming = Array.from(selected ?? [])
     if (!incoming.length || lock.current || disabled) return
     if (incoming.length + files.length > 5 || incoming.some((file) => !file.size || file.size > 10 * 1024 * 1024)) {
-      setError('첨부파일은 한 개당 10MB 이하, 최대 5개까지 선택할 수 있습니다.'); return
+      setError(attachmentLimitNotice); return
     }
     lock.current = true; setBusy(true); onBusy(true); setError('')
     let uploaded = [...files]
@@ -45,17 +49,19 @@ export function InquiryAttachments({ api, requestId, files, onChange, disabled, 
     finally { lock.current = false; setBusy(false); onBusy(false) }
   }
   return <fieldset disabled={disabled || busy}><legend>첨부파일 ({files.length}/5)</legend>
-    <label>파일 선택<input type="file" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt" onChange={(event) => { void upload(event.target.files); event.target.value = '' }}/></label>
+    <label aria-disabled={disabled || busy || limitReached} onClick={(event) => {
+      if (disabled || busy || limitReached) event.preventDefault()
+    }}>파일 선택<input type="file" multiple disabled={limitReached} accept=".png,.jpg,.jpeg,.webp,.pdf,.txt" onChange={(event) => { void upload(event.target.files); event.target.value = '' }}/></label>
     <p className="inquiry-chat__attachment-help">PNG·JPG·WEBP·PDF·TXT, 파일당 최대 10MB. 안전 검사를 통과한 파일만 전송됩니다.</p>
-    {files.length || busy || error ? <div className="inquiry-chat__attachment-list" aria-label="전송할 첨부파일" role="group">
+    {files.length || busy || notice ? <div className="inquiry-chat__attachment-list" aria-label="전송할 첨부파일" role="group">
       <strong>전송할 파일 <span>{files.length}/5</span></strong>
-      {files.map((file) => <div className="inquiry-chat__attachment-file" key={file.attachmentId}>
+      {notice ? <p role={error ? 'alert' : 'status'}>{notice}</p> : null}
+      {busy ? <p role="status">첨부파일 처리 중…</p> : null}
+      {files.length ? <div className="inquiry-chat__attachment-files">{files.map((file) => <div className="inquiry-chat__attachment-file" key={file.attachmentId}>
         <span title={file.fileName}>{file.fileName}</span>
         <small>{Math.ceil(file.fileSize / 1024).toLocaleString('ko-KR')} KB</small>
         <button aria-label={`${file.fileName} 첨부 삭제`} disabled={disabled || busy} onClick={() => void remove(file.attachmentId)} type="button">×</button>
-      </div>)}
-      {busy ? <p role="status">첨부파일 처리 중…</p> : null}
-      {error ? <p role="alert">{error}</p> : null}
+      </div>)}</div> : null}
     </div> : null}
   </fieldset>
 }
@@ -76,6 +82,6 @@ export function InquiryAttachmentDownload({ api, requestId, attachment }: {
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch { setError(true) } finally { setBusy(false) }
   }
-  return <p><Button size="small" variant="secondary" disabled={busy} onClick={() => void download()}>{attachment.fileName} ({attachment.fileSize.toLocaleString('ko-KR')} bytes){busy ? ' · 내려받는 중…' : ''}</Button>
+  return <p className="inquiry-chat__attachment-download"><Button size="small" variant="secondary" disabled={busy} onClick={() => void download()}><span>{attachment.fileName} ({attachment.fileSize.toLocaleString('ko-KR')} bytes){busy ? ' · 내려받는 중…' : ''}</span></Button>
     {error ? <span role="alert"> 파일을 내려받지 못했습니다. 다시 시도해 주세요.</span> : null}</p>
 }

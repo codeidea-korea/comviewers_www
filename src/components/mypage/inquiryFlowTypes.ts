@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 
 export interface InquiryTarget {
   rcpcId: string | number
+  productNo: string
   selectionId?: string
   orderId?: string | number
   alias?: string

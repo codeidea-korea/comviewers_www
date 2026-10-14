@@ -703,6 +703,9 @@ body:has(.favorites-modal-layer) .favorites-page > h1::before { content: '즐겨
 .inquiry-chat__message.is-mine { margin-left: auto; text-align: right; }
 .inquiry-chat__message.is-mine .inquiry-chat__message-row { flex-direction: row-reverse; }
 .inquiry-chat__message.is-mine .inquiry-chat__message-row > p { background: var(--color-black); color: white; text-align: left; }
+.inquiry-chat__attachment-download { overflow-wrap: anywhere; }
+.inquiry-chat__attachment-download > .button { height: auto; max-width: 100%; white-space: normal; }
+.inquiry-chat__attachment-download > .button > span { min-width: 0; }
 .inquiry-chat > .inquiry-chat__composer { align-items: center; display: grid; gap: 8px; grid-template-columns: 32px minmax(0,1fr) 54px; margin-top: 20px; min-height: 44px; position: relative; }
 .inquiry-chat__composer > label { min-width: 0; }
 .inquiry-chat__composer textarea { border: 1px solid var(--color-gray-200); border-radius: 4px; display: block; font: inherit; height: 44px; padding: 11px 12px; resize: none; width: 100%; }
@@ -1223,10 +1226,12 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-chat__attachments input[type='file'] { display: none; }
 .inquiry-chat__attachment-help { display: none; }
 .inquiry-chat__attachments fieldset { position: static; }
-.inquiry-chat__attachment-list { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 8px; bottom: calc(100% + 8px); box-shadow: 0 4px 14px rgb(0 0 0 / 8%); box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; left: 0; max-height: min(220px, 35dvh); min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px; position: absolute; right: 0; top: auto; z-index: 3; }
-.inquiry-chat__attachment-list > strong { align-items: center; display: flex; font-size: 12px; font-weight: 600; justify-content: space-between; }
+.inquiry-chat__attachment-list { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 8px; bottom: calc(100% + 8px); box-shadow: 0 4px 14px rgb(0 0 0 / 8%); box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; left: 0; max-height: min(220px, 35dvh); min-width: 0; overflow: hidden; padding: 10px; position: absolute; right: 0; top: auto; z-index: 3; }
+.inquiry-chat__attachments label[aria-disabled='true'] { cursor: not-allowed; opacity: .5; }
+.inquiry-chat__attachment-files { display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.inquiry-chat__attachment-list > strong { align-items: center; display: flex; flex: 0 0 auto; font-size: 12px; font-weight: 600; justify-content: space-between; }
 .inquiry-chat__attachment-list > strong span { color: var(--color-gray-500); font-weight: 400; }
-.inquiry-chat__attachment-list > p { font-size: 12px; margin: 4px 0 0; overflow-wrap: anywhere; position: static !important; width: auto !important; }
+.inquiry-chat__attachment-list > p { flex: 0 0 auto; font-size: 12px; margin: 4px 0 0; overflow-wrap: anywhere; position: static !important; width: auto !important; }
 .inquiry-chat__attachment-list > p[role='alert'] { color: var(--color-system-error); }
 .inquiry-chat__attachment-file { align-items: center; background: var(--color-gray-50); border-radius: 6px; display: flex; flex: 0 0 auto; gap: 8px; min-height: 36px; min-width: 0; padding: 4px 8px; }
 .inquiry-chat__attachment-file > span { flex: 1 1 auto; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

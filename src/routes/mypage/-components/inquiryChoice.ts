@@ -3,7 +3,6 @@ import type { MyRcpcItem } from '@/api/myRcpc'
 import { connectionLabels } from './rcpcPresentation'
 
 export type InquiryChoice = InquiryTarget & {
-  productNo: string
   productName: string
   serverRoomId: number | null
   state: string
