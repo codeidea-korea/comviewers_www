@@ -7,6 +7,8 @@
 .mypage-shell .points-catalog .point-carousel article > b { max-width: 100%; right: 0; white-space: nowrap; }
 .mypage-shell .points-catalog .point-carousel article > b > img { flex-shrink: 0; object-fit: contain; }
 @media (max-width: 767px) {
+  /* User-approved: the same 12px section gap as the mobile RCPC list. */
+  .mypage-shell :is(.coupons-available, .coupons-history) .benefit-tabs-row { margin-bottom: 12px; }
   .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row nav.mypage-tabs { flex: 1 1 auto; min-width: 0; width: auto; }
   .mypage-shell .points-catalog .point-carousel { height: auto; overflow: visible; }
   .mypage-shell .points-catalog .point-carousel__viewport { box-sizing: border-box; height: auto; padding-top: 12px; margin-top: 8px; }

@@ -289,6 +289,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
     {result.data ? <>
       <BenefitTable
         ariaLabel={status === 'held' ? '보유 쿠폰' : '쿠폰 사용 내역'}
+        mobileVariant="rcpc"
         columns={status === 'held'
           ? [{ key: 'name', label: '쿠폰명', renderCell: item => item.name },
             { key: 'expiry', label: '사용기한', renderCell: couponExpiry },
