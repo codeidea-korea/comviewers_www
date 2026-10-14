@@ -408,6 +408,9 @@
 .checkout-customer .commerce-field:first-of-type { margin-top: 20px; }
 .checkout-page .commerce-field > span { font-size: 14px; font-weight: 400; height: 24px; letter-spacing: -.28px; line-height: 24px; margin: 0; }
 .checkout-page .commerce-field > input,.checkout-page .commerce-field > select,.checkout-page .commerce-field > div { height: 50px; min-height: 50px; }
+@media (min-width: 768px) {
+  .checkout-page .checkout-customer .commerce-field input { font-size: 18px; font-weight: 500; }
+}
 .checkout-discounts .commerce-field > div { border-bottom-color: var(--color-gray-300); }
 .checkout-discounts .coupon-select-field select { color: var(--color-gray-400); font-size: 18px; font-weight: 500; letter-spacing: -.54px; padding: 0 28px 0 0; }
 .checkout-discounts .coupon-select-field select:not(:disabled) { color: var(--color-black); }
