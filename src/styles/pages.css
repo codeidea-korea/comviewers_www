@@ -128,7 +128,8 @@
 .auth-form > .button, .terms-section > .button { margin-top: 20px; width: 100%; }
 .auth-form--login { gap: 0; }
 .auth-form--login > .text-field + .text-field { margin-top: 20px; }
-.auth-form--login > .auth-check-row { margin-top: 40px; }
+.auth-form--login > .auth-login-error { line-height: 24px; margin: 4px 0 0; min-height: 24px; text-align: left; }
+.auth-form--login > .auth-check-row { margin-top: 12px; }
 .auth-form--login > .button { margin-top: 12px; }
 .auth-form--login > .auth-links { margin-top: 12px; }
 .auth-check-row { display: flex; gap: 12px; }

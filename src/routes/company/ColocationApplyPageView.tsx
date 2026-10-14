@@ -28,7 +28,7 @@ export function ColocationApplyPage() {
 function ColocationDraftForm({ initialDraft }: { initialDraft: ColocationDraft | null }) {
   const { fixture, selectedFiles, removeFile, validationIssue, completeOpen, emailDomain, setEmailDomain, emailIdInput, updateEmailId, emailDomainInput, setEmailDomainInput, updateEmailDomainInput, phonePrefix, setPhonePrefix, serverRooms, addServerRoom, removeServerRoom, updateServerRoom, pending, submitLabel, pendingLabel, completeTitle, completeMessage, completeDescription, updateFiles, submit, terms, termsPending, termsError, retryTerms, closeComplete } = useColocationForm(initialDraft)
   const hasIssue = (...fields: string[]) => validationIssue !== null && fields.includes(validationIssue.field)
-  const issueMessage = (...fields: string[]) => hasIssue(...fields) ? <small className="colocation-field-error" role="alert">* {validationIssue?.message}</small> : null
+  const issueMessage = (...fields: string[]) => hasIssue(...fields) ? <small className="colocation-field-error" role="alert">{validationIssue?.message}</small> : null
   return (
     <AppShell className="colocation-shell">
       <section className="colocation-page">

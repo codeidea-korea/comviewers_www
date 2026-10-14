@@ -245,7 +245,7 @@ function ResetPasswordPage() {
       {linkState === 'ready' ? <div className="popup-form">
         <PasswordField autoComplete="new-password" error={passwordError} helperText={helperText} label="새 비밀번호" maxLength={16} onChange={(event) => { setPasswordTouched(true); setPasswordPolicyError(''); setPassword(event.target.value); setError('') }} required value={password} />
         <PasswordField autoComplete="new-password" error={confirmationError} helperText={helperText} label="비밀번호 확인" maxLength={16} onChange={(event) => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} required value={confirmation} />
-        {error ? <p className="form-error" role="alert">* {error}</p> : null}
+        {error ? <p className="form-error" role="alert">{error}</p> : null}
       </div> : null}
     </>
   const goToLogin = () => navigate('/login', { replace: true, state: complete ? { passwordReset: true } : undefined })

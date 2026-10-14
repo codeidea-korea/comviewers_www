@@ -34,7 +34,7 @@ export function ColocationServerRooms({ rooms, pending, validationIssue, onAdd, 
               <label className={roomNameIssue ? 'has-error' : undefined} htmlFor={roomNameId}>
                 <span><b>*</b>서버실명</span>
                 <input aria-describedby={roomNameIssue ? `${roomNameId}-error` : undefined} aria-invalid={Boolean(roomNameIssue)} id={roomNameId} maxLength={150} name={name('requestedServerRoomName')} onChange={event => onChange(room.id, 'requestedServerRoomName', event.target.value)} placeholder="서버실명 입력" required value={room.requestedServerRoomName} />
-                {roomNameIssue ? <small className="colocation-field-error" id={`${roomNameId}-error`} role="alert">* {roomNameIssue}</small> : null}
+                {roomNameIssue ? <small className="colocation-field-error" id={`${roomNameId}-error`} role="alert">{roomNameIssue}</small> : null}
               </label>
               <label className={messengerIssue ? 'has-error' : undefined} htmlFor={messengerId}>
                 <span><b>*</b>상담 메신저</span>
@@ -45,7 +45,7 @@ export function ColocationServerRooms({ rooms, pending, validationIssue, onAdd, 
                   </NativeSelect>
                   <input aria-describedby={messengerIssue ? `${messengerId}-error` : undefined} aria-invalid={Boolean(issue('messengerId'))} aria-label="상담 메신저 아이디" maxLength={100} name={name('messengerId')} onChange={event => onChange(room.id, 'messengerId', event.target.value)} placeholder="ID 입력" required value={room.messengerId} />
                 </div>
-                {messengerIssue ? <small className="colocation-field-error" id={`${messengerId}-error`} role="alert">* {messengerIssue}</small> : null}
+                {messengerIssue ? <small className="colocation-field-error" id={`${messengerId}-error`} role="alert">{messengerIssue}</small> : null}
               </label>
               {index > 0 ? <button aria-label={`${index + 1}번째 서버실 삭제`} className="colocation-server-room__remove" onClick={() => onRemove(room.id)} type="button"><img alt="" height={14} src={closeIcon} width={14} /></button> : null}
             </div>

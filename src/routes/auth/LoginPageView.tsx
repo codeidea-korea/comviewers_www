@@ -93,7 +93,7 @@ export function LoginPage({ redirectAuthenticated = true }: { redirectAuthentica
             required
             value={password}
           />
-          {loginError ? <p aria-live="polite" className="auth-notice auth-notice--error">{loginError}</p> : null}
+          <p aria-atomic="true" aria-live="polite" className="auth-notice auth-notice--error auth-login-error">{loginError}</p>
           <div className="auth-check-row">
             <Checkbox disabled={pending} checked={autoLogin} name="auto-login" onChange={(event) => setAutoLogin(event.target.checked)}>자동 로그인 사용</Checkbox>
             <Checkbox disabled={pending} checked={rememberId} name="remember-id" onChange={(event) => setRememberId(event.target.checked)}>아이디 저장</Checkbox>
@@ -107,7 +107,7 @@ export function LoginPage({ redirectAuthenticated = true }: { redirectAuthentica
           try { auth.startSocialLogin(provider) }
           catch (error) { setSocialError(error instanceof Error ? error.message : '현재 소셜 로그인을 이용할 수 없습니다.') }
         }} />
-        {socialError ? <p aria-live="polite" className="auth-notice">{socialError}</p> : null}
+        {socialError ? <p aria-live="polite" className="auth-notice auth-notice--error">{socialError}</p> : null}
       </AuthPanel>
       {requiredCredentials && session.status === 'password-change-required' ? <RequiredPasswordChangeModal
         onClose={() => { void auth.logout() }}

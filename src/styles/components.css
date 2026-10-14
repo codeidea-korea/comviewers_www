@@ -125,6 +125,11 @@
 .text-field__message--success { color: var(--color-system-success-bright); }
 .text-field--error .text-field__control { border-color: var(--color-system-error); }
 .text-field--error .text-field__message { color: var(--color-system-error); }
+/* Error copy uses a shared inline prefix; do not add a literal star to alert text. */
+:where(p, small, span, li)[role="alert"]:not(:empty)::before,
+:where(div, section)[role="alert"] > p:not(:empty)::before,
+:where(.form-error, .auth-notice--error):not(:empty)::before,
+.route-error-page__content > p:not(:empty)::before { content: '* '; }
 .text-field--success .text-field__message { color: var(--color-system-success-bright); }
 .text-field:has(input:disabled) .text-field__control { border-color: var(--color-gray-300); }
 

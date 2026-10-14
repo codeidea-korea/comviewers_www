@@ -47,7 +47,7 @@ function StandardSignupProfileStep() {
         <form className="auth-form profile-form" onSubmit={submit}>
           <h2>회원정보 입력</h2>
           <ProfileImagePicker alt={profilePreview === userProfileIcon ? '' : '선택된 프로필 미리보기'} disabled={busy} onSelect={(source, file) => { setProfilePreview(source); setProfileImage(file); setError('') }} value={profilePreview} variant="auth" />
-          {profileImageError ? <p aria-live="polite" className="profile-image-field__error" role="alert">* {profileImageError}</p> : null}
+          {profileImageError ? <p aria-live="polite" className="profile-image-field__error" role="alert">{profileImageError}</p> : null}
           <div className="field-with-action">
             <TextField
               error={fieldErrors.loginId || (usernameFeedback?.tone === 'error' ? usernameFeedback.message : undefined)}
