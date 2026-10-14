@@ -245,6 +245,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
         client.invalidateQueries({ queryKey: ['my-account', 'read', 'coupon-offers'] }),
         client.invalidateQueries({ queryKey: ['my-account', 'read', 'benefits'] }),
         client.invalidateQueries({ queryKey: ['checkout', 'benefits'] }),
+        client.invalidateQueries({ queryKey: ['checkout', 'extension'] }),
       ])
     },
   })

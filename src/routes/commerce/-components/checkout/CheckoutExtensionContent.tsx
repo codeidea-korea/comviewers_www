@@ -55,7 +55,8 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     userCouponId: couponId, pointAmount: Number(points) }
   const quote = useQuery({ queryKey: ['checkout', 'extension', myAccount.rcpcApi?.organizationId, selection],
     queryFn: async () => { if (!api) throw new Error('현재 주문을 진행할 수 없습니다.'); return validateDirectCheckoutQuote(await api.quote(selection), selection) },
-    enabled: Boolean(api && !attempt), placeholderData: previous => previous, retry: false })
+    enabled: Boolean(api && !attempt), placeholderData: previous => previous, retry: false,
+    staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
   const methods = useQuery({ queryKey: ['checkout', 'direct-easy-pay-methods'],
     queryFn: ({ signal }) => checkout.directEasyPayMethods!(signal), enabled: Boolean(checkout.directEasyPayMethods), retry: false })
   const profile = useMutation({ mutationFn: () => myAccount.readApi!.profile(),
