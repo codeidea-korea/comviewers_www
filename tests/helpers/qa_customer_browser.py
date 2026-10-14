@@ -49,7 +49,7 @@ def verify_selection(page):
     expect(rows(page).nth(1).get_by_role('checkbox')).to_be_checked()
     rows(page).nth(0).get_by_role('checkbox').check()
     page.get_by_role('button', name='2대 선택').click()
-    page.get_by_role('button', name='이전', exact=True).click()
+    page.get_by_role('button', name='상품 선택으로 돌아가기', exact=True).click()
     expect(rows(page).nth(0).get_by_role('checkbox')).to_be_checked()
     expect(rows(page).nth(1).get_by_role('checkbox')).to_be_checked()
     page.get_by_role('button', name='2대 선택').click()
@@ -63,7 +63,7 @@ def verify_selection(page):
 def verify_rooms(page):
     fixture(page)
     control = page.get_by_label('문의 상품 서버실')
-    assert control.locator('option').all_text_contents() == ['서버실 선택', 'A 서버실', 'B 서버실']
+    assert control.locator('option').all_text_contents() == ['전체 서버실', 'A 서버실', 'B 서버실']
     control.select_option('71')
     expect(rows(page)).to_have_count(2)
     rows(page).first.get_by_role('checkbox').check()
@@ -79,6 +79,59 @@ def verify_rooms(page):
     print('PASS TC-USR-0726: only authorized rooms, A/B filtering, old count/selection cleared, only B payload')
 
 
+def verify_business_rooms(page):
+    fixture(page)
+    rows(page).nth(0).get_by_role('checkbox').check()
+    rows(page).nth(2).get_by_role('checkbox').check()
+    page.get_by_role('button', name='2대 선택').click()
+    choose_type(page)
+    expect(page.locator('.inquiry-chat__product')).to_have_count(2)
+    send(page)
+    assert page.evaluate('window.qa.submitted[0].targetPcAssetIds') == [1, 3]
+    for business in ['different', 'missing']:
+        fixture(page, 'business=' + business)
+        rows(page).nth(0).get_by_role('checkbox').check()
+        rows(page).nth(2).get_by_role('checkbox').check()
+        page.get_by_role('button', name='2대 선택').click()
+        expect(page.get_by_role('alert')).to_have_text('일괄문의는 동일 사업자에서만 가능합니다.')
+        assert page.get_by_role('radio', name='기타 문의').count() == 0
+        assert page.evaluate('window.qa.submitted') == []
+    print('PASS C1 business boundary: same business cross-room [1,3] payload; different/missing business blocked before type/API')
+
+
+def verify_business_action(page):
+    page.goto(f'{BASE}/__qa_customer__?mode=action&nonce={time.monotonic_ns()}')
+    page.get_by_role('button', name='문의', exact=True).click()
+    page.get_by_role('radio', name='기타 문의', exact=True).wait_for()
+    choose_type(page)
+    expect(page.locator('.inquiry-chat__product')).to_have_count(2)
+    send(page)
+    assert page.evaluate('window.qa.submitted[0].targetPcAssetIds') == [1, 3]
+    for business in ['different', 'missing']:
+        page.goto(f'{BASE}/__qa_customer__?mode=action&business={business}&nonce={time.monotonic_ns()}')
+        page.get_by_role('button', name='문의', exact=True).click()
+        expect(page.get_by_role('dialog')).to_contain_text('일괄문의는 동일 사업자에서만 가능합니다.')
+        expect(page.get_by_role('dialog')).not_to_contain_text('동일 서버실')
+        assert page.get_by_role('radio', name='기타 문의').count() == 0
+        assert page.evaluate('window.qa.submitted') == []
+    print('PASS C1 bulk InquiryAction: same-business cross-room fixed-target entry; different/missing business notice uses business policy')
+
+
+def verify_business_addition(page):
+    for business in ['same', 'different', 'missing']:
+        page.goto(f'{BASE}/__qa_customer__?mode=addition&business={business}&nonce={time.monotonic_ns()}')
+        expect(rows(page)).to_have_count(2)
+        rows(page).nth(1).get_by_role('checkbox').check()
+        page.get_by_role('button', name='1대 추가하기', exact=True).click()
+        if business == 'same':
+            expect(page.get_by_role('alert')).to_have_text('QA synthetic add response: no persistent write')
+            assert page.evaluate('window.qa.added') == [{'requestId': 1, 'ids': [3]}]
+        else:
+            expect(page.get_by_role('alert')).to_have_text('일괄문의는 동일 사업자에서만 가능합니다.')
+            assert page.evaluate('window.qa.added') == []
+    print('PASS C1 target addition: existing room A + new room B same business forwarded; different/missing business blocked')
+
+
 def verify_empty(page):
     fixture(page)
     rows(page).first.get_by_role('checkbox').check()
@@ -91,7 +144,7 @@ def verify_empty(page):
     assert page.evaluate('window.qa.submitted[0].targetPcAssetIds') == []
     fixture(page)
     page.get_by_role('button', name='선택안함').click()
-    page.get_by_role('button', name='이전', exact=True).click()
+    page.get_by_role('button', name='상품 선택으로 돌아가기', exact=True).click()
     expect(rows(page).first.get_by_role('checkbox')).not_to_be_checked()
     rows(page).first.get_by_role('checkbox').check()
     page.get_by_role('button', name='1대 선택').click()
@@ -169,6 +222,9 @@ with sync_playwright() as playwright:
     page.route('**/*', lambda route: route.continue_() if route.request.url.startswith(BASE + '/') else route.abort())
     verify_selection(page)
     verify_rooms(page)
+    verify_business_rooms(page)
+    verify_business_action(page)
+    verify_business_addition(page)
     verify_empty(page)
     # Boundary case uses a fresh query client on navigation.
     fixture(page, 'count=21')

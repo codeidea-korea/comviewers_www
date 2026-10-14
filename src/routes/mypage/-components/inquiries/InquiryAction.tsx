@@ -14,7 +14,7 @@ import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from '../inquir
 
 export function InquiryAction({ initialIds = [], initialTargets = [], initialProductNo = '', fixedTarget = false, requestId, disabled = false, appearance = 'button', className, children = '문의', onCreated }: {
   initialIds?: readonly number[]
-  initialTargets?: readonly Pick<MyRcpcItem, 'pcAssetId' | 'serverRoomId'>[]
+  initialTargets?: readonly Pick<MyRcpcItem, 'pcAssetId' | 'serverRoomId' | 'serverRoomBusinessKey'>[]
   initialProductNo?: string
   fixedTarget?: boolean
   requestId?: number
@@ -70,7 +70,7 @@ export function InquiryAction({ initialIds = [], initialTargets = [], initialPro
   }
   return <>
     <Modal isOpen={Boolean(notice)} title={notice === bulkInquiryServerRoomNotice ? '일괄 문의 불가' : '문의 접수 안내'} showClose={false} onClose={() => setNotice('')} onConfirm={() => setNotice('')}>
-      <p>{notice === bulkInquiryServerRoomNotice ? '동일 서버실의 RCPC만 선택해 주세요.' : notice}</p>
+      <p>{notice}</p>
     </Modal>
     {appearance === 'text'
       ? <button aria-busy={check.isPending} className={`inquiry-action-link${className ? ` ${className}` : ''}`} disabled={unavailable} onClick={openInquiry} type="button">{check.isPending ? '확인 중…' : children}</button>
