@@ -1,0 +1,7 @@
+@media (max-width: 767px) {
+  .board-search-sheet[data-ui='dialog-layer'] { align-items: flex-end; background: var(--color-overlay-40); display: flex; justify-content: center; padding: 0; }
+  .board-search-sheet[data-ui='dialog-layer'] > .mobile-bottom-sheet__surface { border-radius: 28px 28px 0 0; margin-bottom: var(--board-search-keyboard-offset, 0px); max-height: calc(var(--board-search-viewport-height, 100dvh) - 48px); max-width: 390px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px max(12px, env(safe-area-inset-bottom)); width: 100%; }
+  .board-search-sheet .mobile-bottom-sheet__header > button { align-items: center; background: transparent; border: 0; display: flex; flex: 0 0 24px; height: 24px; justify-content: center; padding: 0; }
+  .board-search-sheet .mobile-bottom-sheet__header > button img { height: 14px; width: 14px; }
+  .board-search-sheet .mobile-bottom-sheet__content { min-width: 0; }
+}
