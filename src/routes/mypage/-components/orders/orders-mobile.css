@@ -11,14 +11,15 @@
   background: var(--color-gray-100);
   color: var(--color-gray-500);
   box-sizing: border-box;
-  height: 50px;
-  min-height: 50px;
+  height: 41px;
+  min-height: 41px;
   min-width: 115px;
   padding-inline: 16px;
   -webkit-text-fill-color: var(--color-gray-500);
 }
 
 @media (max-width: 767px) {
+  .mypage-shell:has(.orders-catalog-list) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .mypage-layout:has(.orders-catalog-list) { padding: 24px 12px 90px; }
   .mypage-shell .mypage-layout:has(.orders-catalog-list) .mypage-title {
     font-size: 20px;
@@ -119,15 +120,22 @@
   .orders-catalog-list .order-catalog-item__summary { display: flex; flex-direction: column; grid-column: 2; grid-row: 1; min-width: 0; }
   .orders-catalog-list .order-catalog-item__heading {
     align-items: center;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: 0 8px;
     grid-column: 2;
+    grid-template-columns: auto minmax(0, 1fr);
+    height: auto;
     min-width: 0;
   }
-  .orders-catalog-list .order-catalog-item__heading > strong { line-height: 24px; }
-  .orders-catalog-list .order-catalog-item__heading > small { max-width: 100%; }
-  .orders-catalog-list .order-catalog-item__state { flex: 0 0 100%; min-height: 28px; }
+  .orders-catalog-list .order-catalog-item__heading > strong { line-height: 24px; white-space: nowrap; }
+  .orders-catalog-list .order-catalog-item__heading > small { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .orders-catalog-list .order-catalog-item__state { grid-column: 1 / -1; min-height: 28px; }
+  .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status]:not([data-status='disabled']) { border-radius: 50%; box-sizing: border-box; height: 24px; object-fit: scale-down; padding: 2px; width: 24px; }
+  .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status='on'] { background: var(--color-surface-success-soft); }
+  .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status='off'],
+  .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status='waiting'] { background: var(--color-surface-error-soft); }
+  .orders-catalog-list .order-catalog-item__action-support { position: relative; }
+  .orders-catalog-list .order-catalog-item__action-support:has(> :nth-child(2))::after { background: var(--color-gray-300); content: ''; height: 8px; left: 50%; pointer-events: none; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 1px; }
   .orders-catalog-list .order-catalog-item__spec {
     grid-column: 2;
     height: 17px;

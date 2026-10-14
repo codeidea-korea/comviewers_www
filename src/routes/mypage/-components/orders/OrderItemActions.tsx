@@ -83,10 +83,10 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
       {!cManager && <div className="order-catalog-item__action-primary">
         {item.rentalId && canExtend && myAccount.rcpcApi
           ? <RcpcExtensionCheckout api={myAccount.rcpcApi} rentalIds={[Number(item.rentalId)]} displayTargets={[{ rcpcId: item.productNo, cpu: item.title }]} triggerLabel={t('rental.extend')} />
-          : <Button size="small" variant="secondary" disabled><TranslatedText id="rental.extend" /></Button>}
+          : <Button size="medium" variant="secondary" disabled><TranslatedText id="rental.extend" /></Button>}
         {confirmedAt && paid && !item.refundPending
           ? <OrderReview item={item} />
-          : <Button size="small" variant="secondary" disabled><TranslatedText id="order.writeReview" /></Button>}
+          : <Button size="medium" variant="secondary" disabled><TranslatedText id="order.writeReview" /></Button>}
       </div>}
       <OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} />
     </div>
@@ -115,7 +115,7 @@ export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentSta
       ? <RefundWithdrawalAction order={orderDetail} itemId={item.orderItemId} rentalId={item.rentalId} />
       : actionsClosed || (item.rentalId && myAccount.inquiryApi && active)
         ? null
-        : <Button size="small" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
+        : <Button size="medium" variant="secondary" disabled><TranslatedText id="order.terminationRequest" /></Button>}
     <InquiryAction disabled={!item.rentalId || !inquiryPcAssetId} fixedTarget initialIds={inquiryPcAssetId ? [Number(inquiryPcAssetId)] : []} />
   </div>
 }
