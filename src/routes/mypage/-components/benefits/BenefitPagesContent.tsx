@@ -181,7 +181,9 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                   { key: 'reason', label: '내용', sortValue: item => pointReasonLabel(item.reason, item.amount), renderCell: item => pointReasonLabel(item.reason, item.amount) },
                   { key: 'type', label: '구분', sortValue: item => item.amount >= 0 ? '적립' : '사용', renderCell: item => item.amount >= 0 ? '적립' : '사용' },
                   { key: 'amount', label: '포인트', sortValue: item => item.amount, renderCell: item => `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P` },
-                  { key: 'expirationDates', label: '만료일시', renderCell: item => item.expiresAt
+                  { key: 'expirationDates', label: '만료일시', renderCell: item => item.amount <= 0
+                    ? '-'
+                    : item.expiresAt
                     ? accountDate(item.expiresAt).slice(0, 19)
                     : item.expirationDates.length
                     ? <span className="point-expiration-dates">{item.expirationDates.map(date => <span key={date}>{date.replaceAll('-', '.')}</span>)}</span>
