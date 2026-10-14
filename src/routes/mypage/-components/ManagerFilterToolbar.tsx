@@ -25,10 +25,12 @@ export function ManagerFilterToolbar({ managers, selected, unassignedCount, onSe
   const [searchDraft, setSearchDraft] = useState(search)
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const searchTriggerRef = useRef<HTMLButtonElement>(null)
   const menuId = useId()
   useDismissibleSelect({ containerRef, isOpen: open, onDismiss: ({ restoreFocus }) => { setOpen(false); if (restoreFocus) triggerRef.current?.focus() } })
   const choose = (id: string | null) => { onSelect(id); setOpen(false); setMobileOpen(false); triggerRef.current?.focus() }
   const label = selected === 'unassigned' ? '미배정' : managers.find(manager => manager.id === selected)?.name ?? '전체'
+  const closeSearch = () => { setSearchOpen(false); requestAnimationFrame(() => searchTriggerRef.current?.focus({ preventScroll: true })) }
   return <div className="favorites-group-toolbar manager-filter-toolbar" ref={containerRef}>
     <h1>RCPC 담당자 관리</h1>
     <div className="manager-mobile-heading-actions"><button onClick={onCopyLink} type="button">접속 링크복사</button><button onClick={onCreate} type="button">담당자 등록</button></div>
@@ -42,9 +44,9 @@ export function ManagerFilterToolbar({ managers, selected, unassignedCount, onSe
       </div> : null}
     </div>
     <button className="favorites-group-toolbar__settings" onClick={onSettings} type="button">담당자 설정<img alt="" src={settingsIcon}/></button>
-    <button aria-controls={`${menuId}-search-sheet`} aria-expanded={searchOpen} aria-label="담당자 검색" className="manager-mobile-search-trigger" onClick={() => { setSearchDraft(search); setSearchOpen(true) }} type="button"><img alt="" src={searchIcon}/></button>
+    <button aria-controls={`${menuId}-search-sheet`} aria-expanded={searchOpen} aria-label="담당자 검색" className="manager-mobile-search-trigger" onClick={() => { setSearchDraft(search); setSearchOpen(true) }} ref={searchTriggerRef} type="button"><img alt="" src={searchIcon}/></button>
     </div>
-    {createPortal(<MobileBottomSheet id={`${menuId}-search-sheet`} label="담당자 검색" onClose={() => setSearchOpen(false)} open={searchOpen}><form onSubmit={event => { event.preventDefault(); onSearch(searchDraft); setSearchOpen(false) }}><SearchField className="mypage-mobile-search" controlClassName="mypage-mobile-search__control" label="담당자 검색" onChange={event => setSearchDraft(event.target.value)} placeholder="담당자명, RCPC 품번 또는 별명 검색" value={searchDraft}/><button className="mypage-mobile-search__submit" type="submit">조회</button></form></MobileBottomSheet>, document.body)}
+    {createPortal(<MobileBottomSheet id={`${menuId}-search-sheet`} label="담당자 검색" onClose={closeSearch} open={searchOpen}><form onSubmit={event => { event.preventDefault(); onSearch(searchDraft); closeSearch() }}><SearchField className="mypage-mobile-search" controlClassName="mypage-mobile-search__control" label="담당자 검색" onChange={event => setSearchDraft(event.target.value)} placeholder="담당자명, RCPC 품번 또는 별명 검색" value={searchDraft}/><button className="mypage-mobile-search__submit" type="submit">조회</button></form></MobileBottomSheet>, document.body)}
     {createPortal(<MobileBottomSheet id={`${menuId}-sheet`} label="담당자 선택" onClose={() => setMobileOpen(false)} open={mobileOpen}>
       <div className="manager-mobile-picker-options"><button aria-pressed={selected === null} onClick={() => choose(null)} type="button">전체</button>
         {managers.map(manager => <button aria-pressed={selected === manager.id} key={manager.id} onClick={() => choose(manager.id)} type="button"><span>{manager.name}</span><span>{manager.assignedRcpcIds.length}</span></button>)}

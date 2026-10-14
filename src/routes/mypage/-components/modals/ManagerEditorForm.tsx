@@ -54,7 +54,7 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
       <ManagerField autoComplete="new-password" error={passwordFieldError} name="manager-new-password" label={manager ? '새 비밀번호' : '비밀번호'} showRequired={!manager} type="password" help={manager ? '변경할 때만 입력해 주세요. 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.' : '8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'} value={draft.password} onChange={(event) => { setTouched(current => ({ ...current, password: true })); setDraft((current) => ({ ...current, password: event.target.value })) }} />
       <label className="manager-modal__memo"><span>담당자 메모</span><textarea aria-label="담당자 메모" maxLength={500} placeholder="부서, 역할 등 관리용 메모" value={draft.memo} onChange={(event) => setDraft((current) => ({ ...current, memo: event.target.value }))} /></label>
       {error && <p className="manager-modal__action-error" role="alert">{error}</p>}
-      <DialogActions><Button disabled={pending} size="large" variant="secondary" onClick={manager && onDelete ? onDelete : onClose}>{manager && onDelete ? '담당자 삭제' : '취소'}</Button><Button disabled={pending || checking} size="large" type="submit">{pending ? '저장 중' : manager ? '수정' : '담당자 등록'}</Button></DialogActions>
+      <DialogActions><Button disabled={pending} size="large" variant="secondary" onClick={manager && onDelete ? onDelete : onClose}>{manager && onDelete ? '담당자 삭제' : manager ? '닫기' : '취소'}</Button><Button disabled={pending || checking} size="large" type="submit">{pending ? '저장 중' : manager ? '수정' : '담당자 등록'}</Button></DialogActions>
     </fieldset>
   </form>
 }
