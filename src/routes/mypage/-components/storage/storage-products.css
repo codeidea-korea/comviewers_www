@@ -17,6 +17,7 @@
 .mypage-shell .storage-product-row .cart-item__amount { flex-wrap: wrap; margin-left: auto; }
 .mypage-shell .storage-catalog__toolbar > span { display: none; }
 @media (max-width: 767px) {
+  .mypage-shell .storage-catalog .storage-catalog__toolbar > label { font-size: 16px; font-weight: 600; line-height: 24px; }
   .mypage-shell .storage-product-row .cart-item__body { gap: 12px; grid-template-columns: 120px minmax(0, 1fr); }
   .mypage-shell .storage-product-row .cart-item__image { height: 64px; width: 120px; }
   .mypage-shell .storage-product-row .cart-item__details { display: contents; }
