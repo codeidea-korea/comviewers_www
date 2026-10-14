@@ -232,7 +232,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
           })}</tbody></table></div>
         </section>
         <section className="refund-application__bulk"><h3>다량 중도해지 공제</h3><dl><div><dt>해지 요청 건 수</dt><dd>{dailyQuantity}건</dd></div><div><dt>공제율</dt><dd>{dailyRate}%</dd></div><div><dt>공제금</dt><dd>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</dd></div></dl></section>
-        <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 환불 산정 비율에 따라 기존 유형으로 복원됩니다.</li><li>유효한 포인트는 기존 만료일을 유지합니다. 만료된 원천 포인트에는 최초 환불 지급 완료 시각부터 30일의 유효기간을 한 번만 부여하며, 같은 원천의 추가 환불에도 종료일은 연장되지 않습니다. 종료일이 지난 금액은 환불·복원 대상에서 제외됩니다.</li></ul>
+        <ul className="refund-application__notice"><li>표시 금액은 해지 신청 기준 예상 금액입니다.</li><li>이미 사용한 쿠폰은 복원되지 않습니다.</li><li>구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 환불 산정 비율에 따라 기존 유형으로 복원됩니다.</li><li>환불 처리 시점에 유효한 포인트만 기존 유형·만료일을 유지해 복원됩니다. 만료된 포인트는 자동 복원되지 않으며, 별도 지급이 필요한 경우 관리자 확인 후 수기로 처리합니다.</li></ul>
       </div> : null}
       </div>
       {methodChoices}

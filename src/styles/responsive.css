@@ -741,6 +741,7 @@
   .steps-grid,
   .security-grid,
   .home-product-grid { grid-template-columns: 1fr; }
+  .steps-grid article::after { display: none; }
   .usage-help { padding: 24px; }
   .usage-help__watermark { display: none; }
   .home-cta__content,

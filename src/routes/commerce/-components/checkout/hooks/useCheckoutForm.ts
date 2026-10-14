@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { z } from 'zod'
 import { checkoutDraftSchema } from '@/domain/checkout/checkoutDraft'
+import { emailDomainOptions } from '@/lib/formOptions'
 
 export type PaymentMethod = '' | 'virtual-account' | 'card' | 'payco' | 'naver-pay' | 'kakao-pay' | 'global-card'
 export type ReceiptType = 'not_requested' | 'income_deduction' | 'business_expense'
@@ -19,6 +20,7 @@ type CheckoutValidationError = { path: string; message: string }
 export function useCheckoutForm() {
   const contactEdited = useRef(false)
   const [contact, setContact] = useState<CheckoutContact>({ name: '', emailId: '', emailDomain: '', phonePrefix: '010', phoneMiddle: '', phoneLast: '', messenger: '', messengerId: '' })
+  const [emailDomainSelection, setEmailDomainSelection] = useState('')
   const [payment, setPaymentState] = useState<PaymentMethod>('')
   const [receiptType, setReceiptType] = useState<ReceiptType>('not_requested')
   const [receiptNumber, setReceiptNumberState] = useState('')
@@ -35,17 +37,24 @@ export function useCheckoutForm() {
   function changeContact(field: keyof CheckoutContact, value: string) {
     contactEdited.current = true
     setContact((current) => ({ ...current, [field]: value }))
+    if (field === 'emailDomain') setEmailDomainSelection('')
     if (field === 'messenger' || field === 'messengerId') {
       setErrors(current => current.filter(error => error.path !== 'contact.messengerType' && error.path !== 'contact.messengerId'))
     } else {
       clearError(field === 'name' ? 'contact.name' : field.startsWith('email') ? 'contact.email' : 'contact.phone')
     }
   }
+  function selectEmailDomain(value: string) {
+    contactEdited.current = true
+    if (value) changeContact('emailDomain', value)
+    setEmailDomainSelection(value)
+  }
   function fillProfile(profile: { name: string | null; email: string | null; phone: string | null; messengerType: string | null; messengerId: string | null }, force = false) {
     if (contactEdited.current && !force) return
     const [emailId = '', emailDomain = ''] = (profile.email ?? '').split('@')
     const phone = (profile.phone ?? '').replace(/\D/g, '')
     setContact({ name: profile.name ?? '', emailId, emailDomain, phonePrefix: phone.slice(0, 3) || '010', phoneMiddle: phone.slice(3, -4), phoneLast: phone.slice(-4), messenger: profile.messengerType ?? '', messengerId: profile.messengerId ?? '' })
+    setEmailDomainSelection(emailDomainOptions.includes(emailDomain) ? emailDomain : '')
   }
   function changeReceiptType(next: ReceiptType) {
     setReceiptType(next)
@@ -67,6 +76,6 @@ export function useCheckoutForm() {
     setErrors(result.success ? [] : result.error.issues.map(issue => ({ path: issue.path.join('.'), message: issue.message })))
     return result.success ? result.data : null
   }
-  return { contact, changeContact, fillProfile, payment, setPayment, receiptType, changeReceiptType, receiptNumber, setReceiptNumber, receiptPhone, setReceiptPhone, orderAgreed, setOrderAgreed, paymentServiceAgreed, setPaymentServiceAgreed, errors, fieldError, validate }
+  return { contact, changeContact, emailDomainSelection, selectEmailDomain, fillProfile, payment, setPayment, receiptType, changeReceiptType, receiptNumber, setReceiptNumber, receiptPhone, setReceiptPhone, orderAgreed, setOrderAgreed, paymentServiceAgreed, setPaymentServiceAgreed, errors, fieldError, validate }
 }
 export type CheckoutFormModel = ReturnType<typeof useCheckoutForm>

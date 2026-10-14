@@ -73,15 +73,16 @@ function AuthCheckbox(props: ComponentProps<typeof Checkbox>) {
 export { AuthCheckbox as Checkbox }
 
 export function EmailAddressField({ domain, domainPlaceholder = '직접 입력', error, id, onDomainChange, onIdChange, required = false }: { domain: string; domainPlaceholder?: string; error?: string; id: string; onDomainChange: (value: string) => void; onIdChange: (event: ChangeEvent<HTMLInputElement>) => void; required?: boolean }) {
+  const [domainSelection, setDomainSelection] = useState(() => emailDomainOptions.includes(domain) ? domain : '')
   return (
     <fieldset className="email-field">
       <legend>E-mail</legend>
       <div className="email-field__row">
         <input aria-label="이메일 아이디" onChange={onIdChange} placeholder="이메일" required={required} value={id} />
         <span>@</span>
-        <input aria-label="이메일 도메인" onChange={(event) => onDomainChange(event.target.value)} placeholder={domainPlaceholder} required={required} value={domain} />
-        <NativeSelect aria-label="이메일 도메인 선택" onChange={(event) => onDomainChange(event.target.value)} value={emailDomainOptions.includes(domain) ? domain : ''}>
-          <option value="">이메일 선택</option>
+        <input aria-label="이메일 도메인" onChange={(event) => { setDomainSelection(''); onDomainChange(event.target.value) }} placeholder={domainPlaceholder} required={required} value={domain} />
+        <NativeSelect aria-label="이메일 도메인 선택" onChange={(event) => { const value = event.target.value; setDomainSelection(value); if (value) onDomainChange(value) }} value={domainSelection}>
+          <option value="">직접입력</option>
           {emailDomainOptions.map((option) => <option key={option} value={option}>{option}</option>)}
         </NativeSelect>
       </div>

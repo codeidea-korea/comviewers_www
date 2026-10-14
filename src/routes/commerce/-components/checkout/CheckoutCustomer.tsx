@@ -5,11 +5,8 @@ import type { CheckoutFormModel } from './hooks/useCheckoutForm'
 import { CheckoutField, CheckoutSectionTitle } from './CheckoutFields'
 
 export function CheckoutCustomer({ form, pending = false }: { form: CheckoutFormModel; pending?: boolean }) {
-  const { contact, changeContact } = form
+  const { contact, changeContact, emailDomainSelection, selectEmailDomain } = form
   const [touched, setTouched] = useState({ name: false, email: false, phone: false, messenger: false })
-  const emailDomains = contact.emailDomain && !emailDomainOptions.includes(contact.emailDomain)
-    ? [contact.emailDomain, ...emailDomainOptions]
-    : emailDomainOptions
   return <section aria-busy={pending} className="checkout-customer">
     <CheckoutSectionTitle>주문자 정보</CheckoutSectionTitle>
     
@@ -17,7 +14,7 @@ export function CheckoutCustomer({ form, pending = false }: { form: CheckoutForm
     <CheckoutField error={form.fieldError('contact.email') ?? (touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(`${contact.emailId}@${contact.emailDomain}`) ? '이메일 주소를 확인해 주세요.' : undefined)} label="E-mail" required><div className="email-fields">
       <input aria-label="주문자 이메일 아이디" maxLength={100} required onChange={(event) => { setTouched(current => ({ ...current, email: true })); changeContact('emailId', event.target.value) }} value={contact.emailId} /><span>@</span>
       <input aria-label="주문자 이메일 도메인" maxLength={100} required onChange={(event) => { setTouched(current => ({ ...current, email: true })); changeContact('emailDomain', event.target.value) }} value={contact.emailDomain} />
-      <NativeSelect aria-label="이메일 도메인 선택" onChange={(event) => { setTouched(current => ({ ...current, email: true })); changeContact('emailDomain', event.target.value) }} value={contact.emailDomain}><option value="">직접입력</option>{emailDomains.map((option) => <option key={option}>{option}</option>)}</NativeSelect>
+      <NativeSelect aria-label="이메일 도메인 선택" onChange={(event) => { setTouched(current => ({ ...current, email: true })); selectEmailDomain(event.target.value) }} value={emailDomainSelection}><option value="">직접입력</option>{emailDomainOptions.map((option) => <option key={option} value={option}>{option}</option>)}</NativeSelect>
     </div></CheckoutField>
     <CheckoutField error={form.fieldError('contact.phone') ?? (touched.phone && (contact.phoneMiddle || contact.phoneLast) && (!/^\d{4}$/.test(contact.phoneMiddle) || !/^\d{4}$/.test(contact.phoneLast)) ? '핸드폰 번호의 가운데와 끝자리를 각각 4자리로 입력해 주세요.' : undefined)} label="핸드폰"><div className="phone-fields">
       <NativeSelect aria-label="핸드폰 번호 앞자리" onChange={(event) => changeContact('phonePrefix', event.target.value)} value={contact.phonePrefix}>{phonePrefixOptions.map((option) => <option key={option}>{option}</option>)}</NativeSelect>
