@@ -4,7 +4,8 @@
   .app-shell > header.site-header .site-header__primary { border-color: var(--color-gray-300); }
   .app-shell > header.site-header .utility-menu > * + *::before { background: var(--color-gray-300); }
 }
-@media (max-width: 767px) {
+@media (max-width: 1024px) {
+  .app-shell > header.site-header .site-header__utility { display: none; }
   .app-shell > header.site-header > :not(.mobile-site-menu) .google-translate-trial { display: none; }
   .app-shell > header.site-header.site-header--menu-open,
   .app-shell > header.site-header.site-header--menu-open .site-header__primary { background: var(--color-white); border-color: var(--color-gray-200); color: var(--color-black); }
@@ -13,7 +14,7 @@
   .app-shell > header.site-header .mobile-menu-toggle__close { height: 24px; width: 24px; }
   .app-shell > header.site-header .mobile-site-menu { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .app-shell > header.site-header :is(.mobile-menu-toggle, .mobile-cart-button, .mobile-menu-backdrop, .mobile-site-menu button) { -webkit-appearance: none; appearance: none; }
-  .app-shell > header.site-header .mobile-site-menu__auth { align-items: center; flex-direction: row; flex-wrap: wrap; gap: 0; justify-content: center; min-height: 200px; padding-top: 12px; }
+  .app-shell > header.site-header .mobile-site-menu__auth { align-items: center; display: flex; flex: 0 0 auto; flex-direction: row; flex-wrap: wrap; gap: 0; justify-content: center; min-height: 200px; padding-top: 12px; }
   .app-shell > header.site-header .mobile-site-menu__auth .session-controls { align-items: center; display: flex; gap: 0; width: auto; }
   .app-shell > header.site-header .mobile-site-menu__auth :is(.session-controls > a, .session-controls > button, .mobile-site-menu__auth > a, .language-menu__trigger) {
     align-items: center;
@@ -54,4 +55,12 @@
     transform: translateY(-50%);
     width: 1px;
   }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .app-shell > header.site-header .mobile-site-menu__auth { background: var(--color-gray-50); margin-inline: -24px; margin-top: auto; min-height: 0; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); }
+  .app-shell > header.site-header .mobile-site-menu__auth .google-translate-trial { display: block; }
+  .app-shell > header.site-header .mobile-site-menu__auth .language-menu__trigger { gap: 0; }
+  .app-shell > header.site-header .mobile-site-menu__auth .language-menu__chevron { flex: 0 0 6px; margin-left: 4px; }
+  .app-shell > header.site-header .mobile-site-menu__auth .language-menu__list { bottom: calc(100% + 8px); left: auto; right: 0; top: auto; }
 }

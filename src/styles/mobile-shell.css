@@ -5,23 +5,9 @@
 .mypage-mobile-filter-trigger,
 .mypage-home-mobile-heading { display: none; }
 
-@media (max-width: 767px) {
-  html { scroll-padding-top: 56px; }
+/* Match the breakpoint at which the desktop navigation is hidden. */
+@media (max-width: 1024px) {
   body.mobile-overlay-open { overflow: hidden; }
-
-  .site-header .site-header__primary { height: 56px; }
-  .site-header .site-header__inner {
-    box-sizing: border-box;
-    padding-inline: 12px;
-    width: 100%;
-  }
-  .site-header .site-logo,
-  .site-header .site-logo img {
-    height: 40px;
-    object-fit: contain;
-    object-position: left center;
-    width: 90px;
-  }
   .site-header .mobile-header-actions {
     align-items: center;
     display: flex;
@@ -45,8 +31,6 @@
     object-fit: contain;
     width: 24px;
   }
-  .site-header--main .mobile-cart-button > img { filter: brightness(0) invert(1); }
-  .site-header--main.site-header--scrolled .mobile-cart-button > img { filter: none; }
   .site-header .mobile-cart-button .mobile-cart-button__badge,
   .site-header .mobile-cart-button .mobile-cart-button__count {
     align-items: center;
@@ -72,8 +56,7 @@
     outline-offset: 2px;
   }
 
-  .site-header .mobile-menu-toggle,
-  .mypage-mobile-menu-toggle {
+  .site-header .mobile-menu-toggle {
     align-items: center;
     background: transparent;
     border: 0;
@@ -86,29 +69,42 @@
     padding: 0;
     width: 24px;
   }
-  .site-header--main .mobile-menu-toggle { color: var(--color-white); }
-  .site-header--main.site-header--scrolled .mobile-menu-toggle { color: var(--color-black); }
-  .site-header .mobile-menu-toggle span,
-  .mypage-mobile-menu-toggle span {
+  .site-header .mobile-menu-toggle span {
     background: currentColor;
     display: block;
     height: 2px;
     transition: transform .16s ease, opacity .16s ease;
     width: 18px;
   }
-  .site-header .mobile-menu-toggle__close,
-  .mypage-mobile-menu-toggle > img {
+  .site-header .mobile-menu-toggle__close {
     height: 20px;
     object-fit: contain;
     width: 20px;
   }
+  .site-header .mobile-menu-toggle.is-open span:first-child { transform: translateY(6px) rotate(45deg); }
+  .site-header .mobile-menu-toggle.is-open span:nth-child(2) { opacity: 0; }
+  .site-header .mobile-menu-toggle.is-open span:last-child { transform: translateY(-6px) rotate(-45deg); }
+}
+
+@media (max-width: 767px) {
+  html { scroll-padding-top: 56px; }
+
+  .site-header .site-header__primary { height: 56px; }
+  .site-header .site-header__inner { box-sizing: border-box; padding-inline: 12px; width: 100%; }
+  .site-header .site-logo,
+  .site-header .site-logo img { height: 40px; object-fit: contain; object-position: left center; width: 90px; }
+  .site-header--main .mobile-cart-button > img { filter: brightness(0) invert(1); }
+  .site-header--main.site-header--scrolled .mobile-cart-button > img { filter: none; }
+  .site-header--main .mobile-menu-toggle { color: var(--color-white); }
+  .site-header--main.site-header--scrolled .mobile-menu-toggle { color: var(--color-black); }
   .site-header--main .mobile-menu-toggle__close { filter: brightness(0) invert(1); }
   .site-header--main.site-header--scrolled .mobile-menu-toggle__close { filter: none; }
-  .site-header .mobile-menu-toggle.is-open span:first-child,
+
+  .mypage-mobile-menu-toggle { align-items: center; background: transparent; border: 0; color: var(--color-black); display: flex; flex-direction: column; gap: 4px; height: 24px; justify-content: center; padding: 0; width: 24px; }
+  .mypage-mobile-menu-toggle span { background: currentColor; display: block; height: 2px; transition: transform .16s ease, opacity .16s ease; width: 18px; }
+  .mypage-mobile-menu-toggle > img { height: 20px; object-fit: contain; width: 20px; }
   .mypage-mobile-menu-toggle.is-open span:first-child { transform: translateY(6px) rotate(45deg); }
-  .site-header .mobile-menu-toggle.is-open span:nth-child(2),
   .mypage-mobile-menu-toggle.is-open span:nth-child(2) { opacity: 0; }
-  .site-header .mobile-menu-toggle.is-open span:last-child,
   .mypage-mobile-menu-toggle.is-open span:last-child { transform: translateY(-6px) rotate(-45deg); }
 
   .mobile-site-menu { inset: 56px 0 0; }
