@@ -13,7 +13,6 @@ import { AccountQueryState } from '../AccountQueryState'
 import { isAccountReadDenied } from '../accountReadAccess'
 import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
 import { RcpcListSurface } from '../RcpcListSurface'
-import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
@@ -100,7 +99,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       <div className="mobile-list-page-heading mobile-list-page-heading--rcpc">
         <h1>이용 RCPC</h1>
         <button aria-expanded={mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">
-          {query.sort ? mobileSortLabels[query.sort] ?? '정렬' : '정렬'} <img alt="" src={sortIcon}/>
+          {query.sort ? mobileSortLabels[query.sort] ?? '정렬' : '정렬'} <span aria-hidden="true" className="rcpc-status-sort-icon"/>
         </button>
       </div>
       <MyPageTabs active={activeTab} items={tabs}/>

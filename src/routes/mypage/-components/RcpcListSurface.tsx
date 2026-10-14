@@ -49,6 +49,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   const [selectedAssetIds, setSelectedAssetIds] = useState<readonly number[]>([])
   const [refundRentalIds, setRefundRentalIds] = useState<readonly number[] | null>(null)
   const refundTriggerRef = useRef<HTMLButtonElement>(null)
+  const refundReturnFocusRef = useRef<HTMLElement>(null)
   const visibleIds = items.map(item => item.pcAssetId)
   const selectedVisibleCount = visibleIds.filter(id => selectedAssetIds.includes(id)).length
   const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length
@@ -69,13 +70,13 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
     <div className="rcpc-list__bulk-actions">
       <Checkbox checked={allVisibleSelected} className="rcpc-list__bulk-select" disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)} visualClassName="">모두선택</Checkbox>
       <span className="sr-only" role="status">선택 {selectedAssetIds.length}대, 최대 20대</span>
-      <RcpcSelectionMenu label="선택한 RCPC 처리" className="rcpc-list__bulk-action-buttons">
+      <RcpcSelectionMenu label="선택한 RCPC 처리" className="rcpc-list__bulk-action-buttons" nativeOnMobile>
         <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} initialTargets={selectedItems} key={selectedAssetIds.join(',')}>문의</InquiryAction>
-        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => setRefundRentalIds([...selectedRentalIds])} ref={refundTriggerRef} type="button">해지신청</button> : null}
+        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => { refundReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : refundTriggerRef.current; setRefundRentalIds([...selectedRentalIds]) }} ref={refundTriggerRef} type="button">해지신청</button> : null}
         {showRentalActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel="기간연장"/> : <button disabled type="button">기간연장</button> : null}
       </RcpcSelectionMenu>
     </div>
-    {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundTriggerRef}/> : null}
+    {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundReturnFocusRef}/> : null}
     <div aria-label="RCPC 목록" className="rcpc-list rcpc-list--table" role="table">
       <div className="rcpc-list__header" role="row">
         <span role="columnheader"><Checkbox aria-label="현재 페이지 RCPC 전체 선택" checked={allVisibleSelected} disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)}/></span>
@@ -164,7 +165,7 @@ export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, 
     <dl className="mobile-rcpc-card__facts">
       <div><dt>서버실</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>
       <div><dt>서버 상태</dt><dd className="mobile-rcpc-card__state"><RcpcStatusContents item={item}/></dd></div>
-      <div><dt>이용 기간</dt><dd><strong><RcpcPeriodLabel item={item}/></strong></dd></div>
+      <div className="mobile-rcpc-card__period"><dt>이용 기간</dt><dd><RcpcPeriodLabel item={item}/></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
       <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
