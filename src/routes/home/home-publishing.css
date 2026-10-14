@@ -1,9 +1,30 @@
 .home-mobile-break { display: none; }
 
-.app-shell--home main { word-break: keep-all; }
+.app-shell--home main { overflow-wrap: break-word; word-break: keep-all; }
+
+.app-shell--home .home-cta h2 {
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.app-shell--home .button--large > :is(img, svg, .icon),
+.app-shell--home .button--large .button__icon,
+.app-shell--home .button--large .button__icon > :is(img, svg),
+.app-shell--home .button--large .usage-help__arrow,
+.app-shell--home .button--large .usage-help__arrow img {
+  flex: 0 0 20px;
+  height: 20px;
+  object-fit: contain;
+  width: 20px;
+}
+
+.app-shell--home .home-product-grid .product-card,
+.app-shell--home .home-product-grid .product-card__info { min-width: 0; }
 
 .app-shell--home .home-product-grid .product-card__spec {
   grid-template-columns: 40px minmax(0, 1fr);
+  width: 100%;
 }
 
 .app-shell--home .home-product-grid :is(
@@ -11,10 +32,14 @@
   .product-card__spec--disk,
   .product-card__spec--gpu
 ) > dd {
+  display: block;
   max-width: 100%;
+  min-width: 0;
   overflow: hidden;
+  overflow-wrap: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
+  width: fit-content;
 }
 
 .home-section-heading__arrow {
@@ -38,11 +63,6 @@
   height: 20px;
   justify-content: center;
   width: 20px;
-}
-
-.usage-help__arrow img {
-  height: 12px;
-  width: 7.4px;
 }
 
 .home-hero > picture,

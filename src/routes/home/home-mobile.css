@@ -196,9 +196,6 @@
     object-fit: fill;
     top: -18.327402%;
   }
-  .app-shell--home .button--large > :is(img, svg, .icon),
-  .app-shell--home .button--large .usage-help__arrow { flex: 0 0 20px; height: 20px; width: 20px; }
-  .app-shell--home .button--large .usage-help__arrow img { height: 12px; object-fit: contain; width: 7.4px; }
   .app-shell--home .steps-grid article:first-child .step-tabs span.is-active { border-top-right-radius: 12px; }
   .app-shell--home .category-tabs button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
   .app-shell--home .category-tabs button[aria-pressed='true'] { color: var(--color-white); -webkit-text-fill-color: var(--color-white); }
