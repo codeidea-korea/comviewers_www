@@ -102,11 +102,6 @@
   letter-spacing: -.28px;
 }
 
-.inquiry-preview-dialog.inquiry-product-choice .inquiry-product-choice__state[data-status='on'] img {
-  height: 20px;
-  width: 20px;
-}
-
 .inquiry-preview-dialog.inquiry-product-choice .checkbox__input--box:checked {
   background: transparent url('../../../../assets/figma/inquiry-choice-checked.svg') center / 18px 18px no-repeat;
   border: 0;
@@ -128,6 +123,8 @@
 }
 
 @media (max-width: 767px) {
+  /* User-approved: use the existing PC list's 20px leading space on mobile. */
+  .inquiry-preview-dialog.inquiry-product-choice > .inquiry-product-choice__products { margin-top: 0; padding-top: 20px; }
   .inquiry-flow-page > .inquiry-preview-dialog.inquiry-product-choice {
     width: 100%;
   }

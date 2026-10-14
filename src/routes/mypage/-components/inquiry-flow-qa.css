@@ -7,9 +7,8 @@
 .inquiry-preview-dialog.inquiry-type-choice > footer { bottom: auto; left: auto; margin-top: auto; padding-top: 30px; position: static; right: auto; }
 .inquiry-preview-dialog.inquiry-type-choice > footer.inquiry-type-choice__actions--single { grid-template-columns: minmax(0, 1fr); }
 .inquiry-product-choice .inquiry-product-choice__state { align-items: center; color: var(--color-black); display: inline-flex; font-size: 14px; font-style: normal; gap: 4px; white-space: nowrap; }
-.inquiry-product-choice .inquiry-product-choice__state i { align-items: center; background: var(--color-surface-success-soft); border-radius: 50%; display: flex; height: 24px; justify-content: center; width: 24px; }
-.inquiry-product-choice .inquiry-product-choice__state[data-status='off'] i { background: var(--color-surface-error-soft); }
-.inquiry-product-choice .inquiry-product-choice__state img { height: 8.333px; width: 16.667px; }
+.inquiry-preview-dialog.inquiry-type-choice > header > .inquiry-flow-back { height: 24px; position: relative; width: 24px; }
+.inquiry-preview-dialog.inquiry-type-choice > header > .inquiry-flow-back img { height: 12px; left: 8px; position: absolute; top: 6px; width: 7.4px; }
 .inquiry-product-choice__products,
 .inquiry-chat-products__list,
 .refund-application__candidates,
