@@ -11,8 +11,47 @@
   .app-shell > header.site-header.site-header--menu-open .mobile-menu-toggle { color: var(--color-black); }
   .app-shell > header.site-header.site-header--menu-open :is(.mobile-menu-toggle__close, .mobile-cart-button > img) { filter: none; }
   .app-shell > header.site-header .mobile-menu-toggle__close { height: 24px; width: 24px; }
-  .app-shell > header.site-header .mobile-site-menu__auth { align-items: center; flex-direction: row; flex-wrap: wrap; gap: 12px; justify-content: center; min-height: 200px; padding-top: 12px; }
-  .app-shell > header.site-header .mobile-site-menu__auth .session-controls--mobile-menu { align-items: center; display: flex; gap: 12px; width: auto; }
-  .app-shell > header.site-header .session-controls--mobile-menu > :is(a, button) { background: transparent; border: 0; color: var(--color-black); font-size: 12px; height: 24px; padding: 0; text-decoration: none; }
-  .app-shell > header.site-header .session-controls--mobile-menu > button { border-left: 1px solid var(--color-gray-200); padding-left: 12px; }
+  .app-shell > header.site-header .mobile-site-menu { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  .app-shell > header.site-header :is(.mobile-menu-toggle, .mobile-cart-button, .mobile-menu-backdrop, .mobile-site-menu button) { -webkit-appearance: none; appearance: none; }
+  .app-shell > header.site-header .mobile-site-menu__auth { align-items: center; flex-direction: row; flex-wrap: wrap; gap: 0; justify-content: center; min-height: 200px; padding-top: 12px; }
+  .app-shell > header.site-header .mobile-site-menu__auth .session-controls { align-items: center; display: flex; gap: 0; width: auto; }
+  .app-shell > header.site-header .mobile-site-menu__auth :is(.session-controls > a, .session-controls > button, .mobile-site-menu__auth > a, .language-menu__trigger) {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    color: var(--color-black);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 14px;
+    font-weight: 400;
+    height: 24px;
+    justify-content: center;
+    line-height: 24px;
+    margin-bottom: 0;
+    margin-right: 0;
+    margin-top: 0;
+    min-height: 24px;
+    padding: 0;
+    position: relative;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  /* 12px on each side of a 1px divider, including Safari without flex gap. */
+  .app-shell > header.site-header .mobile-site-menu__auth .session-controls > * + * { margin-left: 12px; position: relative; }
+  .app-shell > header.site-header .mobile-site-menu__auth > * + *,
+  .app-shell > header.site-header .mobile-site-menu__auth .session-controls > :is(a, button) + :is(a, button) { margin-left: 25px; position: relative; }
+  .app-shell > header.site-header .mobile-site-menu__auth > * + *::before,
+  .app-shell > header.site-header .mobile-site-menu__auth .session-controls > :is(a, button) + :is(a, button)::before {
+    background: var(--color-gray-300);
+    border: 0;
+    border-radius: 0;
+    content: '';
+    height: 8px;
+    left: -13px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+  }
 }
