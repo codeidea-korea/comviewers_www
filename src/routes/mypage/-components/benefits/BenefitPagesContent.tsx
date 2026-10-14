@@ -232,19 +232,21 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
         from: from || undefined,
         to: to || undefined,
       }, signal),
+    { refreshOnReturn: true },
   )
-  const offers = useAccountRead(['coupon-offers'], (signal) => api.downloadableCoupons(signal))
+  const offers = useAccountRead(['coupon-offers'], (signal) => api.downloadableCoupons(signal), { refreshOnReturn: true })
   const download = useMutation({
     mutationFn: (couponId: string) => {
       const key = downloadKeys.current[couponId] ?? crypto.randomUUID()
       downloadKeys.current = { ...downloadKeys.current, [couponId]: key }
       return api.downloadCoupon(couponId, key)
     },
-    onSuccess: async () => {
+    onSettled: async () => {
       await Promise.all([
         client.invalidateQueries({ queryKey: ['my-account', 'read', 'coupons'] }),
         client.invalidateQueries({ queryKey: ['my-account', 'read', 'coupon-offers'] }),
         client.invalidateQueries({ queryKey: ['my-account', 'read', 'benefits'] }),
+        client.invalidateQueries({ queryKey: ['checkout', 'benefits'] }),
       ])
     },
   })

@@ -51,7 +51,8 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     queryFn: ({ signal }) => checkout.benefitQuote!(ids, couponId, Number(points), signal),
     // Preserve point limits while typing, but never reuse a different coupon's quote.
     placeholderData: previous => previous?.userCouponId === couponId ? previous : undefined,
-    enabled: Boolean(checkout.benefitQuote && result.data?.checkoutEligible && !attempt), retry: false })
+    enabled: Boolean(checkout.benefitQuote && result.data?.checkoutEligible && !attempt), retry: false,
+    staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
   const invalidDiscountSelection = benefits.error instanceof ApiClientError && benefits.error.code === 'C001'
   function retryBenefitQuote() {
     if (invalidDiscountSelection && (couponId !== null || Number(points) > 0)) {

@@ -2,8 +2,9 @@ import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Pagination } from '@/components/ui/PaginationControl'
 export { accountDate, accountMoney, accountStatus } from '@/lib/accountFormat'
-export function useAccountRead<T>(key: readonly (string | number)[], read: (signal: AbortSignal) => Promise<T>) {
-  return useQuery({ queryKey: ['my-account', 'read', ...key], queryFn: ({ signal }) => read(signal), retry: false })
+export function useAccountRead<T>(key: readonly (string | number)[], read: (signal: AbortSignal) => Promise<T>, options: { refreshOnReturn?: boolean } = {}) {
+  return useQuery({ queryKey: ['my-account', 'read', ...key], queryFn: ({ signal }) => read(signal), retry: false,
+    ...(options.refreshOnReturn ? { staleTime: 0, refetchOnMount: 'always' as const, refetchOnWindowFocus: true } : {}) })
 }
 export function ReadPages({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (value: number) => void }) {
   return totalPages > 1 ? <Pagination currentPage={page + 1} totalPages={totalPages} onPageChange={(next) => onChange(next - 1)} /> : null
