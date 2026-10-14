@@ -57,7 +57,7 @@
   .auth-page .email-field__row select {
     grid-column: 3;
   }
-  .auth-page.auth-page--profile .email-field__row select {
+  .auth-page:is(.auth-page--profile, .auth-page--find-id, .auth-page--find-password) .email-field__row select {
     grid-column: 1 / -1;
     width: 100%;
   }
