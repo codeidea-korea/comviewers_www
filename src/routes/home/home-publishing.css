@@ -128,7 +128,7 @@ html.translated-ltr .app-shell--home :is(
   gap: 12px;
   min-height: 0;
 }
-.app-shell--home .home-product-grid .product-card:is(:lang(zh-CN), :lang(zh-TW)) .product-card__spec {
+.app-shell--home .home-product-grid .product-card:is(:lang(ja), :lang(zh-CN), :lang(zh-TW)) .product-card__spec {
   grid-template-columns: 56px minmax(0, 1fr);
 }
 .app-shell--home .home-product-grid .product-card:lang(zh-TW) .product-card__spec--cpu dd { min-height: 0; }

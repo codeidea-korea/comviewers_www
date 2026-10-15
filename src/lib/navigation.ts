@@ -29,7 +29,8 @@ function joinBasename(basename: string, pathname: string) {
 function relativePathname(fromPathname: string, toPathname: string) {
   const fromSegments = normalizePathname(fromPathname).split('/').filter(Boolean)
   const toSegments = normalizePathname(toPathname).split('/').filter(Boolean)
-  const fromDirectorySegments = fromSegments.length > 0 ? fromSegments.slice(0, -1) : []
+  // A trailing slash makes the current URL itself the browser's base directory.
+  const fromDirectorySegments = fromPathname.endsWith('/') ? fromSegments : fromSegments.slice(0, -1)
 
   let commonLength = 0
   while (
@@ -42,7 +43,9 @@ function relativePathname(fromPathname: string, toPathname: string) {
 
   const upSegments = Array.from({ length: fromDirectorySegments.length - commonLength }, () => '..')
   const downSegments = toSegments.slice(commonLength)
-  return [...upSegments, ...downSegments].join('/') || '.'
+  // Dot-only paths resolve to directories and add a slash to leaf route URLs.
+  if (downSegments.length === 0) return normalizePathname(toPathname)
+  return [...upSegments, ...downSegments].join('/')
 }
 
 export function getRuntimeBasename() {
@@ -71,6 +74,5 @@ export function toRelativeHref(to: string, currentPathname = window.location.pat
 
   const resolvedPathname = joinBasename(basename, pathname)
   const relative = relativePathname(currentPathname, resolvedPathname)
-  if (relative === '.' && suffix.startsWith('?')) return `${resolvedPathname}${suffix}`
   return `${relative}${suffix}`
 }

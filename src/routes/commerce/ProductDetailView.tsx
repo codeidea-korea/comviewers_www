@@ -153,7 +153,7 @@ function ProductDetailContent() {
         <div className="content-container"><p>지금 필요한 PC 환경을&nbsp; ComViewers에서 바로 이용해보세요.</p></div>
       </section>
       <ProductReviewDialogs product={product} reviews={reviews} />
-      <Modal closeLabel="계속 쇼핑하기" confirmLabel="장바구니 이동" onConfirm={cartAddition.isSuccess ? () => navigate('/cart') : undefined} isOpen={cartPopupOpen} onClose={() => setCartPopupOpen(false)} title={cartAddition.isError ? '장바구니 담기 실패' : '장바구니 담기 완료'}>
+      <Modal closeTranslationKey="cart.continueShopping" confirmTranslationKey="cart.goToCart" onConfirm={cartAddition.isSuccess ? () => navigate('/cart') : undefined} isOpen={cartPopupOpen} onClose={() => setCartPopupOpen(false)} titleTranslationKey={cartAddition.isError ? 'cart.addFailureTitle' : 'cart.addSuccessTitle'}>
         {cartAddition.isError ? <p role="alert">{uiText(cartAddition.message)}</p> : <p role="status">상품을 장바구니에 담았습니다.<br />장바구니로 이동하시겠습니까?</p>}
       </Modal>
       <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginRequiredOpen} onClose={() => setLoginRequiredOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)}`)} title="로그인이 필요합니다.">

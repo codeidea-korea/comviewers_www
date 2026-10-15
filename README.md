@@ -1,5 +1,25 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-16 번역 중 게시글 목록 복귀 후 경로 중복 수정
+
+후속 제보의 렌탈 후기 탭도 동일한 공통 수정에 포함된다. 기존 `/community/posts/`에서 `reviews`를 반환해 `/community/posts/reviews`가 되던 링크가 `../reviews`로 바뀐다. 로컬 Chrome에서 현재 경로 `/community/posts/`·일본어 위젯 값 `ja`·href `../reviews`를 확인하고 실제 클릭 후 `/community/reviews`·활성 후기 탭·일본어 Google 번역바와 검색 결과 없음 안내가 표시됨을 확인했다. [탭 이동 화면](../tmp/translation-header-browser-20261016/community-review-tab-fixed.jpg), [이동 전후 경로](../tmp/translation-header-browser-20261016/community-review-tab-result.json)를 남겼다. 추가 기능 코드 변경 없이 L0 검수 기록만 보완했으며 빌드·배포는 미실행이다.
+
+공통 `src/lib/navigation.ts`가 상세→목록을 `.`으로 축약해 `/community/posts/`로 이동시키고, 이 주소에서 마지막 `/`를 제거한 뒤 디렉터리를 계산해 다음 링크를 `posts/151`로 생성했다. 번역 활성 시 `GoogleTranslateTrial`의 capture 이동이 실제 href를 사용하므로 `/community/posts/posts/151`로 진입했다. 현재 주소의 끝 `/` 유무를 반영하고 목적지의 남은 경로 조각이 없으면 basename을 포함한 정확한 목적지 경로를 반환하도록 수정했다. query/hash·외부 URL·기존 라우터 이동은 유지한다.
+
+배포본 `/community/posts/`에서 잘못된 href와 해석 경로를 읽기 전용으로 확인했다. 로컬 Chrome5301에서는 같은 주소의 링크가 `151`로 계산되고, 일본어 위젯 선택 후 상세→목록(`/community/posts`)→상세(`/community/posts/151`)로 정상 이동함을 확인했다. [재진입 화면](../tmp/translation-header-browser-20261016/community-post-return-fixed.jpg), [최종 주소/링크](../tmp/translation-header-browser-20261016/community-post-return-result.json)를 남겼다. 목록 복귀 후 위젯 값 `ja`를 확인했으나 최종 상세의 위젯 재로딩 완료는 확인하지 못했다. L2/L0 정적 diff·공통 호출/분기·basename/query/hash·독립 리뷰 확인이며 자동테스트·테스트 파일·빌드·배포는 미실행이다.
+
+## 2026-10-16 상품 상세 장바구니 팝업 버튼 번역 보완
+
+상품 상세 장바구니 팝업의 버튼·제목을 상품 목록과 동일한 기존 `cart.*` 번역 키에 연결했다. 일본어 계속 쇼핑하기는 `買い物を続ける`, 장바구니 이동은 `カートへ移動`이며 `TranslatedText`로 자동 재번역을 방지한다. 본문의 줄바꿈·닫기·성공 시 이동·실패 시 확인 버튼 숨김은 유지한다. L2/L0 정적 diff·사전/출력 경로 확인이며 실제 팝업 브라우저 재현·테스트·빌드·배포는 미실행이다.
+
+## 2026-10-16 일본어 홈 상품 카드 라벨 간격 축소
+
+홈 추천 상품 카드의 일본어 라벨 열을 기존80px에서 중국어와 같은56px로 줄였다. 행 간격/열 사이8px·글자 크기·가격·영어 품번50px 말줄임은 유지한다. 로컬 Chrome 실제 일본어 번역에서 6개 사양 행의 라벨56px/간격8px·商品番号 한 줄 표시와 [카드 화면](../tmp/translation-header-browser-20261016/japanese-home-card-gap-final.jpg)을 확인했다. L2/L0 정적 diff·CSS 우선순위·독립 리뷰 확인이며 모바일 실행·자동테스트·빌드·배포는 미실행이다.
+
+## 2026-10-16 홈 공지와 후기 빈 상태 재번역 방지
+
+`HomeCommunitySection.tsx`의 공지·게시글·후기 빈 상태와 오류 안내 6문구는 기존 `uiText` 사전을 쓰지만 자동번역 제외가 빠져 있었다. 해당 상태 노드에만 `notranslate`/`translate="no"`를 적용했다. 실제 공지 제목·게시글·후기 본문과 조회 조건은 유지한다. 로컬 Chrome에서 실제 일본어 Google 번역바가 표시된 뒤 `お知らせはありません。`와 `レビューはありません。`가 유지되는 것을 [화면](../tmp/translation-header-browser-20261016/home-japanese-empty-state-verified.jpg)과 DOM으로 확인했다. L2/L0 diff·사전/출력 경계·독립 리뷰 확인이며 자동테스트·빌드·배포와 오류 분기 실행 검수는 미실행이다.
+
 ## 2026-10-16 모바일 상품 목록 번역바 중복 여백과 메뉴 가림 보완
 
 후속 사용자 요청으로 로컬5301 Chrome에서 실제 영어 Google 번역바를 켜고390×844 상품 목록/RCPC방/홈/커뮤니티,820×1000 RCPC방을 확인했다. 상품 목록은 닫기·재개방도 확인했다. 번역바 하단39px·상품/커뮤니티 헤더 시작40px(1px 차이)·홈 시작39px이며 기존 큰 공백이 없고 모든 측정에서 메뉴 토글 중앙이 해당 버튼에 적중했다. 실제 로고·닫기 버튼이 가려지지 않는 화면도 확인했다. [측정7건](../tmp/translation-header-browser-20261016/results.json), [상품 목록 메뉴](../tmp/translation-header-browser-20261016/products-390-menu-open.jpg), [태블릿 메뉴](../tmp/translation-header-browser-20261016/rcpc-room-820-menu-open.jpg)를 따른다. L2 승인 브라우저 검수/L0 기록이며 아래 최초 수정 당시의 브라우저 미실행과 구분한다. 추가 제품 코드 변경·자동테스트·빌드·배포는 없으며 실기기 iPhone Safari·운영 사이트·다른 언어/경로 전체 검수는 미실행이다. 임시 viewport는 복원했다.
