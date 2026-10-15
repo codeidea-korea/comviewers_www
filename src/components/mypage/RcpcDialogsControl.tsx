@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { DialogActions } from '../ui/DialogActionsControl'
 import { Modal } from '../ui/ModalControl'
 import { PopupLayer } from '../ui/PopupLayerControl'
-import backIcon from '@/assets/figma/mypage-mobile-back.png'
+import backIcon from '@/assets/figma/chevron-left.svg'
 import './rcpc-extension-qa.css'
 
 export interface RcpcDialogTarget {
@@ -80,7 +80,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
   const displayRows: readonly RcpcExtensionDisplayRow[] = rows?.length ? rows : products.map((target) => ({ key: target.rcpcId, product: String(target.rcpcId), location: target.location, period: '—', currentEnd: '—', nextEnd: '—', monthlyFee: '—', payment: '—' }))
   return (
     <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--extension" dialogClassName="rcpc-extension-dialog" initialFocus="dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} showTitle={false} title="기간 연장">
-      <h2><button aria-label="기간 연장 닫기" className="rcpc-extension-dialog__back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button>기간 연장</h2>
+      <h2 className="rcpc-extension-dialog__heading"><button aria-label="기간 연장 닫기" className="rcpc-extension-dialog__back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button>기간 연장</h2>
       <div aria-busy={busy} className="rcpc-extension-dialog__scroll">
         <div className="rcpc-extension-dialog__products-heading"><h3>선택 품목</h3></div>
         <div aria-label="선택 품목" className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{products.map((target) => <article key={target.rcpcId}><strong><span className="rcpc-extension-product__alias">{target.alias ? `${target.alias} · ` : ''}</span>품번 {target.rcpcId}{target.location ? ` · ${target.location}` : ''}</strong><p className="rcpc-extension-product__expiry">현재 만료일 {target.currentEnd ?? '확인 중'}</p><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || '사양 정보가 없습니다.'}</p></article>)}</div>

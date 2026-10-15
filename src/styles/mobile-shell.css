@@ -246,13 +246,6 @@
     min-width: 48px;
     padding: 0 6px;
   }
-  .mypage-mobile-header__exit--home {
-    border: 0;
-    min-width: 32px;
-    padding: 0;
-    width: 32px;
-  }
-  .mypage-mobile-header__exit--home svg { height: 22px; width: 22px; }
   .mypage-mobile-header__exit:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 2px;

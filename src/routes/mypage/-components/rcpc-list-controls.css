@@ -43,7 +43,6 @@
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card__state img[data-status='waiting'] { background: var(--color-surface-error-soft); }
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card__period dd,
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card__period strong { font-weight: 400; }
-  .mypage-shell:has(.rcpc-list-page) .mypage-mobile-header__exit--home { display: none; }
   .rcpc-selection-menu__trigger { align-items: center; background: transparent; border: 0; color: var(--color-gray-500); display: inline-flex; font: inherit; font-size: 12px; gap: 4px; padding: 0; }
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-selection-menu > nav.rcpc-bulk-actions { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; display: none; flex-direction: column; padding: 8px; position: absolute; right: 0; top: 100%; width: max-content; z-index: 3; }
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-selection-menu.is-open > nav.rcpc-bulk-actions { display: flex; }

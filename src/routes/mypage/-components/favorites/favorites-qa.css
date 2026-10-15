@@ -7,10 +7,17 @@
 @media (min-width: 768px) {
   .mypage-shell .mypage-layout:has(.favorites-page) > .mypage-sidebar { margin-top: 0; }
   .mypage-shell .favorites-page .favorites-results__summary .favorites-results__filters { gap: 8px; }
+  /* The enabled extension action uses Button; keep its metrics equal to the disabled text button. */
+  .mypage-shell .favorites-page .favorites-results__toolbar .rcpc-bulk-actions > button,
+  .mypage-shell .favorites-page .favorites-results__toolbar .rcpc-bulk-actions > section > button {
+    height: 28px;
+    min-height: 28px;
+    letter-spacing: inherit;
+    margin: 0;
+  }
 }
 @media (max-width: 767px) {
   .favorites-results > .pagination { margin-top: 40px; }
-  .mypage-shell:has(.favorites-page) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .favorites-page .favorites-results__summary { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; }
   .mypage-shell .favorites-page .favorites-results__summary .favorites-results__filters { display: flex; flex: 0 1 auto; gap: 12px; margin-left: auto; min-width: 0; }
   .mypage-shell .favorites-page .favorites-results__filters .favorites-results__region { display: flex; }

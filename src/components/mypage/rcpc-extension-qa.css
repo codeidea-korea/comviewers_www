@@ -11,14 +11,32 @@
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-results-scroll { margin-top: 30px; order: 7; }
 .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-total { order: 8; }
 @media (max-width: 767px) {
-  .rcpc-popup-layer--extension .rcpc-extension-dialog > h2 { align-items: center; display: flex; gap: 4px; }
-  .rcpc-extension-dialog__back { align-items: center; background: transparent; border: 0; display: inline-flex; padding: 0; }
-  .rcpc-extension-dialog__back img { height: 24px; object-fit: contain; width: 24px; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog > .rcpc-extension-dialog__heading { align-items: center; display: flex; flex: 0 0 56px; font-size: 16px; gap: 4px; height: 56px; line-height: 24px; padding: 0 16px; }
+  .rcpc-extension-dialog__back { align-items: center; background: transparent; border: 0; display: inline-flex; flex: 0 0 24px; height: 24px; margin: 0; padding: 0; position: relative; width: 24px; }
+  .rcpc-extension-dialog__back img { height: 12px; left: 8px; position: absolute; top: 6px; width: 7.4px; }
   .rcpc-extension-product__alias,
   .rcpc-extension-product__expiry { display: none; }
   .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row { gap: 8px; padding: 24px 16px; }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row:has(input[type='radio']:checked) { border-color: var(--color-black); }
   .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row > label { flex: none; min-height: 0; }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row > input[type='date'] {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    flex: none;
+    font-size: 16px;
+    margin-left: 32px;
+    max-width: calc(100% - 32px);
+    min-width: 0;
+    overflow: hidden;
+    width: calc(100% - 32px);
+  }
+  .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__mode-row > input[type='date']::-webkit-date-and-time-value {
+    min-width: 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+  }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__modes strong { line-height: 19px; }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__modes small { line-height: 17px; }
   .rcpc-popup-layer--extension .rcpc-extension-dialog .rcpc-extension-dialog__periods { gap: 4px; grid-template-columns: minmax(0, 1fr); }

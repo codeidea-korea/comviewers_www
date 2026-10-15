@@ -19,7 +19,6 @@
 }
 
 @media (max-width: 767px) {
-  .mypage-shell:has(.orders-catalog-list) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .mypage-layout:has(.orders-catalog-list) { padding: 24px 12px 90px; }
   .mypage-shell .mypage-layout:has(.orders-catalog-list) .mypage-title {
     font-size: 20px;

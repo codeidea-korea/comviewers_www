@@ -127,7 +127,6 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   const selectedExtensionItems = selectableItems.filter(item => visibleSelection.has(item.rentalId))
   const selectedRentalIds = (rowsData?.items ?? []).filter(item => visibleSelection.has(item.rentalId)).map(item => item.rentalId)
   const allSelected = selectableItems.length > 0 && selectableItems.every(item => visibleSelection.has(item.rentalId))
-  const partiallySelected = visibleSelection.size > 0 && !allSelected
   const customerSession = session.status === 'authenticated' ? session.customerSession : null
   const canManage = !accessDenied && canManageFavorites(customerSession?.memberRole)
   const owner = customerSession?.memberRole === 'owner'
@@ -200,7 +199,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
         <div className="favorites-results__filters"><label className="favorites-results__region"><span className="sr-only">서버실 위치</span><RcpcFilterSelect disabled={accessDenied} value={accessDenied ? '' : filters.region ?? ''} onChange={event => updateFilters({ region: event.target.value || undefined, serverRoomId: undefined })}><option value="">서버실 위치 선택</option>{locations.map(value => <option key={value}>{value}</option>)}</RcpcFilterSelect></label><label><span className="sr-only">서버실</span><RcpcFilterSelect disabled={accessDenied} value={accessDenied ? '' : filters.serverRoomId ?? ''} onChange={event => updateFilters({ serverRoomId: event.target.value ? Number(event.target.value) : undefined })}><option value="">서버실 선택</option>{rooms.map(item => <option key={item.id} value={item.id}>{item.name ?? String(item.id)}</option>)}</RcpcFilterSelect></label></div>
       </div>
       <header className="favorites-results__toolbar">
-        <label><Checkbox aria-label="전체 RCPC 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>모두선택</label>
+        <label><Checkbox aria-label="전체 RCPC 선택" checked={allSelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>모두선택</label>
         <RcpcSelectionMenu label="선택한 즐겨찾기 RCPC 처리" className="rcpc-list-bulk-actions" nativeOnMobile>
           <FavoritesManageOnly allowed={canManage}><button type="button" disabled={assignment.isPending || selectedRentals.size === 0} onClick={openAssignment}>그룹 변경</button></FavoritesManageOnly>
           <InquiryAction key={`${api.organizationId}:${inquiryTargets.map(item => item.pcAssetId).join(',')}`} appearance="text" disabled={inquiryTargets.length === 0} fixedTarget initialIds={inquiryTargets.map(item => item.pcAssetId)} initialTargets={inquiryTargets} />
@@ -213,7 +212,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
       {rowsData ? <>
       <RcpcListTable api={api} canEditAlias={owner} canExtend={canExtend} items={rowsData.items} sortConfig={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} selection={{
-        header: <Checkbox aria-label="현재 페이지 RCPC 전체 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>,
+        header: <Checkbox aria-label="현재 페이지 RCPC 전체 선택" checked={allSelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>,
         isSelected: item => visibleSelection.has(item.rentalId),
         isDisabled: extensionBlocked,
         onChange: (item, checked) => setSelectedRentals(previous => new Set(checked ? [...previous, item.rentalId] : [...previous].filter(id => id !== item.rentalId))),
