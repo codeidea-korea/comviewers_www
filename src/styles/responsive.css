@@ -622,8 +622,11 @@
   }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row {
     align-items: stretch;
+    box-sizing: border-box;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
+    width: 100%;
   }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__modes label {
     height: auto;
@@ -631,7 +634,10 @@
     padding: 0;
   }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__mode-row input[type='date'] {
+    box-sizing: border-box;
     flex-basis: 40px;
+    max-width: 100%;
+    min-width: 0;
     width: 100%;
   }
   .rcpc-popup-layer--extension .rcpc-extension-dialog__periods button {

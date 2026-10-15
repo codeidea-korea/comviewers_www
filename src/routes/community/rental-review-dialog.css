@@ -15,7 +15,7 @@
     max-width: none;
     min-height: 0;
     overflow: hidden;
-    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    padding: max(32px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
     transform: none;
     width: 100%;
   }
@@ -30,11 +30,12 @@
     overflow-y: auto;
     overflow-wrap: anywhere;
     overscroll-behavior: contain;
-    padding: 24px 0;
+    padding: 32px 0;
   }
-  .modal--rental-review-layer > .modal__actions { padding-top: 16px; }
-  .modal--rental-review-layer .review-detail-modal__product { height: auto; padding-bottom: 24px; }
+  .modal--rental-review-layer > .modal__actions { padding-top: 24px; }
+  .modal--rental-review-layer .review-detail-modal__product { height: auto; padding-bottom: 32px; }
   .modal--rental-review-layer .review-detail-modal__product > span { flex-wrap: wrap; height: auto; }
-  .modal--rental-review-layer .review-detail-modal__copy { height: auto; }
-  .modal--rental-review-layer .review-detail-modal__scroll { height: auto; overflow: visible; }
+  .modal--rental-review-layer .review-detail-modal__rating { height: auto; padding: 32px 0; }
+  .modal--rental-review-layer .review-detail-modal__copy { height: auto; padding-top: 32px; }
+  .modal--rental-review-layer .review-detail-modal__scroll { height: auto; line-height: 1.6; overflow: visible; padding: 16px; }
 }

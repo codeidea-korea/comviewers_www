@@ -41,6 +41,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const [productNotice, setProductNotice] = useState('')
   const [message, setMessage] = useState('')
   const [addingProducts, setAddingProducts] = useState(false)
+  const [additionalIds, setAdditionalIds] = useState<readonly number[]>([])
   const submitting = useRef(false)
   const rcpcs = useQuery({
     ...serverPresenceQueryOptions,
@@ -53,6 +54,8 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     .sort((left, right) => left.name.localeCompare(right.name, 'ko'))
   const visibleProducts = hasFixedTarget || serverRoomId === null ? products : products.filter(product => product.serverRoomId === serverRoomId)
   const selectedProducts = selectedIds.flatMap(id => products.filter(product => Number(product.rcpcId) === id))
+  const additionalProducts = visibleProducts.filter(product => !selectedIds.includes(Number(product.rcpcId))
+    && rcpcs.data?.some(item => item.pcAssetId === Number(product.rcpcId) && item.rentalStatus === 'active'))
   const hasMissingTargets = selectedProducts.length !== selectedIds.length
   const invalidFixedTarget = hasFixedTarget && (!fixedIds.length || fixedIds.length > 20 || fixedIds.some(id => !Number.isSafeInteger(id) || id <= 0))
   const codes = requestCodes
@@ -84,11 +87,40 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const closeProductPicker = () => {
     if (!addingProducts) { close(); return }
     setAddingProducts(false)
-    if (!selectedCode || (!selectedProducts.length && selectedCode !== 'inquiry')) { setTypeIndex(null); setStep('type') } else setStep('write')
+    setAdditionalIds([])
+    setProductNotice('')
+    setStep('write')
   }
   const showStep = (content: ReactNode, title: string, backdropClassName: string, onExit = close) => standalone
     ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main>
     : <DialogLayer asChild backdropClassName={backdropClassName} focusKey={step} isOpen onClose={onExit} showTitle={false} title={title}>{content}</DialogLayer>
+
+  if (step === 'product' && addingProducts) return showStep(
+    <ProductChoiceContent
+      standalone={standalone}
+      title={`문의 상품 추가 (${additionalProducts.length})`}
+      variant="addition"
+      actionLabel="추가하기"
+      allowEmpty={false}
+      maxSelection={Math.max(0, 20 - selectedIds.length)}
+      notice={rcpcs.isPending
+        ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
+        : rcpcs.isError
+          ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
+          : !additionalProducts.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}
+      selectionNotice={productNotice}
+      onClose={closeProductPicker}
+      onNext={() => {
+        const additions = additionalProducts.filter(product => additionalIds.includes(Number(product.rcpcId)))
+        if (!additions.length || additions.length !== additionalIds.length || selectedIds.length + additions.length > 20) return
+        if (!hasSameInquiryServerRoom([...selectedProducts, ...additions])) { setProductNotice(bulkInquiryServerRoomNotice); return }
+        setSelectedIds([...new Set([...selectedIds, ...additionalIds])])
+        closeProductPicker()
+      }}
+      onSelectedChange={ids => { setProductNotice(''); setAdditionalIds([...new Set(ids)]) }}
+      products={additionalProducts}
+      selectedIds={additionalIds}
+    />, '문의 상품 추가', 'inquiry-preview-layer inquiry-detail-preview', closeProductPicker)
 
   if (step === 'product') return showStep(
     <ProductChoiceContent
@@ -117,7 +149,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
         if (hasMissingTargets || selectedIds.length > 20) return
         if (!hasSameInquiryServerRoom(selectedProducts)) { setProductNotice(bulkInquiryServerRoomNotice); return }
         setProductNotice('')
-        if (addingProducts && selectedCode) { setAddingProducts(false); setStep('write') } else { setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); setStep('type') }
+        setTypeIndex(null); setTypeNotice(''); setStep('type')
       }}
       onSelectedChange={(ids) => { setProductNotice(''); setSelectedIds([...new Set([
         ...(hasFixedTarget ? fixedIds : []), ...ids,
@@ -187,7 +219,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       }}
       inquiryType={selectedCode ? inquiryTypes[selectedCode] : ''}
       onBack={() => setStep('type')}
-      onAddProducts={() => { setProductNotice(''); setAddingProducts(true); setStep('product') }}
+      onAddProducts={() => { setProductNotice(''); setAdditionalIds([]); setAddingProducts(true); setStep('product') }}
       onClose={close}
       selectedRcpcs={selectedProducts}
       submitLabel={standalone ? '전송' : '문의 접수'}
