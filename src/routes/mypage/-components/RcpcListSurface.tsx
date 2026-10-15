@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { InquiryAction } from './inquiries/InquiryAction'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
@@ -34,7 +35,7 @@ const columns: ReadonlyArray<{ label: string; sort?: SortKey }> = [
   { label: '빠른 실행' },
 ]
 
-export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, sortConfig }: {
+export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, pending = false, sortConfig }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
@@ -42,8 +43,10 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   items: readonly MyRcpcItem[]
   mutations?: RcpcMutations
   onSort: (sort: SortConfig<SortKey>) => void
+  pending?: boolean
   sortConfig: SortConfig<SortKey>
 }) {
+  const { uiText, t } = useUiTranslation()
   const { myAccount } = useServices()
   const [selectedAssetIds, setSelectedAssetIds] = useState<readonly number[]>([])
   const [refundRentalIds, setRefundRentalIds] = useState<readonly number[] | null>(null)
@@ -62,18 +65,18 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
     ? [...previous, ...visibleIds.filter(id => !previous.includes(id)).slice(0, 20 - previous.length)]
     : previous.filter(id => !visibleIds.includes(id)))
   return <>
-    <div className="rcpc-list__bulk-actions">
-      <Checkbox checked={allVisibleSelected} className="rcpc-list__bulk-select" disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)} visualClassName="">모두선택</Checkbox>
-      <span className="sr-only" role="status">선택 {selectedAssetIds.length}대, 최대 20대</span>
-      <RcpcSelectionMenu label="선택한 RCPC 처리" className="rcpc-list__bulk-action-buttons" nativeOnMobile>
-        <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} initialTargets={selectedItems} key={selectedAssetIds.join(',')}>문의</InquiryAction>
-        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => { refundReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : refundTriggerRef.current; setRefundRentalIds([...selectedRentalIds]) }} ref={refundTriggerRef} type="button">해지신청</button> : null}
-        {showRentalActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel="기간연장"/> : <button disabled type="button">기간연장</button> : null}
+    <div className="rcpc-list__bulk-actions" inert={pending}>
+      <Checkbox checked={allVisibleSelected} className="rcpc-list__bulk-select" disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)} visualClassName="">{uiText("모두선택")}</Checkbox>
+      <span className="sr-only" role="status">{t('mypageRcpc.selectedCount', { count: selectedAssetIds.length })}</span>
+      <RcpcSelectionMenu label={uiText("선택한 RCPC 처리")} className="rcpc-list__bulk-action-buttons" nativeOnMobile>
+        <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} initialTargets={selectedItems} key={selectedAssetIds.join(',')}>{uiText("문의")}</InquiryAction>
+        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => { refundReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : refundTriggerRef.current; setRefundRentalIds([...selectedRentalIds]) }} ref={refundTriggerRef} type="button">{uiText("해지신청")}</button> : null}
+        {showRentalActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel={uiText("기간연장")}/> : <button disabled type="button">{uiText("기간연장")}</button> : null}
       </RcpcSelectionMenu>
     </div>
     {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundReturnFocusRef}/> : null}
-    <RcpcListTable api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={items} mutations={mutations} onSort={onSort} sortConfig={sortConfig} selection={{
-      header: <Checkbox aria-label="현재 페이지 RCPC 전체 선택" checked={allVisibleSelected} disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)}/>,
+    <RcpcListTable api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={items} mutations={mutations} onSort={onSort} pending={pending} sortConfig={sortConfig} selection={{
+      header: <Checkbox aria-label={uiText("현재 페이지 RCPC 전체 선택")} checked={allVisibleSelected} disabled={pending || visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)}/>,
       isSelected: item => selectedAssetIds.includes(item.pcAssetId),
       isDisabled: item => selectedAssetIds.length >= 20 && !selectedAssetIds.includes(item.pcAssetId),
       onChange: (item, checked) => toggle(item.pcAssetId, checked),
@@ -81,7 +84,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   </>
 }
 
-export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, sortConfig, selection }: {
+export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, pending = false, sortConfig, selection }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
@@ -89,6 +92,7 @@ export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, item
   items: readonly MyRcpcItem[]
   mutations?: RcpcMutations
   onSort: (sort: SortConfig<SortKey>) => void
+  pending?: boolean
   sortConfig: SortConfig<SortKey>
   selection: {
     header: ReactNode
@@ -97,6 +101,7 @@ export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, item
     onChange: (item: MyRcpcItem, checked: boolean) => void
   }
 }) {
+  const { uiText } = useUiTranslation()
   useRcpcDateBoundary(api.organizationId)
   // CSS-hidden rows still mount effects; only mount the visible layout.
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches)
@@ -108,36 +113,38 @@ export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, item
     return () => media.removeEventListener('change', update)
   }, [])
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' ? <span className="table-sort-button__multiline-label">트래픽<br/>사용량</span> : column.label}</SortButton>
-    : column.label
+    ? <SortButton icon={sortIcon} label={uiText(column.label)} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' ? <span className="table-sort-button__multiline-label">{uiText("트래픽")}<br/>{uiText("사용량")}</span> : uiText(column.label)}</SortButton>
+    : uiText(column.label)
   return <>
-    {!mobile ? <div aria-label="RCPC 목록" className="rcpc-list rcpc-list--table" role="table">
+    {!mobile ? <div aria-busy={pending} aria-label={uiText("RCPC 목록")} className="rcpc-list rcpc-list--table" role="table">
       <div className="rcpc-list__header" role="row">
         <span role="columnheader">{selection.header}</span>
         {columns.map(column => <span key={column.label} role="columnheader">{header(column)}</span>)}
       </div>
-      {items.map(item => <RcpcListRow api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={item.rentalId} mutations={mutations} onSelectedChange={checked => selection.onChange(item, checked)} selected={selection.isSelected(item)} selectionDisabled={selection.isDisabled(item)}/>) }
-      {items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}
-    </div> : <div aria-label="RCPC 모바일 목록" className="mobile-rcpc-list">
-      {items.map(item => <MobileRcpcCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations} onSelectedChange={checked => selection.onChange(item, checked)} selected={selection.isSelected(item)} selectionDisabled={selection.isDisabled(item)}/>) }
-      {items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}
+      {items.map(item => <RcpcListRow api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={item.rentalId} mutations={mutations} onSelectedChange={checked => selection.onChange(item, checked)} pending={pending} selected={selection.isSelected(item)} selectionDisabled={selection.isDisabled(item)}/>) }
+      {items.length === 0 ? <p className="mypage-table__empty" role="status">{uiText(emptyMessage)}</p> : null}
+    </div> : <div aria-busy={pending} aria-label={uiText("RCPC 모바일 목록")} className="mobile-rcpc-list">
+      {items.map(item => <MobileRcpcCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations} onSelectedChange={checked => selection.onChange(item, checked)} pending={pending} selected={selection.isSelected(item)} selectionDisabled={selection.isDisabled(item)}/>) }
+      {items.length === 0 ? <p className="mypage-table__empty" role="status">{uiText(emptyMessage)}</p> : null}
     </div>}
   </>
 }
 
-function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelectedChange, selected, selectionDisabled }: {
+function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelectedChange, pending = false, selected, selectionDisabled }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
   item: MyRcpcItem
   mutations?: RcpcMutations
   onSelectedChange: (checked: boolean) => void
+  pending?: boolean
   selected: boolean
   selectionDisabled: boolean
 }) {
+  const { t } = useUiTranslation()
   const unavailable = extensionBlocked(item)
-  return <article className={unavailable ? 'is-ended' : undefined} role="row">
-    <div className="rcpc-list__row-select" role="cell"><Checkbox aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionDisabled} onChange={event => onSelectedChange(event.target.checked)}/></div>
+  return <article className={unavailable ? 'is-ended' : undefined} inert={pending} role="row">
+    <div className="rcpc-list__row-select" role="cell"><Checkbox aria-label={t("mypageRcpc.ui089", { v0: item.productNo })} checked={selected} disabled={selectionDisabled} onChange={event => onSelectedChange(event.target.checked)}/></div>
     <RcpcProduct api={api} canEditAlias={canEditAlias} item={item} mutations={mutations}/>
     <div role="cell">{item.serverRoomRegion ?? '-'}<br/>{item.serverRoomName ?? '-'}</div>
     <RcpcState item={item}/>
@@ -176,31 +183,33 @@ function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExt
   </div>
 }
 
-export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, onSelectedChange, selected, selectionDisabled }: {
+export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, onSelectedChange, pending = false, selected, selectionDisabled }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
   item: MyRcpcItem
   mutations?: RcpcMutations
   onSelectedChange: (checked: boolean) => void
+  pending?: boolean
   selected: boolean
   selectionDisabled: boolean
 }) {
+  const { uiText, t } = useUiTranslation()
   const unavailable = extensionBlocked(item)
   const alias = item.preference.alias?.trim()
-  return <article className={`mobile-rcpc-card${unavailable ? ' is-ended' : ''}`}>
+  return <article className={`mobile-rcpc-card${unavailable ? ' is-ended' : ''}`} inert={pending}>
     <header>
-      <Checkbox aria-label={`${item.productNo} 문의 대상 선택`} checked={selected} disabled={selectionDisabled} onChange={event => onSelectedChange(event.target.checked)}/>
+      <Checkbox aria-label={t("mypageRcpc.ui089", { v0: item.productNo })} checked={selected} disabled={selectionDisabled} onChange={event => onSelectedChange(event.target.checked)}/>
       <strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{alias || item.productNo}</span></strong>
       {canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact/> : null}
       <span className="mobile-rcpc-card__spec"><RelativeLink to={`/mypage/rcpc/${item.rentalId}`}>{item.productNo}</RelativeLink> <RcpcSpecButton api={api} item={item} compact/></span>
     </header>
     <dl className="mobile-rcpc-card__facts">
-      <div><dt>서버실</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>
-      <div><dt>서버 상태</dt><dd className="mobile-rcpc-card__state"><RcpcStatusContents item={item}/></dd></div>
-      <div className="mobile-rcpc-card__period"><dt>이용 기간</dt><dd><RcpcPeriodLabel item={item}/></dd></div>
-      <div className="mobile-rcpc-card__connection"><dt>접속 정보</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
-      <div><dt>트래픽 사용량</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
+      <div><dt>{uiText("서버실")}</dt><dd>{item.serverRoomRegion ?? '-'} / {item.serverRoomName ?? '-'}</dd></div>
+      <div><dt>{uiText("서버 상태")}</dt><dd className="mobile-rcpc-card__state"><RcpcStatusContents item={item}/></dd></div>
+      <div className="mobile-rcpc-card__period"><dt>{uiText("이용 기간")}</dt><dd><RcpcPeriodLabel item={item}/></dd></div>
+      <div className="mobile-rcpc-card__connection"><dt>{uiText("접속 정보")}</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
+      <div><dt>{uiText("트래픽 사용량")}</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
     <footer>
       <span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span>

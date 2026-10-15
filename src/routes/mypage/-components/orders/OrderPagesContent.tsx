@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useState } from 'react'
 import { TranslatedText, useTranslation, type TranslationKey } from '@/i18n/translation'
 import { useQueries } from '@tanstack/react-query'
@@ -135,6 +136,7 @@ const rentalStatusIconKinds: Record<string, ServerIconStatus> = {
 }
 
 function OrderRentalStatusIcon({ status }: { status: string }) {
+  useUiTranslation()
   const kind = rentalStatusIconKinds[status] ?? 'off'
   const icon = <img data-status={kind} src={serverStatusIcons[kind]} alt="" />
   return status === 'termination_waiting'
@@ -148,6 +150,7 @@ const displayOrderDate = (value: string | null) => {
 }
 
 export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
+  useUiTranslation()
   const mobile = useMobileInquiryViewport()
   const FilterSelect = mobile ? RcpcFilterSelect : 'select'
   const { t } = useTranslation()
@@ -171,7 +174,12 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
       from: dates.from || undefined,
       to: dates.to || undefined,
     }, signal),
+    { retainPreviousList: { scope: api, prefix: ['orders'] } },
   )
+  const [displayedRentalStatus, setDisplayedRentalStatus] = useState(rentalStatus)
+  if (result.isSuccess && !result.isPlaceholderData && displayedRentalStatus !== rentalStatus) setDisplayedRentalStatus(rentalStatus)
+  const visibleRentalStatus = result.isPlaceholderData ? displayedRentalStatus : rentalStatus
+  const listStateKey = JSON.stringify([category, page, rentalStatus, dates.from, dates.to])
 
   const orders = result.data?.items ?? []
   const now = usePaymentDisplayClock(orders.some(order => order.paymentMethod === 'virtual_account' && order.paymentStatus === 'pending'))
@@ -188,7 +196,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const visibleItems = orders.flatMap((order) =>
     order.items
       .flatMap(displayOrderItems)
-      .filter((item) => !rentalStatus || item.customerRentalStatus === rentalStatus)
+      .filter((item) => !visibleRentalStatus || item.customerRentalStatus === visibleRentalStatus)
       .map((item) => ({ item, order })),
   )
   const selectableIds = visibleItems
@@ -219,7 +227,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   return (
     <MyPageLayout footerVariant="compact" title={t('nav.orders')}>
       <div className="orders-catalog-list">
-        <nav aria-label="주문 상태" className="mypage-tabs mypage-tabs--buttons">
+        <nav aria-label={uiText("주문 상태")} className="mypage-tabs mypage-tabs--buttons">
           {orderTabs.map((tab) => {
             const count = !result.data
               ? '-'
@@ -263,28 +271,28 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 .map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </FilterSelect>
           </label>
-          <button aria-expanded={periodOpen} aria-label={`기간 선택, 조회기간 ${dates.from.replaceAll('-', '.')} ~ ${dates.to.replaceAll('-', '.')}`} onClick={() => setPeriodOpen(true)} type="button"><span className="orders-period-label--desktop">{dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</span><span className="orders-period-label--mobile">기간 선택</span></button></span>
+          <button aria-expanded={periodOpen} aria-label={uiText('기간 선택, 조회기간 {from} ~ {to}', { from: dates.from.replaceAll('-', '.'), to: dates.to.replaceAll('-', '.') })} onClick={() => setPeriodOpen(true)} type="button"><span className="orders-period-label--desktop">{dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</span><span className="orders-period-label--mobile">{uiText("기간 선택")}</span></button></span>
         </div>
 
         <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch} />
         {result.data ? (
           <>
-            <div className="orders-select-all">
+            <div className="orders-select-all" inert={result.isPlaceholderData} aria-busy={result.isPlaceholderData}>
                 <label>
                   <input
                     checked={allSelected}
                     onChange={(event) => setSelected(event.target.checked ? selectableBulkIds : [])}
                     type="checkbox"
                   />
-                  {selectableIds.length > 20 ? '최대 20개 선택' : '모두선택'}
+                  {selectableIds.length > 20 ? uiText('최대 20개 선택') : uiText('모두선택')}
                 </label>
                 <div className="orders-select-all__actions mypage-selection-actions">
-                  <InquiryAction appearance="text" disabled={selectedInquiryIds.length === 0} fixedTarget initialIds={selectedInquiryIds} onCreated={() => setSelected([])}>문의</InquiryAction>
-                  {myAccount.inquiryApi ? <InquiryRefundApplication api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel={t('order.terminationRequest')} /> : null}
+                  <InquiryAction key={`inquiry:${listStateKey}`} appearance="text" disabled={selectedInquiryIds.length === 0} fixedTarget initialIds={selectedInquiryIds} onCreated={() => setSelected([])}>{uiText("문의")}</InquiryAction>
+                  {myAccount.inquiryApi ? <InquiryRefundApplication key={`refund:${listStateKey}`} api={myAccount.inquiryApi} initialRentalIds={selectedRefundRentalIds} triggerEnabled={selectedRefundRentalIds.length > 0} triggerLabel={t('order.terminationRequest')} /> : null}
                   {selectedRefundRentalIds.length === 0 || !myAccount.inquiryApi ? <button disabled type="button"><TranslatedText id="order.terminationRequest" /></button> : null}
                 </div>
               </div>
-            {visibleGroups.map(([date, rows]) => <section className="orders-by-date" key={date}>
+            {visibleGroups.map(([date, rows]) => <section className="orders-by-date" key={date} inert={result.isPlaceholderData} aria-busy={result.isPlaceholderData}>
               <h2>{date}</h2>
               {rows.map(({ item, order }) => {
                 const selectedId = item.rentalId && currentOrderPcAssetId(item) ? displaySelectionId(item) : null
@@ -304,26 +312,26 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       <label>
                         {selectedId ? (
                           <input
-                            aria-label={`${item.productNo} 문의 선택`}
+                            aria-label={uiText('{name} 문의 선택', { name: item.productNo })}
                             checked={selected.includes(selectedId)}
                             disabled={!selected.includes(selectedId) && selected.length >= 20}
                             onChange={(event) => toggleSelected(selectedId, event.target.checked)}
                             type="checkbox"
                           />
                         ) : null}
-                        <strong className={`notranslate${item.refundPending ? ' is-red' : ''}`} translate="no">{rowStatusKeys[status] ? t(rowStatusKeys[status]) : status}</strong>
+                        <strong className={`notranslate${item.refundPending ? ' is-red' : ''}`} translate="no">{rowStatusKeys[status] ? t(rowStatusKeys[status]) : uiText(status)}</strong>
                       </label>
                       <span>{order.orderNo}</span>
                       <RelativeLink className="notranslate" translate="no" to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
                     </header>
                     <div className="order-catalog-item__product">
-                      <RelativeLink aria-label={`${item.title} 상품 상세 보기`} className="order-catalog-item__image" to={productDetailPath}>
+                      <RelativeLink aria-label={uiText('{name} 상품 상세 보기', { name: item.title })} className="order-catalog-item__image" to={productDetailPath}>
                         <img src={item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? item.imageUrl : windowsCard} alt={item.title} />
                         {!item.imageUrl || !/^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? <img src={windowsLogo} alt="" aria-hidden="true" /> : null}
                       </RelativeLink>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? `원 주문 품번 ${item.replacementSourceProductNo} · 원 주문 서버실 ${item.serverRoomName ?? '-'}` : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state">{displayRentalStatus === 'termination_waiting' ? <FormatWaitingServerState/> : <><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</>}{item.replacementSourceProductNo ? ' · 교체이용' : null}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? uiText('원 주문 품번 {productNo} · 원 주문 서버실 {room}', { productNo: item.replacementSourceProductNo, room: item.serverRoomName ?? '-' }) : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state">{displayRentalStatus === 'termination_waiting' ? <FormatWaitingServerState/> : <><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</>}{item.replacementSourceProductNo ? uiText(' · 교체이용') : null}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (
@@ -332,7 +340,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         {!terminal && !item.replacementSourceProductNo ? <p className="order-catalog-item__totals">
                           <span><TranslatedText id="order.finalPayment" /> <b>{t('money.krwAmount', { amount: finalItemAmount.toLocaleString('ko-KR') })}</b></span>
                           <span><i aria-hidden="true" /><TranslatedText id="order.discountAmount" /> <b>{t('money.krwAmount', { amount: discountAmount.toLocaleString('ko-KR') })}</b></span>
-                          <span><i aria-hidden="true" />포인트 적립 <b><TranslatedText id="money.pointAmount" values={{ points: (item.accruedPoints ?? 0).toLocaleString('ko-KR') }} /></b></span>
+                          <span><i aria-hidden="true" />{uiText("포인트 적립")} <b><TranslatedText id="money.pointAmount" values={{ points: (item.accruedPoints ?? 0).toLocaleString('ko-KR') }} /></b></span>
                         </p> : null}
                         {terminal && orderDetail
                           ? <OrderRefundSummary result={orderDetail} itemId={item.orderItemId} originalAmount={finalItemAmount} />
@@ -340,6 +348,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </div>
                     </div>
                     <OrderItemActions
+                      key={listStateKey}
                       api={api}
                       item={item}
                       orderNo={order.orderNo}
@@ -351,8 +360,8 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                 )
               })}
             </section>)}
-            {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty" role="status">{category === 'all' && !rentalStatus ? '조회된 주문 내역이 없습니다.' : '해당 조건의 주문 내역이 없습니다.'}</p></section> : null}
-            <ReadPages page={result.data.page} totalPages={result.data.totalPages} onChange={(nextPage) => { setSelected([]); setPage(nextPage) }} />
+            {visibleItems.length === 0 ? <section className="orders-by-date"><p className="mypage-empty" role="status">{category === 'all' && !rentalStatus ? uiText('조회된 주문 내역이 없습니다.') : uiText('해당 조건의 주문 내역이 없습니다.')}</p></section> : null}
+            <ReadPages page={result.isPlaceholderData ? page : result.data.page} totalPages={result.data.totalPages} onChange={(nextPage) => { setSelected([]); setPage(nextPage) }} />
           </>
         ) : null}
         {periodOpen ? <MyPagePeriodDialog dates={dates} onApply={nextDates => {
@@ -367,6 +376,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
 }
 
 export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) {
+  useUiTranslation()
   const { t } = useTranslation()
   const mobile = useMobileInquiryViewport()
   const { orderId, id } = useParams()
@@ -383,52 +393,52 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     const timer = window.setInterval(() => { void refetch() }, 10000)
     return () => window.clearInterval(timer)
   }, [pending, refetch])
-  const paymentMethods: Record<string, string> = { card: t('checkout.card'), virtual_account: t('checkout.virtualAccount'), payco: '페이코', kakao_pay: '카카오페이', naver_pay: '네이버페이', bank_transfer: '계좌이체', internal_zero: '0원 내부 정산' }
+  const paymentMethods: Record<string, string> = { card: t('checkout.card'), virtual_account: t('checkout.virtualAccount'), payco: uiText('페이코'), kakao_pay: uiText('카카오페이'), naver_pay: uiText('네이버페이'), bank_transfer: uiText('계좌이체'), internal_zero: uiText('0원 내부 정산') }
   const paymentMethod = payment?.method ?? order?.paymentMethod
   const formatPaymentAmount = (amount: number) => t('money.krwAmount', { amount: amount.toLocaleString('ko-KR') })
   const paymentRows: readonly (readonly [string, string])[] = order ? [
-    ['주문번호', order.orderNo],
-    ['주문일시', accountDate(order.orderedAt).slice(0, 19)],
-    ['상품금액', formatPaymentAmount(order.subtotalAmount)],
-    ...(order.setupFeeAmount > 0 ? [['세팅비', formatPaymentAmount(order.setupFeeAmount)]] as const : []),
-    ['적립금 사용', formatPaymentAmount(order.pointUsedAmount)],
-    ['쿠폰 할인', formatPaymentAmount(order.couponDiscountAmount)],
-    ['결제방식', paymentMethod ? paymentMethods[paymentMethod] ?? paymentMethod : '-'],
-    ['결제금액', formatPaymentAmount(order.finalAmount)],
-    ['주문상태', order.items.some(item => item.refundPending) ? t('refund.requested') : accountStatus(order.orderStatus)],
-    ['결제상태', display && rowStatusKeys[display.label] ? t(rowStatusKeys[display.label]) : display?.label ?? accountStatus(order.paymentStatus)],
+    [uiText('주문번호'), order.orderNo],
+    [uiText('주문일시'), accountDate(order.orderedAt).slice(0, 19)],
+    [uiText('상품금액'), formatPaymentAmount(order.subtotalAmount)],
+    ...(order.setupFeeAmount > 0 ? [[uiText('세팅비'), formatPaymentAmount(order.setupFeeAmount)]] as const : []),
+    [uiText('적립금 사용'), formatPaymentAmount(order.pointUsedAmount)],
+    [uiText('쿠폰 할인'), formatPaymentAmount(order.couponDiscountAmount)],
+    [uiText('결제방식'), paymentMethod ? paymentMethods[paymentMethod] ?? paymentMethod : '-'],
+    [uiText('결제금액'), formatPaymentAmount(order.finalAmount)],
+    [uiText('주문상태'), order.items.some(item => item.refundPending) ? t('refund.requested') : uiText(accountStatus(order.orderStatus))],
+    [uiText('결제상태'), display && rowStatusKeys[display.label] ? t(rowStatusKeys[display.label]) : uiText(display?.label ?? accountStatus(order.paymentStatus))],
     ...(payment?.method === 'virtual_account' && (display?.waitingForDeposit || display?.label === '결제완료') ? [
-      ['입금은행', payment.bankName ?? '-'],
-      ['입금자명', payment.depositorName ?? '-'],
-      ['입금계좌', payment.accountMasked ?? '-'],
-      ['입금기한', accountKstDate(payment.depositDueAt)],
+      [uiText('입금은행'), payment.bankName ?? '-'],
+      [uiText('입금자명'), payment.depositorName ?? '-'],
+      [uiText('입금계좌'), payment.accountMasked ?? '-'],
+      [uiText('입금기한'), accountKstDate(payment.depositDueAt)],
     ] as const : []),
   ] : []
-  const content = <div className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label="주문내역으로 뒤로가기"/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
-    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? '교체 이용' : isReplacementOriginal(item) ? '교체 완료' : item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [['상품', item.title], ['수량', t('unit.quantity', { count: item.quantity })]] : [['PC사양', item.specSummary ?? '기록 없음'], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], ['이용기간', `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
+  const content = <div className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label={uiText("주문내역으로 뒤로가기")}/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
+    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? uiText('교체 이용') : isReplacementOriginal(item) ? uiText('교체 완료') : item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [[uiText('상품'), item.title], [uiText('수량'), t('unit.quantity', { count: item.quantity })]] : [[uiText('PC사양'), item.specSummary ?? uiText('기록 없음')], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], [uiText('이용기간'), `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
     <section className="order-full-section"><h2><TranslatedText id="order.paymentInformation" /></h2><AccountInfo rows={paymentRows}/></section>
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)
-      const refundProduct = refundedItem ? [refundedItem.productNo, refundedItem.serverRoomName].filter(Boolean).join(' · ') : '주문 전체'
+      const refundProduct = refundedItem ? [refundedItem.productNo, refundedItem.serverRoomName].filter(Boolean).join(' · ') : uiText('주문 전체')
       const refundAmount = orderRefundAmounts(refund)
       const refundAmountLabel = [
         refundAmount.cash > 0 || refundAmount.points === 0 ? formatPaymentAmount(refundAmount.cash) : null,
         refundAmount.points > 0 ? t('money.pointAmount', { points: refundAmount.points.toLocaleString('ko-KR') }) : null,
       ].filter(Boolean).join(' + ')
       return <AccountInfo key={refund.requestId} rows={[
-        ['환불상품', refundProduct],
-        ['환불신청일자', accountDate(refund.requestedAt).slice(0, 19)],
+        [uiText('환불상품'), refundProduct],
+        [uiText('환불신청일자'), accountDate(refund.requestedAt).slice(0, 19)],
         [t('refund.method'), refund.method === 'point' ? t('nav.points') : refund.method === 'cash' ? t('refund.originalMethod') : refund.method === 'mixed' ? `${t('refund.originalMethod')} + ${t('nav.points')}` : refund.method],
-        ['원결제금액', formatPaymentAmount(refundedItem ? Math.max(0, refundedItem.amount - refundedItem.couponDiscountAmount - refundedItem.pointUsedAmount) : order.finalAmount)],
-        [refund.status === 'paid' ? '최종 환불금액' : t('refund.expectedAmount'), refundAmountLabel],
-        ['환불상태', refundStatusKeys[refund.status] ? t(refundStatusKeys[refund.status]) : refund.status],
+        [uiText('원결제금액'), formatPaymentAmount(refundedItem ? Math.max(0, refundedItem.amount - refundedItem.couponDiscountAmount - refundedItem.pointUsedAmount) : order.finalAmount)],
+        [refund.status === 'paid' ? uiText('최종 환불금액') : t('refund.expectedAmount'), refundAmountLabel],
+        [uiText('환불상태'), refundStatusKeys[refund.status] ? t(refundStatusKeys[refund.status]) : refund.status],
         [t('refund.restoredPoints'), t('money.pointAmount', { points: (refund.restoredPoints ?? 0).toLocaleString('ko-KR') })],
       ]}/>
     })}</section> : null}
-    {order.contact ? <section className="order-full-section"><h2>주문자 정보</h2><AccountInfo rows={[
-      ['이름', order.contact?.name],
-      ['메신저ID', [order.contact?.messengerType, order.contact?.messengerId].filter(Boolean).join(' / ') || '-'],
-      ['핸드폰', order.contact?.phone || '-'],
+    {order.contact ? <section className="order-full-section"><h2>{uiText("주문자 정보")}</h2><AccountInfo rows={[
+      [uiText('이름'), order.contact?.name],
+      [uiText('메신저ID'), [order.contact?.messengerType, order.contact?.messengerId].filter(Boolean).join(' / ') || '-'],
+      [uiText('핸드폰'), order.contact?.phone || '-'],
       ['E-mail', order.contact?.email],
     ]}/></section> : null}
   </div>}</div>
