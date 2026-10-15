@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/ButtonControl'
 import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { useSession } from '@/app/session/SessionProvider'
 import modalClose from '@/assets/figma/inquiry-modal-close.svg'
-import moreVertical from '@/assets/figma/comment-more-fill.svg'
+import { InquiryChatMenu, InquiryChatMenuTrigger } from '@/components/mypage/InquiryChatMenu'
 import productThumb from '@/assets/figma/windows-card-render.png'
 import { AccountQueryState } from '../AccountQueryState'
 import { InquiryProductConversations } from '../InquiryProductConversations'
@@ -140,14 +140,11 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   }
   const conversation = <section aria-label={standalone ? '문의 상세' : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>
-        {standalone ? <select aria-label="문의 메뉴" className="inquiry-chat__native-menu" disabled={!chat.data} value="" onChange={event => { const action = event.currentTarget.value; event.currentTarget.value = ''; if (action === 'products' || action === 'add') selectProductMenu(action) }}><option value="">더보기</option><option value="products">문의 상품</option><option value="add" disabled={closed || targetCount >= 20 || !myAccount.rcpcApi}>문의 상품 추가</option></select> : <button aria-expanded={productMenuOpen} aria-haspopup="menu" aria-label="문의 메뉴" className="inquiry-chat__products-trigger" onClick={() => setProductMenuOpen((open) => !open)} type="button"><img alt="" src={moreVertical}/></button>}
+        <InquiryChatMenuTrigger standalone={standalone} disabled={!chat.data} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
         <h2>[{chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] {type}</h2>
         <button aria-label="닫기" className="inquiry-chat__close" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
       </header>
-      {productMenuOpen && chat.data ? <div className="inquiry-chat__menu" role="menu" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setProductMenuOpen(false) } }}>
-        <button onClick={() => selectProductMenu('products')} role="menuitem" type="button">문의 상품</button>
-        <button disabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onClick={() => selectProductMenu('add')} role="menuitem" type="button">문의 상품 추가</button>
-      </div> : null}
+      <InquiryChatMenu open={productMenuOpen && Boolean(chat.data)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
       <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
         {chat.data && requestInfo.data ? <>

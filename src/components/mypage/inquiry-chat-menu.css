@@ -1,0 +1,8 @@
+.inquiry-preview-dialog.inquiry-chat { position: relative; }
+.inquiry-preview-dialog.inquiry-chat > .inquiry-chat__menu { border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); left: 30px; top: 62px; z-index: 2; }
+.inquiry-preview-dialog.inquiry-chat .inquiry-chat__menu button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
+@media (max-width: 767px) {
+  .inquiry-mobile-page .inquiry-preview-dialog.inquiry-chat > .inquiry-chat__menu { left: 12px; }
+  .inquiry-mobile-page .inquiry-chat > header > .inquiry-chat__native-menu { appearance: none; -webkit-appearance: none; background: transparent url('../../assets/figma/comment-more-fill.svg') center / 4px 16px no-repeat; border: 0; border-radius: 0; color: transparent; flex: 0 0 24px; height: 24px; margin: 0; order: 0; padding: 0; width: 24px; }
+  .inquiry-chat__native-menu option { color: var(--color-black); }
+}

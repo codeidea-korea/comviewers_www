@@ -3,7 +3,7 @@ import type { InquiryComposer, InquiryTarget } from './inquiryFlowTypes'
 import { useState } from 'react'
 import productThumb from '../../assets/figma/windows-card-render.png'
 import addIcon from '../../assets/figma/icon-add.svg'
-import moreVertical from '../../assets/figma/comment-more-fill.svg'
+import { InquiryChatMenu, InquiryChatMenuTrigger, type InquiryChatMenuAction } from './InquiryChatMenu'
 import modalClose from '../../assets/figma/inquiry-modal-close.svg'
 import radioOff from '../../assets/figma/select-radio-off.svg'
 import radioOn from '../../assets/figma/select-radio-on.svg'
@@ -78,14 +78,21 @@ export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, on
   const submitMessage = () => {
     if (!composer.pending && message.trim()) composer.onSend()
   }
-  const selectMenuItem = (action: () => void) => {
+  const addDisabled = Boolean(composer.pending) || selectedRcpcs.length >= 20
+  const selectMenuItem = (action: InquiryChatMenuAction) => {
     setMenuOpen(false)
-    action()
+    if (action === 'products') setProductsOpen(true)
+    else if (!addDisabled) (onAddProducts ?? onBack)()
   }
   return (
     <section aria-label={standalone ? '문의 작성' : undefined} aria-modal={standalone ? undefined : true} className="inquiry-preview-dialog inquiry-chat" role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <header>{standalone ? <button aria-label={productsOpen ? '문의 작성으로 돌아가기' : '문의 목록으로'} onClick={productsOpen ? () => setProductsOpen(false) : onClose} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}<button aria-expanded={menuOpen} aria-label="문의 메뉴" className="inquiry-chat__products-trigger" onClick={() => setMenuOpen((open) => !open)} type="button"><img alt="" className="inquiry-chat__icon" src={moreVertical} /></button><h2>{productsOpen ? `문의 상품 (${selectedRcpcs.length})` : `[작성 중] ${inquiryType}`}</h2>{!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose} /></button> : null}</header>
-      {menuOpen ? <div className="inquiry-chat__menu" role="menu"><button onClick={() => selectMenuItem(() => setProductsOpen(true))} role="menuitem" type="button">문의 상품</button><button onClick={() => selectMenuItem(onAddProducts ?? onBack)} role="menuitem" type="button">문의 상품 추가</button></div> : null}
+      <header>
+        {standalone ? <button aria-label={productsOpen ? '문의 작성으로 돌아가기' : '문의 목록으로'} onClick={productsOpen ? () => setProductsOpen(false) : onClose} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}
+        <InquiryChatMenuTrigger standalone={standalone} disabled={composer.pending} open={menuOpen} onToggle={() => setMenuOpen(open => !open)} addDisabled={addDisabled} onSelect={selectMenuItem}/>
+        <h2>{productsOpen ? `문의 상품 (${selectedRcpcs.length})` : `[작성 중] ${inquiryType}`}</h2>
+        {!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose} /></button> : null}
+      </header>
+      <InquiryChatMenu open={menuOpen} onClose={() => setMenuOpen(false)} addDisabled={addDisabled} onSelect={selectMenuItem}/>
       <div className="inquiry-chat__scroll">
         
         {selectedRcpcs.length > 1 ? <p className="inquiry-chat__bulk-summary">선택한 RCPC {selectedRcpcs.length}대 일괄 문의</p> : null}

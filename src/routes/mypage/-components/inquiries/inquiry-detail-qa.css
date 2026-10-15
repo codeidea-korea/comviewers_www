@@ -1,6 +1,3 @@
-.inquiry-preview-dialog.inquiry-chat { position: relative; }
-.inquiry-preview-dialog.inquiry-chat > .inquiry-chat__menu { border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); left: 30px; top: 62px; z-index: 2; }
-.inquiry-preview-dialog.inquiry-chat .inquiry-chat__menu button { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 .inquiry-chat-products .inquiry-chat-products__list > article { display: block; }
 .inquiry-chat-products .inquiry-chat-products__list header { align-items: center; display: flex; flex-wrap: wrap; gap: 4px; }
 .inquiry-chat-products .inquiry-chat-products__list header em { align-items: center; display: inline-flex; font-style: normal; gap: 4px; }
@@ -29,9 +26,6 @@
   .inquiry-preview-dialog.inquiry-chat-products > .inquiry-chat-products__list { flex: 1; height: auto; margin-top: 30px; min-height: 0; overflow-y: auto; }
 }
 @media (max-width: 767px) {
-  .inquiry-mobile-page .inquiry-preview-dialog.inquiry-chat > .inquiry-chat__menu { left: 12px; }
-  .inquiry-mobile-page .inquiry-chat > header > .inquiry-chat__native-menu { appearance: none; -webkit-appearance: none; background: transparent url('../../../../assets/figma/comment-more-fill.svg') center / 4px 16px no-repeat; border: 0; border-radius: 0; color: transparent; flex: 0 0 24px; height: 24px; margin: 0; order: 0; padding: 0; width: 24px; }
-  .inquiry-chat__native-menu option { color: var(--color-black); }
   .inquiry-mobile-page .inquiry-chat > header > .inquiry-chat__close { flex: 0 0 24px; order: 2; }
   .inquiry-mobile-page .inquiry-chat-products > header { flex-basis: 56px; }
 }
