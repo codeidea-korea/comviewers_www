@@ -1,6 +1,26 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-16 모바일 전체 페이지 푸터 메뉴 14px 통일
+
+사용자 요청으로 `src/components/layout/mobile-footer.css`의 767px 이하 푸터 메뉴 14px 규칙을 `compact` 전용에서 공통 `.site-footer`로 확대했다. 모든 페이지의 회사소개·입점신청·고객 지원 링크에 적용하며 기존 간격·행간과 768px 이상 18px은 유지한다. L2 CSS/L0 기록으로 공통 Footer 호출·선택자 우선순위·인접 문맥·diff를 정적으로 확인했다. 실제 브라우저·테스트·컴파일·빌드·lint·typecheck·배포는 미실행이다.
+
+## 2026-10-16 로그인 체크 옵션 단위 줄바꿈 통일
+
+사용자 요청에 따라 `src/styles/pages.css`의 `.auth-check-row > label`에 `white-space: nowrap`·`flex: 0 0 auto`를 적용했다. 자동 로그인/아이디 저장의 문구는 한 줄로 유지하고 기존 부모의 `flex-wrap: wrap`으로 두 옵션이 나란히 들어가지 않을 때 체크박스와 문구 전체를 다음 줄로 보낸다. 한국어·외국어 공통이며 기존12px 간격·글자 크기·체크 상태·로그인 동작은 유지한다. L2 CSS/L0 기록으로 호출·CSS 우선순위·인접 문맥·diff를 정적으로 확인했다. 실제 기기/브라우저·테스트·컴파일·빌드·lint·typecheck·배포는 미실행이다.
+
+## 2026-10-16 모바일 회원가입 프로필 이미지 축소 보완
+
+회원가입 이미지 안내의 `white-space: nowrap`와 기본 flex 축소 때문에 긴 영문 문구가104×104px 미리보기 폭을 줄였다. `src/styles/pages.css`에서 미리보기 축소를 막고 안내 열에 `flex: 1`·`min-width: 0`, 문구 줄바꿈을 적용했다. 안내가 길어질 때 아래 입력과 겹치지 않도록 기존110px/compact105px 고정 높이를 최소 높이로 바꾸고, 뒤에 로드되는 `src/styles/mypage.css`의 인증 전용 중복 규칙도 맞췄다. 일반·소셜 가입의 `variant="auth"`에 적용되며 기본 아이콘/선택 이미지·기존 간격·글자 크기·업로드 동작은 유지한다. L2 CSS/L0 기록으로 호출·CSS 우선순위·인접 문맥·diff를 정적으로 확인했으며 실제 브라우저·테스트·컴파일·빌드·lint·typecheck·배포는 미실행이다.
+
+## 2026-10-16 내 정보 수정 광고 수신 동의 행 정렬
+
+광고성 정보 수신 동의의 미동의/동의일자 표시가 공통 `.profile-check small`의 위 여백4px을 물려받아 동의 문구보다 아래로 내려갔다. `src/routes/mypage/-components/profile/profileEditor.css`에서 해당 상태 표시의 `margin-top`만0으로 덮어써 같은 행의 세로 정렬을 맞췄다. 기존 글자 크기·색상·간격·모바일 줄바꿈과 동의 저장 동작은 유지한다. L2 UI/L0 기록으로 CSS 우선순위·인접 문맥·diff를 정적으로 확인했으며 실제 브라우저·테스트·컴파일·빌드·lint·typecheck·배포는 미실행이다.
+
 ## 2026-10-16 번역 중 게시글 목록 복귀 후 경로 중복 수정
+
+후속 전체 메뉴 점검에서는 로컬 Chrome5301의 일본어 선택 상태로 PC 상단의 상품4종·커뮤니티, 하단 회사소개·입점신청·고객센터·약관·개인정보, 약관의 `section=refund`, 로고→홈 이동을 확인했다.390×844 모바일에서는 홈→커뮤니티, 끝 `/`가 있는 `/community/posts/`의 메뉴→RCPC방→장바구니를 실제 클릭했다. 기존 공통 수정 외 추가 경로 중복 결함은 발견하지 못했다. `/community/posts/`의 모바일 상품 링크는 `../../products...`, 후기 탭은 `../reviews`로 정확한 루트 목적지에 해석되며 로고·닫기 버튼도 번역바 아래에 표시된다. 장바구니는 `/cart`로 도착하고 일본어 수동 문구와 메인 문서 Google 스크립트 제외를 확인했다.
+
+[모바일 일본어 메뉴 화면](../tmp/translation-header-browser-20261016/translated-mobile-menu-audit.png), [DOM 주소 관측과 장바구니 경계](../tmp/translation-header-browser-20261016/translated-navigation-audit.json)를 남겼다. JSON에는 이동 직후 위젯이 아직 없는 관측도 포함하며 모든 행을 번역 로딩 완료로 해석하지 않는다. 공통 링크·홈/상품/커뮤니티/고객센터·로그인/마이페이지·검색/정렬/페이지 이동 소스를 전수 대조했고 추가 상대 경로 연결은 발견하지 못했다. 일부 상품·후기·고객센터 결과가0건이어서 해당 상세 이동과 로그인/마이페이지 내부 전체 흐름은 실행 완료로 보지 않는다. 임시 viewport는 복원했다. 이번 작업은 L0 검수 기록이며 정적 참조/인접 문맥·독립 소스 감사와 명시 요청 브라우저 확인만 수행했다. 추가 기능 코드·테스트 파일 변경, 자동테스트·컴파일·빌드·lint·typecheck·배포는 없으며 배포본 반영 확인은 별도다.
 
 후속 제보의 렌탈 후기 탭도 동일한 공통 수정에 포함된다. 기존 `/community/posts/`에서 `reviews`를 반환해 `/community/posts/reviews`가 되던 링크가 `../reviews`로 바뀐다. 로컬 Chrome에서 현재 경로 `/community/posts/`·일본어 위젯 값 `ja`·href `../reviews`를 확인하고 실제 클릭 후 `/community/reviews`·활성 후기 탭·일본어 Google 번역바와 검색 결과 없음 안내가 표시됨을 확인했다. [탭 이동 화면](../tmp/translation-header-browser-20261016/community-review-tab-fixed.jpg), [이동 전후 경로](../tmp/translation-header-browser-20261016/community-review-tab-result.json)를 남겼다. 추가 기능 코드 변경 없이 L0 검수 기록만 보완했으며 빌드·배포는 미실행이다.
 

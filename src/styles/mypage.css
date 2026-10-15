@@ -415,9 +415,9 @@
 .auth-page .profile-form { gap: 20px; max-width: none; }
 .auth-page .profile-form input { background: transparent; border: 0; border-radius: 0; padding: 0; resize: none; }
 .auth-page .profile-form .email-field input, .auth-page .profile-form .split-field input { border-bottom: 1px solid var(--color-black); }
-.auth-page .profile-image-field__row { align-items: center; display: flex; gap: 12px; height: 110px; margin-top: 0; }
-.auth-page .profile-image-field__actions { align-items: flex-start; display: flex; flex-direction: column; gap: 12px; height: 110px; }
-.auth-page .auth-panel--compact .profile-image-field__row, .auth-page .auth-panel--compact .profile-image-field__actions { height: 105px; }
+.auth-page .profile-image-field__row { align-items: center; display: flex; gap: 12px; min-height: 110px; margin-top: 0; }
+.auth-page .profile-image-field__actions { align-items: flex-start; display: flex; flex-direction: column; gap: 12px; min-height: 110px; }
+.auth-page .auth-panel--compact .profile-image-field__row, .auth-page .auth-panel--compact .profile-image-field__actions { min-height: 105px; }
 .auth-page .profile-image-preview img { border-radius: 0; grid-row: auto; height: 40px; object-fit: contain; width: 40px; }
 .auth-page .profile-image-preview img:not([alt=""]) { height: 104px; object-fit: cover; width: 104px; }
 .auth-page .profile-image-field label { justify-self: auto; padding: 0 16px; }

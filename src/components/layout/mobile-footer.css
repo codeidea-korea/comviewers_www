@@ -2,7 +2,7 @@
 @media (max-width: 767px) {
   .site-footer--compact .site-footer__inner { max-width: none; width: calc(100% - 24px); }
   .site-footer--compact .site-footer__menu { gap: 8px 12px; height: auto; min-height: 56px; }
-  .site-footer--compact .site-footer__menu a { font-size: 14px; }
+  .site-footer .site-footer__menu a { font-size: 14px; }
   .site-footer--compact .site-footer__menu a + a::before { left: -6px; }
   .site-footer--compact .site-footer__logo { height: 44px; margin: 8px 0; width: 100px; }
   .site-footer--compact .site-footer__content { gap: 4px; padding-bottom: 40px; }
