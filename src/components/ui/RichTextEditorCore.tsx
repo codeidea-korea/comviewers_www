@@ -1,7 +1,8 @@
+import { useUiTranslation, translateUiText } from '@/i18n/uiTranslation'
 import type { ChangeEvent, ReactNode, SelectHTMLAttributes } from 'react'
 import { createPortal } from 'react-dom'
 import type { Editor, JSONContent } from '@tiptap/core'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import Color from '@tiptap/extension-color'
 import FontFamily from '@tiptap/extension-font-family'
@@ -18,6 +19,7 @@ import iconFullscreen from './editor-icons/icon-close-fullscreen.svg'
 import iconTableRows from './editor-icons/icon-table-rows.svg'
 import './richTextEditor.css'
 import { persistentEditorDocument, persistentEditorHtml, useEditorImagePreviews, type EditorImageLoader, type EditorImageUpload } from './richTextEditorImages'
+import { normalizeEditorDocument, normalizePastedHtml } from './richTextEditorFormatting'
 
 export interface RichTextEditorProps {
   ariaLabel?: string
@@ -133,10 +135,12 @@ function activeBlockType(editor: Editor) {
 }
 
 function NativeSelect({ options, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { options: readonly { label: string; value: string }[] }) {
-  return <select {...props}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+  const { uiText } = useUiTranslation()
+  return <select {...props}>{options.map((option) => <option key={option.value} value={option.value}>{uiText(option.label)}</option>)}</select>
 }
 
 function EditorLinkDialog({ isOpen, onClose, onConfirm, children }: { isOpen: boolean; onClose: () => void; onConfirm: () => void; children: ReactNode }) {
+  const { uiText } = useUiTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
@@ -152,12 +156,13 @@ function EditorLinkDialog({ isOpen, onClose, onConfirm, children }: { isOpen: bo
       onConfirm()
     }
   }}>
-    <h2 id={titleId}>링크 삽입</h2>{children}
-    <div className="rich-text-editor__link-actions"><button onClick={onClose} type="button">취소</button><button onClick={onConfirm} type="button">적용</button></div>
+    <h2 id={titleId}>{uiText('링크 삽입')}</h2>{children}
+    <div className="rich-text-editor__link-actions"><button onClick={onClose} type="button">{uiText('취소')}</button><button onClick={onConfirm} type="button">{uiText('적용')}</button></div>
   </dialog>
 }
 
 function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggle, onImageSelect, imageDisabled }: EditorToolbarProps) {
+  const { uiText } = useUiTranslation()
   const [linkOpen, setLinkOpen] = useState(false)
   const [linkHref, setLinkHref] = useState('https://')
   const [linkError, setLinkError] = useState('')
@@ -211,41 +216,42 @@ function EditorToolbar({ editor, errorId, fullscreen, onError, onFullscreenToggl
 
   const setTextColor = (event: ChangeEvent<HTMLInputElement>) => editor.chain().focus().setColor(event.target.value).run()
 
-  return <><div aria-label="서식 도구" className="rich-text-editor__toolbar" role="toolbar">
+  return <><div aria-label={uiText('서식 도구')} className="rich-text-editor__toolbar" role="toolbar">
     <div className="rich-text-editor__toolbar-row">
-      <label className="rich-text-editor__block-type"><span className="sr-only">문단 형식</span><NativeSelect aria-label="문단 형식" onChange={changeBlockType} options={headingOptions} value={activeBlockType(editor)} /></label>
+      <label className="rich-text-editor__block-type"><span className="sr-only">{uiText('문단 형식')}</span><NativeSelect aria-label={uiText('문단 형식')} onChange={changeBlockType} options={headingOptions} value={activeBlockType(editor)} /></label>
       <span aria-hidden="true" className="rich-text-editor__divider" />
-      {toolbarActions.slice(0, 5).map((action) => <button aria-label={action.label} aria-pressed={action.isActive(editor)} className={action.isActive(editor) ? 'is-active' : ''} key={action.label} onClick={() => action.command(editor)} type="button">{action.text}</button>)}
-      <label aria-label="텍스트 색상" className="rich-text-editor__color"><span aria-hidden="true">A</span><input aria-label="텍스트 색상" onChange={setTextColor} type="color" value={editor.getAttributes('textStyle').color || '#121212'} /></label>
-      <button aria-label="텍스트 강조" aria-pressed={editor.isActive('highlight')} className={editor.isActive('highlight') ? 'is-active' : ''} onClick={() => editor.chain().focus().toggleHighlight().run()} type="button">A▾</button>
+      {toolbarActions.slice(0, 5).map((action) => <button aria-label={uiText(action.label)} aria-pressed={action.isActive(editor)} className={action.isActive(editor) ? 'is-active' : ''} key={action.label} onClick={() => action.command(editor)} type="button">{action.text}</button>)}
+      <label aria-label={uiText('텍스트 색상')} className="rich-text-editor__color"><span aria-hidden="true">A</span><input aria-label={uiText('텍스트 색상')} onChange={setTextColor} type="color" value={editor.getAttributes('textStyle').color || '#121212'} /></label>
+      <button aria-label={uiText('텍스트 강조')} aria-pressed={editor.isActive('highlight')} className={editor.isActive('highlight') ? 'is-active' : ''} onClick={() => editor.chain().focus().toggleHighlight().run()} type="button">A▾</button>
       <span aria-hidden="true" className="rich-text-editor__divider" />
-      <label className="rich-text-editor__select"><span className="sr-only">글꼴</span><NativeSelect aria-label="글꼴" onChange={changeFont} options={fontOptions} value={editor.getAttributes('textStyle').fontFamily || ''} /></label>
-      <label className="rich-text-editor__select"><span className="sr-only">글자 크기</span><NativeSelect aria-label="글자 크기" onChange={changeFontSize} options={sizeOptions} value={editor.getAttributes('textStyle').fontSize || ''} /></label>
-      <label className="rich-text-editor__select"><span className="sr-only">줄 간격</span><NativeSelect aria-label="줄 간격" onChange={changeLineHeight} options={lineHeightOptions} value={editor.getAttributes('textStyle').lineHeight || ''} /></label>
+      <label className="rich-text-editor__select"><span className="sr-only">{uiText('글꼴')}</span><NativeSelect aria-label={uiText('글꼴')} onChange={changeFont} options={fontOptions} value={editor.getAttributes('textStyle').fontFamily || ''} /></label>
+      <label className="rich-text-editor__select"><span className="sr-only">{uiText('글자 크기')}</span><NativeSelect aria-label={uiText('글자 크기')} onChange={changeFontSize} options={sizeOptions} value={editor.getAttributes('textStyle').fontSize || ''} /></label>
+      <label className="rich-text-editor__select"><span className="sr-only">{uiText('줄 간격')}</span><NativeSelect aria-label={uiText('줄 간격')} onChange={changeLineHeight} options={lineHeightOptions} value={editor.getAttributes('textStyle').lineHeight || ''} /></label>
     </div>
     <div className="rich-text-editor__toolbar-row">
-      {toolbarActions.slice(5).map((action) => <button aria-label={action.label} aria-pressed={action.isActive(editor)} className={action.isActive(editor) ? 'is-active' : ''} key={action.label} onClick={() => action.command(editor)} type="button">{action.text}</button>)}
-      <button aria-label="왼쪽 정렬" aria-pressed={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} type="button">≡</button>
-      <button aria-label="가운데 정렬" aria-pressed={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} type="button">≡</button>
-      <button aria-label="오른쪽 정렬" aria-pressed={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} type="button">≡</button>
-      <button aria-label="양쪽 정렬" aria-pressed={editor.isActive({ textAlign: 'justify' })} onClick={() => editor.chain().focus().setTextAlign('justify').run()} type="button">≡</button>
-      <button aria-label="줄바꿈 삽입" onClick={() => editor.chain().focus().setHardBreak().run()} type="button"><img alt="" src={iconTableRows} /></button>
-      <button aria-label="구분선 삽입" onClick={() => editor.chain().focus().setHorizontalRule().run()} type="button">―</button>
+      {toolbarActions.slice(5).map((action) => <button aria-label={uiText(action.label)} aria-pressed={action.isActive(editor)} className={action.isActive(editor) ? 'is-active' : ''} key={action.label} onClick={() => action.command(editor)} type="button">{action.text}</button>)}
+      <button aria-label={uiText('왼쪽 정렬')} aria-pressed={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} type="button">≡</button>
+      <button aria-label={uiText('가운데 정렬')} aria-pressed={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} type="button">≡</button>
+      <button aria-label={uiText('오른쪽 정렬')} aria-pressed={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} type="button">≡</button>
+      <button aria-label={uiText('양쪽 정렬')} aria-pressed={editor.isActive({ textAlign: 'justify' })} onClick={() => editor.chain().focus().setTextAlign('justify').run()} type="button">≡</button>
+      <button aria-label={uiText('줄바꿈 삽입')} onClick={() => editor.chain().focus().setHardBreak().run()} type="button"><img alt="" src={iconTableRows} /></button>
+      <button aria-label={uiText('구분선 삽입')} onClick={() => editor.chain().focus().setHorizontalRule().run()} type="button">―</button>
       <span aria-hidden="true" className="rich-text-editor__divider" />
-      <button aria-describedby={errorId} aria-label="링크" aria-pressed={editor.isActive('link')} className={editor.isActive('link') ? 'is-active' : ''} onClick={() => { setLinkHref(editor.getAttributes('link').href || 'https://'); setLinkError(''); setLinkOpen(true) }} type="button"><img alt="" src={iconLink} /></button>
-      <button aria-label="이미지 삽입" disabled={imageDisabled} onClick={onImageSelect} type="button">▣</button>
-      <button aria-label="서식 지우기" onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} type="button">Tx</button>
-      <button aria-label="실행 취소" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} type="button">↶</button>
-      <button aria-label="다시 실행" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} type="button">↷</button>
-      <button aria-label={fullscreen ? '전체 화면 닫기' : '전체 화면'} aria-pressed={fullscreen} onClick={onFullscreenToggle} type="button"><img alt="" src={iconFullscreen} /></button>
+      <button aria-describedby={errorId} aria-label={uiText('링크')} aria-pressed={editor.isActive('link')} className={editor.isActive('link') ? 'is-active' : ''} onClick={() => { setLinkHref(editor.getAttributes('link').href || 'https://'); setLinkError(''); setLinkOpen(true) }} type="button"><img alt="" src={iconLink} /></button>
+      <button aria-label={uiText('이미지 삽입')} disabled={imageDisabled} onClick={onImageSelect} type="button">▣</button>
+      <button aria-label={uiText('서식 지우기')} onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} type="button">Tx</button>
+      <button aria-label={uiText('실행 취소')} disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} type="button">↶</button>
+      <button aria-label={uiText('다시 실행')} disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} type="button">↷</button>
+      <button aria-label={uiText(fullscreen ? '전체 화면 닫기' : '전체 화면')} aria-pressed={fullscreen} onClick={onFullscreenToggle} type="button"><img alt="" src={iconFullscreen} /></button>
     </div>
   </div>{linkOpen ? <EditorLinkDialog isOpen={linkOpen} onClose={() => setLinkOpen(false)} onConfirm={setLink}>
-    <label>링크 주소<input autoFocus aria-invalid={!!linkError} onChange={(event) => { setLinkHref(event.target.value); setLinkError('') }} placeholder="https://" type="url" value={linkHref} /></label>
-    {linkError ? <p className="rich-text-editor__error" role="alert">{linkError}</p> : null}
+    <label>{uiText('링크 주소')}<input autoFocus aria-invalid={!!linkError} onChange={(event) => { setLinkHref(event.target.value); setLinkError('') }} placeholder="https://" type="url" value={linkHref} /></label>
+    {linkError ? <p className="rich-text-editor__error" role="alert">{uiText(linkError)}</p> : null}
   </EditorLinkDialog> : null}</>
 }
 
 export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, className = '', synchronizeValue = true, onChange, onTextChange, onDocumentChange, placeholder = '내용을 입력해 주세요.', value = '', uploadImage, loadImage, onImageUploadPendingChange }: RichTextEditorProps) {
+  const { uiText, locale } = useUiTranslation()
   const [fullscreen, setFullscreen] = useState(false)
   const [error, setError] = useState<EditorError | null>(null)
   const surfaceRef = useRef<HTMLDivElement>(null)
@@ -253,10 +259,15 @@ export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, class
   const uploading = useRef(false)
   const [imageUploading, setImageUploading] = useState(false)
   const errorId = useId()
+  const placeholderRef = useRef(placeholder)
+  placeholderRef.current = placeholder
+  const editorValue = useMemo(() => typeof value === 'string'
+    ? /<[a-z][\s\S]*>/i.test(value) ? normalizePastedHtml(value) : value
+    : normalizeEditorDocument(value) ?? value, [value])
   const editor = useEditor({
-    content: value,
+    content: editorValue,
     extensions: [
-      StarterKit.configure({ link: false, underline: false }),
+      StarterKit.configure({ link: false, underline: false, heading: { levels: [1, 2, 3] } }),
       Underline,
       TextStyle,
       Color,
@@ -267,22 +278,31 @@ export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, class
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       AttachmentImage,
       Link.configure({ autolink: true, isAllowedUri: isSafeLinkHref, openOnClick: false, shouldAutoLink: isSafeLinkHref }),
-      Placeholder.configure({ placeholder }),
+      Placeholder.configure({ placeholder: () => translateUiText(placeholderRef.current) }),
     ],
-    editorProps: { attributes: { ...(ariaLabelledby ? { 'aria-labelledby': ariaLabelledby } : { 'aria-label': ariaLabel }), class: 'rich-text-editor__content' } },
+    editorProps: { attributes: { ...(ariaLabelledby ? { 'aria-labelledby': ariaLabelledby } : { 'aria-label': uiText(ariaLabel) }), class: 'rich-text-editor__content' }, transformPastedHTML: html => normalizePastedHtml(html) },
     onUpdate: ({ editor: currentEditor }) => {
-      onChange?.(persistentEditorHtml(currentEditor.getHTML()))
+      onChange?.(persistentEditorHtml(normalizePastedHtml(currentEditor.getHTML())))
       onTextChange?.(currentEditor.getText({ blockSeparator: '\n' }))
-      onDocumentChange?.(persistentEditorDocument(currentEditor.getJSON()))
+      onDocumentChange?.(persistentEditorDocument(normalizeEditorDocument(currentEditor.getJSON()) ?? currentEditor.getJSON()))
     },
   })
   const rememberImage = useEditorImagePreviews(editor, loadImage, value)
 
   useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+    editor.setOptions({ editorProps: { ...editor.options.editorProps, attributes: { ...(ariaLabelledby ? { 'aria-labelledby': ariaLabelledby } : { 'aria-label': translateUiText(ariaLabel) }), class: 'rich-text-editor__content' } } })
+    editor.view.dispatch(editor.state.tr)
+  }, [editor, locale, ariaLabel, ariaLabelledby, placeholder])
+
+  useEffect(() => {
     if (!synchronizeValue || !editor || editor.isDestroyed) return
-    const unchanged = typeof value === 'string' ? value === persistentEditorHtml(editor.getHTML()) : JSON.stringify(value) === JSON.stringify(persistentEditorDocument(editor.getJSON()))
-    if (!unchanged) editor.commands.setContent(value, { emitUpdate: false })
-  }, [editor, synchronizeValue, value])
+    const current = typeof editorValue === 'string'
+      ? persistentEditorHtml(normalizePastedHtml(editor.getHTML()))
+      : persistentEditorDocument(normalizeEditorDocument(editor.getJSON()) ?? editor.getJSON())
+    const unchanged = typeof editorValue === 'string' ? editorValue === current : JSON.stringify(persistentEditorDocument(editorValue)) === JSON.stringify(current)
+    if (!unchanged) editor.commands.setContent(editorValue, { emitUpdate: false })
+  }, [editor, synchronizeValue, editorValue])
 
   useEffect(() => {
     if (!fullscreen) return
@@ -333,6 +353,6 @@ export function RichTextEditorCore({ ariaLabel = '내용', ariaLabelledby, class
     }
   }
 
-  const surface = <div aria-label={fullscreen ? `${ariaLabel} 전체 화면 편집` : undefined} aria-modal={fullscreen ? true : undefined} role={fullscreen ? 'dialog' : undefined} ref={surfaceRef} tabIndex={fullscreen ? -1 : undefined} className={`rich-text-editor ${className}${fullscreen ? ' is-fullscreen' : ''}`}><EditorToolbar editor={editor} errorId={error?.source === 'link' ? errorId : undefined} fullscreen={fullscreen} onError={(message) => setError(message ? { message, source: 'link' } : null)} onFullscreenToggle={() => setFullscreen((current) => !current)} imageDisabled={!uploadImage || imageUploading} onImageSelect={() => imageInputRef.current?.click()} /><input accept="image/jpeg,image/png,image/webp" aria-describedby={error?.source === 'image' ? errorId : undefined} aria-invalid={error?.source === 'image' ? 'true' : undefined} aria-label="본문 이미지 선택" className="sr-only" onChange={addImage} ref={imageInputRef} type="file" /><EditorContent className="rich-text-editor__body" editor={editor} />{imageUploading ? <p role="status">이미지 업로드 중…</p> : null}{error ? <p className="rich-text-editor__error" id={errorId} role="alert">{error.message}</p> : null}</div>
+  const surface = <div aria-label={fullscreen ? uiText('{label} 전체 화면 편집', { label: uiText(ariaLabel) }) : undefined} aria-modal={fullscreen ? true : undefined} role={fullscreen ? 'dialog' : undefined} ref={surfaceRef} tabIndex={fullscreen ? -1 : undefined} className={`rich-text-editor ${className}${fullscreen ? ' is-fullscreen' : ''}`}><EditorToolbar editor={editor} errorId={error?.source === 'link' ? errorId : undefined} fullscreen={fullscreen} onError={(message) => setError(message ? { message, source: 'link' } : null)} onFullscreenToggle={() => setFullscreen((current) => !current)} imageDisabled={!uploadImage || imageUploading} onImageSelect={() => imageInputRef.current?.click()} /><input accept="image/jpeg,image/png,image/webp" aria-describedby={error?.source === 'image' ? errorId : undefined} aria-invalid={error?.source === 'image' ? 'true' : undefined} aria-label={uiText('본문 이미지 선택')} className="sr-only" onChange={addImage} ref={imageInputRef} type="file" /><EditorContent className="rich-text-editor__body" editor={editor} />{imageUploading ? <p role="status">{uiText('이미지 업로드 중…')}</p> : null}{error ? <p className="rich-text-editor__error" id={errorId} role="alert">{uiText(error.message)}</p> : null}</div>
   return fullscreen ? createPortal(surface, document.body) : surface
 }
