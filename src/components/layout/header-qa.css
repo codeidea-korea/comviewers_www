@@ -3,6 +3,10 @@
   .app-shell > header.site-header .site-header__utility { background: var(--color-white); border-color: var(--color-gray-300); }
   .app-shell > header.site-header .site-header__primary { border-color: var(--color-gray-300); }
   .app-shell > header.site-header .utility-menu > * + *::before { background: var(--color-gray-300); }
+  .app-shell--home > header.site-header--main:not(.site-header--scrolled):not(.site-header--menu-open) { background: transparent; color: var(--color-white); }
+  .app-shell--home > header.site-header--main:not(.site-header--scrolled):not(.site-header--menu-open) .site-header__utility { background: var(--color-white-alpha-10); border-color: transparent; }
+  .app-shell--home > header.site-header--main:not(.site-header--scrolled):not(.site-header--menu-open) .site-header__primary { border-color: var(--color-white-alpha-30); }
+  .app-shell--home > header.site-header--main:not(.site-header--scrolled):not(.site-header--menu-open) .utility-menu > * + *::before { background: var(--color-white-alpha-50); }
 }
 @media (max-width: 1024px) {
   .app-shell > header.site-header .site-header__utility { display: none; }
