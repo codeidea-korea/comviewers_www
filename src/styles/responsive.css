@@ -883,10 +883,9 @@
   }
   .colocation-page:not(.colocation-page--compact) .colocation-grid { grid-template-columns: 1fr; }
   .colocation-page:not(.colocation-page--compact) .colocation-grid__wide { grid-column: auto; }
-  .colocation-page:not(.colocation-page--compact) .email-control,
   .colocation-page:not(.colocation-page--compact) .phone-control { align-items: stretch; flex-direction: column; }
-  .colocation-page:not(.colocation-page--compact) .email-control { display: flex; }
-  .colocation-page:not(.colocation-page--compact) .email-control i,
+  .colocation-page:not(.colocation-page--compact) .email-control { align-items: center; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); height: 50px; min-width: 0; width: 100%; }
+  .colocation-page:not(.colocation-page--compact) .email-control i { display: block; font-style: normal; }
   .colocation-page:not(.colocation-page--compact) .phone-control i { display: none; }
   .colocation-page:not(.colocation-page--compact) .email-control input,
   .colocation-page:not(.colocation-page--compact) .email-control select,
@@ -897,8 +896,9 @@
   .colocation-page:not(.colocation-page--compact) .messenger-control { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
   .colocation-page:not(.colocation-page--compact) .colocation-grid label { min-width: 0; }
   .colocation-page:not(.colocation-page--compact) .colocation-grid :is(input, select) { box-sizing: border-box; max-width: 100%; min-width: 0; }
-  .colocation-page:not(.colocation-page--compact) .email-control select { flex: none; min-height: 50px; width: 100%; }
   .colocation-page:not(.colocation-page--compact) .colocation-grid select[data-ui='native-select'] { appearance: none; background: transparent url('../assets/figma/selector-chevron-down.svg') right 4px center / 12px 7.4px no-repeat; border-radius: 0; color: var(--color-black); font-size: 16px; padding: 0 24px 0 0; -webkit-text-fill-color: var(--color-black); }
+  .colocation-page:not(.colocation-page--compact) .colocation-grid .email-control > :is(input, select) { background-color: var(--color-white); border: 0; border-bottom: 1px solid var(--color-black); border-radius: 0; color: var(--color-black); font-size: 18px; font-weight: 500; height: 50px; letter-spacing: -.03em; padding: 0; }
+  .colocation-page:not(.colocation-page--compact) .colocation-grid .email-control > select { background-position: right 0 center; padding-right: 24px; }
   .colocation-page:not(.colocation-page--compact) .colocation-help > b { color: var(--color-gray-500); font-weight: 400; }
   .colocation-page:not(.colocation-page--compact) .colocation-file { border-radius: 4px; box-sizing: border-box; }
   .colocation-page:not(.colocation-page--compact) .colocation-consent > div.colocation-terms-box,

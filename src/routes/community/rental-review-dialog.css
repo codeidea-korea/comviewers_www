@@ -1,0 +1,40 @@
+@media (max-width: 767px) {
+  .modal-backdrop:has(> .modal--rental-review-layer) {
+    align-items: stretch;
+    background: var(--color-white);
+    padding: 0;
+  }
+
+  .modal-backdrop > .modal--rental-review-layer {
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    max-height: none;
+    max-width: none;
+    min-height: 0;
+    overflow: hidden;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    transform: none;
+    width: 100%;
+  }
+
+  .modal--rental-review-layer > h2,
+  .modal--rental-review-layer > .modal__actions { flex: 0 0 auto; }
+  .modal--rental-review-layer > .modal__content {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    overscroll-behavior: contain;
+    padding: 24px 0;
+  }
+  .modal--rental-review-layer > .modal__actions { padding-top: 16px; }
+  .modal--rental-review-layer .review-detail-modal__product { height: auto; padding-bottom: 24px; }
+  .modal--rental-review-layer .review-detail-modal__product > span { flex-wrap: wrap; height: auto; }
+  .modal--rental-review-layer .review-detail-modal__copy { height: auto; }
+  .modal--rental-review-layer .review-detail-modal__scroll { height: auto; overflow: visible; }
+}

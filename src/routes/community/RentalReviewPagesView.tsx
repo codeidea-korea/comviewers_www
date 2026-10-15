@@ -10,6 +10,7 @@ import { useDebouncedValue } from '@/routes/community/-components/hooks/useDebou
 import { BoardToolbar, CommunityShell, CommunityTabs, Stars } from './CommunityComponentsView'
 import { useSession } from '@/app/session/SessionProvider'
 import { AsyncContentState, resolveAsyncContentStatus } from '@/components/common/AsyncContentState'
+import './rental-review-dialog.css'
 
 function RentalReviewListContent() {
   const [search, setSearch] = useState('')
@@ -68,7 +69,7 @@ export function RentalReviewListPage() {
   return (
     <CommunityShell>
       <RentalReviewListContent />
-      {review ? <Modal className="modal--review" confirmLabel="상품 보러가기" isOpen={Boolean(reviewId)} onClose={close} onConfirm={() => navigate(`/products/${review.productId}`)} title="렌탈 후기">
+      {review ? <Modal className="modal--review modal--rental-review-layer" confirmLabel="상품 보러가기" isOpen={Boolean(reviewId)} onClose={close} onConfirm={() => navigate(`/products/${review.productId}`)} title="렌탈 후기">
         <div className="review-detail-modal">
           <div className="review-detail-modal__product"><span><strong>품번 {review.productId}</strong><small>{review.center}</small></span><p>{product.data ? [product.data.os, product.data.cpu, product.data.ram, product.data.disk, product.data.gpu].join(" / ") : review.productName}</p></div>
           <section className="review-detail-modal__rating"><strong>상품 만족도</strong><Stars tone="mono" value={review.rating} /></section>
@@ -79,7 +80,7 @@ export function RentalReviewListPage() {
             </div>
           </section>
         </div>
-      </Modal> : reviewId && result.isPending ? <Modal isOpen onClose={close} title="렌탈 후기"><LoadingState className="route-loading--compact" label="후기를 불러오는 중입니다." /></Modal> : reviewId && result.isError ? <Modal isOpen onClose={close} title="렌탈 후기"><p role="alert">후기를 불러오지 못했습니다.</p><button onClick={() => void result.refetch()} type="button">다시 시도</button></Modal> : reviewId ? <Modal isOpen onClose={close} title="렌탈 후기"><p>해당 후기를 찾을 수 없습니다.</p></Modal> : null}
+      </Modal> : reviewId && result.isPending ? <Modal className="modal--rental-review-layer" isOpen onClose={close} title="렌탈 후기"><LoadingState className="route-loading--compact" label="후기를 불러오는 중입니다." /></Modal> : reviewId && result.isError ? <Modal className="modal--rental-review-layer" isOpen onClose={close} title="렌탈 후기"><p role="alert">후기를 불러오지 못했습니다.</p><button onClick={() => void result.refetch()} type="button">다시 시도</button></Modal> : reviewId ? <Modal className="modal--rental-review-layer" isOpen onClose={close} title="렌탈 후기"><p>해당 후기를 찾을 수 없습니다.</p></Modal> : null}
     </CommunityShell>
   )
 }
