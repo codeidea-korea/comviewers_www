@@ -40,7 +40,7 @@ export function HomeHeroSection() {
           const dx = end.clientX - start.x
           if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(end.clientY - start.y)) moveSlide(dx < 0 ? 1 : -1)
         }}>
-        {slides.map((slide, index) => <picture key={slide.image} aria-hidden="true" className={`home-hero__slide${index === activeIndex ? ' is-active' : ''}`}>
+        {slides.map((slide, index) => <picture key={slide.image} aria-hidden="true" className={`home-hero__slide${index > 0 ? ' home-hero__slide--native-ratio' : ''}${index === activeIndex ? ' is-active' : ''}`}>
           <source media="(max-width: 767px)" srcSet={slide.mobileImage} />
           <img alt="" className="home-hero__image" src={slide.image} fetchPriority={index === 0 ? 'high' : 'low'} />
         </picture>)}

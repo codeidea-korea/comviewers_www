@@ -4,6 +4,15 @@
   transition: opacity 450ms ease;
 }
 .home-hero > .home-hero__slide.is-active { opacity: 1; }
+/* The new assets already contain a complete 1920 x 691 banner composition. */
+.home-hero > .home-hero__slide--native-ratio { background: #000; }
+.app-shell--home .home-hero > .home-hero__slide--native-ratio .home-hero__image {
+  height: 100%;
+  inset: 0;
+  object-fit: contain;
+  object-position: center bottom;
+  width: 100%;
+}
 .app-shell--home .home-hero .hero-pagination {
   grid-template-columns: minmax(0, 1fr) auto;
   height: 20px;
@@ -28,6 +37,7 @@
 }
 .hero-pagination__controls > button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 767px) {
+  .app-shell--home .home-hero > .home-hero__slide--native-ratio .home-hero__image { object-position: center; }
   .hero-pagination__controls { gap: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
