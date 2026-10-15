@@ -408,6 +408,7 @@
 .checkout-page .checkout-main .checkout-customer { height: 496px; margin-top: 60px; }
 .checkout-customer .commerce-field { height: 74px; margin-top: 40px; }
 .checkout-customer .commerce-field:first-of-type { margin-top: 20px; }
+.checkout-page .checkout-customer :is(input, select) { font-size: 18px; font-weight: 500; }
 .checkout-page .commerce-field > span { font-size: 14px; font-weight: 400; height: 24px; letter-spacing: -.28px; line-height: 24px; margin: 0; }
 .checkout-page .commerce-field > input,.checkout-page .commerce-field > select,.checkout-page .commerce-field > div { height: 50px; min-height: 50px; }
 @media (min-width: 768px) {
