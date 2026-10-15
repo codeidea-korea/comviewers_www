@@ -16,7 +16,7 @@ elif [[ $# -ne 0 ]]; then
   fail "Usage: $0 [--prepare|--activate|--discard RELEASE_DIR]"
 fi
 [[ $EUID -eq 0 ]] || fail "Run as root."
-for command in git npm curl flock timeout tar python3 realpath readlink install mkdir touch date df awk find chown chmod rm; do
+for command in git npm curl flock timeout tar python3 realpath readlink install mkdir touch date df awk find chown chmod rm rmdir; do
   command -v "$command" >/dev/null || fail "Missing command: $command"
 done
 if [[ "${COMVIEWERS_DEPLOY_LOCK_HELD:-}" == 1 ]]; then
@@ -40,6 +40,7 @@ cleanup() {
   if $OWNED && ! $ACTIVATION_STARTED && [[ $code -ne 0 ]]; then
     rm -rf -- "$WORK_DIR" "$RELEASE_DIR" || echo "ERROR: Temporary preparation cleanup failed." >&2
   fi
+  rmdir -- "${WORK_DIR%/*}" "$WORK_ROOT" 2>/dev/null || true
   exit "$code"
 }
 trap cleanup EXIT
