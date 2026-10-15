@@ -16,6 +16,8 @@ import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
 import { OrderItemActions } from '../orders/OrderItemActions'
 import { accountKstDate } from '@/lib/accountFormat'
 import { ProfileAvatar } from './ProfileAvatar'
+import roleCheck from '@/assets/figma/mypage-role-check.svg'
+import './dashboard-summary.css'
 import windowsBackground from '@/assets/figma/windows-card-render.png'
 import windowIcon from '@/assets/figma/icon-window.png'
 import moreIcon from '@/assets/figma/notice-zoom-in.svg'
@@ -98,9 +100,9 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
       <section className="mypage-home-summary">
         <div className="mypage-home-user">
           {detailMode ? <span className="mypage-home-user__device"><img alt="" src={windowIcon}/></span> : <ProfileAvatar key={profile.data?.profileImageAttachmentId ?? 'default'} attachmentId={owner ? profile.data?.profileImageAttachmentId : null}/>}
-          <div><strong>{owner ? profile.data?.name ?? profile.data?.nickname ?? profile.data?.username ?? '내 계정' : capability?.displayName ?? '내 계정'} <span>✓ {owner ? '대표관리자' : '담당자'}</span></strong><p>{owner ? '보유 RCPC와 이용현황을 확인해 보세요.' : '관리 RCPC와 이용현황을 확인해 보세요.'}</p></div>
+          <div><strong><b className="mypage-home-user__name">{owner ? profile.data?.name ?? profile.data?.nickname ?? profile.data?.username ?? '내 계정' : capability?.displayName ?? '내 계정'}</b> <span className="mypage-home-user__role"><i aria-hidden="true">✓ </i><img alt="" src={roleCheck}/><span className="mypage-home-user__role-label">{owner ? '대표관리자' : '담당자'}</span></span></strong><p>{owner ? '보유 RCPC와 이용현황을 확인해 보세요.' : '관리 RCPC와 이용현황을 확인해 보세요.'}</p></div>
         </div>
-        {owner && <><Link to="/mypage/points"><span>보유 포인트</span><strong>{benefits.data?.pointBalance.toLocaleString('ko-KR') ?? 0}<small>점</small></strong></Link><Link to="/mypage/coupons"><span>보유 쿠폰</span><strong>{benefits.data?.availableCouponCount ?? 0}<small>장</small></strong></Link></>}
+        {owner && <><Link to="/mypage/points"><span>보유 포인트</span><strong><span className="mypage-home-summary__value">{benefits.data?.pointBalance.toLocaleString('ko-KR') ?? 0}</span><small>점</small></strong></Link><Link to="/mypage/coupons"><span>보유 쿠폰</span><strong><span className="mypage-home-summary__value">{benefits.data?.availableCouponCount ?? 0}</span><small>장</small></strong></Link></>}
       </section>
       {owner ? <AccountQueryState pending={profile.isPending || benefits.isPending} error={profile.error ?? benefits.error} retry={() => { void profile.refetch(); void benefits.refetch() }}/> : null}
 

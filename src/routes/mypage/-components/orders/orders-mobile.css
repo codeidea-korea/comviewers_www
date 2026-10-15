@@ -54,6 +54,7 @@
   .mypage-shell .orders-list-toolbar > span button {
     background-image: none;
     color: var(--color-gray-500);
+    -webkit-text-fill-color: currentColor;
     height: 24px;
     min-height: 24px;
     min-width: 0;
@@ -62,7 +63,7 @@
     width: auto;
   }
   .mypage-shell .orders-list-toolbar > span button::after {
-    background: var(--color-gray-500);
+    background: currentColor;
     content: '';
     height: 7.4px;
     mask: url('../../../../assets/figma/selector-chevron-down.svg') center / 12px 7.4px no-repeat;

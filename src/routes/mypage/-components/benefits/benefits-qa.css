@@ -7,6 +7,17 @@
 .mypage-shell .points-catalog .point-carousel article > b { max-width: 100%; right: 0; white-space: nowrap; }
 .mypage-shell .points-catalog .point-carousel article > b > img { flex-shrink: 0; object-fit: contain; }
 @media (max-width: 767px) {
+  .mypage-shell :is(.points-history__toolbar, .coupons-history__filter) > button { -webkit-text-fill-color: currentColor; }
+  .mypage-shell :is(.points-history__toolbar, .coupons-history__filter) > button > img { display: none; }
+  .mypage-shell :is(.points-history__toolbar, .coupons-history__filter) > button::after {
+    background-color: currentColor;
+    content: '';
+    flex: 0 0 12px;
+    height: 7.4px;
+    mask: url('../../../../assets/figma/selector-chevron-down.svg') center / contain no-repeat;
+    width: 12px;
+  }
+  .mypage-shell .coupons-history__filter > button::after { margin-right: 6px; }
   /* User-approved: the same 12px section gap as the mobile RCPC list. */
   .mypage-shell :is(.coupons-available, .coupons-history) .benefit-tabs-row { margin-bottom: 12px; }
   .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row nav.mypage-tabs { flex: 1 1 auto; min-width: 0; width: auto; }

@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="check" clip-path="url(#clip0_0_9)">
+<mask id="mask0_0_9" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<rect id="Bounding box" width="24" height="24" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_0_9)">
+<path id="check_2" d="M7.95834 14.9979L3.20834 10.2479L4.39584 9.06042L7.95834 12.6229L15.6042 4.97709L16.7917 6.16459L7.95834 14.9979Z" fill="#12B839"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_9">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -20,6 +20,8 @@
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions > :not(:first-child)::before { background: var(--color-gray-300); content: ''; height: 8px; left: 0; position: absolute; top: 50%; transform: translateY(-50%); width: 1px; }
 }
 @media (max-width: 767px) {
+  .mypage-shell .rcpc-list-page > div.mypage-toolbar { flex-wrap: wrap; height: auto; min-height: 40px; }
+  .mypage-shell .rcpc-list-page > div.mypage-toolbar > div { flex: 0 0 auto; flex-wrap: wrap; max-width: 100%; }
   .rcpc-selection-menu__native-wrap { display: block; max-width: 100%; min-width: 0; }
   .rcpc-filter-select { color: var(--color-gray-500); }
   .mypage-shell .rcpc-list-page .rcpc-list__bulk-actions:has(.rcpc-selection-menu) { align-items: center; display: flex; flex-direction: row; gap: 12px; height: 24px; justify-content: flex-start; margin: 12px 0; min-height: 24px; padding: 0; }
@@ -27,11 +29,11 @@
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-selection-menu--native > .rcpc-selection-menu__trigger,
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-selection-menu--native > nav.rcpc-bulk-actions { display: none; }
   .mypage-shell :is(.rcpc-list-page, .favorites-page, .manager-catalog) .rcpc-selection-menu__native { appearance: none; background: transparent url('../../../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; border: 0; border-radius: 0; color: var(--color-gray-500); display: block; font-size: 14px; font-weight: 400; height: 24px; letter-spacing: -.03em; min-width: 0; padding: 0 20px 0 0; -webkit-text-fill-color: var(--color-gray-500); }
-  /* Size compact filters from the selected label, never from the longest native option. */
-  .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog, .orders-catalog-list, .manager-catalog) span.rcpc-filter-select { display: inline-grid; font-size: 14px; font-weight: 400; grid-template-columns: minmax(0, 1fr); height: 24px; letter-spacing: -.03em; line-height: 24px; width: max-content; }
+  /* Keep the full default label visible; longer selections stay within that width. */
+  .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog, .orders-catalog-list, .manager-catalog) span.rcpc-filter-select.rcpc-filter-select { display: inline-grid; flex: 0 0 auto; min-width: max-content; font-size: 14px; font-weight: 400; grid-template-columns: minmax(0, 1fr); height: 24px; letter-spacing: -.03em; line-height: 24px; width: max-content; }
   .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog, .orders-catalog-list, .manager-catalog) .rcpc-filter-select__label { display: block; min-width: 0; overflow: hidden; padding-right: 20px; visibility: hidden; white-space: nowrap; }
-  .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog, .orders-catalog-list, .manager-catalog) span.rcpc-filter-select > select[data-ui='native-select'] { appearance: none; background: transparent; border: 0; border-radius: 0; box-sizing: border-box; color: inherit; font: inherit; height: 24px; inset: 0; max-width: 100%; min-width: 0; overflow: hidden; padding: 0 20px 0 0; position: absolute; text-overflow: ellipsis; white-space: nowrap; width: 100%; -webkit-text-fill-color: currentColor; }
-  .mypage-shell span.rcpc-filter-select > i { height: 16px; mask-size: 12px 7.4px; width: 16px; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page, .inquiry-catalog, .orders-catalog-list, .manager-catalog) span.rcpc-filter-select.rcpc-filter-select > select[data-ui='native-select'] { appearance: none; background: transparent; border: 0; border-radius: 0; box-sizing: border-box; color: inherit; font: inherit; height: 24px; inset: 0; letter-spacing: inherit; max-width: 100%; min-width: 0; overflow: hidden; padding: 0 20px 0 0; position: absolute; text-overflow: ellipsis; white-space: nowrap; width: 100%; -webkit-text-fill-color: currentColor; }
+  .mypage-shell span.rcpc-filter-select > i { background-color: currentColor; color: inherit; height: 16px; mask-size: 12px 7.4px; width: 16px; }
   .mypage-shell .rcpc-list-page .mobile-list-page-heading--rcpc button { gap: 2px; }
   .rcpc-status-sort-icon { align-items: center; display: inline-flex; flex: 0 0 16px; height: 16px; justify-content: center; width: 16px; }
   .rcpc-status-sort-icon::before { background: currentColor; content: ''; height: 12px; mask: url('../../../assets/figma/icon-sync-alt.svg') center / contain no-repeat; transform: rotate(-90deg); width: 13.3333px; }
