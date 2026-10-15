@@ -44,6 +44,8 @@ export function RcpcReboot({ api, item }: { api: MyRcpcReadServices; item: MyRcp
 }
 
 export function RcpcWanIp({ api, item, compact = false, autoReveal = true }: { api: MyRcpcReadServices; item: MyRcpcItem; compact?: boolean; autoReveal?: boolean }) {
+  const elementRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(!compact)
   const [value, setValue] = useState<string | null>(null)
   const { message, setMessage, toastKey } = useToastMessage()
   const [pendingAction, setPendingAction] = useState<'reveal' | 'copy' | null>(null)
@@ -54,11 +56,24 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = true }: { a
   const registered = item.wanIpConfigured
   const available = allowed && registered !== false
   useEffect(() => {
+    if (!compact || visible) return
+    const element = elementRef.current
+    if (!element) return
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setVisible(true)
+        observer.disconnect()
+      }
+    }, { rootMargin: '100px 0px' })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [compact, visible])
+  useEffect(() => {
     sequence.current += 1; setValue(null); setMessage(''); setPendingAction(null); setFailed(false)
     return () => { sequence.current += 1 }
   }, [api.organizationId, item.rentalId, registered, available, setMessage])
   useEffect(() => {
-    if (!autoReveal || !available) return
+    if (!autoReveal || !available || !visible) return
     const controller = new AbortController()
     const token = ++sequence.current
     setPendingAction('reveal')
@@ -70,7 +85,7 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = true }: { a
       if (!controller.signal.aborted && token === sequence.current) setPendingAction(null)
     })
     return () => { controller.abort(); sequence.current += 1 }
-  }, [api, item.rentalId, registered, available, autoReveal, setMessage])
+  }, [api, item.rentalId, registered, available, autoReveal, visible, setMessage])
   async function act(action: 'reveal' | 'copy') {
     if (!available || pending) return
     const token = ++sequence.current
@@ -92,6 +107,6 @@ export function RcpcWanIp({ api, item, compact = false, autoReveal = true }: { a
     finally { if (token === sequence.current) setPendingAction(null) }
   }
   const label = registered === false ? '미등록' : !allowed ? '이용 불가' : pendingAction === 'reveal' ? '확인 중…' : value ?? (failed ? '조회 실패' : '확인 전')
-  if (compact) return <div className="rcpc-wan-ip rcpc-wan-ip--compact"><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && pendingAction !== 'reveal' && Boolean(value)}/>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
+  if (compact) return <div className="rcpc-wan-ip rcpc-wan-ip--compact" ref={elementRef}><b><img alt="" src={webIcon}/>WAN IP</b><TooltipText text={label} enabled={available && pendingAction !== 'reveal' && Boolean(value)}/>{message ? <Toast message={message} toastKey={toastKey}/> : null}</div>
   return <div>WAN IP: <span>{label}</span> <button type="button" disabled={!available || pending} onClick={() => void act('copy')}>복사</button><span role="status">{message}</span></div>
 }

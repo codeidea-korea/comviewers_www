@@ -20,6 +20,8 @@
   .mypage-shell :is(.rcpc-list-page, .favorites-page) .rcpc-bulk-actions > :not(:first-child)::before { background: var(--color-gray-300); content: ''; height: 8px; left: 0; position: absolute; top: 50%; transform: translateY(-50%); width: 1px; }
 }
 @media (max-width: 767px) {
+  /* Cards scroll with the document, not the legacy horizontal table rail. */
+  .mypage-shell .rcpc-list-page { overflow: visible; overscroll-behavior: auto; }
   .mypage-shell .rcpc-list-page > div.mypage-toolbar { flex-wrap: wrap; height: auto; min-height: 40px; }
   .mypage-shell .rcpc-list-page > div.mypage-toolbar > div { flex: 0 0 auto; flex-wrap: wrap; max-width: 100%; }
   .rcpc-selection-menu__native-wrap { display: block; max-width: 100%; min-width: 0; }

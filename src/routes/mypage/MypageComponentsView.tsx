@@ -224,13 +224,13 @@ export function MyPageLayout({ backTo, children, footerVariant = 'default', mobi
   )
 }
 
-export function MyPageTabs({ active, items }: { active: string; items: readonly { id: string; label: string; href: string }[] }) {
+export function MyPageTabs({ active, items, preventScrollReset = false }: { active: string; items: readonly { id: string; label: string; href: string }[]; preventScrollReset?: boolean }) {
   return (
     <nav aria-label="페이지 구분" className="mypage-tabs">
       {items.map((item) => {
         const href = item.href
         return href.startsWith('/')
-          ? <Link className={active === item.id ? 'is-active' : ''} key={item.id} to={href}>{item.label}</Link>
+          ? <Link className={active === item.id ? 'is-active' : ''} key={item.id} preventScrollReset={preventScrollReset} to={href}>{item.label}</Link>
           : <a className={active === item.id ? 'is-active' : ''} href={href} key={item.id}>{item.label}</a>
       })}
     </nav>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
@@ -54,6 +54,17 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     queryKey: ['my-rcpcs', api.organizationId, query],
     queryFn: ({ signal }) => api.list(query, signal),
   })
+  const listRef = useRef<HTMLDivElement>(null)
+  const [listHeight, setListHeight] = useState(0)
+  useLayoutEffect(() => {
+    const element = listRef.current
+    if (!element || rows.isPending || rows.isError) return
+    const measure = () => setListHeight(element.getBoundingClientRect().height)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [rows.isPending, rows.isError])
   const accessDenied = isAccountReadDenied(available.error) || isAccountReadDenied(rows.error)
   // A forbidden response must also hide data retained from an earlier successful query.
   const filterOptions = accessDenied ? undefined : available.data
@@ -83,12 +94,12 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
   const emptyMessage = query.usageStatus ? '해당 상태의 RCPC가 없습니다.' : '이용 중인 RCPC가 없습니다.'
 
   return <MyPageLayout title="이용 RCPC">
-    <div className="rcpc-list-page">
+    <div className="rcpc-list-page" ref={listRef} style={rows.isPending && listHeight > 0 ? { minHeight: listHeight } : undefined}>
       <div className="mobile-list-page-heading mobile-list-page-heading--rcpc">
         <h1>이용 RCPC</h1>
         <RcpcMobileSort disabled={accessDenied} sort={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }} onChange={sort => setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction }))}/>
       </div>
-      <MyPageTabs active={activeTab} items={tabs}/>
+      <MyPageTabs active={activeTab} items={tabs} preventScrollReset/>
       <MyPageToolbar count={page?.totalElements ?? 0} label="총" suffix="개 상품">
         <NativeSelect aria-label="서버 위치" disabled={accessDenied} onChange={event => {
           const region = event.target.value || undefined

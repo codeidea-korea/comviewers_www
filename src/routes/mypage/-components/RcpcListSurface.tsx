@@ -1,5 +1,5 @@
 import { InquiryAction } from './inquiries/InquiryAction'
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
@@ -98,22 +98,30 @@ export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, item
   }
 }) {
   useRcpcDateBoundary(api.organizationId)
+  // CSS-hidden rows still mount effects; only mount the visible layout.
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches)
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)')
+    const update = () => setMobile(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
   const header = (column: { label: string; sort?: SortKey }) => column.sort
     ? <SortButton icon={sortIcon} label={column.label} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' ? <span className="table-sort-button__multiline-label">트래픽<br/>사용량</span> : column.label}</SortButton>
     : column.label
   return <>
-    <div aria-label="RCPC 목록" className="rcpc-list rcpc-list--table" role="table">
+    {!mobile ? <div aria-label="RCPC 목록" className="rcpc-list rcpc-list--table" role="table">
       <div className="rcpc-list__header" role="row">
         <span role="columnheader">{selection.header}</span>
         {columns.map(column => <span key={column.label} role="columnheader">{header(column)}</span>)}
       </div>
       {items.map(item => <RcpcListRow api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={item.rentalId} mutations={mutations} onSelectedChange={checked => selection.onChange(item, checked)} selected={selection.isSelected(item)} selectionDisabled={selection.isDisabled(item)}/>) }
       {items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}
-    </div>
-    <div aria-label="RCPC 모바일 목록" className="mobile-rcpc-list">
+    </div> : <div aria-label="RCPC 모바일 목록" className="mobile-rcpc-list">
       {items.map(item => <MobileRcpcCard api={api} canEditAlias={canEditAlias} canExtend={canExtend} item={item} key={`mobile:${item.rentalId}`} mutations={mutations} onSelectedChange={checked => selection.onChange(item, checked)} selected={selection.isSelected(item)} selectionDisabled={selection.isDisabled(item)}/>) }
       {items.length === 0 ? <p className="mypage-table__empty" role="status">{emptyMessage}</p> : null}
-    </div>
+    </div>}
   </>
 }
 

@@ -6,6 +6,7 @@ import { managerScopedPath } from '@/routes/mypage/-components/managerPortalPath
 export interface RelativeLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
   to: string
   replace?: boolean
+  preventScrollReset?: boolean
   state?: unknown
 }
 
@@ -14,7 +15,7 @@ function shouldUseBrowserDefault(event: MouseEvent<HTMLAnchorElement>, target?: 
 }
 
 export const RelativeLink = forwardRef<HTMLAnchorElement, RelativeLinkProps>(function RelativeLink({
-  children, onClick, replace = false, state, target, to, ...linkProps
+  children, onClick, replace = false, preventScrollReset = false, state, target, to, ...linkProps
 }, ref) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -35,8 +36,8 @@ export const RelativeLink = forwardRef<HTMLAnchorElement, RelativeLinkProps>(fun
         }
         if (scopedTo.startsWith('/')) {
           event.preventDefault()
-          window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-          void navigate(scopedTo, { replace, state })
+          if (!preventScrollReset) window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+          void navigate(scopedTo, { replace, state, preventScrollReset })
         }
       }}
       ref={ref}
