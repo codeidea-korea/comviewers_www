@@ -1,3 +1,8 @@
+.modal-backdrop[data-ui='dialog-layer']:has(> .modal--rental-review-layer) {
+  /* The shared dialog layer pins inset: 0; keep this public popup below Google. */
+  top: var(--google-trial-bar-height, 0px) !important;
+}
+
 @media (max-width: 767px) {
   .modal-backdrop:has(> .modal--rental-review-layer) {
     align-items: stretch;

@@ -1,4 +1,4 @@
-/** Shared customer header/footer copy. Registered names and identifiers stay unchanged. */
+/** Shared customer header/footer copy. Only explicitly localized company details vary by language. */
 export const shellTranslations = [
   { key: 'shell.profileImage', source: 'shell', ko: '프로필 이미지', vi: 'Ảnh đại diện', ja: 'プロフィール画像', en: 'Profile image', 'zh-CN': '头像', 'zh-TW': '大頭貼' },
   { key: 'shell.profileImageSelect', source: 'shell', ko: '이미지 선택', vi: 'Chọn ảnh', ja: '画像を選択', en: 'Choose image', 'zh-CN': '选择图片', 'zh-TW': '選擇圖片' },
@@ -19,6 +19,7 @@ export const shellTranslations = [
   { key: 'shell.companyMenu', source: 'shell', ko: '회사 정보 메뉴', vi: 'Menu thông tin công ty', ja: '会社情報メニュー', en: 'Company information menu', 'zh-CN': '公司信息菜单', 'zh-TW': '公司資訊選單' },
   { key: 'shell.colocation', source: 'shell', ko: '입점신청', vi: 'Đăng ký hợp tác', ja: '出店申請', en: 'Partner application', 'zh-CN': '入驻申请', 'zh-TW': '進駐申請' },
   { key: 'shell.companyName', source: 'shell', ko: '회사명', vi: 'Tên công ty', ja: '会社名', en: 'Company name', 'zh-CN': '公司名称', 'zh-TW': '公司名稱' },
+  { key: 'shell.companyRegisteredName', source: 'shell', ko: '(주)아이알씨코리아', vi: 'Công ty Cổ phần IRC Korea', ja: '株式会社IRC Korea', en: 'IRC Korea Co., Ltd.', 'zh-CN': 'IRC Korea股份有限公司', 'zh-TW': 'IRC Korea股份有限公司' },
   { key: 'shell.representative', source: 'shell', ko: '대표자명', vi: 'Người đại diện', ja: '代表者名', en: 'Representative', 'zh-CN': '代表人', 'zh-TW': '代表人' },
   { key: 'shell.businessNumber', source: 'shell', ko: '사업자등록번호', vi: 'Mã số đăng ký kinh doanh', ja: '事業者登録番号', en: 'Business registration number', 'zh-CN': '营业执照号码', 'zh-TW': '營業登記號碼' },
   { key: 'shell.onlineBusinessNumber', source: 'shell', ko: '통신판매업신고번호', vi: 'Số đăng ký bán hàng trực tuyến', ja: '通信販売業届出番号', en: 'Online sales registration number', 'zh-CN': '网络销售备案号', 'zh-TW': '網路銷售登記號碼' },

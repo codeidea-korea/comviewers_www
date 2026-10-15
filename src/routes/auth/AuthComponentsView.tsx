@@ -12,7 +12,7 @@ import { emailDomainOptions } from '../../lib/formOptions'
 import type { SocialAuthProvider } from '../../app/session/AuthProvider'
 import './auth-publishing.css'
 
-export function AuthPage({ children, isolated = false, variant }: { children: ReactNode; isolated?: boolean; variant?: string }) {
+export function AuthPage({ children, isolated = false, variant, translateContent = false }: { children: ReactNode; isolated?: boolean; variant?: string; translateContent?: boolean }) {
   const variantClass = variant ? ` auth-page--${variant}` : ''
   if (isolated) {
     return <main className={`auth-page auth-page--isolated notranslate${variantClass}`} translate="no">{children}</main>
@@ -20,7 +20,7 @@ export function AuthPage({ children, isolated = false, variant }: { children: Re
 
   return (
     <AppShell className="auth-shell">
-      <section className={`auth-page notranslate${variantClass}`} translate="no">
+      <section className={`auth-page${translateContent ? '' : ' notranslate'}${variantClass}`} translate={translateContent ? 'yes' : 'no'}>
         {children}
       </section>
     </AppShell>
@@ -38,7 +38,7 @@ export function AuthPanel({ children, compact = false, result = false }: { child
 export function AuthHeading({ current, description, title, total }: { current?: number; description?: ReactNode; title: ReactNode; total?: number }) {
   const { authText, t } = useAuthTranslation()
   return (
-    <header className="auth-heading">
+    <header className="auth-heading notranslate" translate="no">
       <div>
         <h1>{typeof title === 'string' ? authText(title) : title}</h1>
         {description ? <p>{typeof description === 'string' ? authText(description) : description}</p> : null}
@@ -70,7 +70,7 @@ export function PasswordField({ displayAsText = false, ...props }: ComponentProp
 }
 
 function AuthCheckbox(props: ComponentProps<typeof Checkbox>) {
-  return <Checkbox {...props} className="auth-checkbox" visualClassName="auth-checkbox__visual" />
+  return <Checkbox {...props} className="auth-checkbox notranslate" visualClassName="auth-checkbox__visual" />
 }
 
 export { AuthCheckbox as Checkbox }

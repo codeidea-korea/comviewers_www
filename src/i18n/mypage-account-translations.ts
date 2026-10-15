@@ -1,5 +1,7 @@
 /** Account, orders, benefits, storage and profile interface copy. Business data retain their source values. */
 export const mypageAccountTranslations = [
+  {"key":"mypageAccount.couponTenPercent","source":"mypageAccount","ko":"10% 할인쿠폰","vi":"Phiếu giảm giá 10%","ja":"10%割引クーポン","en":"10% discount coupon","zh-CN":"九折优惠券","zh-TW":"九折優惠券"},
+  {"key":"mypageAccount.pendingOrdersHeading","source":"mypageAccount","ko":"구매 확정이 필요한 주문","vi":"Đơn hàng cần xác nhận mua hàng","ja":"購入確定が必要な注文","en":"Orders to confirm","zh-CN":"需要确认收货的订单","zh-TW":"需要確認收貨的訂單"},
   {"key":"mypageAccount.copy001","source":"mypageAccount","ko":" (주문 전체 포함)","vi":" (gồm toàn bộ đơn hàng)","ja":"（注文全体を含む）","en":" (includes entire order)","zh-CN":"（包含整个订单）","zh-TW":"（包含整筆訂單）"},
   {"key":"mypageAccount.copy002","source":"mypageAccount","ko":" (최대 {amount})","vi":" (tối đa {amount})","ja":"（最大{amount}）","en":" (up to {amount})","zh-CN":"（最高{amount}）","zh-TW":"（最高{amount}）"},
   {"key":"mypageAccount.copy003","source":"mypageAccount","ko":" · 교체이용","vi":" · Sử dụng máy thay thế","ja":" · 交換機を利用","en":" · Replacement in use","zh-CN":" · 使用替换设备","zh-TW":" · 使用替換設備"},
@@ -313,4 +315,8 @@ export const mypageAccountTranslations = [
   {"key":"mypageAccount.copy311","source":"mypageAccount","ko":"후기 작성 가능한 구매 상품을 확인해 주세요.","vi":"Kiểm tra sản phẩm đã mua đủ điều kiện đánh giá.","ja":"レビュー可能な購入商品をご確認ください。","en":"Please check the purchased product eligible for a review.","zh-CN":"请确认可撰写评价的已购商品。","zh-TW":"請確認可撰寫評價的已購商品。"},
   {"key":"mypageAccount.copy312","source":"mypageAccount","ko":"후기는 10자 이상으로 등록하실 수 있습니다.","vi":"Đánh giá cần ít nhất 10 ký tự.","ja":"レビューは10文字以上で投稿できます。","en":"Reviews must contain at least 10 characters.","zh-CN":"评价至少需要10个字符。","zh-TW":"評價至少需要10個字元。"},
   {"key":"mypageAccount.copy313","source":"mypageAccount","ko":"휴대폰 번호를 모두 입력해 주세요.","vi":"Vui lòng nhập đầy đủ số di động.","ja":"携帯電話番号をすべて入力してください。","en":"Please enter your complete mobile number.","zh-CN":"请输入完整手机号。","zh-TW":"請輸入完整手機號碼。"},
+  {"key":"mypageAccount.pointOrderPayment","source":"mypageAccount","ko":"주문 포인트 사용","vi":"Dùng điểm thanh toán đơn hàng","ja":"注文へのポイント利用","en":"Points used for order","zh-CN":"订单积分抵扣","zh-TW":"訂單點數折抵"},
+  {"key":"mypageAccount.pointOrderRelease","source":"mypageAccount","ko":"미결제 주문 포인트 반환","vi":"Hoàn điểm cho đơn hàng chưa thanh toán","ja":"未払い注文のポイント返還","en":"Points returned for unpaid order","zh-CN":"未付款订单积分退还","zh-TW":"未付款訂單點數退還"},
+  {"key":"mypageAccount.pointExpired","source":"mypageAccount","ko":"유효기간 만료로 포인트 소멸","vi":"Điểm hết hạn sử dụng","ja":"有効期限切れによるポイント失効","en":"Points expired","zh-CN":"积分因有效期届满而失效","zh-TW":"點數因有效期限屆滿而失效"},
+  {"key":"mypageAccount.pointRefundPayout","source":"mypageAccount","ko":"승인된 환불 포인트 지급","vi":"Cấp điểm hoàn tiền đã được phê duyệt","ja":"承認済み返金ポイント付与","en":"Approved refund points issued","zh-CN":"发放已批准的退款积分","zh-TW":"發放已核准的退款點數"},
 ] as const

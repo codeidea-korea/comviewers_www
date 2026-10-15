@@ -15,7 +15,7 @@ const formatPrice = (price: number) => new Intl.NumberFormat('ko-KR').format(pri
 function ProductSpec({ className = '', label, value, tone }: { className?: string; label: ReactNode; value: ReactNode; tone?: 'blue' | 'gray' | 'red' }) {
   return (
     <div className={`product-card__spec ${className}`.trim()}>
-      <dt>{label}</dt>
+      <dt className="notranslate" translate="no">{label}</dt>
       <dd className={tone ? `tag tag--${tone}` : undefined}>{value}</dd>
     </div>
   )
@@ -31,21 +31,21 @@ function PriceValue({ amount, compact = false }: { amount: number | null; compac
 }
 
 export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddToCart?: (product: Product) => void; product: Product; size?: 'medium' | 'large' }) {
-  const { t } = useTranslation()
+  const { locale, t } = useTranslation()
   const isLarge = size === 'large'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
   const visual = productOsVisual(product.osFilterValue, part, product.image)
 
   return (
-    <article className={`product-card product-card--${size}`}>
+    <article lang={locale} className={`product-card product-card--${size}${locale !== 'ko' ? ' product-card--translated' : ''}`}>
       <div className="product-card__image">
         <img alt={product.image || visual.label ? t('cart.productImage', { name: product.image ? product.title ?? product.productId : visual.label ?? '' }) : t('cart.defaultImage')} src={visual.image} />
         {!product.image ? <ProductOsOverlay label={visual.label} /> : null}
       </div>
       <div className="product-card__info">
         <dl className="product-card__specs">
-          <ProductSpec label={<TranslatedText id="product.number" />} value={<span className="notranslate" translate="no">{product.productId}</span>} />
+          <ProductSpec className="product-card__spec--number" label={<TranslatedText id="product.number" />} value={<span className="notranslate" translate="no">{product.productId}</span>} />
           <ProductSpec className="product-card__spec--os" label="OS" value={visual.label || product.os ? <span className="notranslate" translate="no">{visual.label ?? product.os}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className="notranslate" translate="no">{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--ram" label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
@@ -54,6 +54,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
           {isLarge ? (
             <>
               <ProductSpec
+                className="product-card__spec--peripherals"
                 label={<TranslatedText id="product.peripherals" />}
                 value={<ProductPeripherals mouseIncluded={product.mouseIncluded} keyboardIncluded={product.keyboardIncluded} />}
               />

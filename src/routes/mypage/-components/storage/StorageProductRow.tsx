@@ -1,4 +1,5 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import type { ReactNode } from 'react'
 import { Checkbox } from '@/components/ui/CheckboxControl'
 import { CommerceMoney as CartMoney } from '@/components/common/CommerceMoney'
@@ -30,7 +31,7 @@ export function StorageProductRow({ productNo, title, serverRoom, imageUrl, desc
   return <article className="purchase-row cart-item storage-product-row">
     <header className="purchase-row__header cart-item__header"><label>
       <Checkbox aria-label={uiText('{name} 선택', { name: productNo ?? title })} checked={selected} disabled={disabled} onChange={event => onSelect(event.target.checked)} />
-      <span className="cart-item__number">{uiText("품번")} <b>{productNo ?? '-'}</b></span><small>{serverRoom ?? '-'}</small>
+      <span className="cart-item__number">{uiText("품번")} <b>{productNo ?? '-'}</b></span><small><LocalizedServiceName kind="serverRoom" name={serverRoom} /></small>
     </label></header>
     <div className="purchase-row__body cart-item__body">
       <div className="purchase-row__image cart-item__image"><img alt={title} src={image}/></div>

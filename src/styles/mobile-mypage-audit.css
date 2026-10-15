@@ -262,6 +262,8 @@
   .mypage-shell .mypage-home .mypage-home-use > div:first-child > span { min-width: 0; padding: 12px; }
   .mypage-shell .mypage-home .mypage-home-use__orders { min-height: 0; padding: 20px; }
   .mypage-shell .mypage-home .mypage-home-use__orders > p { flex-wrap: wrap; font-size: 14px; gap: 4px; height: auto; }
+  .mypage-shell .mypage-home .mypage-home-use__orders--translated > p { flex-wrap: nowrap; white-space: nowrap; }
+  .mypage-shell .mypage-home .mypage-home-use__orders--translated > p > :is(b, a) { flex-shrink: 0; }
   .mypage-shell .mypage-home .mypage-home-use__tooltip { right: 0; }
   .mypage-shell .mypage-home .mypage-home-text-list { width: 100%; }
   .mypage-shell .mypage-home,

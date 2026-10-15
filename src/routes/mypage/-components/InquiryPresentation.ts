@@ -1,5 +1,16 @@
 export const inquiryTypes = { as_request: 'AS·점검 요청', setup_change: '변경·교체·추가 요청', refund_cancel: '해지신청', inquiry: '기타 문의' } as const
 export const inquiryTypeLabel = (value: string) => inquiryTypes[value as keyof typeof inquiryTypes] ?? value
+
+/** Only generated type titles are interface copy; customer-written titles stay unchanged. */
+export function translateInquiryTitle(requestType: string, title: string, translateLabel: (label: string) => string): string {
+  const label = inquiryTypes[requestType as keyof typeof inquiryTypes]
+  const generatedTitle = label && (title === label || requestType === 'as_request'
+    && ['AS 점검요청', 'AS 점검 요청', 'AS·점검요청'].includes(title))
+  if (!generatedTitle) return title
+  const translated = translateLabel(label)
+  return translated === label ? title : translated
+}
+
 export const inquiryTypeDescriptions: Record<keyof typeof inquiryTypes, string> = {
   as_request: 'RCPC의 접속 장애나 동작 이상에 대한 점검을 요청합니다.',
   setup_change: '이용 중인 RCPC의 환경 변경, 부품 교체 또는 추가를 문의합니다.',

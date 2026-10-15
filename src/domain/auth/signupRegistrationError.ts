@@ -1,4 +1,5 @@
 export function signupRegistrationErrorMessage(code: string | undefined): string | undefined {
+  if (code === 'A010') return '이메일 인증 요청을 처리할 수 없습니다. 잠시 후 다시 시도해 주세요.'
   if (code === 'U002') return '이미 존재하는 이메일입니다.'
   if (code === 'U005') return '이미 사용 중이거나 가입 요청 중인 닉네임입니다. 다른 닉네임을 입력해 주세요.'
   return undefined

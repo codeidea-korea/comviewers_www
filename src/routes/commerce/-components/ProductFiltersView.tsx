@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import type { DetailSelections, ProductListQuery, ProductPage } from '../../../domain/products/types'
 import type { CatalogFilterMetadata } from '@/api/catalog'
@@ -238,6 +239,7 @@ function FilterMenu({ menu, isOpen, onToggle, selectedValues, onSelectionChange,
 }
 
 function CatalogFilterSections({ controls }: { controls: ProductCatalogControls }) {
+  const { uiText } = useUiTranslation()
   const { filterMetadata: metadata, catalogSelections: selected, setCatalogSelections: update } = controls
   const priceBasis = selected.priceBasis ?? 'monthly'
   const priceLabel = priceBasis === 'unit' ? '상품 금액' : '월 렌탈료'
@@ -290,7 +292,7 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
 
   return <>
     {controls.filterMetadataPending ? <LoadingState className="route-loading--compact" label="검색 조건을 불러오고 있습니다." /> : null}
-    {controls.filterMetadataError ? <p role="alert">검색 조건을 불러오지 못했습니다. <button className="product-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}>다시 시도</button></p> : null}
+    {controls.filterMetadataError ? <p role="alert">{uiText('검색 조건을 불러오지 못했습니다.')} <button className="product-filter__inline-action" type="button" onClick={() => void controls.refetchFilterMetadata()}>{uiText('다시 시도')}</button></p> : null}
     <section className="product-filter__section"><h2>이용 조건</h2>
       <ProductFilterMenuFrame count={Number(selected.minPrice !== undefined || selected.maxPrice !== undefined)} id={priceMenuId} isOpen={isMenuOpen(priceMenuId)} label={priceLabel}
         onSelectAll={() => update({ priceBasis, minPrice: undefined, maxPrice: undefined })}
@@ -315,7 +317,7 @@ function CatalogFilterSections({ controls }: { controls: ProductCatalogControls 
       </ProductFilterMenuFrame> : null}
       {gameGroups.map(renderGroup)}
     </section> : null}
-    {notice ? <p role="alert">{notice}</p> : null}
+    {notice ? <p role="alert">{uiText(notice)}</p> : null}
   </>
 }
 

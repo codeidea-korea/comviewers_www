@@ -10,14 +10,14 @@ import './mobile-footer.css'
 
 const companyInfoRows: ReadonlyArray<ReadonlyArray<readonly [TranslationKey, string, TranslationKey?]>> = [
   [
-    ['shell.companyName', '(주)아이알씨코리아'],
+    ['shell.companyName', '', 'shell.companyRegisteredName'],
     ['shell.representative', '최주호'],
     ['shell.businessNumber', '821-88-01743'],
   ],
   [
     ['shell.onlineBusinessNumber', '2022-강원원주-1569'],
     ['shell.privacyOfficer', '최주호, 전민경'],
-    ['shell.hostingProvider', '(주)아이알씨코리아'],
+    ['shell.hostingProvider', '', 'shell.companyRegisteredName'],
   ],
   [
     ['shell.address', '', 'shell.companyAddress'],
@@ -27,7 +27,7 @@ const companyInfoRows: ReadonlyArray<ReadonlyArray<readonly [TranslationKey, str
 ]
 
 export function Footer({ variant = 'default' }: { variant?: 'default' | 'compact' }) {
-  const { t } = useTranslation()
+  const { locale, t } = useTranslation()
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
   const [telegramOpen, setTelegramOpen] = useState(false)
   const [telegramCopyMessage, setTelegramCopyMessage] = useState<TranslationKey | null>(null)
@@ -55,7 +55,7 @@ export function Footer({ variant = 'default' }: { variant?: 'default' | 'compact
   }
 
   return (
-    <footer className={`site-footer${variant === 'compact' ? ' site-footer--compact' : ''}`}>
+    <footer lang={locale} className={`site-footer${variant === 'compact' ? ' site-footer--compact' : ''}`}>
       <div className="site-footer__inner">
         <nav aria-label={t('shell.companyMenu')} className="site-footer__menu">
           {footerMenuItems.map((item) => <Link key={item.id} to={item.href}>{item.id === 'company' ? <TranslatedText id="nav.company" /> : item.id === 'support' ? <TranslatedText id="nav.support" /> : item.id === 'colocation' ? <TranslatedText id="shell.colocation" /> : item.label}</Link>)}

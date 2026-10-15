@@ -1,9 +1,11 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import type { ReactNode, RefObject } from 'react'
 import { useState } from 'react'
 import { DialogActions } from '../ui/DialogActionsControl'
 import { Modal } from '../ui/ModalControl'
 import { PopupLayer } from '../ui/PopupLayerControl'
+import { DatePicker } from '../ui/DatePickerControl'
 import backIcon from '@/assets/figma/chevron-left.svg'
 import './rcpc-extension-qa.css'
 
@@ -85,11 +87,11 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
       <h2 className="rcpc-extension-dialog__heading"><button aria-label={uiText("기간 연장 닫기")} className="rcpc-extension-dialog__back" onClick={onClose} type="button"><img alt="" src={backIcon}/></button>{uiText("기간 연장")}</h2>
       <div aria-busy={busy} className="rcpc-extension-dialog__scroll">
         <div className="rcpc-extension-dialog__products-heading"><h3>{uiText("선택 품목")}</h3></div>
-        <div aria-label={uiText("선택 품목")} className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{products.map((target) => <article key={target.rcpcId}><strong><span className="rcpc-extension-product__alias">{target.alias ? `${target.alias} · ` : ''}</span>{uiText("품번")} {target.rcpcId}{target.location ? ` · ${target.location}` : ''}</strong><p className="rcpc-extension-product__expiry">{uiText("현재 만료일")} {target.currentEnd ?? uiText("확인 중")}</p><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || uiText("사양 정보가 없습니다.")}</p></article>)}</div>
+        <div aria-label={uiText("선택 품목")} className="rcpc-extension-dialog__products" role="region" tabIndex={0}>{products.map((target) => <article key={target.rcpcId}><strong><span className="rcpc-extension-product__alias">{target.alias ? `${target.alias} · ` : ''}</span>{uiText("품번")} {target.rcpcId}{target.location ? <> · <LocalizedServiceName kind="serverRoom" name={target.location} /></> : null}</strong><p className="rcpc-extension-product__expiry">{uiText("현재 만료일")} {target.currentEnd ?? uiText("확인 중")}</p><p>{[target.os, target.cpu, target.ram, target.disk, target.gpu].filter(Boolean).join(' / ') || uiText("사양 정보가 없습니다.")}</p></article>)}</div>
         <h3>{uiText("연장 방식 선택")}</h3>
         <div className="rcpc-extension-dialog__modes">
           <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'period'} disabled={busy} name="extension-mode" onChange={() => onModeChange('period')} type="radio" /><span><strong>{uiText("기간 선택")}</strong><small>{uiText("선택한 기간 만큼 연장됩니다.")}</small></span></label><fieldset aria-label={uiText("연장 기간")} disabled={busy}><legend className="sr-only">{uiText("연장 기간")}</legend><div className="rcpc-extension-dialog__periods">{[['30', uiText("1개월")], ['60', uiText("2개월")], ['90', uiText("3개월")]].map(([value, label]) => <button aria-pressed={extensionMode === 'period' && periodValue === value} key={value} onClick={() => { onModeChange('period'); onPeriodChange?.(value) }} type="button">{label}</button>)}</div></fieldset></div>
-          <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'date'} disabled={busy} name="extension-mode" onChange={() => onModeChange('date')} type="radio" /><span><strong>{uiText("종료일 지정")}</strong><small>{uiText("선택한 날짜로 모든 RCPC의 종료일을 통일합니다.")}</small></span></label><input aria-label={uiText("연장 종료일")} disabled={busy} onChange={(event) => { onModeChange('date'); onDateChange?.(event.target.value) }} type="date" value={dateValue} /></div>
+          <div className="rcpc-extension-dialog__mode-row"><label><input checked={extensionMode === 'date'} disabled={busy} name="extension-mode" onChange={() => onModeChange('date')} type="radio" /><span><strong>{uiText("종료일 지정")}</strong><small>{uiText("선택한 날짜로 모든 RCPC의 종료일을 통일합니다.")}</small></span></label><DatePicker label={uiText("연장 종료일")} disabled={busy || extensionMode !== 'date'} onChange={value => { onModeChange('date'); onDateChange?.(value) }} value={dateValue} /></div>
         </div>
         <p className="rcpc-extension-dialog__help">{uiText("ㆍ선택한 방식에 따라 각 RCPC의 연장 기간이 계산됩니다.")}<br />{uiText("ㆍ연장 시에는 렌탈비만 추가되며, 상품별 결제 예정금액은 다를 수 있습니다.")}<br />{uiText("ㆍ30일 상품은 (월 렌탈료 ÷ 30) × 연장 일수로 계산한 뒤, 상품별 금액의 소수점 이하를 반올림합니다.")}</p>
         {busy ? <p role="status">{uiText("연장 견적을 확인하고 있습니다.")}</p> : null}
@@ -110,7 +112,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
 
 export function RcpcSpecSurface({ onClose, rcpc, returnFocusRef }: RcpcSurfaceProps) {
   const { uiText } = useUiTranslation()
-  return <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--single" dialogClassName="rcpc-spec-dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} title={uiText("PC 사양 보기")}><dl><div><dt>{uiText("서버실")}</dt><dd>{rcpc.location || uiText("정보 없음")}</dd></div><div><dt>{uiText("품번")}</dt><dd>{rcpc.rcpcId}</dd></div><div><dt>OS</dt><dd>{rcpc.os || uiText("정보 없음")}</dd></div><div><dt>CPU</dt><dd>{rcpc.cpu || uiText("정보 없음")}</dd></div><div><dt>RAM</dt><dd><mark>{rcpc.ram || uiText("정보 없음")}</mark></dd></div><div><dt>DISK</dt><dd><mark>{rcpc.disk || uiText("정보 없음")}</mark></dd></div><div><dt>GPU</dt><dd><mark>{rcpc.gpu || uiText("정보 없음")}</mark></dd></div></dl><button onClick={onClose} type="button">{uiText("닫기")}</button></PopupLayer>
+  return <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--single" dialogClassName="rcpc-spec-dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} title={uiText("PC 사양 보기")}><dl><div><dt>{uiText("서버실")}</dt><dd><LocalizedServiceName kind="serverRoom" name={rcpc.location} fallback={uiText("정보 없음")} /></dd></div><div><dt>{uiText("품번")}</dt><dd>{rcpc.rcpcId}</dd></div><div><dt>OS</dt><dd>{rcpc.os || uiText("정보 없음")}</dd></div><div><dt>CPU</dt><dd>{rcpc.cpu || uiText("정보 없음")}</dd></div><div><dt>RAM</dt><dd><mark>{rcpc.ram || uiText("정보 없음")}</mark></dd></div><div><dt>DISK</dt><dd><mark>{rcpc.disk || uiText("정보 없음")}</mark></dd></div><div><dt>GPU</dt><dd><mark>{rcpc.gpu || uiText("정보 없음")}</mark></dd></div></dl><button onClick={onClose} type="button">{uiText("닫기")}</button></PopupLayer>
 }
 
 export function RcpcAliasSurface({ alias, confirmDisabled = false, error, onAliasChange, onClose, onConfirm, rcpc, returnFocusRef }: RcpcAliasSurfaceProps) {

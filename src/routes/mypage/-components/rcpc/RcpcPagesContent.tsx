@@ -1,4 +1,5 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServerRoomOption } from '@/components/mypage/LocalizedServerRoomOption'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
@@ -85,7 +86,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
   const regions = filterOptions?.regions ?? []
   const rooms = (filterOptions?.serverRooms ?? [])
     .filter(room => !query.region || room.region === query.region)
-    .map(room => [room.id, room.name ?? String(room.id)] as const)
+    .map(room => [room.id, room.name] as const)
   const capability = session.status === 'authenticated' ? session.customerSession : null
   const canExtend = capability?.memberRole === 'owner' && capability.commerceAvailable
   const canEditAlias = capability?.memberRole === 'owner'
@@ -120,11 +121,11 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
           setQuery(previous => ({ ...previous, page: 0, region, serverRoomId: matchingRooms.length === 1 ? matchingRooms[0].id : undefined }))
         }} value={accessDenied ? '' : query.region ?? ''}>
           <option value="">{uiText("서버 위치 전체")}</option>
-          {regions.map(region => <option key={region} value={region}>{region}</option>)}
+          {regions.map(region => <LocalizedServerRoomOption key={region} value={region} kind="serverRoomRegion" name={region} />)}
         </NativeSelect>
         <NativeSelect aria-label={uiText("서버실")} disabled={accessDenied} onChange={event => setQuery(previous => ({ ...previous, page: 0, serverRoomId: event.target.value ? Number(event.target.value) : undefined }))} value={accessDenied ? '' : query.serverRoomId ?? ''}>
           <option value="">{uiText("서버실 선택")}</option>
-          {rooms.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+          {rooms.map(([id, name]) => <LocalizedServerRoomOption key={id} value={id} name={name} fallback={String(id)} />)}
         </NativeSelect>
       </MyPageToolbar>
       {!accessDenied && available.error ? <p role="alert">{uiText("서버실 목록을 불러오지 못했습니다.")} <button onClick={() => void available.refetch()} type="button">{uiText("다시 시도")}</button></p> : null}

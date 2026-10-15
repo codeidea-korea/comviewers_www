@@ -28,8 +28,9 @@ export interface BoardToolbarProps {
 export function BoardToolbar({ className = 'board-toolbar', count, onSearchChange, onSearchSubmit, onSortChange, onWrite, search = '', searchIcon, showWrite = false, sort = 'latest', sortIcon, sortOptions = defaultSortOptions, writeLabel = '글쓰기', writeTo = '/community/posts/new' }: BoardToolbarProps) {
   const { uiText } = useUiTranslation()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [countBefore, countAfter] = uiText('총 {count}개', { count: '\uFFFC' }).split('\uFFFC')
   return <div className={className}>
-    {className === 'support-toolbar' ? <span>{uiText('총 {count}개', { count })}</span> : <span>{uiText('총')} <span><b>{count}</b>{uiText('개')}</span></span>}
+    <span className="notranslate" translate="no">{countBefore}{className === 'support-toolbar' ? count : <b>{count}</b>}{countAfter}</span>
     <div className={`${className}__controls`}>
       <label className={`${className}__sort${className === 'support-toolbar' ? ' support-sort' : ''}`}><span className="sr-only">{uiText('정렬')}</span><span aria-hidden="true" className="board-toolbar__sort-label">{uiText(sortOptions.find(option => option.value === sort)?.label)}</span><NativeSelect aria-label={uiText('정렬')} onChange={(event) => onSortChange?.(event.target.value)} value={sort}>{sortOptions.map((option) => <option key={option.value} value={option.value}>{uiText(option.label)}</option>)}</NativeSelect><img alt="" aria-hidden="true" src={sortIcon} /></label>
       <SearchField className={`${className}__search`} controlClassName={className === 'board-toolbar' ? 'board-toolbar__search-control' : undefined} icon={searchIcon} label={uiText('제목 또는 내용 검색')} maxLength={BOARD_SEARCH_MAX_LENGTH} onChange={(event) => onSearchChange?.(event.target.value.slice(0, BOARD_SEARCH_MAX_LENGTH))} onSubmit={onSearchSubmit} placeholder={uiText('제목 또는 내용 검색')} submitLabel={uiText('검색')} value={search} />

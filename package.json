@@ -7,6 +7,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "names:dev": "node name-translation/serve.mjs",
     "dev": "vite --host 127.0.0.1 --port 5301",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 5301",

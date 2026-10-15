@@ -29,9 +29,9 @@ export function getProfileFieldErrors(values: ProfileEditorValues, currentPasswo
     passwordConfirm: wantsPasswordChange && newPassword !== newPasswordConfirm ? '비밀번호가 일치하지 않습니다.' : '',
     name: !/^[가-힣A-Za-z'-]{1,18}$/.test(name) ? '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.' : '',
     nickname: !/^[가-힣A-Za-z0-9]{1,18}$/.test(nickname) ? '닉네임은 1~18자의 한글, 영문, 숫자만 사용할 수 있습니다.' : '',
-    email: !emailLocal || !emailDomain || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(`${emailLocal}@${emailDomain}`) ? '이메일 주소를 확인해 주세요.' : '',
+    email: !emailLocal || !emailDomain || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(`${emailLocal}@${emailDomain}`) ? '이메일 주소를 확인해 주세요.' : `${emailLocal}@${emailDomain}`.length > 255 ? '이메일 주소는 255자 이하로 입력해 주세요.' : '',
     phone: phoneMiddle || phoneLast ? !/^\d{1,4}$/.test(phoneMiddle) || !/^\d{1,4}$/.test(phoneLast) ? '휴대폰 번호를 모두 입력해 주세요.' : '' : '',
-    messenger: Boolean(messengerType.trim()) !== Boolean(messengerId.trim()) ? '메신저 종류와 아이디를 함께 입력해 주세요.' : '',
+    messenger: Boolean(messengerType.trim()) !== Boolean(messengerId.trim()) ? '메신저 종류와 아이디를 함께 입력해 주세요.' : messengerType.length > 50 ? '메신저 종류는 50자 이하로 입력해 주세요.' : messengerId.length > 100 ? '메신저 아이디는 100자 이하로 입력해 주세요.' : '',
   }
 }
 

@@ -10,7 +10,8 @@ import type { CartItem } from '@/domain/cart/schemas'
 import { getCartItemAmount, getCartItemPoints, getCartSelectionUnits, cartUnitLabel, cartSelectionLabel, cartPriceLabel } from '@/domain/cart/cartEstimate'
 import { cartIssueMessage } from '@/domain/cart/cartIssues'
 import { CartMoney } from './CartMoney'
-import { TranslatedText, useTranslation } from '@/i18n/translation'
+import { TranslatedText } from '@/i18n/translation'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 interface Props {
   item: CartItem
@@ -23,7 +24,8 @@ interface Props {
 }
 
 export function CartProductRow({ item, selected, disabled, quantityUpdating, onToggle, onRemove, onQuantityChange }: Props) {
-  const { locale, t } = useTranslation()
+  const { locale, t, uiText } = useUiTranslation()
+  const separateQuantityUnit = locale === 'ko' || locale === 'zh-TW'
   const partner = item.type === 'part'
   const visual = productOsVisual(item.osFilterValue, partner, item.image)
   const waiting = item.instantAvailable === false
@@ -56,7 +58,7 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
           {item.issues.map(issue => <p className="cart-item__notice" key={issue} role="status"><span className="notranslate" translate="no">{cartIssueMessage(issue)}</span></p>)}
         </>}
         <div className="cart-item__bottom">
-          <div aria-busy={quantityUpdating} className="purchase-row__quantity cart-quantity notranslate" translate="no"><div><button aria-label={t('cart.decreaseQuantity')} data-unavailable={decreaseUnavailable} disabled={quantityUpdating || decreaseUnavailable} onClick={() => onQuantityChange(Math.min(item.maximumQuantity ?? Number.MAX_SAFE_INTEGER, units - 1))} type="button"><img alt="" src={removeIcon} /></button><b style={locale === 'ko' ? undefined : { width: 'auto', minWidth: 50, paddingInline: 8 }}>{locale === 'ko' ? units : cartSelectionLabel(item)}</b><button aria-label={t('cart.increaseQuantity')} data-unavailable={increaseUnavailable} disabled={quantityUpdating || increaseUnavailable} onClick={() => onQuantityChange(Math.max(item.minimumQuantity, units + 1))} type="button"><img alt="" src={addIcon} /></button></div>{locale === 'ko' && <span>{cartUnitLabel(item)}</span>}</div>
+          <div aria-busy={quantityUpdating} className="purchase-row__quantity cart-quantity notranslate" translate="no"><div><button aria-label={t('cart.decreaseQuantity')} data-unavailable={decreaseUnavailable} disabled={quantityUpdating || decreaseUnavailable} onClick={() => onQuantityChange(Math.min(item.maximumQuantity ?? Number.MAX_SAFE_INTEGER, units - 1))} type="button"><img alt="" src={removeIcon} /></button><b style={separateQuantityUnit ? undefined : { width: 'auto', minWidth: 50, paddingInline: 8 }}>{separateQuantityUnit ? units : cartSelectionLabel(item)}</b><button aria-label={t('cart.increaseQuantity')} data-unavailable={increaseUnavailable} disabled={quantityUpdating || increaseUnavailable} onClick={() => onQuantityChange(Math.max(item.minimumQuantity, units + 1))} type="button"><img alt="" src={addIcon} /></button></div>{separateQuantityUnit && <span>{uiText(cartUnitLabel(item))}</span>}</div>
           <div className="purchase-row__amount cart-item__amount">{!partner && <span className="cart-item__points"><TranslatedText id="cart.pointsToEarn" /><span className="cart-item__point-value notranslate" translate="no">{locale === 'ko' ? <><b>{points ?? '-'}</b>{points !== null && <span>점</span>}</> : <b>{points === null ? '-' : t('money.pointAmount', { points })}</b>}</span></span>}<CartMoney className="cart-money--item" value={getCartItemAmount(item)} /></div>
         </div>
       </div>

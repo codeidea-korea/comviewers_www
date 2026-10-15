@@ -16,7 +16,8 @@
 .home-section-heading p { color: var(--color-gray-600); font-size: 18px; line-height: 24px; margin-top: 16px; max-width: 900px; letter-spacing: -.02em; }
 .home-section-heading > a { align-items: center; color: var(--color-gray-500); display: inline-flex; font-size: 16px; gap: 2px; }
 .home-section-heading > a img { height: 16px; width: 16px; }
-.intro-grid { display: grid; gap: 30px; grid-template-columns: repeat(3, 1fr); }
+.intro-grid { display: grid; gap: 30px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.intro-grid article { min-width: 0; overflow-wrap: anywhere; }
 .intro-section .home-section-heading p { color: var(--color-gray-700); font-weight: 400; letter-spacing: -.02em; max-width: 765px; width: 765px; }
 .intro-grid__image { aspect-ratio: 362 / 231; border-radius: var(--radius-md); overflow: hidden; position: relative; width: 100%; }
 .intro-grid__image img { max-width: none; position: absolute; }
@@ -24,8 +25,16 @@
 .intro-grid article:nth-child(2) .intro-grid__image img { height: 107.83%; left: .01%; top: -3.91%; width: 99.98%; }
 .intro-grid article:nth-child(3) .intro-grid__image img { height: 140%; left: -17.08%; top: -20%; width: 134.17%; }
 .intro-grid h3 { font-size: 24px; letter-spacing: -.03em; line-height: 1.2; margin: 16px 0 12px; }
-.intro-grid h3 span { color: var(--color-gray-600); }
+.intro-grid h3 > .intro-grid__title-muted,
+.intro-grid h3 > .intro-grid__title-main { display: block; }
+.intro-grid h3 > .intro-grid__title-muted { color: var(--color-gray-600); }
 .intro-grid p { color: var(--color-gray-600); font-size: 16px; line-height: 22px; letter-spacing: -.02em; }
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 768px) {
+    .intro-grid { row-gap: 0; }
+    .intro-grid article { display: grid; grid-row: span 3; grid-template-rows: subgrid; }
+  }
+}
 .products-section { padding-top: 120px; }
 .products-section .home-section-heading { margin-bottom: 50px; }
 .products-section .home-section-heading p { font-weight: 400; letter-spacing: -.02em; }
@@ -82,10 +91,10 @@
 .usage-section .home-section-heading h2,
 .security-section .home-section-heading h2 { line-height: 33px; }
 .security-section { background: var(--color-gray-50); }
-.security-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
-.security-grid article { background: var(--color-white); border-radius: 20px; display: flex; flex-direction: column; min-height: 322px; padding: 20px; }
-.security-grid h3 { font-size: 20px; letter-spacing: -.03em; }
-.security-grid p { color: var(--color-gray-600); font-size: 16px; line-height: 22px; margin-top: 8px; letter-spacing: -.02em; }
+.security-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.security-grid article { background: var(--color-white); border-radius: 20px; display: flex; flex-direction: column; min-height: 322px; min-width: 0; padding: 20px; }
+.security-grid h3 { font-size: 20px; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.security-grid p { color: var(--color-gray-600); font-size: 16px; line-height: 22px; margin-top: 8px; letter-spacing: -.02em; overflow-wrap: anywhere; }
 .security-grid p strong { font-weight: 700; }
 .security-grid img { align-self: flex-end; height: 142px; margin-top: auto; object-fit: contain; width: 142px; }
 .home-cta { color: var(--color-white); height: 608px; overflow: hidden; position: relative; text-align: center; width: 100%; }
@@ -136,8 +145,8 @@
 .auth-form--login > .auth-check-row { margin-top: 12px; }
 .auth-form--login > .button { margin-top: 12px; }
 .auth-form--login > .auth-links { margin-top: 12px; }
-.auth-check-row { display: flex; gap: 12px; }
-.auth-check-row > label { align-items: center; display: inline-flex; flex-shrink: 0; white-space: nowrap; }
+.auth-check-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.auth-check-row > label { align-items: center; display: inline-flex; max-width: 100%; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
 .auth-checkbox { align-items: center; color: var(--color-gray-600); cursor: pointer; display: inline-flex; font-size: 14px; gap: 8px; line-height: 18px; position: relative; letter-spacing: -.02em; }
 .auth-checkbox input { height: 18px; margin: 0; opacity: 0; position: absolute; width: 18px; }
 .auth-checkbox__visual { align-items: center; background: var(--color-white); border: 1px solid var(--color-gray-300); border-radius: 2px; color: transparent; display: inline-flex; flex: 0 0 18px; height: 18px; justify-content: center; pointer-events: none; }
@@ -214,10 +223,11 @@
 .form-error { color: var(--color-system-error); font-size: 14px; line-height: 20px; }
 .result-copy { color: var(--color-gray-600); display: flex; flex-direction: column; font-size: 14px; gap: 20px; line-height: 22px; }
 .result-copy > p:first-child { color: var(--color-black); font-size: 16px; }
-.result-copy dl { display: flex; flex-direction: column; gap: 8px; }
-.result-copy dl div { display: grid; grid-template-columns: 64px 1fr; }
-.result-copy dt, .single-result dt { color: var(--color-gray-500); }
-.result-copy dd, .single-result dd { color: var(--color-black); }
+.result-copy dl { display: grid; grid-template-columns: minmax(64px, max-content) minmax(0, 1fr); row-gap: 8px; }
+.result-copy dl > div { display: contents; }
+.result-copy dt, .single-result dt { color: var(--color-gray-500); white-space: nowrap; }
+.result-copy dt { padding-inline-end: 16px; }
+.result-copy dd, .single-result dd { color: var(--color-black); min-width: 0; overflow-wrap: anywhere; }
 .result-copy hr { border: 0; border-top: 1px solid var(--color-gray-200); margin: 0; width: 100%; }
 .auth-panel--result > .button { margin-top: 40px; width: 100%; }
 .auth-page--signup-complete .result-copy { font-size: 16px; line-height: 24px; }
@@ -226,7 +236,7 @@
 .signup-request-actions { margin-top: 24px; }
 .signup-request-actions > .button:only-child { grid-column: 1 / -1; justify-self: center; width: 50%; }
 .signup-request-actions > .button:nth-child(3) { grid-column: 1 / -1; }
-.single-result { display: grid; font-size: 16px; grid-template-columns: 41px 1fr; column-gap: 20px; line-height: 24px; margin: 0 0 40px; }
+.single-result { display: grid; font-size: 16px; grid-template-columns: minmax(41px, max-content) minmax(0, 1fr); column-gap: 20px; line-height: 24px; margin: 0 0 40px; }
 .single-result dt { white-space: nowrap; }
 .result-actions { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
 .result-copy > p.resend-timer { color: var(--color-gray-500); font-size: 13px; }

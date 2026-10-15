@@ -1,5 +1,6 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useState } from 'react'
+import { useLocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import type { AccountOrderItem } from '@/api/myAccountOrders'
@@ -13,6 +14,7 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
   const { reviews } = useServices()
   const client = useQueryClient()
   const [open, setOpen] = useState(false)
+  const serverRoomLabel = useLocalizedServiceName('serverRoom', open ? item.serverRoomName : null)
   const eligible = useQuery({ queryKey: ['productReviewEligible', item.productNo], enabled: open,
     queryFn: ({ signal }) => reviews.listEligibleRentals(item.productNo, signal) })
   const sourceId = item.rentalId ?? (item.billingUnit === 'unit' ? `order-item:${item.orderItemId}` : null)
@@ -20,7 +22,10 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
   const save = useMutation({ mutationFn: async ({ draft, rentalId }: { draft: { rating: number; body: string }; rentalId: string }) => {
     if (!allowed || !sourceId || rentalId !== sourceId) throw new Error('후기 작성 가능한 구매 상품을 확인해 주세요.')
     const parsed = reviewDraftSchema.safeParse(draft)
-    if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? '후기 내용을 확인해 주세요.')
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      throw new Error(issue?.path[0] === 'rating' ? '상품 만족도를 선택해 주세요.' : issue?.message ?? '후기 내용을 확인해 주세요.')
+    }
     return reviews.create(item.productNo, sourceId, parsed.data)
   }, onSuccess: async () => {
     setOpen(false)
@@ -48,7 +53,7 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
       onClose={closeReview}
       onSubmit={(draft, rentalId) => save.mutate({ draft, rentalId })}
       pending={save.isPending}
-      product={{ productId: item.productNo, serverRoom: item.serverRoomName ?? '-', pricingType: item.billingUnit === 'unit' ? 'one_time' : 'rental', title: item.title, description: item.specSummary, os: null, cpu: item.specSummary, ram: null, disk: null, gpu: null }}
+      product={{ productId: item.productNo, serverRoom: serverRoomLabel, pricingType: item.billingUnit === 'unit' ? 'one_time' : 'rental', title: item.title, description: item.specSummary, os: null, cpu: item.specSummary, ram: null, disk: null, gpu: null }}
     />
   </>
 }

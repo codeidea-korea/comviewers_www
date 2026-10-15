@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { RelativeLink as Link } from '../../../components/navigation/RelativeLinkView'
 import { Icon } from '../../../components/ui/IconControl'
+import { useTranslation } from '../../../i18n/translation'
 import heroMain from '../../../assets/figma/store/hero-main.png'
 import heroMainMobile from '../../../assets/figma/store/hero-main-mobile.png'
 import heroServerRoom from '../../../assets/figma/store/hero-server-room.png'
@@ -14,6 +15,8 @@ const slides = [
 ]
 
 export function HomeHeroSection() {
+  const { locale, t } = useTranslation()
+  const manualTitle = locale === 'en' || locale === 'ja' || locale === 'zh-CN' || locale === 'zh-TW'
   const [activeIndex, setActiveIndex] = useState(0)
   const [prefersReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const [interacting, setInteracting] = useState(false)
@@ -46,12 +49,16 @@ export function HomeHeroSection() {
         </picture>)}
         <span aria-hidden="true" className="home-hero__shade" />
         <div className="content-container home-hero__content">
-          <div><h1>RCPC 렌탈 마켓 플랫폼 전문기업<br />ComViewers</h1><p>고사양 워크스테이션, 데스크탑 PC부터 PC방 컴퓨터, 젠서버 디바이스까지<br />필요한 조건에 맞는 RCPC를 간편하게 비교하고 자유롭게 임대할 수 있습니다.</p><Link className="button button--large home-outline-button" to="/products">RCPC 상품 보기 <span aria-hidden="true" className="home-outline-button__icon"><Icon name="chevron-right" size={20} tone="inverse" /></span></Link></div>
+          <div>
+            <h1 key={manualTitle ? 'manual-localized' : 'automatic'} className={manualTitle ? 'home-hero__title--manual notranslate' : undefined} translate={manualTitle ? 'no' : undefined}>{manualTitle ? t('catalogUi.homeHeroTitle') : 'RCPC 렌탈 마켓 플랫폼 전문기업'}<br />ComViewers</h1>
+            <p className="home-hero__description--manual notranslate" translate="no">{t('catalogUi.homeHeroDevices')}<br />{t('catalogUi.homeHeroRental')}</p>
+            <Link className="button button--large home-outline-button" to="/products">RCPC 상품 보기 <span aria-hidden="true" className="home-outline-button__icon"><Icon name="chevron-right" size={20} tone="inverse" /></span></Link>
+          </div>
           <div className="hero-pagination">
             <span aria-hidden="true" className="hero-pagination__line"><span style={{ width: `${((activeIndex + 1) / slides.length) * 100}%` }} /></span>
             <div className="hero-pagination__controls">
               <button aria-label="이전 배너" onClick={() => moveSlide(-1)} type="button"><Icon name="chevron-left" size={12} tone="inverse" /></button>
-              <span aria-label={`${slides.length}개 중 ${activeIndex + 1}번째 배너`}><b>{activeIndex + 1}</b><span> / {slides.length}</span></span>
+              <span className="notranslate" translate="no" aria-label={`${slides.length}개 중 ${activeIndex + 1}번째 배너`}><b>{activeIndex + 1}</b><span>/</span><span>{slides.length}</span></span>
               <button aria-label="다음 배너" onClick={() => moveSlide(1)} type="button"><Icon name="chevron-right" size={12} tone="inverse" /></button>
             </div>
           </div>

@@ -856,7 +856,7 @@
   .company-catalog-rcpc small { font-size: 16px; line-height: 24px; }
   .company-catalog-platform > div > div { grid-template-columns: 1fr; }
   .company-catalog-rcpc p { flex-wrap: wrap; gap: 12px; justify-content: center; letter-spacing: .2em; padding-inline: 16px; }
-  .company-catalog-benefits button { grid-template-columns: minmax(0, 1fr) 24px; height: auto; min-height: 72px; padding: 16px; }
+  .company-catalog-benefits button { grid-template-columns: minmax(0, 1fr) minmax(24px, max-content); height: auto; min-height: 72px; padding: 16px; }
   .company-catalog-benefits button strong { font-size: 18px; }
   .company-catalog-benefits article > p,
   .company-catalog-benefits article:hover > p,

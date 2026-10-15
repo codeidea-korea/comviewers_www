@@ -1,6 +1,7 @@
 import { usePublicLegalDocuments } from '@/domain/legal/usePublicLegalDocuments'
 import type { Product } from '@/domain/products/types'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 const scopeLabel: Record<NonNullable<Product['refundPolicy']>['scopeType'], string> = {
   product: '상품별 정책',
@@ -9,11 +10,12 @@ const scopeLabel: Record<NonNullable<Product['refundPolicy']>['scopeType'], stri
 }
 
 function PolicyDocumentBlock({ kind, title }: { kind: 'refund' | 'point'; title: string }) {
+  const { uiText } = useUiTranslation()
   const query = usePublicLegalDocuments(kind)
-  if (query.isPending) return <LoadingState className="route-loading--compact" label={`${title} 문서를 불러오는 중입니다.`} />
-  if (query.isError) return <p role="alert">{title} 문서를 불러오지 못했습니다.</p>
+  if (query.isPending) return <LoadingState className="route-loading--compact" label={uiText('{title} 문서를 불러오는 중입니다.', { title: uiText(title) })} />
+  if (query.isError) return <p role="alert">{uiText('{title} 문서를 불러오지 못했습니다.', { title: uiText(title) })}</p>
   const document = query.data[0]
-  if (!document) return <p role="status">발행된 {title} 문서가 없습니다.</p>
+  if (!document) return <p role="status">{uiText('발행된 {title} 문서가 없습니다.', { title: uiText(title) })}</p>
   return (
     <article>
       <h3>{document.title}</h3>
@@ -24,6 +26,7 @@ function PolicyDocumentBlock({ kind, title }: { kind: 'refund' | 'point'; title:
 }
 
 export function ProductRefundSection({ product }: { product?: Product }) {
+  const { uiText } = useUiTranslation()
   const policy = product?.refundPolicy ?? null
   return (
     <section id="refund">
@@ -41,7 +44,7 @@ export function ProductRefundSection({ product }: { product?: Product }) {
                 {policy.effectiveTo ? <div><dt>적용 종료</dt><dd><time dateTime={policy.effectiveTo}>{policy.effectiveTo.slice(0, 10)}</time></dd></div> : null}
               </dl>
             </article>
-          ) : <p role="status">이 상품에 적용할 수 있는 발행 환불 정책이 없습니다. 주문 전 서버실 담당자에게 환불 기준을 확인해 주세요.</p>
+          ) : <p role="status">{uiText('이 상품에 적용할 수 있는 발행 환불 정책이 없습니다. 주문 전 서버실 담당자에게 환불 기준을 확인해 주세요.')}</p>
         ) : null}
         <PolicyDocumentBlock kind="refund" title="취소·환불 정책" />
         <PolicyDocumentBlock kind="point" title="포인트 정책" />

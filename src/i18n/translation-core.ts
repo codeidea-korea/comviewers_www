@@ -1,4 +1,5 @@
 import { translationLocales, translationOverrides, type TranslationLocale } from './translation-overrides'
+import { setValidationLocale } from './validationLocale'
 
 export type TranslationKey = typeof translationOverrides[number]['key']
 export type PageLocale = 'ko' | TranslationLocale
@@ -22,6 +23,7 @@ function storedLocale(): PageLocale {
 }
 
 let currentLocale = storedLocale()
+setValidationLocale(currentLocale)
 let listeners: readonly (() => void)[] = []
 export function subscribeTranslation(listener: () => void) {
   listeners = [...listeners, listener]
@@ -34,6 +36,7 @@ export function setTranslationLocale(value: string) {
   const next = isTranslationLocale(value) ? value : 'ko'
   if (currentLocale === next) return
   currentLocale = next
+  setValidationLocale(next)
   try { window.sessionStorage.setItem(storageKey, next) }
   catch { console.warn('Translation language is available for this page but could not be saved.') }
   listeners.forEach(listener => listener())

@@ -14,7 +14,7 @@ export function HomeIntroSection() {
       <section className="home-section intro-section">
         <div className="content-container">
           <SectionHeading description={<>RCPC는 원격제어 프로그램으로 제어 가능한 워크스테이션, 데스크탑, 젠서버, 가상서버를 의미합니다.<br />필요한 PC환경을 직접 구축하지 말고 컴뷰어스에서 RCPC를 이용하세요</>}>고성능 RCPC로 더 빠르고 안정적인 PC환경을 경험해 보세요.</SectionHeading>
-          <div className="intro-grid">{introItems.map((item) => <article key={item.title}><div className="intro-grid__image"><img alt="" src={item.image} /></div><h3><span>{item.muted}</span><br />{item.title}</h3><p>{item.description}</p></article>)}</div>
+          <div className="intro-grid">{introItems.map((item) => <article key={item.title}><div className="intro-grid__image"><img alt="" src={item.image} /></div><h3><span className="intro-grid__title-muted">{item.muted}</span><span className="intro-grid__title-main">{item.title}</span></h3><p>{item.description}</p></article>)}</div>
         </div>
       </section>
   )

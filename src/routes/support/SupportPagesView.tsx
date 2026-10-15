@@ -16,6 +16,7 @@ import { RichContentRenderer } from '../../components/ui/RichContentRendererCont
 import { LoadingState } from '../../components/ui/LoadingStateControl'
 import { useArticlePage, useArticle } from '@/routes/community/-components/hooks/useContent'
 import { supportReturnTo } from './supportNavigation'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 const supportSortOptions = [
   { label: '최신순', value: 'latest' },
@@ -34,10 +35,12 @@ function SupportHero() {
 }
 
 export function SupportListPage() {
+  const { t, uiText } = useUiTranslation()
   const [params, setParams] = useSearchParams()
   const sort = supportSort(params.get('sort'))
   const search = (params.get('keyword') ?? '').slice(0, BOARD_SEARCH_MAX_LENGTH)
-  const [searchDraft, setSearchDraft] = useState(search)
+  const [searchDraft, setSearchDraft] = useState({ value: search, usageGuide: search === '이용안내' })
+  const displayedSearch = searchDraft.usageGuide ? t('catalogUi.usageGuide') : searchDraft.value
   const requestedPage = Number(params.get('page'))
   const currentPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
   const pageRef = useRef<HTMLElement>(null)
@@ -46,7 +49,7 @@ export function SupportListPage() {
   const totalPages = result.data?.totalPages ?? 0
   const page = totalPages > 0 ? Math.min(currentPage, totalPages) : 1
   useEffect(() => {
-    setSearchDraft(search)
+    setSearchDraft({ value: search, usageGuide: search === '이용안내' })
   }, [search])
   useEffect(() => {
     if (!result.data || totalPages === 0 || currentPage <= totalPages) return
@@ -58,8 +61,10 @@ export function SupportListPage() {
     return next
   })
   const submitSearch = (value: string) => {
-    const keyword = value.trim().slice(0, BOARD_SEARCH_MAX_LENGTH)
-    setSearchDraft(keyword)
+    // Localize the preset's display without searching Korean articles for its translation.
+    const source = searchDraft.usageGuide && value === displayedSearch ? '이용안내' : value
+    const keyword = source.trim().slice(0, BOARD_SEARCH_MAX_LENGTH)
+    setSearchDraft({ value: keyword, usageGuide: searchDraft.usageGuide && keyword === '이용안내' })
     updateParams({ keyword, page: '' })
     if (keyword === search.trim() && currentPage === 1) void result.refetch()
   }
@@ -73,8 +78,8 @@ export function SupportListPage() {
     <AppShell className="support-shell">
       <SupportHero />
       <section className="support-page content-container" ref={pageRef}>
-        <BoardToolbar className="support-toolbar" count={result.data?.totalCount ?? 0} onSearchChange={setSearchDraft} onSearchSubmit={submitSearch} onSortChange={(value) => updateParams({ sort: value, page: '' })} search={searchDraft} searchIcon={searchIcon} sort={sort} sortIcon={chevronDown} sortOptions={supportSortOptions} />
-        <div className="support-list">{result.isPending ? <LoadingState label="안내를 불러오는 중입니다." /> : result.isError ? <p role="alert">안내를 불러오지 못했습니다. <button type="button" onClick={() => void result.refetch()}>다시 시도</button></p> : !visibleArticles.length ? <div className="board-empty">{search ? '검색 조건에 해당하는 게시글이 없습니다.' : '등록된 게시글이 없습니다.'}</div> : null}{visibleArticles.map((article) => <Link key={article.id} to={`/support/${article.articleId}?returnTo=${encodeURIComponent(listPath)}`}><span className={article.pinned ? 'is-pinned' : ''}>{article.pinned ? <img alt="고정 공지" src={keepIcon} /> : article.number}</span><strong className={article.pinned ? 'is-pinned-title' : undefined}><span className="support-list__title">{article.title}</span>{article.attachmentCount > 0 ? <img alt="첨부파일 있음" src={attachmentIcon} /> : null}</strong><time>{article.date}</time></Link>)}</div>
+        <BoardToolbar className="support-toolbar" count={result.data?.totalCount ?? 0} onSearchChange={(value) => setSearchDraft({ value, usageGuide: false })} onSearchSubmit={submitSearch} onSortChange={(value) => updateParams({ sort: value, page: '' })} search={displayedSearch} searchIcon={searchIcon} sort={sort} sortIcon={chevronDown} sortOptions={supportSortOptions} />
+        <div className="support-list">{result.isPending ? <LoadingState label="안내를 불러오는 중입니다." /> : result.isError ? <p role="alert">{uiText('안내를 불러오지 못했습니다.')} <button type="button" onClick={() => void result.refetch()}>{uiText('다시 시도')}</button></p> : !visibleArticles.length ? <div className="board-empty">{uiText(search ? '검색 조건에 해당하는 게시글이 없습니다.' : '등록된 게시글이 없습니다.')}</div> : null}{visibleArticles.map((article) => <Link key={article.id} to={`/support/${article.articleId}?returnTo=${encodeURIComponent(listPath)}`}><span className={article.pinned ? 'is-pinned' : ''}>{article.pinned ? <img alt="고정 공지" src={keepIcon} /> : article.number}</span><strong className={article.pinned ? 'is-pinned-title' : undefined}><span className="support-list__title">{article.title}</span>{article.attachmentCount > 0 ? <img alt="첨부파일 있음" src={attachmentIcon} /> : null}</strong><time>{article.date}</time></Link>)}</div>
         <Pagination currentPage={page} onPageChange={(nextPage) => { updateParams({ page: String(nextPage) }); pageRef.current?.scrollIntoView({ block: 'start' }) }} totalPages={totalPages} />
       </section>
     </AppShell>
@@ -82,6 +87,7 @@ export function SupportListPage() {
 }
 
 export function SupportDetailPage() {
+  const { uiText } = useUiTranslation()
   const { storefront } = useServices()
   const { articleId } = useParams()
   const [params] = useSearchParams()
@@ -89,8 +95,8 @@ export function SupportDetailPage() {
   const article = result.data
   const listPath = supportReturnTo(params.get('returnTo'))
   if (result.isPending) return <AppShell className="support-shell"><LoadingState label="안내를 불러오는 중입니다." /></AppShell>
-  if (result.isError) return <AppShell className="support-shell"><p role="alert">안내를 불러오지 못했습니다.</p><Link to={listPath}>목록으로</Link></AppShell>
-  if (!article) return <AppShell className="support-shell"><p role="alert">안내를 찾을 수 없습니다.</p><Link to={listPath}>목록으로</Link></AppShell>
+  if (result.isError) return <AppShell className="support-shell"><p role="alert">{uiText('안내를 불러오지 못했습니다.')}</p><Link to={listPath}>목록으로</Link></AppShell>
+  if (!article) return <AppShell className="support-shell"><p role="alert">{uiText('안내를 찾을 수 없습니다.')}</p><Link to={listPath}>목록으로</Link></AppShell>
   const content = article.content
   return (
     <AppShell className="support-shell">

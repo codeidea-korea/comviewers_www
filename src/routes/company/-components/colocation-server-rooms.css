@@ -6,6 +6,6 @@
 .colocation-server-room__remove img { filter: brightness(0) invert(1); height: 10px; width: 10px; }
 /* Figma 1707:28597: 112x41, 62px label, 2px gap, 16px icon box with a 10px glyph.
    The 1px CSS border plus 15px padding reproduces the 16px Figma content inset. */
-.colocation-server-rooms__list .colocation-server-rooms__add { align-self: flex-start; border-color: var(--color-gray-200); border-radius: 4px; border-style: solid; flex: 0 0 auto; font-size: 14px; font-weight: 500; gap: 2px; height: 41px; letter-spacing: -.42px; line-height: 17px; min-width: 112px; padding: 0 15px; white-space: nowrap; width: 112px; }
-.colocation-server-rooms__add > span { flex: 0 0 62px; }
+.colocation-server-rooms__list .colocation-server-rooms__add { align-self: flex-start; border-color: var(--color-gray-200); border-radius: 4px; border-style: solid; flex: 0 0 auto; font-size: 14px; font-weight: 500; gap: 2px; height: auto; letter-spacing: -.42px; line-height: 17px; max-width: 100%; min-height: 41px; min-width: 112px; padding: 11px 15px; white-space: normal; width: max-content; }
+.colocation-server-rooms__add > span { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .colocation-server-rooms__add img { box-sizing: border-box; flex: 0 0 16px; height: 16px; padding: 3px; width: 16px; }

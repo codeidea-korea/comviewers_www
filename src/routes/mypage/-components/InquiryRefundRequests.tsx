@@ -1,4 +1,5 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
@@ -15,7 +16,7 @@ export function InquiryRefundRequests({ api }: { api: InquiryReadServices }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const rows = useQuery({ queryKey: ['my-refund-requests', api.organizationId, page], queryFn: ({ signal }) => api.refunds(page, signal) })
   return <section><h2>{uiText("환불·중도해지 신청 내역")}</h2><InquiryRefundApplication api={api} /><AccountQueryState pending={rows.isPending} error={rows.error} retry={rows.refetch}/>
-    {rows.data ? <><p>{uiText("전체")} {rows.data.totalElements}{uiText("건")}</p><table><thead><tr><th>{uiText("주문번호")}</th><th>{uiText("서버실")}</th><th>{uiText("신청일")}</th><th>{uiText("신청 사유")}</th><th>{uiText("처리 상태")}</th><th>{uiText("상세")}</th></tr></thead><tbody>{rows.data.items.map((item) => <tr key={item.id}><td>{item.orderNo}</td><td>{item.serverRoomName ?? '-'}</td><td>{item.requestedAt.replace('T', ' ')}</td><td>{uiText(item.reason)}</td><td>{uiText(refundStatuses[item.status] ?? item.status)}</td><td><button onClick={() => setSelectedId(item.id)} type="button">{uiText("상세 / 철회")}</button></td></tr>)}</tbody></table>
+    {rows.data ? <><p>{uiText("전체")} {rows.data.totalElements}{uiText("건")}</p><table><thead><tr><th>{uiText("주문번호")}</th><th>{uiText("서버실")}</th><th>{uiText("신청일")}</th><th>{uiText("신청 사유")}</th><th>{uiText("처리 상태")}</th><th>{uiText("상세")}</th></tr></thead><tbody>{rows.data.items.map((item) => <tr key={item.id}><td>{item.orderNo}</td><td><LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></td><td>{item.requestedAt.replace('T', ' ')}</td><td>{uiText(item.reason)}</td><td>{uiText(refundStatuses[item.status] ?? item.status)}</td><td><button onClick={() => setSelectedId(item.id)} type="button">{uiText("상세 / 철회")}</button></td></tr>)}</tbody></table>
       {!rows.data.items.length ? <p>{uiText("환불·중도해지 신청 내역이 없습니다.")}</p> : null}<Pagination currentPage={rows.data.page + 1} totalPages={rows.data.totalPages} onPageChange={(value) => setPage(value - 1)}/></> : null}
     {selectedId !== null ? <RefundDetail key={selectedId} api={api} requestId={selectedId} onClose={() => setSelectedId(null)}/> : null}
   </section>

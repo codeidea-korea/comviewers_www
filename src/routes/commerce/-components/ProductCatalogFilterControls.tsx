@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { DropdownSelect, GroupedMultiSelect, useDismissibleSelect } from '@/components/ui/SelectControl'
 import filterChevronUpIcon from '@/assets/figma/filter-chevron-up.svg'
@@ -22,6 +23,7 @@ function MetadataNotice({ controls }: { controls: ProductCatalogControls }) {
 }
 
 export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: { controls: ProductCatalogControls; mobileFilterTrigger?: ReactNode }) {
+  const { uiText } = useUiTranslation()
   const { t } = useTranslation()
   const selectedLabel = (labels: readonly string[]) => labels.length > 1
     ? t('filter.moreSelected', { label: labels[0], count: labels.length - 1 }) : labels[0] ?? t('common.all')
@@ -89,7 +91,7 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
         </> : null} />)}
     </div>
     </div>
-    {roomNotice ? <p role="alert">{roomNotice}</p> : null}
+    {roomNotice ? <p role="alert">{uiText(roomNotice)}</p> : null}
     <div className={`selected-filters${hasSelectedFilters ? '' : ' is-empty'}`}><div className="selected-filters__title"><img alt="" src={filterTuneIcon} /><span><TranslatedText id="filter.title" /></span></div><div className="selected-filters__body"><div className="selected-filters__tags">
       {selectedRoomLabels.length ? <button aria-label={t('catalogUi.removeFilter', { label: `${t('filter.serverRoom')} ${selectedLabel(selectedRoomLabels)}` })} className="selected-filters__tag" type="button" onClick={() => update({ rooms: [] })}><span className="notranslate" translate="no">{t('filter.serverRoom')} {selectedLabel(selectedRoomLabels)}</span><FilterCloseIcon /></button> : null}
       {tags.map(tag => <button aria-label={t('catalogUi.removeFilter', { label: tag.label })} key={tag.id} className="selected-filters__tag" type="button" onClick={tag.remove}>{tag.label}<FilterCloseIcon /></button>)}

@@ -1,6 +1,7 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useQuery } from '@tanstack/react-query'
 import { InquiryAction } from '../inquiries/InquiryAction'
+import { translateInquiryTitle } from '../InquiryPresentation'
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
@@ -54,7 +55,7 @@ async function readStorageSummary(read: MyAccountReadServices, signal: AbortSign
 }
 
 export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquiries }: { detailMode?: boolean; read: MyAccountReadServices; rcpcs: MyRcpcReadServices; inquiries: InquiryReadServices }) {
-  const { uiText } = useUiTranslation()
+  const { uiText, locale, t } = useUiTranslation()
   const { storefront, myAccount } = useServices()
   const { rcpcId, id } = useParams()
   const session = useSession()
@@ -116,14 +117,14 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
             <AccountQueryState pending={summary.isPending || (owner && orders.isPending)} error={summary.error ?? (owner ? orders.error : null)} retry={() => { void summary.refetch(); if (owner) void orders.refetch() }}/>
             <div className="mypage-home-use">
               <div><span>{uiText("이용 중")}<strong>{counts?.using ?? 0}<small>{uiText("대")}</small></strong></span><span>{uiText("연장대기")}<strong>{counts?.extension_waiting ?? 0}<small>{uiText("대")}</small></strong></span><span>{uiText("종료")}<strong>{counts?.ended ?? 0}<small>{uiText("대")}</small></strong></span></div>
-              {owner && pendingOrderItems.length > 0 ? <div className="mypage-home-use__orders"><p>{uiText("구매 확정이 필요한 주문")} <b>{pendingOrderItems.length}</b><Link to="/mypage/orders">{uiText("주문내역 보기")}</Link></p><div className="mypage-home-use__order-list">{pendingOrderItems.slice(0, 2).map(({ item, order }) => <article key={item.orderItemId}><div className="mypage-home-use__product"><img alt="" src={windowsBackground}/><span><strong>{item.productNo}</strong><small>{uiText("주문번호")} {order.orderNo}</small></span></div><OrderItemActions api={read} item={item} paymentStatus={order.paymentStatus} orderStatus={order.orderStatus} variant="dashboard"/></article>)}</div></div> : null}
+              {owner && pendingOrderItems.length > 0 ? <div className={`mypage-home-use__orders${locale === 'en' ? ' mypage-home-use__orders--translated' : ''}`}><p>{uiText("구매 확정이 필요한 주문")} <b>{pendingOrderItems.length}</b><Link to="/mypage/orders">{t("mypageRcpc.ui139")}</Link></p><div className="mypage-home-use__order-list">{pendingOrderItems.slice(0, 2).map(({ item, order }) => <article key={item.orderItemId}><div className="mypage-home-use__product"><img alt="" src={windowsBackground}/><span><strong>{item.productNo}</strong><small>{uiText("주문번호")} {order.orderNo}</small></span></div><OrderItemActions api={read} item={item} paymentStatus={order.paymentStatus} orderStatus={order.orderStatus} variant="dashboard"/></article>)}</div></div> : null}
             </div>
           </section>
           {owner ? <section className="mypage-home-storage">{heading(uiText("보관함"), '/mypage/storage')}<AccountQueryState pending={storage.isPending} error={storage.error} retry={storage.refetch}/><div className="mypage-home-storage__card"><span>{uiText("결제 대기")}</span><strong>{storage.data?.totalCount ?? '—'}<small>{uiText("건")}</small></strong></div></section> : null}
         </div>
         <div>
-          <section>{heading(uiText("문의/AS 내역"), '/mypage/inquiries')}<AccountQueryState pending={recentInquiries.isPending} error={recentInquiries.error} retry={recentInquiries.refetch}/><div className="mypage-home-text-list">{recentInquiries.data?.items.length === 0 ? <p>{uiText("등록된 문의 내역이 없습니다.")}</p> : recentInquiries.data?.items.map(item => <InquiryAction appearance="text" key={item.operationRequestId} requestId={item.operationRequestId}><span><small>{uiText(item.customerVisibleStatus)}</small><span className="mypage-home-text-list__title">{item.title}</span></span><time dateTime={item.createdAt}>{accountKstDate(item.createdAt)}</time></InquiryAction>)}</div></section>
-          {owner ? <section className="mypage-home-posts">{heading(uiText("내 게시글"), '/community/posts?mineOnly=true')}<AccountQueryState pending={posts.isPending} error={posts.error} retry={posts.refetch}/><div className="mypage-home-text-list">{posts.data?.items.length === 0 ? <p>{uiText("작성한 게시글이 없습니다.")}</p> : posts.data?.items.map(post => <Link key={post.id} to={`/community/posts/${encodeURIComponent(post.postId)}`}><span><small>{post.boardName}</small><span className="mypage-home-text-list__title">{post.title} ({post.comments})</span></span><time>{post.date}</time></Link>)}</div></section> : null}
+          <section>{heading(uiText("문의/AS 내역"), '/mypage/inquiries')}<AccountQueryState pending={recentInquiries.isPending} error={recentInquiries.error} retry={recentInquiries.refetch}/><div className="mypage-home-text-list">{recentInquiries.data?.items.length === 0 ? <p>{uiText("등록된 문의 내역이 없습니다.")}</p> : recentInquiries.data?.items.map(item => <InquiryAction appearance="text" key={item.operationRequestId} requestId={item.operationRequestId}><span><small>{uiText(item.customerVisibleStatus)}</small><span className="mypage-home-text-list__title">{translateInquiryTitle(item.requestType, item.title, uiText)}</span></span><time dateTime={item.createdAt}>{accountKstDate(item.createdAt)}</time></InquiryAction>)}</div></section>
+          {owner ? <section className="mypage-home-posts">{heading(uiText("내 게시글"), '/community/posts?mineOnly=true')}<AccountQueryState pending={posts.isPending} error={posts.error} retry={posts.refetch}/><div className="mypage-home-text-list">{posts.data?.items.length === 0 ? <p>{uiText("작성한 게시글이 없습니다.")}</p> : posts.data?.items.map(post => <Link key={post.id} to={`/community/posts/${encodeURIComponent(post.postId)}`}><span><small>{uiText(post.boardName)}</small><span className="mypage-home-text-list__title">{post.title} ({post.comments})</span></span><time>{post.date}</time></Link>)}</div></section> : null}
         </div>
       </div>
     </div>

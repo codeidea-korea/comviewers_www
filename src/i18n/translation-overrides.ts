@@ -3,11 +3,21 @@ import { cartPageOverrides } from './cart-page-translations'
 import { shellTranslations } from './shell-translations'
 import { mypageRcpcTranslations } from './mypage-rcpc-translations'
 import { mypageAccountTranslations } from './mypage-account-translations'
+import { profileEmailErrorTranslations } from './profile-email-error-translations'
 import { mypageSupportTranslations } from './mypage-support-translations'
 import { checkoutPageTranslations } from './checkout-page-translations'
 import { formsPageTranslations } from './forms-page-translations'
 import { commonPageTranslations } from './common-page-translations'
 import { catalogUiOverrides } from './catalog-ui-translations'
+import { apiErrorTranslations } from './api-error-translations'
+import { authErrorTranslations } from './auth-error-translations'
+import { mypageErrorTranslations } from './mypage-error-translations'
+import { publicErrorTranslations } from './public-error-translations'
+import { sharedErrorTranslations } from './shared-error-translations'
+import { backendAccountErrorTranslations } from './backend-account-error-translations'
+import { backendContentErrorTranslations } from './backend-content-error-translations'
+import { backendCommerceErrorTranslations } from './backend-commerce-error-translations'
+import { validationErrorTranslations } from './validation-error-translations'
 
 /**
  * Customer UI translation drafts, extended 2026-10-15 via translation-core.
@@ -56,11 +66,21 @@ export type TranslationOverride = Readonly<{
 } & Record<TranslationLocale, string>>
 
 export const translationOverrides = [
+  ...apiErrorTranslations,
+  ...authErrorTranslations,
+  ...mypageErrorTranslations,
+  ...publicErrorTranslations,
+  ...sharedErrorTranslations,
+  ...backendAccountErrorTranslations,
+  ...backendContentErrorTranslations,
+  ...backendCommerceErrorTranslations,
+  ...validationErrorTranslations,
   ...authTranslations,
   ...cartPageOverrides,
   ...shellTranslations,
   ...mypageRcpcTranslations,
   ...mypageAccountTranslations,
+  ...profileEmailErrorTranslations,
   ...mypageSupportTranslations,
   ...checkoutPageTranslations,
   ...formsPageTranslations,

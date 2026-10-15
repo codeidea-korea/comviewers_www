@@ -4,10 +4,10 @@ import type { SocialAuthProvider } from '@/app/session/AuthProvider'
 
 // Image bytes are uploaded separately; this patch links only an owned clean attachment.
 export const customerProfilePatchSchema = z.object({
-  name: z.string().regex(/^[가-힣A-Za-z'-]{1,18}$/).optional(),
-  nickname: z.string().regex(/^[가-힣A-Za-z0-9]{1,18}$/).optional(),
+  name: z.string().regex(/^[가-힣A-Za-z'-]{1,18}$/, '이름은 1~18자의 한글, 영문, 하이픈, 아포스트로피만 사용할 수 있습니다.').optional(),
+  nickname: z.string().regex(/^[가-힣A-Za-z0-9]{1,18}$/, '닉네임은 1~18자의 한글, 영문, 숫자만 사용할 수 있습니다.').optional(),
   phone: z.string().regex(/^(?:|[0-9]{2,4}-[0-9]{1,4}-[0-9]{1,4})$/, '휴대폰 번호를 모두 입력해 주세요.').optional(),
-  messengerType: z.string().max(50).optional(), messengerId: z.string().max(100).optional(),
+  messengerType: z.string().max(50, '메신저 종류는 50자 이하로 입력해 주세요.').optional(), messengerId: z.string().max(100, '메신저 아이디는 100자 이하로 입력해 주세요.').optional(),
   marketingEmailAgreed: z.boolean().optional(),
   profileImageAttachmentId: z.number().int().positive().optional(), removeProfileImage: z.boolean().optional(),
 }).strict().refine((input) => Object.values(input).some((value) => value !== undefined), '수정할 값을 입력해 주세요.')
@@ -50,17 +50,18 @@ export function createCustomerProfileMutations(client: ApiClient) {
     },
     confirmPassword(currentPassword: string) {
       return client.request('/api/v1/my/password/confirm', z.object({ confirmed: z.literal(true) }), {
-        authenticated: true, method: 'POST', body: { currentPassword: z.string().min(1).max(100).parse(currentPassword) },
+        authenticated: true, method: 'POST', body: { currentPassword: z.string().min(1, '현재 비밀번호를 확인해 주세요.').max(100, '현재 비밀번호를 확인해 주세요.').parse(currentPassword) },
       })
     },
     changePassword(input: { currentPassword: string; newPassword: string; newPasswordConfirm: string }) {
-      const body = z.object({ currentPassword: z.string().min(1).max(100), newPassword: z.string().min(8).max(16), newPasswordConfirm: z.string().min(8).max(16) })
-        .refine((value) => value.newPassword === value.newPasswordConfirm, { path: ['newPasswordConfirm'] }).parse(input)
+      const passwordMessage = '비밀번호는 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'
+      const body = z.object({ currentPassword: z.string().min(1, '현재 비밀번호를 확인해 주세요.').max(100, '현재 비밀번호를 확인해 주세요.'), newPassword: z.string().min(8, passwordMessage).max(16, passwordMessage), newPasswordConfirm: z.string().min(8, passwordMessage).max(16, passwordMessage) })
+        .refine((value) => value.newPassword === value.newPasswordConfirm, { path: ['newPasswordConfirm'], message: '비밀번호가 일치하지 않습니다.' }).parse(input)
       return client.request('/api/v1/my/password', z.undefined(), { authenticated: true, method: 'POST', body })
     },
     requestEmailChange(input: { newEmail: string; currentPassword?: string }) {
       return client.request('/api/v1/my/email-change/verifications', z.object({ requestId: z.string(), expiresAt: z.iso.datetime({ local: true }) }), {
-        authenticated: true, includeCredentials: true, method: 'POST', body: z.object({ newEmail: z.email().max(255), currentPassword: z.string().min(1).max(100).optional() }).parse(input),
+        authenticated: true, includeCredentials: true, method: 'POST', body: z.object({ newEmail: z.email('이메일 주소를 확인해 주세요.').max(255, '이메일 주소는 255자 이하로 입력해 주세요.'), currentPassword: z.string().min(1, '현재 비밀번호를 확인해 주세요.').max(100, '현재 비밀번호를 확인해 주세요.').optional() }).parse(input),
       })
     },
     confirmEmailChange(verificationProof: string) {

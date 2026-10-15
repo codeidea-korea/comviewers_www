@@ -57,11 +57,11 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
 }
 
 export function ProductResults({ products, view, onAddToCart }: { products: Product[]; view: 'cards' | 'list'; onAddToCart: (product: Product) => void }) {
-  const { t } = useTranslation()
+  const { locale, t } = useTranslation()
   if (view === 'cards') return <div className="product-card-grid">{products.map((product) => <ProductCard key={product.id} onAddToCart={onAddToCart} product={product} size="large" />)}</div>
   const partOnly = products.length > 0 && products.every((product) => product.pricingType === 'one_time' && product.billingUnit === 'unit')
   return (
-<div className="product-table-wrap">
+<div className={`product-table-wrap${locale !== 'ko' ? ' product-table-wrap--translated' : ''}`}>
               <table className="product-list-table notranslate" translate="no">
                 <caption className="sr-only">{t('catalogUi.productList')}</caption>
                 <colgroup>

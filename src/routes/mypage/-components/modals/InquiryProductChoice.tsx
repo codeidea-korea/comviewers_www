@@ -1,4 +1,6 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServerRoomOption } from '@/components/mypage/LocalizedServerRoomOption'
+import { useLocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import type { ReactNode } from 'react'
 import { ProductServerState } from '@/components/product/ProductServerStateView'
 import modalClose from '@/assets/figma/inquiry-choice-close.svg'
@@ -12,7 +14,7 @@ import './inquiry-product-choice.css'
 export function ProductChoiceRow({ checked = false, disabled = false, onCheckedChange = () => {}, product }: { checked?: boolean; disabled?: boolean; onCheckedChange?: (checked: boolean) => void; product: InquiryChoice }) {
   const { uiText } = useUiTranslation()
   const alias = product.alias?.trim()
-  const location = product.location === '서버실 정보 없음' ? uiText('서버실 정보 없음') : product.location
+  const location = useLocalizedServiceName('serverRoom', product.location === '서버실 정보 없음' ? null : product.location, uiText('서버실 정보 없음'))
   const title = alias ? `${alias} · ${product.productNo}` : product.productNo
   const formatDate = (value: string) => value.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$1.$2.$3')
   return (
@@ -40,7 +42,7 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
     <section aria-label={uiText(title)} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-product-choice${variant === 'addition' ? ' inquiry-product-choice--addition' : ''}${selectedCount ? ' is-selected' : ''}${products.length ? ' has-products' : ' is-empty'}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
       <header>{standalone || (title !== '상품 선택' && title !== uiText('상품 선택')) ? <button aria-label={uiText("이전 화면으로")} className="inquiry-flow-back" disabled={busy} onClick={onClose} type="button"><img alt="" src={backChevron}/></button> : null}<h2>{uiText(title)}</h2>{!standalone || variant === 'addition' ? <button aria-label={uiText("닫기")} disabled={busy} onClick={onClose} type="button"><img alt="" src={variant === 'addition' ? chatClose : modalClose} /></button> : null}</header>
       {filters}
-      {serverRoomFilter ? <label className="inquiry-product-choice__server-room"><span>{uiText("서버실")}</span><NativeSelect aria-label={uiText("문의 상품 서버실")} disabled={!serverRoomFilter.options.length} onChange={event => serverRoomFilter.onChange(event.target.value ? Number(event.target.value) : null)} options={serverRoomFilter.options.map(room => ({ value: String(room.id), label: room.name }))} placeholder={{ label: uiText("서버실 선택") }} value={serverRoomFilter.value ?? ''} /></label> : null}
+      {serverRoomFilter ? <label className="inquiry-product-choice__server-room"><span>{uiText("서버실")}</span><NativeSelect aria-label={uiText("문의 상품 서버실")} disabled={!serverRoomFilter.options.length} onChange={event => serverRoomFilter.onChange(event.target.value ? Number(event.target.value) : null)} placeholder={{ label: uiText("서버실 선택") }} value={serverRoomFilter.value ?? ''}>{serverRoomFilter.options.map(room => <LocalizedServerRoomOption key={room.id} value={String(room.id)} name={room.name === '서버실 정보 없음' ? null : room.name} fallback={uiText('서버실 정보 없음')} />)}</NativeSelect></label> : null}
       <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={busy || !products.length} onChange={event => onSelectedChange(event.target.checked ? [...new Set([...selectedIds, ...products.map(product => Number(product.rcpcId))])] : [...lockedIds])} /><span>{uiText("모두선택")}</span></label>
       <div className="inquiry-product-choice__products">{notice}{products.map(product => <ProductChoiceRow checked={selectedIds.includes(Number(product.rcpcId))} disabled={busy || lockedIds.includes(Number(product.rcpcId))} key={product.selectionId} onCheckedChange={checked => changeOne(Number(product.rcpcId), checked)} product={product} />)}</div>
       <footer>

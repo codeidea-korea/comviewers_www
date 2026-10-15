@@ -1,4 +1,5 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServerRoomOption } from '@/components/mypage/LocalizedServerRoomOption'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { InquiryReadServices, MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
@@ -138,7 +139,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
           setProductNotice('')
           setTypeNotice('')
           create.reset()
-        }}><option value="">{uiText("전체 서버실")}</option>{serverRooms.map(room => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</NativeSelect></label>}
+        }}><option value="">{uiText("전체 서버실")}</option>{serverRooms.map(room => <LocalizedServerRoomOption key={room.id} value={String(room.id)} name={room.name === '서버실 정보 없음' || room.name === uiText('서버실 정보 없음') ? null : room.name} fallback={uiText('서버실 정보 없음')} />)}</NativeSelect></label>}
       notice={<>{rcpcs.isPending
         ? <LoadingState className="route-loading--compact" label={uiText("문의 가능한 상품을 확인하고 있습니다.")} />
         : rcpcs.isError

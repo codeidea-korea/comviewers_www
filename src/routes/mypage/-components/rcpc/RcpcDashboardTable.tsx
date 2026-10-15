@@ -1,4 +1,5 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useEffect, useRef, useState } from 'react'
 import { InquiryAction } from '../inquiries/InquiryAction'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
@@ -34,15 +35,15 @@ export function RcpcDashboardTable({ api, canEditAlias = false, canExtend, items
   selected: ReadonlySet<number>; onSelectedChange: (next: ReadonlySet<number>) => void
   sortConfig: SortConfig<SortKey>; onSort: (sort: SortConfig<SortKey>) => void; emptyMessage: string; mutations?: RcpcMutations; selectable?: boolean; className?: string; mobileVariant?: MobileVariant; showAccessValuesByDefault?: boolean; onAliasSaved?: () => void | Promise<unknown>
 }) {
-  const { uiText } = useUiTranslation()
+  const { uiText, locale } = useUiTranslation()
   useRcpcDateBoundary(api.organizationId)
   const selectableItems = items.filter(item => !extensionBlocked(item))
   const allSelected = selectableItems.length > 0 && selectableItems.every(item => selected.has(item.rentalId))
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <SortButton icon={sortIcon} label={uiText(column.label)} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' ? <span className="table-sort-button__multiline-label">{uiText("트래픽")}<br/>{uiText("사용량")}</span> : uiText(column.label)}</SortButton>
+    ? <SortButton icon={sortIcon} label={uiText(column.label)} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' && locale !== 'en' && locale !== 'ja' ? <span className="table-sort-button__multiline-label">{uiText("트래픽")}<br/>{uiText("사용량")}</span> : uiText(column.label)}</SortButton>
     : uiText(column.label)
   return <>
-  <div className={`mypage-home-rcpc${selectable ? ' is-selectable' : ''}${className ? ` ${className}` : ''}`} role="table" aria-label={uiText("RCPC 목록")}>
+  <div className={`mypage-home-rcpc${locale === 'en' || locale === 'ja' ? ' mypage-home-rcpc--translated' : ''}${selectable ? ' is-selectable' : ''}${className ? ` ${className}` : ''}`} role="table" aria-label={uiText("RCPC 목록")}>
     <div className="mypage-home-rcpc__head" role="row">
       {selectable ? <span role="columnheader"><input aria-label={uiText("현재 페이지 전체 선택")} type="checkbox" checked={allSelected} disabled={selectableItems.length === 0} onChange={event => onSelectedChange(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/></span> : null}
       {sortHeaders.map(column => <span key={column.label} role="columnheader">{header(column)}</span>)}
@@ -78,7 +79,7 @@ function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, onAli
   return <article className={unavailable ? 'is-disabled' : undefined} role="row">
     {selectable ? <div className="mypage-home-rcpc__select" role="cell"><input aria-label={t("mypageRcpc.ui209", { v0: item.productNo })} type="checkbox" checked={selected} disabled={unavailable} onChange={event => onSelectedChange(new Set(event.target.checked ? [...selection, item.rentalId] : [...selection].filter(id => id !== item.rentalId)))}/></div> : null}
     <div className="mypage-home-rcpc__alias" role="cell"><strong>{mutations ? <RcpcFavoriteButton api={api} item={item} mutations={mutations} compact/> : null}<span>{item.preference.alias || item.productNo}</span>{canEditAlias && mutations ? <RcpcAliasButton api={api} item={item} mutations={mutations} compact onAliasSaved={onAliasSaved}/> : null}</strong><span><RcpcSpecButton api={api} item={item} compact/></span></div>
-    <div className="mypage-home-rcpc__server" role="cell"><span>{item.serverRoomRegion ?? '-'}<br />{item.serverRoomName ?? '-'}</span></div>
+    <div className="mypage-home-rcpc__server" role="cell"><span><LocalizedServiceName kind="serverRoomRegion" name={item.serverRoomRegion} /><br /><LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></span></div>
     <div className="mypage-home-rcpc__state" role="cell"><RcpcStatusContents item={item}/></div>
     <div className="mypage-home-rcpc__period" role="cell"><span><RcpcTablePeriod item={item}/></span></div>
     <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={!showAccessValuesByDefault || connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div>
@@ -101,7 +102,7 @@ function MobileRcpcDashboardCard({ api, canEditAlias, canExtend, item, mutations
       <span className="mobile-rcpc-card__spec"><span>{item.productNo} </span><RcpcSpecButton api={api} item={item} compact/></span>
     </header>
     <dl className="mobile-rcpc-card__facts">
-      <div><dt>{uiText("서버실")}</dt><dd>{item.serverRoomRegion ? `${item.serverRoomRegion} ` : ''}{item.serverRoomName ?? '-'}</dd></div>
+      <div><dt>{uiText("서버실")}</dt><dd>{item.serverRoomRegion ? <><LocalizedServiceName kind="serverRoomRegion" name={item.serverRoomRegion} /> </> : null}<LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></dd></div>
       <div className="mobile-rcpc-card__state"><dt>{uiText("서버 상태")}</dt><dd><RcpcStatusContents item={item}/></dd></div>
       <div className="mobile-rcpc-card__period"><dt>{uiText("이용 기간")}</dt><dd><RcpcTablePeriod item={item} inlineEndDate/></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>{uiText("접속 정보")}</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
@@ -129,7 +130,7 @@ function MobileFavoriteCard({ api, canEditAlias, canExtend, index, item, mutatio
       </strong>
       <RcpcSpecButton api={api} item={item} compact/>
     </div>
-    <div data-mobile-label={uiText("서버실")} role="cell"><span className="mobile-scrap-card__server-value">{item.serverRoomRegion ?? '-'}<span className="mobile-scrap-card__server-separator">/</span><br />{item.serverRoomName ?? '-'}</span></div>
+    <div data-mobile-label={uiText("서버실")} role="cell"><span className="mobile-scrap-card__server-value"><LocalizedServiceName kind="serverRoomRegion" name={item.serverRoomRegion} /><span className="mobile-scrap-card__server-separator">/</span><br /><LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></span></div>
     <div className="rcpc-list__state" data-mobile-label={uiText("서버 상태")} role="cell"><span className="rcpc-list__state-value"><RcpcStatusContents item={item}/></span></div>
     <div data-mobile-label={uiText("이용 기간")} role="cell"><strong><RcpcPeriodLabel item={item}/></strong></div>
     <div className="rcpc-list__connect" data-mobile-label={uiText("접속 정보")} role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>

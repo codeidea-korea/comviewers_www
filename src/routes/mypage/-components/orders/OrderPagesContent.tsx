@@ -1,4 +1,5 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName, useLocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useEffect, useState } from 'react'
 import { TranslatedText, useTranslation, type TranslationKey } from '@/i18n/translation'
 import { useQueries } from '@tanstack/react-query'
@@ -35,6 +36,12 @@ import { PageBackButton } from '@/components/common/PageBackButton'
 import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
 import { RcpcFilterSelect } from '../RcpcFilterSelect'
 import './orders-mobile.css'
+
+function OrderServerRoomName({ name, originalProductNo }: { name: string | null; originalProductNo?: string | null }) {
+  const { uiText } = useUiTranslation()
+  const room = useLocalizedServiceName('serverRoom', name)
+  return originalProductNo ? uiText('원 주문 품번 {productNo} · 원 주문 서버실 {room}', { productNo: originalProductNo, room }) : room
+}
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
   new_registered: 'rental.newRegistered',
@@ -331,7 +338,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       </RelativeLink>
                       <div>
                         <div className="order-catalog-item__summary">
-                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small>{item.replacementSourceProductNo ? uiText('원 주문 품번 {productNo} · 원 주문 서버실 {room}', { productNo: item.replacementSourceProductNo, room: item.serverRoomName ?? '-' }) : item.serverRoomName ?? '-'}</small>{showRentalStatus ? <em className="order-catalog-item__state">{displayRentalStatus === 'termination_waiting' ? <FormatWaitingServerState/> : <><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</>}{item.replacementSourceProductNo ? uiText(' · 교체이용') : null}</em> : null}</div>
+                        <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small><OrderServerRoomName name={item.serverRoomName} originalProductNo={item.replacementSourceProductNo} /></small>{showRentalStatus ? <em className="order-catalog-item__state">{displayRentalStatus === 'termination_waiting' ? <FormatWaitingServerState/> : <><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</>}{item.replacementSourceProductNo ? uiText(' · 교체이용') : null}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
                         {item.billingUnit !== 'unit' ? (
@@ -415,11 +422,11 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     ] as const : []),
   ] : []
   const content = <div className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label={uiText("주문내역으로 뒤로가기")}/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
-    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? uiText('교체 이용') : isReplacementOriginal(item) ? uiText('교체 완료') : item.serverRoomName ?? '-'}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [[uiText('상품'), item.title], [uiText('수량'), t('unit.quantity', { count: item.quantity })]] : [[uiText('PC사양'), item.specSummary ?? uiText('기록 없음')], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], [uiText('이용기간'), `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
+    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? uiText('교체 이용') : isReplacementOriginal(item) ? uiText('교체 완료') : <LocalizedServiceName kind="serverRoom" name={item.serverRoomName} />}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [[uiText('상품'), item.title], [uiText('수량'), t('unit.quantity', { count: item.quantity })]] : [[uiText('PC사양'), item.specSummary ?? uiText('기록 없음')], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], [uiText('이용기간'), `${accountDate(item.serviceStartedAt).slice(0, 19)} ~ ${accountDate(item.serviceEndsAt).slice(0, 19)}`]]}/></article>)}</section>
     <section className="order-full-section"><h2><TranslatedText id="order.paymentInformation" /></h2><AccountInfo rows={paymentRows}/></section>
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)
-      const refundProduct = refundedItem ? [refundedItem.productNo, refundedItem.serverRoomName].filter(Boolean).join(' · ') : uiText('주문 전체')
+      const refundProduct = refundedItem ? <>{refundedItem.productNo}{refundedItem.serverRoomName ? <> · <LocalizedServiceName kind="serverRoom" name={refundedItem.serverRoomName} /></> : null}</> : uiText('주문 전체')
       const refundAmount = orderRefundAmounts(refund)
       const refundAmountLabel = [
         refundAmount.cash > 0 || refundAmount.points === 0 ? formatPaymentAmount(refundAmount.cash) : null,

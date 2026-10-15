@@ -5,17 +5,19 @@ import type { LegalKind } from '@/domain/legal/legalRepository'
 import { usePublicLegalDocuments } from '@/domain/legal/usePublicLegalDocuments'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 function DocumentBody({ kind }: { kind: LegalKind }) {
+  const { uiText } = useUiTranslation()
   const { products } = useServices()
   const [params, setParams] = useSearchParams()
   const query = usePublicLegalDocuments(kind)
   if (query.isPending) return <LoadingState label="문서를 불러오는 중입니다." />
-  if (query.isError) return <p role="alert">문서를 불러오지 못했습니다. <button onClick={() => void query.refetch()}>다시 시도</button></p>
+  if (query.isError) return <p role="alert">{uiText('문서를 불러오지 못했습니다.')} <button onClick={() => void query.refetch()}>{uiText('다시 시도')}</button></p>
   const selectedId = params.get('version')
   const document = selectedId ? query.data.find(item => item.id === selectedId) : query.data[0]
   return <>
-    {!document ? <p role="status">{selectedId ? '선택한 문서 버전을 찾을 수 없습니다.' : '등록된 문서가 없습니다.'}</p> : <article className="legal-page__document">
+    {!document ? <p role="status">{uiText(selectedId ? '선택한 문서 버전을 찾을 수 없습니다.' : '등록된 문서가 없습니다.')}</p> : <article className="legal-page__document">
       <RichContentRenderer loadImage={products.loadEditorImage} document={document.richContent} fallback={document.paragraphs} />
     </article>}
     {query.data.length > 0 && <label className="legal-page__version">문서 버전 <select value={document?.id ?? ''} onChange={event => setParams(current => {

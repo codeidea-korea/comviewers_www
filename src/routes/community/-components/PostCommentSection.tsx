@@ -44,7 +44,7 @@ export function PostCommentSection({
   return (
     <section className="comment-section">
       {commentQuery.isPending ? <LoadingState className="route-loading--compact" label={uiText("댓글을 불러오는 중입니다.")} /> : commentQuery.isError ? <p role="alert">{uiText("댓글을 불러오지 못했습니다.")}</p> : null}
-      <h2>{uiText("댓글")} <b>{displayedCommentCount}</b>{editingCommentId ? <small className="comment-editing-label" role="status">{uiText("댓글 수정 중")}</small> : null}</h2>
+      <h2 className="notranslate" translate="no">{uiText("댓글")} <b>{displayedCommentCount}</b>{editingCommentId ? <small className="comment-editing-label" role="status">{uiText("댓글 수정 중")}</small> : null}</h2>
       {commentAllowed ? <label className={editingCommentId ? 'comment-editor--editing' : undefined}>
         <span className="sr-only">{uiText(editingCommentId ? '댓글 수정' : '댓글 입력')}</span>
         <textarea ref={commentInputRef} maxLength={1000} onChange={(event) => setComment(event.target.value)} onClick={() => { if (!commentAuthenticated) requestLogin() }} onFocus={() => { if (!commentAuthenticated) requestLogin() }} placeholder={uiText("댓글을 입력해 주세요.")} readOnly={!commentAuthenticated} rows={5} value={comment} />

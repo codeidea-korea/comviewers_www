@@ -1,7 +1,7 @@
 .mypage-shell :is(.points-history, .coupons-available, .coupons-history) div.benefit-tabs-row { align-items: center; flex-direction: row; flex-wrap: wrap; }
 .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row .mypage-tabs { flex: 1 1 auto; width: auto; }
 .mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row .mypage-tabs button { font-size: 16px; }
-.mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row > a.benefit-tabs-row__policy { align-self: center; color: var(--color-gray-500); gap: 10px; height: 19px; min-height: 19px; padding: 0; width: 119px; }
+.mypage-shell :is(.points-history, .coupons-available, .coupons-history) .benefit-tabs-row > a.benefit-tabs-row__policy { align-self: center; color: var(--color-gray-500); gap: 10px; height: auto; max-width: 100%; min-height: 19px; min-width: min(119px, 100%); overflow-wrap: anywhere; padding: 0; white-space: normal; width: auto; }
 .order-period-layer .order-period-dialog footer button:first-child { color: var(--color-black); -webkit-text-fill-color: var(--color-black); }
 .mypage-shell .points-catalog .point-carousel__track > article { height: auto; min-height: 117.12px; }
 .mypage-shell .points-catalog .point-carousel article > b { max-width: 100%; right: 0; white-space: nowrap; }

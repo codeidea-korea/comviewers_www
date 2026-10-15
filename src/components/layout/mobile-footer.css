@@ -1,7 +1,7 @@
 /* Shared mobile footer from 261012.fig, main 1528:34381 / cart 1528:35139. */
 @media (max-width: 767px) {
   .site-footer--compact .site-footer__inner { max-width: none; width: calc(100% - 24px); }
-  .site-footer--compact .site-footer__menu { gap: 12px; height: 56px; }
+  .site-footer--compact .site-footer__menu { gap: 8px 12px; height: auto; min-height: 56px; }
   .site-footer--compact .site-footer__menu a { font-size: 14px; }
   .site-footer--compact .site-footer__menu a + a::before { left: -6px; }
   .site-footer--compact .site-footer__logo { height: 44px; margin: 8px 0; width: 100px; }
@@ -24,10 +24,10 @@
     align-items: center;
     display: inline-flex;
     font-size: 12px;
-    height: 24px;
+    min-height: 24px;
     justify-content: center;
     line-height: 24px;
-    white-space: nowrap;
+    white-space: normal;
   }
   .site-footer--compact .site-footer__bottom { font-size: 12px; gap: 4px; padding: 0 0 40px; }
   .site-footer--compact .site-footer__bottom > div { min-height: 40px; }

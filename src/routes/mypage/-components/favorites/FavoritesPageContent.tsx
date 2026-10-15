@@ -1,4 +1,5 @@
 import { RcpcMobileSort } from '../RcpcMobileSort'
+import { LocalizedServerRoomOption } from '@/components/mypage/LocalizedServerRoomOption'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { InquiryAction } from '../inquiries/InquiryAction'
@@ -164,7 +165,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   }
   const assignment = useMutation({
     mutationFn: async (groupId: number | null) => {
-      if (!canManage) throw new Error('Forbidden')
+      if (!canManage) throw new Error('즐겨찾기를 관리할 권한이 없습니다.')
       if (selectedRentals.size === 0) throw new Error("이동할 RCPC를 선택해 주세요.")
       const rentalIds = [...selectedRentals]
       const results = await Promise.allSettled(rentalIds.map((rentalId) => mutations.assignGroup(String(rentalId), groupId === null ? null : String(groupId))))
@@ -176,7 +177,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     onSettled: refresh,
   })
   const createGroup = useMutation({ mutationFn: ({ name, parentId }: { name: string; parentId: string | null }) => {
-    if (!canManage) throw new Error('Forbidden')
+    if (!canManage) throw new Error('즐겨찾기를 관리할 권한이 없습니다.')
     return mutations.createGroup({ name, parentGroupId: parentId ? Number(parentId) : null })
   }, onSuccess: async () => { await refresh(); setCreating(false) } })
   const openAssignment = () => { assignment.reset(); setCreating(false); setAssigning(true) }
@@ -208,7 +209,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     <section aria-label={uiText("즐겨찾기 RCPC 목록")} className="favorites-results" id="favorites-results">
       <div className="favorites-results__summary">
         <p className="rcpc-list-count">{uiText("총")} <b>{allGroups.length}</b>{uiText("개 그룹")}</p>
-        <div className="favorites-results__filters"><label className="favorites-results__region"><span className="sr-only">{uiText("서버실 위치")}</span><RcpcFilterSelect disabled={accessDenied} value={accessDenied ? '' : filters.region ?? ''} onChange={event => updateFilters({ region: event.target.value || undefined, serverRoomId: undefined })}><option value="">{uiText("서버실 위치 선택")}</option>{locations.map(value => <option key={value}>{value}</option>)}</RcpcFilterSelect></label><label><span className="sr-only">{uiText("서버실")}</span><RcpcFilterSelect disabled={accessDenied} value={accessDenied ? '' : filters.serverRoomId ?? ''} onChange={event => updateFilters({ serverRoomId: event.target.value ? Number(event.target.value) : undefined })}><option value="">{uiText("서버실 선택")}</option>{rooms.map(item => <option key={item.id} value={item.id}>{item.name ?? String(item.id)}</option>)}</RcpcFilterSelect></label></div>
+        <div className="favorites-results__filters"><label className="favorites-results__region"><span className="sr-only">{uiText("서버실 위치")}</span><RcpcFilterSelect disabled={accessDenied} value={accessDenied ? '' : filters.region ?? ''} onChange={event => updateFilters({ region: event.target.value || undefined, serverRoomId: undefined })}><option value="">{uiText("서버실 위치 선택")}</option>{locations.map(value => <LocalizedServerRoomOption key={value} value={value} kind="serverRoomRegion" name={value} />)}</RcpcFilterSelect></label><label><span className="sr-only">{uiText("서버실")}</span><RcpcFilterSelect disabled={accessDenied} value={accessDenied ? '' : filters.serverRoomId ?? ''} onChange={event => updateFilters({ serverRoomId: event.target.value ? Number(event.target.value) : undefined })}><option value="">{uiText("서버실 선택")}</option>{rooms.map(item => <LocalizedServerRoomOption key={item.id} value={item.id} name={item.name} fallback={String(item.id)} />)}</RcpcFilterSelect></label></div>
       </div>
       <header className="favorites-results__toolbar">
         <label><Checkbox aria-label={uiText("전체 RCPC 선택")} checked={allSelected} disabled={rows.isPlaceholderData || selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>{uiText("모두선택")}</label>

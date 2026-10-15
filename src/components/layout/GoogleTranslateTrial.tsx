@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
+import { useAuthentication } from '../../app/session/AuthProvider'
 import { getTranslationLocale, isTranslationLocale, setTranslationLocale, useTranslation } from '../../i18n/translation'
 import { LanguageMenu, type LanguageChoice } from './LanguageMenu'
+import { trackTranslationToolbarOffset } from './translationToolbarOffset'
 import './google-translate-trial.css'
 
 type TranslateWindow = Window & {
@@ -27,7 +29,7 @@ function resetTranslation() {
 function isPublicTrialPage(pathname: string) {
   pathname = pathname.replace(/\/+$/, '') || '/'
   return pathname === '/' || /^\/(?:products|support)(?:\/[^/]+)?$/.test(pathname)
-    || ['/company', '/terms', '/privacy'].includes(pathname)
+    || ['/company', '/terms', '/privacy', '/signup/terms', '/colocation/apply'].includes(pathname)
     || pathname === '/community/posts' || pathname === '/community/reviews'
     || /^\/community\/posts\/(?!new$)[^/]+$/.test(pathname)
 }
@@ -35,7 +37,10 @@ function isPublicTrialPage(pathname: string) {
 /** Google translation loads after a language choice on public pages. */
 export function GoogleTranslateTrial() {
   const { pathname } = useLocation()
-  if (!isPublicTrialPage(pathname)) return <ManualTranslationControls />
+  const { restoring } = useAuthentication()
+  // Session restoration can replace the service scope and its header.
+  // Start Google only after that replacement, or cleanup can reload every visit.
+  if (!isPublicTrialPage(pathname) || restoring) return <ManualTranslationControls />
   return <TranslateWidget />
 }
 
@@ -56,10 +61,6 @@ export function ManualTranslationControls({ compact = false }: { compact?: boole
   </div>
 }
 
-function googleLanguageCookie() {
-  return document.cookie.split(';').map(part => part.trim()).find(part => part.startsWith('googtrans=')) ?? ''
-}
-
 function TranslateWidget() {
   const { locale } = useTranslation()
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
@@ -68,30 +69,50 @@ function TranslateWidget() {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const readyCallback = useRef<(() => void) | undefined>(undefined)
   const observer = useRef<MutationObserver | undefined>(undefined)
-  const languageCookie = useRef('')
+  const contentObserver = useRef<MutationObserver | undefined>(undefined)
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const start = useCallback(() => {
     if (started.current) return
     clearTranslationCookie()
-    languageCookie.current = googleLanguageCookie()
     started.current = true
     setStatus('loading')
     const host = window as TranslateWindow
+    let scriptAttempts = 0
     const fail = (reason: 'timeout' | 'script' | 'api' | 'container' | 'widget') => {
+      if (!mounted.current) return
       console.warn(`Google translation unavailable: ${reason}`)
       clearTimeout(timer.current)
       observer.current?.disconnect()
+      contentObserver.current?.disconnect()
       document.getElementById(scriptId)?.remove()
       document.getElementById(widgetId)?.replaceChildren()
+      if (reason === 'script' && scriptAttempts < 2) {
+        retryTimer.current = setTimeout(loadScript, 600)
+        return
+      }
       if (host.comviewersTranslateReady === readyCallback.current) delete host.comviewersTranslateReady
       started.current = false
       if (mounted.current) {
-        setTranslationLocale('ko')
         setStatus('error')
       }
     }
     const initialize = () => {
       if (!mounted.current) return
+      // Public policy bodies arrive asynchronously; application inputs stay excluded.
+      const path = window.location.pathname.replace(/\/+$/, '')
+      if (path === '/signup/terms' || path === '/colocation/apply') {
+        const copies = document.querySelectorAll<HTMLElement>(path === '/signup/terms' ? '.auth-page--terms .terms-copy' : '.colocation-terms-box')
+        if (!copies.length || Array.from(copies).some(copy => copy.dataset.translationContentReady !== 'true')) {
+          contentObserver.current?.disconnect()
+          contentObserver.current = new MutationObserver(initialize)
+          contentObserver.current.observe(document.getElementById('main-content') ?? document.body, {
+            childList: true, subtree: true, attributes: true, attributeFilter: ['data-translation-content-ready'],
+          })
+          return
+        }
+      }
+      contentObserver.current?.disconnect()
       const TranslateElement = host.google?.translate?.TranslateElement
       if (!TranslateElement) { fail('api'); return }
       try {
@@ -104,7 +125,7 @@ function TranslateWidget() {
           observer.current?.disconnect()
           if (mounted.current) setStatus('ready')
           const locale = getTranslationLocale()
-          if (locale !== 'ko' && select.value !== locale) {
+          if (locale !== 'ko') {
             select.value = locale
             select.dispatchEvent(new Event('change', { bubbles: true }))
           }
@@ -115,15 +136,20 @@ function TranslateWidget() {
     }
     readyCallback.current = initialize
     host.comviewersTranslateReady = initialize
-    timer.current = setTimeout(() => fail('timeout'), 15000)
-    if (host.google?.translate?.TranslateElement) { initialize(); return }
-    if (document.getElementById(scriptId)) return
-    const script = document.createElement('script')
-    script.id = scriptId
-    script.src = 'https://translate.google.com/translate_a/element.js?cb=comviewersTranslateReady'
-    script.async = true
-    script.onerror = () => fail('script')
-    document.head.appendChild(script)
+    function loadScript() {
+      if (!mounted.current) return
+      timer.current = setTimeout(() => fail('timeout'), 15000)
+      if (host.google?.translate?.TranslateElement) { initialize(); return }
+      if (document.getElementById(scriptId)) return
+      scriptAttempts += 1
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=comviewersTranslateReady'
+      script.async = true
+      script.onerror = () => fail('script')
+      document.head.appendChild(script)
+    }
+    loadScript()
   }, [])
 
   useEffect(() => {
@@ -136,23 +162,17 @@ function TranslateWidget() {
       }
     }
     document.addEventListener('change', onLanguageChange, true)
-    languageCookie.current = googleLanguageCookie()
+    let translatedDocument = false
     const languageTimer = window.setInterval(() => {
       if (!started.current) return
-      const nextCookie = googleLanguageCookie()
-      if (nextCookie === languageCookie.current) return
-      languageCookie.current = nextCookie
-      const value = nextCookie.split('/').at(-1) ?? ''
-      // Google's own "Show original" control may clear the cookie without a select event.
-      setTranslationLocale(isTranslationLocale(value) ? value : 'ko')
+      // Cookies are shared across tabs. Only this document's widget owns its language.
+      const value = document.getElementById(widgetId)?.querySelector<HTMLSelectElement>('select.goog-te-combo')?.value
+      const translated = document.documentElement.classList.contains('translated-ltr') || document.documentElement.classList.contains('translated-rtl')
+      if (translatedDocument && !translated && value === '') setTranslationLocale('ko')
+      translatedDocument = translated
+      if (value && isTranslationLocale(value)) setTranslationLocale(value)
     }, 500)
-    const syncToolbarOffset = () => {
-      const offset = Math.max(0, Number.parseFloat(document.body.style.top) || 0)
-      document.documentElement.style.setProperty('--google-trial-bar-height', `${offset}px`)
-    }
-    const toolbarObserver = new MutationObserver(syncToolbarOffset)
-    toolbarObserver.observe(document.body, { attributes: true, attributeFilter: ['style'] })
-    syncToolbarOffset()
+    const stopTrackingToolbar = trackTranslationToolbarOffset()
     const followLink = (event: MouseEvent) => {
       if (!started.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null
@@ -176,9 +196,10 @@ function TranslateWidget() {
       document.removeEventListener('change', onLanguageChange, true)
       window.clearInterval(languageTimer)
       clearTimeout(timer.current)
+      clearTimeout(retryTimer.current)
       observer.current?.disconnect()
-      toolbarObserver.disconnect()
-      document.documentElement.style.removeProperty('--google-trial-bar-height')
+      contentObserver.current?.disconnect()
+      stopTrackingToolbar()
       document.removeEventListener('click', followLink, true)
       const host = window as TranslateWindow
       if (host.comviewersTranslateReady === readyCallback.current) delete host.comviewersTranslateReady
@@ -193,6 +214,18 @@ function TranslateWidget() {
 
   const selectLanguage = useCallback((value: LanguageChoice) => {
     if (value === 'ko') {
+      // Restoring a form must not reload and discard unsent fields or attachments.
+      if (window.location.pathname.replace(/\/+$/, '') === '/colocation/apply' && started.current) {
+        const select = document.getElementById(widgetId)?.querySelector<HTMLSelectElement>('select.goog-te-combo')
+        if (select) {
+          if (!select.querySelector('option[value="ko"]')) select.add(new Option('한국어', 'ko'))
+          select.value = 'ko'
+          select.dispatchEvent(new Event('change', { bubbles: true }))
+        }
+        clearTranslationCookie()
+        setTranslationLocale('ko')
+        return
+      }
       if (started.current) resetTranslation()
       else { clearTranslationCookie(); setTranslationLocale('ko') }
       return
@@ -200,7 +233,7 @@ function TranslateWidget() {
     setTranslationLocale(value)
     if (status === 'ready') {
       const select = document.getElementById(widgetId)?.querySelector<HTMLSelectElement>('select.goog-te-combo')
-      if (select && select.value !== value) {
+      if (select) {
         select.value = value
         select.dispatchEvent(new Event('change', { bubbles: true }))
       }

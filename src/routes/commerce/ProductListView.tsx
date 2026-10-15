@@ -18,14 +18,16 @@ import filterTuneIcon from '../../assets/figma/filter-tune.svg'
 import viewGridIcon from '../../assets/figma/view-grid.svg'
 import viewListIcon from '../../assets/figma/view-list.svg'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
-import { TranslatedText, useTranslation } from '@/i18n/translation'
+import { TranslatedText } from '@/i18n/translation'
+
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 function matchesMedia(query: string) {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches
 }
 
 export function ProductListPage({ navigationType }: { navigationType: NavigationType }) {
-  const { locale, t } = useTranslation()
+  const { locale, t, uiText } = useUiTranslation()
   const navigate = useNavigate()
   const cartAddition = useAddToCart()
   const productList = useProductList()
@@ -132,13 +134,13 @@ export function ProductListPage({ navigationType }: { navigationType: Navigation
             <div><span className="product-result-count notranslate" translate="no">{locale === 'ko' ? <><span>총</span><span><strong>{resultTotal}</strong>개</span><span>상품</span></> : <TranslatedText id="product.totalCount" values={{ count: resultTotal }} />}</span><span className="product-results-toolbar__divider" /><label className="product-availability-switch"><Checkbox disabled={capabilities?.instantOnly === false} aria-label={t('product.instantOnly')} checked={instantOnly} onChange={(event) => setInstantOnly(event.target.checked)} role="switch" variant="switch" /><span className="product-availability-switch__track" aria-hidden="true" /><TranslatedText id="product.instantOnly" /></label></div>
             <div className="product-view-toggle notranslate" translate="no"><button aria-label={t('product.cardView')} aria-pressed={view === 'cards'} onClick={() => setView('cards')} type="button"><img alt="" src={viewGridIcon} /></button><button aria-label={t('product.listView')} aria-pressed={view === 'list'} onClick={() => setView('list')} type="button"><img alt="" src={viewListIcon} /></button></div>
           </div> : null}
-          {isPending ? <LoadingState label={t('product.loading')} /> : isError ? <div className="product-results-state product-results-state--error" role="alert"><p>{errorMessage}</p><button className="product-results-state__retry" onClick={() => refetch()} type="button"><TranslatedText id="common.retry" /></button></div> : visibleProducts.length === 0 ? <div className="product-list-empty" role="status">{productList.isCouponProductList ? '현재 이 쿠폰을 사용할 수 있는 상품이 없습니다.' : <TranslatedText id="product.comingSoon" />}</div> : <ProductResults products={visibleProducts} view={view} onAddToCart={addToCart} />}
+          {isPending ? <LoadingState label={t('product.loading')} /> : isError ? <div className="product-results-state product-results-state--error" role="alert"><p>{uiText(errorMessage)}</p><button className="product-results-state__retry" onClick={() => refetch()} type="button"><TranslatedText id="common.retry" /></button></div> : visibleProducts.length === 0 ? <div className="product-list-empty" role="status">{productList.isCouponProductList ? uiText('현재 이 쿠폰을 사용할 수 있는 상품이 없습니다.') : <TranslatedText id="product.comingSoon" />}</div> : <ProductResults products={visibleProducts} view={view} onAddToCart={addToCart} />}
           {!isPending && !isError && totalPages > 0 ? <Pagination currentPage={currentPage} onPageChange={changePage} totalPages={totalPages} /> : null}
           </section>
         </div>
       </div>
       <Modal closeTranslationKey="cart.continueShopping" confirmTranslationKey="cart.goToCart" titleTranslationKey={cartAddition.isError ? 'cart.addFailureTitle' : 'cart.addSuccessTitle'} onConfirm={cartAddition.isSuccess ? () => navigate('/cart') : undefined} isOpen={cartPopupOpen} onClose={() => setCartPopupOpen(false)}>
-        {cartAddition.isError ? <p role="alert">{cartAddition.message}</p> : <p role="status"><TranslatedText id="cart.addedPrompt" /></p>}
+        {cartAddition.isError ? <p role="alert">{uiText(cartAddition.message)}</p> : <p role="status"><TranslatedText id="cart.addedPrompt" /></p>}
       </Modal>
     </AppShell>
   )

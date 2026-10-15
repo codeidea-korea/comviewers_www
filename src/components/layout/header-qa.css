@@ -1,4 +1,10 @@
+.site-logo .site-logo__white { display: none; }
+.site-header--main:not(.site-header--scrolled):not(.site-header--menu-open) .site-logo__primary { display: none; }
+.site-header--main:not(.site-header--scrolled):not(.site-header--menu-open) .site-logo__white { display: block; }
+
 @media (min-width: 768px) {
+  .app-shell:not(.app-shell--home) > header.site-header .site-logo__primary { display: block; }
+  .app-shell:not(.app-shell--home) > header.site-header .site-logo__white { display: none; }
   .app-shell > header.site-header { background: var(--color-white); color: var(--color-black); }
   .app-shell > header.site-header .site-header__utility { background: var(--color-white); border-color: var(--color-gray-300); }
   .app-shell > header.site-header .site-header__primary { border-color: var(--color-gray-300); }

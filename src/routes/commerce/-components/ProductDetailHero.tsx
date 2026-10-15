@@ -7,10 +7,11 @@ import { ProductPeripherals } from '@/components/product/ProductPeripherals'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { productOsVisual } from '@/components/product/productOsVisual'
 import { ProductOsOverlay } from '@/components/product/ProductOsOverlay'
-
-const formatWon = (amount: number | null) => amount === null ? "정보 없음" : `${amount.toLocaleString('ko-KR')}원`
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 export function ProductDetailHero({ product, message, onCart, onBuy, cartPending = false, buyPending = false, readOnly = false }: { product: Product; message: string; onCart: (rentalPeriods: number) => void; onBuy: (rentalPeriods: number) => void; cartPending?: boolean; buyPending?: boolean; readOnly?: boolean }) {
+  const { locale, t, uiText } = useUiTranslation()
+  const formatWon = (amount: number | null) => amount === null ? t('common.noInformation') : t('money.krwAmount', { amount: amount.toLocaleString('ko-KR') })
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const visual = productOsVisual(product.osFilterValue, part, product.image)
   const minimum = part ? product.minPurchaseQuantity : product.minRentalUnits
@@ -42,18 +43,18 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
             </div>
           </dl>}
           <div className="product-detail-prices">
-            {(!part || setupFee > 0) && <p><span><b>{part ? '개당 추가 비용' : '세팅비'}</b>{!part && <small>최초 1회 부과, 기간 연장 시 무료</small>}</span><strong>{formatWon(setupFee)}</strong></p>}
-            <p><span><b>{part ? '상품 금액' : `${unit === 'thirty_day' ? '월' : unit === 'hour' ? '시간' : '일'} 렌탈료`}</b><small>{part ? '1개' : periodDescription} 기준</small></span><strong>{formatWon(rentalUnitPrice)}</strong></p>
+            {(!part || setupFee > 0) && <p><span><b className={!part ? 'notranslate' : undefined} translate={!part ? 'no' : undefined}>{part ? '개당 추가 비용' : t('money.setupFee')}</b>{!part && <small>최초 1회 부과, 기간 연장 시 무료</small>}</span><strong className="notranslate" translate="no">{formatWon(setupFee)}</strong></p>}
+            <p><span><b>{part ? '상품 금액' : `${unit === 'thirty_day' ? '월' : unit === 'hour' ? '시간' : '일'} 렌탈료`}</b><small>{part ? '1개' : periodDescription} 기준</small></span><strong className="notranslate" translate="no">{formatWon(rentalUnitPrice)}</strong></p>
             {!part && <p><b>적립 포인트</b><strong>{product.pointRate === null ? '정보 없음' : <><span>렌탈금액의</span> {product.pointRate}%</>}</strong></p>}
           </div>
-          {canSelectPeriod ? <p className="product-detail-notice">{!part && unit === 'thirty_day' ? <>결제 수량은 <b>1개월 단위로 추가</b>되며, 최대 {maximum}개월까지 결제하실 수 있습니다. 1개월은 30일을 기준으로 계산됩니다.</> : <>{part ? '수량은' : '이용기간은'} <b>{part ? '1개' : periodDescription} 단위</b>로 {minimum}~{maximum}{unitLabel}까지 선택할 수 있습니다.</>}</p> : <p>단가 또는 선택 가능한 {part ? '수량' : '이용기간'}을 확인할 수 없어 장바구니에 담을 수 없습니다.</p>}
+          {canSelectPeriod ? <p className="product-detail-notice">{!part && unit === 'thirty_day' ? <>결제 수량은 <b>1개월 단위로 추가</b>되며, 최대 {maximum}개월까지 결제하실 수 있습니다. 1개월은 30일을 기준으로 계산됩니다.</> : <>{part ? '수량은' : '이용기간은'} <b>{part ? '1개' : periodDescription} 단위</b>로 {minimum}~{maximum}{unitLabel}까지 선택할 수 있습니다.</>}</p> : <p>{uiText(part ? '단가 또는 선택 가능한 수량을 확인할 수 없어 장바구니에 담을 수 없습니다.' : '단가 또는 선택 가능한 이용기간을 확인할 수 없어 장바구니에 담을 수 없습니다.')}</p>}
           <QuantityStepper label={part ? '수량' : '이용기간'} value={quantity} minimum={minimum} maximum={maximum} unit={unitLabel} disabled={!canSelectPeriod} onChange={setQuantity} />
-          <div className="product-detail-total"><span>총 금액</span><strong><b>{safeTotalAmount === null ? '계산 불가' : safeTotalAmount.toLocaleString('ko-KR')}</b><small>원</small></strong></div>
+          <div className="product-detail-total"><span>총 금액</span><strong className="notranslate" translate="no">{locale === 'ko' ? <><b>{safeTotalAmount === null ? '계산 불가' : safeTotalAmount.toLocaleString('ko-KR')}</b><small>원</small></> : <b>{formatWon(safeTotalAmount)}</b>}</strong></div>
           {!readOnly && product.saleAvailability === 'AVAILABLE' ? <div className="product-detail-actions">
             <button aria-label="장바구니 담기" className="product-detail-favorite" disabled={cartPending || !canSelectPeriod || safeTotalAmount === null} onClick={() => { if (quantity !== null && safeTotalAmount !== null) onCart(quantity) }} type="button"><img alt="" src={shoppingBag} /></button>
             <Button className="commerce-primary-button" disabled={buyPending || !canSelectPeriod || safeTotalAmount === null} fullWidth onClick={() => { if (quantity !== null) onBuy(quantity) }} size="large">바로구매</Button>
           </div> : null}
-          <p aria-live="polite" className="product-detail-message">{message}</p>
+          <p aria-live="polite" className="product-detail-message">{uiText(message)}</p>
         </div>
       </section>
   )

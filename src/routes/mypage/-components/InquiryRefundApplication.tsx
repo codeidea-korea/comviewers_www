@@ -1,4 +1,5 @@
 import { translateUiText, useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useEffect, useId, useMemo, useRef, useState, type RefObject } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiClientError } from '@/api/httpClient'
@@ -41,7 +42,7 @@ function CandidateSummary({ item }: { item: RefundCandidate }) {
   const { uiText } = useUiTranslation()
   return <span className="refund-application__candidate-copy">
     <strong>{item.alias ? `${item.alias}·` : ''}{item.productNo}</strong>
-    <span>{item.title} · {item.serverRoomName ?? '-'}</span>
+    <span>{item.title} · <LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></span>
     <small>{item.spec ?? '-'}</small>
     <small>{uiText("주문일")} {displayDate(item.orderedAt)}　{uiText("이용기간")} {displayDate(item.serviceStartedAt)}~{displayDate(item.serviceEndsAt)}</small>
   </span>

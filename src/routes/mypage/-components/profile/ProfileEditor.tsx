@@ -17,6 +17,7 @@ import eyeIcon from '@/assets/figma/eye.svg'
 import { emailDomainOptions, messengerOptionLabel, messengerOptions, phonePrefixOptions } from '@/lib/formOptions'
 import { listenForEmailVerification } from '@/routes/auth/-components/emailVerificationChannel'
 import { profileEmailChange } from './profileEmailChange'
+import { profileEmailError } from './profileEmailError'
 import { getChangedProfileFields, getProfileFieldErrors } from './profileEditorModel'
 import { profileCancelPath } from './profileCancelPath'
 import { Button } from '@/components/ui/ButtonControl'
@@ -134,12 +135,12 @@ export function ProfileEditor({ mutations, profile, withdrawal, currentPassword 
     {validation ? <p className="mypage-notice mypage-notice--error" role="alert">{uiText(validation)}</p> : null}
     {save.isError ? <p className="mypage-notice mypage-notice--error" role="alert">{uiText(save.error.message || '내 정보를 저장하지 못했습니다.')}</p> : null}
     {passwordChange.isError ? <p className="mypage-notice mypage-notice--error" role="alert">{uiText(passwordChange.error.message)}</p> : null}
-    {emailRequest.isError ? <p className="mypage-notice mypage-notice--error" role="alert">{uiText(emailRequest.error.message)}</p> : null}
+    {emailRequest.isError ? <p className="mypage-notice mypage-notice--error" role="alert">{profileEmailError(emailRequest.error, 'request')}</p> : null}
     {requestWithdrawal.isSuccess && requestWithdrawal.data.status !== 'completed' ? <p className="mypage-notice" role="status">{uiText("회원탈퇴 처리 상태를 확인해 주세요.")}</p> : null}
     {withdrawal ? <button className="profile-catalog__withdraw" disabled={eligibility.isPending || requestWithdrawal.isPending} onClick={() => eligibility.mutate()} type="button">{uiText("회원탈퇴")}</button> : null}
   </form>
   {withdrawal && eligibility.data && !eligibility.data.eligible ? <Modal className="modal--withdrawal-unavailable" isOpen title={uiText("회원탈퇴를 진행할 수 없습니다.")} closeLabel={uiText("확인")} onClose={() => eligibility.reset()} onConfirm={() => eligibility.reset()} showClose={false}><div className="popup-copy"><p>{uiText("현재 이용 중이거나 처리 중인 서비스가 있어 회원탈퇴가 제한됩니다. 아래 항목을 확인한 후 다시 시도해 주세요.")}</p><div className="popup-copy__box">{eligibility.data.restrictions.map(item => <span key={item.code}>• {uiText(item.message)}<br/></span>)}</div><p>{uiText("모든 이용 및 처리가 완료된 후 회원탈퇴를 진행할 수 있습니다.")}</p></div></Modal> : null}
   <Modal className="modal--withdrawal-confirm" closeLabel={uiText("취소")} closeVariant="primary" confirmFirst confirmDisabled={requestWithdrawal.isPending} confirmLabel={requestWithdrawal.isPending ? uiText('처리 중…') : uiText('회원탈퇴')} confirmVariant="secondary" isOpen={withdrawalConfirmOpen} onClose={() => { if (!requestWithdrawal.isPending) setWithdrawalConfirmOpen(false) }} onConfirm={() => { if (!requestWithdrawal.isPending) requestWithdrawal.mutate() }} title={uiText("회원탈퇴를 진행하시겠습니까?")}><p>{uiText("회원탈퇴 시 계정 정보와 보유 중인 포인트·쿠폰이 모두 삭제되며 복구할 수 없습니다.")}<br/><br/>{uiText("정말 회원탈퇴를 진행하시겠습니까?")}</p></Modal>
-  <Modal className="modal--wide" closeLabel={uiText("닫기")} confirmDisabled={!verificationProof || confirmEmail.isPending} confirmLabel={confirmEmail.isPending ? uiText('변경 중…') : uiText('이메일 변경 완료')} isOpen={Boolean(requestId)} onClose={resetEmailVerification} onConfirm={() => { if (verificationProof && !confirmEmail.isPending) confirmEmail.mutate() }} title={uiText("이메일 인증")}><div className="popup-form popup-form--stacked"><p>{uiText("변경할 이메일로 보낸 인증 링크를 열어 주세요.")}</p>{verificationProof ? <p role="status">{uiText("이메일 인증을 완료했습니다. 이메일 변경 완료를 눌러 적용해 주세요.")}</p> : null}{confirmEmail.isError ? <p role="alert">{uiText(confirmEmail.error.message)}</p> : null}</div></Modal></>
+  <Modal className="modal--wide" closeLabel={uiText("닫기")} confirmDisabled={!verificationProof || confirmEmail.isPending} confirmLabel={confirmEmail.isPending ? uiText('변경 중…') : uiText('이메일 변경 완료')} isOpen={Boolean(requestId)} onClose={resetEmailVerification} onConfirm={() => { if (verificationProof && !confirmEmail.isPending) confirmEmail.mutate() }} title={uiText("이메일 인증")}><div className="popup-form popup-form--stacked"><p>{uiText("변경할 이메일로 보낸 인증 링크를 열어 주세요.")}</p>{verificationProof ? <p role="status">{uiText("이메일 인증을 완료했습니다. 이메일 변경 완료를 눌러 적용해 주세요.")}</p> : null}{confirmEmail.isError ? <p role="alert">{profileEmailError(confirmEmail.error, 'confirm')}</p> : null}</div></Modal></>
 }
 

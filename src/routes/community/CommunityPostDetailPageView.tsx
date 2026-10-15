@@ -21,10 +21,13 @@ export function CommunityPostDetailPage() {
   const { uiText } = useUiTranslation()
   const { postId } = useParams()
   const result = usePost(postId)
-  if (result.isPending) return <CommunityShell><LoadingState label={uiText("게시글을 불러오는 중입니다.")} /></CommunityShell>
-  if (result.isError) return <CommunityShell><p role="alert">{uiText("게시글을 불러오지 못했습니다.")}</p><Link to="/community/posts">{uiText("목록으로")}</Link></CommunityShell>
-  if (!result.data) return <CommunityShell><p role="alert">{uiText("게시글을 찾을 수 없습니다.")}</p><Link to="/community/posts">{uiText("목록으로")}</Link></CommunityShell>
-  return <PostDetail key={result.data.postId} post={result.data} />
+  // Keep the translator mounted when the loading state is replaced by post content.
+  return <CommunityShell>
+    {result.isPending ? <LoadingState label={uiText("게시글을 불러오는 중입니다.")} />
+      : result.isError && !result.data ? <><p role="alert">{uiText("게시글을 불러오지 못했습니다.")}</p><Link to="/community/posts">{uiText("목록으로")}</Link></>
+      : !result.data ? <><p role="alert">{uiText("게시글을 찾을 수 없습니다.")}</p><Link to="/community/posts">{uiText("목록으로")}</Link></>
+      : <PostDetail key={result.data.postId} post={result.data} />}
+  </CommunityShell>
 }
 
 function PostDetail({ post }: { post: Post }) {
@@ -37,9 +40,9 @@ function PostDetail({ post }: { post: Post }) {
   const detail = usePostDetail(post, listUrl)
   const { postId, navigate, compact, menuOpen, setMenuOpen, setDeleteOpen, attachments, displayTitle, postContent, deletePost, notice, toastKey, actions, deleteOpen, commentDeleteId, setCommentDeleteId, deleteComment } = detail
   return (
-    <CommunityShell isolated={compact}>
+    <>
       <article className={`post-detail content-container${compact ? ' post-detail--compact' : ''}`}>
-        <header><div><h1>{displayTitle}</h1><p><span className="post-avatar"><img alt="" className="post-avatar__image" src={post.authorProfileImageUrl || defaultProfile} /></span><span className="post-detail__author"><strong>{post.author}</strong><small><time>{post.dateTime ?? post.date}</time><i aria-hidden="true" />{uiText("조회수")} <b>{post.views}</b></small></span></p>{post.isMine && communityWriteAllowed ? <span className="post-detail__menu-anchor"><button aria-expanded={menuOpen} aria-label={uiText("게시글 메뉴")} onClick={() => setMenuOpen((value) => !value)} type="button">⋮</button>{menuOpen ? <div className="post-detail__menu"><button onClick={() => navigate(`/community/posts/${postId}/edit${listUrl.slice('/community/posts'.length)}`)} type="button">{uiText("수정")}</button><button onClick={() => { setMenuOpen(false); setDeleteOpen(true) }} type="button">{uiText("삭제")}</button></div> : null}</span> : null}</div></header>
+        <header><div><h1>{displayTitle}</h1><p><span className="post-avatar"><img alt="" className="post-avatar__image" src={post.authorProfileImageUrl || defaultProfile} /></span><span className="post-detail__author"><strong>{post.author}</strong><small><time>{post.dateTime ?? post.date}</time><i aria-hidden="true" /><span className="notranslate" translate="no">{uiText("조회수")}</span> <b className="notranslate" translate="no">{post.views}</b></small></span></p>{post.isMine && communityWriteAllowed ? <span className="post-detail__menu-anchor"><button aria-expanded={menuOpen} aria-label={uiText("게시글 메뉴")} onClick={() => setMenuOpen((value) => !value)} type="button">⋮</button>{menuOpen ? <div className="post-detail__menu"><button onClick={() => navigate(`/community/posts/${postId}/edit${listUrl.slice('/community/posts'.length)}`)} type="button">{uiText("수정")}</button><button onClick={() => { setMenuOpen(false); setDeleteOpen(true) }} type="button">{uiText("삭제")}</button></div> : null}</span> : null}</div></header>
         {post.image ? <img alt={displayTitle} className="post-detail__image" src={post.image} /> : null}
         <div className="post-detail__body"><RichContentRenderer loadImage={storefront.loadPostImage} attachments={attachments} document={post.richContent} fallback={postContent} /></div>
         <AttachmentList attachments={attachments} downloadIcon={downloadIcon} />
@@ -49,6 +52,6 @@ function PostDetail({ post }: { post: Post }) {
       </article>
       <Modal closeLabel={uiText("취소")} confirmLabel={uiText("삭제")} confirmDisabled={actions.remove.isPending} isOpen={deleteOpen} onClose={() => setDeleteOpen(false)} onConfirm={() => void deletePost()} title={uiText("게시글을 삭제하시겠습니까?")}><p>{uiText("삭제한 게시글은 복구할 수 없습니다.")}</p></Modal>
       <Modal closeLabel={uiText("취소")} confirmLabel={uiText("삭제")} confirmDisabled={detail.commentQuery.remove.isPending} isOpen={commentDeleteId !== null} onClose={() => setCommentDeleteId(null)} onConfirm={() => { if (commentDeleteId) void deleteComment(commentDeleteId) }} title={uiText("댓글을 삭제하시겠습니까?")}><p>{uiText("삭제한 댓글은 복구할 수 없습니다.")}</p></Modal>
-    </CommunityShell>
+    </>
   )
 }

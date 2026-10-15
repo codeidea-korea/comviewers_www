@@ -87,7 +87,8 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
       <div className="site-header__primary">
         <div className="site-header__inner">
           <Link className="site-logo" to={restricted ? '/mypage/rcpc' : '/'}>
-            <img alt="ComViewers" src={isMain && !scrolled && !mobileOpen ? logoWhite : logoPrimary} />
+            <img alt="ComViewers" className="site-logo__primary" src={logoPrimary} />
+            {isMain && !scrolled && !mobileOpen ? <img alt="ComViewers" className="site-logo__white" src={logoWhite} /> : null}
           </Link>
           <nav aria-label={t('shell.mainMenu')} className="main-menu">
             {visibleMenuItems.map((item) => <Link key={item.id} to={item.href}><MenuLabel item={item} /></Link>)}

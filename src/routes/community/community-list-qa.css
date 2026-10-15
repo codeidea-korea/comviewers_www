@@ -14,11 +14,11 @@
 @media (max-width: 767px) {
   .community-shell .community-hero .community-hero__decoration { display: block; left: auto; right: 0; }
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container { box-sizing: border-box; max-width: none; padding-inline: 12px; width: 100%; }
-  .community-shell .board-page.board-page--community-posts { display: grid; grid-template-columns: 222px minmax(0, 1fr); }
+  .community-shell .board-page.board-page--community-posts { display: grid; grid-template-columns: minmax(0, max-content) minmax(68px, 1fr); }
   .community-shell .board-page.board-page--community-posts > :not(.community-tabs, .board-write-button--mobile) { grid-column: 1 / -1; }
   .community-shell .board-page.board-page--community-posts > .community-tabs { grid-column: 1; grid-row: 1; min-width: 0; }
-  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page .community-tabs { height: 50px; max-width: 100%; overflow-x: auto; width: 222px; }
-  .community-shell .board-page .community-tabs > a { box-sizing: border-box; flex: 0 0 111px; min-width: 111px; padding-inline: 0; width: 111px; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page .community-tabs { height: 50px; max-width: 100%; overflow-x: auto; width: max-content; }
+  .community-shell .board-page .community-tabs > a { box-sizing: border-box; flex: 0 0 auto; min-width: 111px; padding-inline: 0; white-space: nowrap; width: max-content; }
   .community-shell .board-page.board-page--community-posts > .board-write-button--mobile { align-self: start; border-radius: 4px; box-sizing: border-box; display: flex; font-size: 14px; font-weight: 700; grid-column: 2; grid-row: 1; height: 41px; justify-self: end; line-height: 17px; margin: 0; padding: 12px 16px; width: 68px; }
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar > span { grid-column: 1; grid-row: 1; }

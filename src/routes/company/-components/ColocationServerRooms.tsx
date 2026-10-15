@@ -21,7 +21,7 @@ interface Props {
 export function ColocationServerRooms({ rooms, pending, validationIssue, onAdd, onRemove, onChange }: Props) {
   const { uiText, t } = useUiTranslation()
   return (
-    <fieldset className="colocation-server-rooms" disabled={pending}>
+    <fieldset className="colocation-server-rooms notranslate" disabled={pending} translate="no">
       <legend>{uiText("서버실 정보")}</legend>
       <div className="colocation-server-rooms__list">
         {rooms.map((room, index) => {

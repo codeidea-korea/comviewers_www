@@ -33,7 +33,7 @@ export function RcpcFavoriteButton({ api, mutations, item, compact = false }: { 
   const openNewGroup = () => { save.reset(); createGroup.reset(); setOpen(false); setCreating(true) }
   const closeNewGroup = () => { if (!createGroup.isPending) { createGroup.reset(); setCreating(false); setOpen(true) } }
   return <><button aria-label={label} className={compact ? 'mypage-home-rcpc__favorite' : undefined} type="button" disabled={save.isPending} onClick={() => { save.reset(); if (item.preference.favorite) { save.mutate(null); return } openSettings() }}>{compact ? <img alt="" src={item.preference.favorite ? starFilled : starEmpty}/> : label}</button>
-    {!open && save.error ? <p role="alert">{save.error.message}</p> : null}
+    {!open && save.error ? <p role="alert">{uiText(save.error.message)}</p> : null}
     <FavoritesSettingsDialog error={groups.error || unclassified.error ? uiText("그룹을 조회하지 못했습니다.") : save.error?.message} groups={visualGroups} isOpen={open} onClose={closeSettings} onNewGroup={openNewGroup} onSave={(id) => save.mutate(id === 'unclassified' ? null : Number(id))} pending={save.isPending || groups.isPending || unclassified.isPending} />
     <NewFavoritesGroupDialog error={createGroup.error?.message} groups={visualGroups} isOpen={creating} onAdd={(name, parentId) => createGroup.mutate({ name, parentId })} onClose={closeNewGroup} pending={createGroup.isPending} />
   </>

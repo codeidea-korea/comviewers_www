@@ -145,7 +145,7 @@
 .company-catalog-benefits > div > div { margin-top: 60px; }
 .company-catalog-benefits article { background: var(--color-gray-50); border: 0; border-radius: 12px; margin-top: 12px; }
 .company-catalog-benefits article:first-child { margin-top: 0; }
-.company-catalog-benefits button { grid-template-columns: 1fr 30px; height: 89px; padding: 0 30px; }
+.company-catalog-benefits button { grid-template-columns: minmax(0, 1fr) minmax(30px, max-content); height: 89px; padding: 0 30px; }
 .company-catalog-benefits article.is-open button { height: 79px; }
 .company-catalog-benefits article.is-open { background: var(--color-black); border-radius: 12px; color: white; }
 .company-catalog-benefits article.is-open button { background: transparent; color: white; }
@@ -154,6 +154,7 @@
 .company-catalog-benefits button strong { align-items: center; display: flex; gap: 12px; letter-spacing: -.03em; }
 .company-catalog-benefits button strong img { filter: brightness(0); height: 28px; transition: filter .28s ease; width: 28px; }
 .company-catalog-benefits button span { font-size: 24px; justify-self: end; order: 2; letter-spacing: -.03em; }
+.company-catalog-benefits button > .company-benefit-number { white-space: nowrap; }
 .company-catalog-benefits button b { display: none; }
 .company-catalog-cta { height: 608px; margin-top: 4px; }
 .company-catalog-cta > div { height: 608px; }
@@ -162,7 +163,7 @@
 .company-catalog-cta a > span { align-items: center; display: inline-flex; }
 .company-catalog-cta a > img { display: block; flex: 0 0 20px; height: 20px; object-fit: contain; width: 20px; }
 .community-hero--support::after { background: none; }
-.company-catalog-hero h1 { font-family: "Pretendard Variable","Pretendard",sans-serif; white-space: nowrap; letter-spacing: -.03em; font-weight: 800; }
+.company-catalog-hero h1 { font-family: "Pretendard Variable","Pretendard",sans-serif; max-width: 100%; overflow-wrap: anywhere; white-space: normal; letter-spacing: -.03em; font-weight: 800; }
 .support-page { height: auto; padding: 50px 0 120px; }
 .support-toolbar { align-items: center; display: flex; height: 80px; justify-content: space-between; }
 .support-toolbar > span { color: var(--color-gray-600); font-size: 16px; letter-spacing: -.02em; line-height: 24px; }
@@ -436,6 +437,16 @@
 .colocation-card .colocation-file-list button { align-items: center; background: var(--color-gray-800); border-radius: 50%; color: white; display: flex; flex: 0 0 20px; float: none; font-size: 14px; height: 20px; justify-content: center; line-height: 1; padding: 0; width: 20px; }
 .colocation-card .colocation-consent > label { align-items: center; display: flex; font-size: 14px; }
 .colocation-page:not(.colocation-page--compact) .colocation-submit { border-radius: 4px; height: 50px; margin: 0; }
+.colocation-page .colocation-card .colocation-file {
+  height: auto;
+  max-width: 100%;
+  min-height: 50px;
+  min-width: 110px;
+  padding-block: 12px;
+  white-space: normal;
+  width: max-content;
+}
+.colocation-card .colocation-file > span { min-width: 0; overflow-wrap: anywhere; }
 .modal.modal--colocation-complete { height: auto; min-height: 265px; }
 .modal--colocation-complete .colocation-complete-description { color: var(--color-gray-700); font-size: 16px; line-height: 24px; }
 
@@ -488,7 +499,7 @@
 .post-editor--flow > label:nth-of-type(1) { margin-top: 60px; }.post-editor--flow > .post-editor__editor-field { margin-top: 20px; }
 .post-editor--flow .post-files { height: auto; left: auto; margin-top: 40px; position: static; top: auto; width: 720px; }
 .post-editor--flow .post-files > p { height: auto; position: static; top: auto; }
-.post-editor--flow .post-files .file-select { margin: 12px 0; position: static; top: auto; }
+.post-editor--flow .post-files .file-select { box-sizing: border-box; margin: 12px 0; max-width: 100%; min-width: 110px; position: static; top: auto; white-space: nowrap; width: max-content; }
 .post-editor--flow .post-files--error { height: auto; }
 .post-editor--flow .post-files__error { margin: 0 0 12px; position: static; }
 .post-editor--flow .post-files > div,.post-editor--flow .post-files > div:nth-of-type(1),.post-editor--flow .post-files > div:nth-of-type(2),.post-editor--flow .post-files > div:nth-of-type(3) { align-items: center; border-radius: 4px; display: flex; gap: 12px; height: 50px; justify-content: space-between; left: auto; position: static; top: auto; width: 720px; }
@@ -541,7 +552,32 @@
 .company-catalog-platform > .content-container > header > h2 { color: var(--color-black); font-size: 32px; font-weight: 700; letter-spacing: -.03em; line-height: 40px; }
 @media (min-width: 768px) {
   /* Figma sections are 166/174px plus a separate 60px gap after the stroke. */
-  .company-catalog-story > div > div section { border-bottom: 1px solid var(--color-gray-300); height: 174px; margin-bottom: 60px; padding-bottom: 60px; }
-  .company-catalog-story > div > div section:first-child { height: 166px; }
-  .company-catalog-story > div > div section:last-child { border-bottom: 0; height: 114px; margin-bottom: 0; padding-bottom: 0; }
+  .company-catalog-story > div > div section { border-bottom: 1px solid var(--color-gray-300); height: auto; min-height: 174px; margin-bottom: 60px; padding-bottom: 60px; }
+  .company-catalog-story > div > div section:first-child { min-height: 166px; }
+  .company-catalog-story > div > div section:last-child { border-bottom: 0; min-height: 114px; margin-bottom: 0; padding-bottom: 0; }
+}
+
+/* Translated copy keeps the existing type scale and grows in normal flow. */
+.company-catalog-shell main { height: auto; }
+.company-catalog-story > div > div,
+.company-catalog-platform article { min-width: 0; overflow-wrap: anywhere; }
+.company-use-tags { flex-wrap: wrap; }
+.company-catalog-platform header,
+.company-catalog-benefits header { height: auto; }
+.company-catalog-benefits button { height: auto; min-height: 89px; padding-block: 16px; }
+.company-catalog-benefits article.is-open button { height: auto; min-height: 79px; }
+.company-catalog-benefits button strong { min-width: 0; overflow-wrap: anywhere; }
+.company-catalog-benefits button strong img { flex-shrink: 0; }
+.company-catalog-benefits article.is-open p { height: auto; max-height: none; overflow: visible; overflow-wrap: anywhere; }
+@media (min-width: 768px) {
+  .company-catalog-benefits article.is-open p { min-height: 108px; }
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+  .company-catalog-story > div > article { height: auto; min-height: 832px; }
+  .company-catalog-story > div > article img { height: auto; left: auto; margin: 32px -50px -50px; position: relative; top: auto; width: calc(100% + 100px); }
+}
+@media (min-width: 1200px) {
+  .company-catalog-story { height: auto; min-height: 1072px; }
+  .company-catalog-platform { height: auto; min-height: 991px; }
+  .company-catalog-benefits { height: auto; min-height: 866px; }
 }

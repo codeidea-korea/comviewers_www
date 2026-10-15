@@ -5,7 +5,7 @@ import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServ
 import { Modal } from '@/components/ui/ModalControl'
 import { Pagination } from '@/components/ui/PaginationControl'
 import { AccountQueryState } from './AccountQueryState'
-import { inquiryTypeLabel } from './InquiryPresentation'
+import { inquiryTypeLabel, translateInquiryTitle } from './InquiryPresentation'
 
 export function InquiryProductConversations({ api, productNo, requestId, onClose, onSelect }: { api: InquiryReadServices; productNo: string; requestId: number; onClose: () => void; onSelect: (id: number) => void }) {
   const { uiText, t } = useUiTranslation()
@@ -14,7 +14,7 @@ export function InquiryProductConversations({ api, productNo, requestId, onClose
     queryFn: ({ signal }) => api.list({ productNo, exactProductNo: true, openOnly: true, page, size: 20 }, signal) })
   return <Modal isOpen title={t("mypageSupport.template4", { value0: productNo })} onClose={onClose}>
     <AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>
-    {result.data?.items.map(item => <article key={item.operationRequestId}><button className="inquiry-action-link" onClick={() => { onClose(); onSelect(item.operationRequestId) }} type="button">{item.title || item.requestNo}</button>
+    {result.data?.items.map(item => <article key={item.operationRequestId}><button className="inquiry-action-link" onClick={() => { onClose(); onSelect(item.operationRequestId) }} type="button">{translateInquiryTitle(item.requestType, item.title, uiText) || item.requestNo}</button>
       <p>{uiText(inquiryTypeLabel(item.requestType))} · {uiText(item.customerVisibleStatus)}{item.operationRequestId === requestId ? uiText(" · 현재 문의") : ''}</p><p>{item.lastMessage ?? uiText("등록된 메시지가 없습니다.")}</p></article>)}
     {result.data && !result.data.total && <p>{uiText("진행 중인 문의가 없습니다.")}</p>}
     {result.data && Math.ceil(result.data.total / result.data.size) > 1 ? <Pagination currentPage={result.data.page + 1} totalPages={Math.ceil(result.data.total / result.data.size)} onPageChange={value => setPage(value - 1)}/> : null}

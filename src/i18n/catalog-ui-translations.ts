@@ -1,5 +1,10 @@
 /** Protected catalog/accessibility copy; product specifications stay unchanged. */
 export const catalogUiTranslations = [
+  ['catalogUi.usageGuide', '이용안내', 'Hướng dẫn sử dụng', 'ご利用案内', 'User guide', '使用指南', '使用指南'],
+  ['catalogUi.homeHeroTitle', 'RCPC 렌탈 마켓 플랫폼 전문기업', 'Nền tảng cho thuê RCPC chuyên nghiệp', 'RCPCレンタル専門企業', 'RCPC Rental Specialists', '专业 RCPC 租赁交易平台', '專業 RCPC 租賃交易平台'],
+  ['catalogUi.homeHeroDevices', '고사양 워크스테이션, 데스크탑 PC부터 PC방 컴퓨터, 젠서버 디바이스까지', 'Từ máy trạm hiệu năng cao, PC để bàn đến máy tính phòng game và thiết bị XenServer', '高性能ワークステーション、デスクトップPCから、ネットカフェのPC、XenServerデバイスまで', 'From high-performance workstations and desktop PCs to gaming café computers and XenServer devices', '从高性能工作站、台式电脑到网吧电脑及 XenServer 设备', '從高效能工作站、桌上型電腦到網咖電腦及 XenServer 裝置'],
+  ['catalogUi.homeHeroRental', '필요한 조건에 맞는 RCPC를 간편하게 비교하고 자유롭게 임대할 수 있습니다.', 'Dễ dàng so sánh và thuê RCPC phù hợp với nhu cầu của bạn.', 'ご希望の条件に合うRCPCを手軽に比較し、自由にレンタルできます。', 'Easily compare and rent RCPCs that meet your needs.', '轻松比较并自由租用符合您需求的 RCPC。', '輕鬆比較並自由租用符合您需求的 RCPC。'],
+  ['catalogUi.gaming', '게임용', 'Chơi game', 'ゲーム用', 'Gaming', '游戏用', '遊戲用'],
   ['catalogUi.mouseUnknown', '마우스 정보 없음', 'Chưa có thông tin chuột', 'マウス情報なし', 'Mouse information unavailable', '暂无鼠标信息', '暫無滑鼠資訊'],
   ['catalogUi.mouseAvailable', '마우스 사용 가능', 'Có thể sử dụng chuột', 'マウス利用可能', 'Mouse available', '鼠标可用', '滑鼠可用'],
   ['catalogUi.mouseUnavailable', '마우스 사용 불가', 'Không thể sử dụng chuột', 'マウス利用不可', 'Mouse unavailable', '鼠标不可用', '滑鼠不可用'],

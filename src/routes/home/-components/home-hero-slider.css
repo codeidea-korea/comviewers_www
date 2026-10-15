@@ -29,7 +29,7 @@
 .app-shell--home .home-hero .hero-pagination__line { background: rgb(255 255 255 / 30%); }
 .hero-pagination__line > span { background: #fff; display: block; height: 100%; transition: width 450ms ease; }
 .hero-pagination__controls { align-items: center; display: flex; gap: 12px; }
-.hero-pagination__controls > span { min-width: 38px; text-align: center; }
+.hero-pagination__controls > span { align-items: center; column-gap: 4px; display: inline-grid; grid-template-columns: 1ch auto 1ch; justify-content: center; min-width: 38px; text-align: center; }
 .hero-pagination__controls b { color: #fff; }
 .hero-pagination__controls > button {
   align-items: center;

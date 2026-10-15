@@ -1,4 +1,5 @@
 import { RelativeLink as Link } from '../../../components/navigation/RelativeLinkView'
+import { useTranslation } from '../../../i18n/translation'
 import bannerGame from '../../../assets/figma/store/banner-game.png'
 import bannerNew from '../../../assets/figma/store/banner-new.png'
 import bannerOffice from '../../../assets/figma/store/banner-office.png'
@@ -26,8 +27,9 @@ const banners = [
 ] as const
 
 export function HomeBannerSection() {
+  const { locale } = useTranslation()
   return (
-    <section aria-label="상품 추천" className="banner-grid">
+    <section aria-label="상품 추천" className="banner-grid" lang={locale}>
       {banners.map((banner, index) => (
         <Link className={`banner-grid__item banner-grid__item--${index + 1}`} key={banner.eyebrow} to="/products">
           <picture>

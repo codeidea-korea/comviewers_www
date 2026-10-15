@@ -1,4 +1,5 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
+import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { PointEntryType } from '@/api/myAccount'
@@ -48,7 +49,7 @@ const pointReasonLabels: Readonly<Record<string, string>> = {
 function pointReasonLabel(reason: string | null, amount: number) {
   if (!reason) return amount >= 0 ? uiText('포인트 적립') : uiText('포인트 사용')
   if (pointReasonLabels[reason]) return uiText(pointReasonLabels[reason])
-  return /^[a-z0-9_]+$/i.test(reason) ? (amount >= 0 ? uiText('포인트 적립') : uiText('포인트 사용')) : reason
+  return /^[a-z0-9_]+$/i.test(reason) ? (amount >= 0 ? uiText('포인트 적립') : uiText('포인트 사용')) : uiText(reason)
 }
 
 function pointTypeLabel(pointType: string | null | undefined) {
@@ -305,12 +306,12 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
         ariaLabel={status === 'held' ? uiText('보유 쿠폰') : uiText('쿠폰 사용 내역')}
         mobileVariant="rcpc"
         columns={status === 'held'
-          ? [{ key: 'name', label: uiText('쿠폰명'), renderCell: item => item.name },
+          ? [{ key: 'name', label: uiText('쿠폰명'), renderCell: item => <LocalizedServiceName kind="coupon" name={item.name} /> },
             { key: 'expiry', label: uiText('사용기한'), renderCell: couponExpiry },
             { key: 'benefit', label: uiText('혜택'), renderCell: couponBenefit },
             { key: 'product', label: uiText('적용 상품'), renderCell: item => item.status === 'unavailable' ? <span>{uiText("사용중지")}</span> : productLink(item.couponId, item.serverRoomId) }]
           : [{ key: 'usedAt', label: uiText('사용일'), sortValue: item => item.usedAt ? Date.parse(item.usedAt) : null, renderCell: item => accountDate(item.usedAt).slice(0, 10) },
-            { key: 'name', label: uiText('쿠폰명'), renderCell: item => item.name },
+            { key: 'name', label: uiText('쿠폰명'), renderCell: item => <LocalizedServiceName kind="coupon" name={item.name} /> },
             { key: 'amount', label: uiText('할인 금액'), renderCell: item => accountMoney(item.usedDiscountAmount) },
             { key: 'order', label: uiText('주문번호'), renderCell: item => item.usedOrderNo
               ? <RelativeLink to={`/mypage/orders/${encodeURIComponent(item.usedOrderNo)}`}>{item.usedOrderNo}</RelativeLink> : '-' }]}
@@ -337,7 +338,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
                 <article key={item.couponId}>
                   <div>
                     <strong>{couponBenefit(item)}</strong>
-                    <h3>{item.name}</h3>
+                    <h3><LocalizedServiceName kind="coupon" name={item.name} /></h3>
                     <dl>
                       <div>
                         <dt>{uiText("기간")}</dt>
@@ -345,7 +346,7 @@ export function CouponsPageContent({ api }: { api: MyAccountReadServices }) {
                       </div>
                       <div>
                         <dt>{uiText("적용")}</dt>
-                        <dd>{item.serverRoomName ?? (item.serverRoomId ? uiText('지정 서버실') : uiText('전체 서버실'))}</dd>
+                        <dd><LocalizedServiceName kind="serverRoom" name={item.serverRoomName} fallback={item.serverRoomId ? uiText('지정 서버실') : uiText('전체 서버실')} /></dd>
                       </div>
                     </dl>
                   </div>
