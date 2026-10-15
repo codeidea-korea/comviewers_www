@@ -93,7 +93,13 @@ function renderNode(value: unknown, key: string, attachments: readonly Attachmen
     return <h2 key={key} style={safeStyle(nodeAttrs)}>{content}</h2>
   }
   if (type === 'bulletList') return <ul key={key}>{children(node, attachments, loadImage)}</ul>
-  if (type === 'orderedList') return <ol key={key}>{children(node, attachments, loadImage)}</ol>
+  if (type === 'orderedList') {
+    const start = typeof nodeAttrs.start === 'number' && Number.isInteger(nodeAttrs.start)
+      && nodeAttrs.start > 0 && nodeAttrs.start <= 2147483647 ? nodeAttrs.start : 1
+    const listType = nodeAttrs.type === '1' || nodeAttrs.type === 'a' || nodeAttrs.type === 'A'
+      || nodeAttrs.type === 'i' || nodeAttrs.type === 'I' ? nodeAttrs.type : undefined
+    return <ol key={key} start={start} type={listType}>{children(node, attachments, loadImage)}</ol>
+  }
   if (type === 'listItem') return <li key={key}>{children(node, attachments, loadImage)}</li>
   if (type === 'blockquote') return <blockquote key={key}>{children(node, attachments, loadImage)}</blockquote>
   if (type === 'codeBlock') return <pre key={key}><code>{children(node, attachments, loadImage)}</code></pre>
