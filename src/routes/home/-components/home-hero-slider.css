@@ -1,19 +1,12 @@
-.home-hero { background: #000; }
 .home-hero > .home-hero__slide {
   opacity: 0;
   pointer-events: none;
   transition: opacity 450ms ease;
 }
 .home-hero > .home-hero__slide.is-active { opacity: 1; }
-.home-hero .home-hero__image--additional {
-  height: 100%;
-  inset: 0;
-  object-fit: cover;
-  width: 100%;
-}
 .app-shell--home .home-hero .hero-pagination {
   grid-template-columns: minmax(0, 1fr) auto;
-  height: 28px;
+  height: 20px;
 }
 .app-shell--home .home-hero .hero-pagination__line { background: rgb(255 255 255 / 30%); }
 .hero-pagination__line > span { background: #fff; display: block; height: 100%; transition: width 450ms ease; }
@@ -35,14 +28,6 @@
 }
 .hero-pagination__controls > button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 767px) {
-  .app-shell--home .home-hero .home-hero__image--additional {
-    height: auto;
-    inset: 40px 0 auto;
-    max-height: 180px;
-    object-fit: contain;
-    width: 100%;
-  }
-  .app-shell--home .home-hero--landscape .home-hero__shade { background: none; }
   .hero-pagination__controls { gap: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {

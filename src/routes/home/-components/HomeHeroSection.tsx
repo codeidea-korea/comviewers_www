@@ -27,7 +27,7 @@ export function HomeHeroSection() {
   }, [activeIndex, paused, interacting])
 
   return (
-      <section className={`home-hero${activeIndex > 0 ? ' home-hero--landscape' : ''}`} aria-label="메인 배너" aria-roledescription="캐러셀"
+      <section className="home-hero" aria-label="메인 배너" aria-roledescription="캐러셀"
         onMouseEnter={() => setInteracting(true)} onMouseLeave={() => setInteracting(false)}
         onFocusCapture={() => setInteracting(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setInteracting(false) }}
         onTouchStart={event => { const touch = event.touches[0]; if (touch) touchStart.current = { x: touch.clientX, y: touch.clientY } }}
@@ -42,7 +42,7 @@ export function HomeHeroSection() {
         }}>
         {slides.map((slide, index) => <picture key={slide.image} aria-hidden="true" className={`home-hero__slide${index === activeIndex ? ' is-active' : ''}`}>
           <source media="(max-width: 767px)" srcSet={slide.mobileImage} />
-          <img alt="" className={`home-hero__image${index > 0 ? ' home-hero__image--additional' : ''}`} src={slide.image} fetchPriority={index === 0 ? 'high' : 'low'} />
+          <img alt="" className="home-hero__image" src={slide.image} fetchPriority={index === 0 ? 'high' : 'low'} />
         </picture>)}
         <span aria-hidden="true" className="home-hero__shade" />
         <div className="content-container home-hero__content">
