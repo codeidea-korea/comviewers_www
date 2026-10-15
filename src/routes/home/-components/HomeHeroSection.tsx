@@ -22,7 +22,7 @@ export function HomeHeroSection() {
 
   useEffect(() => {
     if (prefersReducedMotion || interacting) return
-    const timer = window.setTimeout(() => setActiveIndex(index => (index + 1) % slides.length), 5000)
+    const timer = window.setTimeout(() => setActiveIndex(index => (index + 1) % slides.length), 3000)
     return () => window.clearTimeout(timer)
   }, [activeIndex, prefersReducedMotion, interacting])
 
