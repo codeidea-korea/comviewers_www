@@ -2,6 +2,7 @@ import type { ReactNode, Ref } from 'react'
 import { Footer } from './FooterControl'
 import { Header } from './HeaderControl'
 import { useCartCount } from './hooks/useCartCount'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 export interface AppShellProps {
   children: ReactNode
@@ -15,16 +16,17 @@ export interface AppShellProps {
 }
 
 export function AppShell({ children, className = '', footerVariant = 'default', headerState = 'sub', onCartClick, scrollBelowHeader = false, scrollRegionRef, showHeader = true }: AppShellProps) {
+  const { uiText } = useUiTranslation()
   const cartCount = useCartCount(showHeader)
   const pageContent = <>
-    <a className="skip-link" href="#main-content">본문으로 건너뛰기</a>
+    <a className="skip-link notranslate" translate="no" href="#main-content">{uiText('본문으로 건너뛰기')}</a>
     <main id="main-content" tabIndex={-1}>{children}</main>
     <Footer variant={footerVariant} />
   </>
   return (
     <div className={`app-shell ${className}`.trim()}>
       {showHeader ? <Header cartCount={cartCount} onCartClick={onCartClick} state={headerState} /> : null}
-      {scrollBelowHeader ? <div className="app-shell__scroll-region" ref={scrollRegionRef}>{pageContent}</div> : pageContent}
+      {scrollBelowHeader ? <div className="app-shell__scroll-region" data-route-scroll-region ref={scrollRegionRef}>{pageContent}</div> : pageContent}
     </div>
   )
 }

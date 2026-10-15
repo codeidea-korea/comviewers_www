@@ -36,7 +36,6 @@ export const RelativeLink = forwardRef<HTMLAnchorElement, RelativeLinkProps>(fun
         }
         if (scopedTo.startsWith('/')) {
           event.preventDefault()
-          if (!preventScrollReset) window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
           void navigate(scopedTo, { replace, state, preventScrollReset })
         }
       }}

@@ -7,7 +7,7 @@ export function SectionHeading({ children, description, link, linkLabel = 'ÎçîÎ≥
   return (
     <div className="home-section-heading">
       <div><h2>{children}</h2>{description ? <p>{description}</p> : null}</div>
-      {link ? <Link onClick={() => window.scrollTo(0, 0)} to={link}>{linkLabel}{linkIcon === 'arrow' ? <span aria-hidden="true" className="home-section-heading__arrow"><img alt="" src={sectionArrowIcon} /></span> : <img alt="" aria-hidden="true" src={sectionMoreIcon} />}</Link> : null}
+      {link ? <Link to={link}>{linkLabel}{linkIcon === 'arrow' ? <span aria-hidden="true" className="home-section-heading__arrow"><img alt="" src={sectionArrowIcon} /></span> : <img alt="" aria-hidden="true" src={sectionMoreIcon} />}</Link> : null}
     </div>
   )
 }

@@ -1,8 +1,10 @@
 import { CustomerCapabilityGate, SessionRouteGate } from './app/session/SessionControls'
 import { useSession } from './app/session/SessionProvider'
-import { Route, Routes, useLocation } from 'react-router'
+import { Route, Routes, useLocation, useNavigationType } from 'react-router'
 import { RouteErrorBoundary } from './app/RouteErrorBoundary'
-import { lazy, Suspense, useDeferredValue, useLayoutEffect } from 'react'
+import { RouteScrollRestoration } from './components/navigation/RouteScrollRestoration'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { useUiTranslation } from './i18n/uiTranslation'
 const LoginPage = lazy(() => import('./routes/auth/LoginPageView').then(module => ({ default: module.LoginPage })))
 const ManagerPortalGate = lazy(() => import('./routes/mypage/ManagerPortalGate').then(module => ({ default: module.ManagerPortalGate })))
 const RecoveryPages = lazy(() => import('./routes/auth/RecoveryPagesView').then(module => ({ default: module.RecoveryPages })))
@@ -43,27 +45,23 @@ const SupportListPage = lazy(() => import('./routes/support/SupportPagesView').t
 const CommunityPostCreatePage = lazy(() => import('./routes/community/CommunityPostCreatePageView')
   .then((module) => ({ default: module.CommunityPostCreatePage })))
 
-function ScrollToTop({ pathname }: { pathname: string }) {
-  useLayoutEffect(() => {
-    window.history.scrollRestoration = 'manual'
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-  }, [pathname])
-
-  return null
-}
-
 function CartRoute() {
   const session = useSession()
   return session.status === 'anonymous' ? <CartPage /> : <SessionRouteGate requireOrganization><CartPage /></SessionRouteGate>
 }
 
 export function App() {
+  const { uiText } = useUiTranslation()
   // Keep the current route visible while the next lazy route chunk is loading.
-  const location = useDeferredValue(useLocation())
+  const currentLocation = useLocation()
+  const currentNavigationType = useNavigationType()
+  const { location, navigationType } = useDeferredValue(useMemo(
+    () => ({ location: currentLocation, navigationType: currentNavigationType }),
+    [currentLocation, currentNavigationType],
+  ))
   return (
     <>
-    <ScrollToTop pathname={location.pathname} />
-    <Suspense fallback={<div aria-live="polite" className="route-loading" role="status"><span aria-hidden="true" className="route-loading__indicator" /><span className="sr-only">화면을 불러오는 중입니다.</span></div>}>
+    <Suspense fallback={<div aria-live="polite" className="route-loading" role="status"><span aria-hidden="true" className="route-loading__indicator" /><span className="sr-only notranslate" translate="no">{uiText('화면을 불러오는 중입니다.')}</span></div>}>
       <RouteErrorBoundary><CustomerCapabilityGate><Routes location={location}>
       <Route index element={<HomePage />} />
       <Route path="login" element={<LoginPage />} />
@@ -89,7 +87,7 @@ export function App() {
       <Route path="account/find-password" element={<RecoveryPages page="find-password" />} />
       <Route path="account/find-password/sent" element={<RecoveryPages page="password-sent" />} />
       <Route path="account/reset-password" element={<RecoveryPages page="reset-password" />} />
-      <Route path="products" element={<ProductListPage />} />
+      <Route path="products" element={<ProductListPage navigationType={navigationType} />} />
       <Route path="products/:productId" element={<ProductDetailPage />} />
       <Route path="cart" element={<CartRoute />} />
       <Route path="checkout" element={<SessionRouteGate requireOrganization><CheckoutPage /></SessionRouteGate>} />
@@ -123,6 +121,7 @@ export function App() {
       <Route path="privacy" element={<LegalPage privacy />} />
       <Route path="*" element={<NotReadyPage title="페이지를 찾을 수 없습니다" />} />
       </Routes></CustomerCapabilityGate></RouteErrorBoundary>
+      <RouteScrollRestoration location={location} navigationType={navigationType} />
     </Suspense>
     </>
   )

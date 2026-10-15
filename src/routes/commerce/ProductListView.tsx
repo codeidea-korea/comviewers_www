@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, type NavigationType } from 'react-router'
 import { AppShell } from '../../components/layout/AppShellView'
 import { DialogLayer } from '../../components/ui/DialogLayerControl'
 import { Modal } from '../../components/ui/ModalControl'
@@ -8,6 +8,7 @@ import type { Product, DetailSelections } from '../../domain/products/types'
 import { ProductResults } from './-components/ProductResults'
 import { Checkbox } from '../../components/ui/CheckboxControl'
 import { useProductList } from './-components/hooks/useProductList'
+import { useProductListView } from './-components/hooks/useProductListView'
 import { useAddToCart } from './-components/hooks/useAddToCart'
 import { ProductFilter } from './-components/ProductFiltersView'
 import { ProductCatalogFilterControls } from './-components/ProductCatalogFilterControls'
@@ -23,7 +24,7 @@ function matchesMedia(query: string) {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches
 }
 
-export function ProductListPage() {
+export function ProductListPage({ navigationType }: { navigationType: NavigationType }) {
   const { locale, t } = useTranslation()
   const navigate = useNavigate()
   const cartAddition = useAddToCart()
@@ -36,7 +37,7 @@ export function ProductListPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [filterDrawer, setFilterDrawer] = useState(() => matchesMedia('(max-width: 1799px)'))
   const [mobileViewport, setMobileViewport] = useState(() => matchesMedia('(max-width: 767px)'))
-  const [view, setView] = useState<'cards' | 'list'>('cards')
+  const [view, setView] = useProductListView()
   const [cartPopupOpen, setCartPopupOpen] = useState(false)
   const hasAdjustableFilters = productList.catalogSelections.rooms.length > 0
     || Boolean(productList.catalogSelections.keyword)
@@ -60,6 +61,7 @@ export function ProductListPage() {
   const scrollRegionRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLElement>(null)
   const filterTriggerRef = useRef<HTMLButtonElement>(null)
+  const previousCategory = useRef(productList.catalogSelections.categoryCode)
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return undefined
     const media = window.matchMedia('(max-width: 1799px)')
@@ -80,8 +82,10 @@ export function ProductListPage() {
     if (cartAddition.isSuccess || cartAddition.isError) setCartPopupOpen(true)
   }, [cartAddition.isError, cartAddition.isSuccess])
   useEffect(() => {
-    scrollRegionRef.current?.scrollTo({ top: 0, behavior: 'instant' })
-  }, [productList.catalogSelections.categoryCode])
+    const categoryChanged = previousCategory.current !== productList.catalogSelections.categoryCode
+    previousCategory.current = productList.catalogSelections.categoryCode
+    if (categoryChanged && navigationType !== 'POP') scrollRegionRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [productList.catalogSelections.categoryCode, navigationType])
   const closeFilter = useCallback(() => {
     setFilterOpen(false)
     requestAnimationFrame(() => filterTriggerRef.current?.focus({ preventScroll: true }))
