@@ -171,7 +171,7 @@
 .support-toolbar select { width: 100%; }
 .support-toolbar input { width: 230px; }
 .support-toolbar button { background: white; border: 0; height: 50px; width: 50px; }
-.support-list > a { column-gap: 0; display: grid; grid-template-columns: 36px minmax(0,1fr) 100px; }
+.support-list > a { column-gap: 0; display: grid; grid-template-columns: 28px minmax(0,1fr) 100px; }
 .support-list > a > span { font-size: 14px; text-align: left; }
 .support-list > a > strong { align-items: center; display: flex; font-size: 16px; font-weight: 400; gap: 6px; letter-spacing: -.32px; min-width: 0; }
 .support-list > a > strong > img { height: 13.333px; width: 10.667px; }
@@ -193,6 +193,8 @@
 .support-toolbar__sort > select { height: 49px; }
 .support-toolbar__search > label,.support-toolbar__search > button { height: 49px; }
 .support-toolbar__search input { height: 49px; }
+.support-toolbar .board-toolbar__mobile-search,
+.support-toolbar .board-toolbar__sort-label { display: none; }
 .rental-review-list > a { display: flex; flex-direction: column; gap: 12px; height: 166px; justify-content: center; padding: 30px 4px; }
 .rental-review-list__top { align-items: center; display: flex; height: 25px; justify-content: space-between; width: 100%; }
 .rental-review-list__top > span:first-child { align-items: center; display: flex; gap: 8px; }
