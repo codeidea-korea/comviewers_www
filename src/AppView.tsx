@@ -3,7 +3,8 @@ import { useSession } from './app/session/SessionProvider'
 import { Route, Routes, useLocation, useNavigationType } from 'react-router'
 import { RouteErrorBoundary } from './app/RouteErrorBoundary'
 import { RouteScrollRestoration } from './components/navigation/RouteScrollRestoration'
-import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { Suspense, useDeferredValue, useMemo } from 'react'
+import { lazyRoute as lazy } from './app/lazyRoute'
 import { useUiTranslation } from './i18n/uiTranslation'
 const LoginPage = lazy(() => import('./routes/auth/LoginPageView').then(module => ({ default: module.LoginPage })))
 const ManagerPortalGate = lazy(() => import('./routes/mypage/ManagerPortalGate').then(module => ({ default: module.ManagerPortalGate })))
@@ -62,7 +63,7 @@ export function App() {
   return (
     <>
     <Suspense fallback={<div aria-live="polite" className="route-loading" role="status"><span aria-hidden="true" className="route-loading__indicator" /><span className="sr-only notranslate" translate="no">{uiText('화면을 불러오는 중입니다.')}</span></div>}>
-      <RouteErrorBoundary><CustomerCapabilityGate><Routes location={location}>
+      <RouteErrorBoundary resetKey={location.key}><CustomerCapabilityGate><Routes location={location}>
       <Route index element={<HomePage />} />
       <Route path="login" element={<LoginPage />} />
       <Route path="manager/:organizationCode/mypage" element={<ManagerPortalGate />}>
