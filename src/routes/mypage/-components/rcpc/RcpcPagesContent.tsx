@@ -8,26 +8,15 @@ import { useSession } from '@/app/session/SessionProvider'
 import { Pagination } from '@/components/ui/PaginationControl'
 import { RcpcFilterSelect as NativeSelect } from '../RcpcFilterSelect'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import { MyPageLayout, MyPageMobileFilterSheet, MyPageTabs, MyPageToolbar } from '../../MypageComponentsView'
+import { MyPageLayout, MyPageTabs, MyPageToolbar } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import { isAccountReadDenied } from '../accountReadAccess'
 import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
+import { RcpcMobileSort } from '../RcpcMobileSort'
 import { RcpcListSurface } from '../RcpcListSurface'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
-type SortKey = NonNullable<MyRcpcQuery['sort']>
-
-const mobileSortLabels: Partial<Record<SortKey, string>> = {
-  productNo: 'RCPC',
-  serverRoom: '서버 위치',
-  serverStatus: '서버 상태',
-  servicePeriod: '이용 기간',
-  traffic: '트래픽 사용량',
-}
-const mobileSortByLabel = Object.fromEntries(Object.entries(mobileSortLabels).map(([sort, label]) => [label, sort])) as Record<string, SortKey>
-const mobileSortItems = Object.values(mobileSortLabels)
-
 export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; mutations?: RcpcMutations }) {
   const session = useSession()
   const [searchParams] = useSearchParams()
@@ -36,7 +25,6 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
   const parsedUsage = myRcpcQuerySchema.safeParse({ usageStatus: searchParams.get('usageStatus') ?? undefined })
   const initialStatus = parsedStatus.success ? parsedStatus.data.status : undefined
   const initialUsage = parsedUsage.success ? parsedUsage.data.usageStatus : undefined
-  const [mobileSortOpen, setMobileSortOpen] = useState(false)
   const [query, setQuery] = useState<MyRcpcQuery>({
     page: 0,
     size: 10,
@@ -98,9 +86,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     <div className="rcpc-list-page">
       <div className="mobile-list-page-heading mobile-list-page-heading--rcpc">
         <h1>이용 RCPC</h1>
-        <button aria-expanded={mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">
-          {query.sort ? mobileSortLabels[query.sort] ?? '정렬' : '정렬'} <span aria-hidden="true" className="rcpc-status-sort-icon"/>
-        </button>
+        <RcpcMobileSort disabled={accessDenied} sort={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }} onChange={sort => setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction }))}/>
       </div>
       <MyPageTabs active={activeTab} items={tabs}/>
       <MyPageToolbar count={page?.totalElements ?? 0} label="총" suffix="개 상품">
@@ -124,7 +110,6 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
         {page && page.totalPages > 1 ? <Pagination currentPage={page.page + 1} onPageChange={nextPage => setQuery(previous => ({ ...previous, page: nextPage - 1 }))} totalPages={page.totalPages}/> : null}
       </> : null}
     </div>
-    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => setQuery(previous => ({ ...previous, page: 0, sort: mobileSortByLabel[label] ?? previous.sort, sortDirection: 'asc' }))} open={!accessDenied && mobileSortOpen}/>
     {accessDenied ? <AccountReadDeniedDialog key={api.organizationId} resource="RCPC"/> : null}
   </MyPageLayout>
 }

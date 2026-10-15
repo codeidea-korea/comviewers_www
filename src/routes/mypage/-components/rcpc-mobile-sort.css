@@ -1,0 +1,9 @@
+.rcpc-mobile-sort { display: none; }
+@media (max-width: 767px) {
+  .mypage-shell .rcpc-mobile-sort { align-items: center; display: inline-flex; flex: 0 0 auto; gap: 2px; }
+  .mypage-shell .rcpc-mobile-sort > button { background: transparent; border: 0; border-radius: 0; color: var(--color-gray-500); font: inherit; font-size: 14px; font-weight: 400; height: 24px; letter-spacing: -.03em; line-height: 24px; margin: 0; min-height: 24px; padding: 0; white-space: nowrap; }
+  .mypage-shell .rcpc-mobile-sort > .rcpc-mobile-sort__direction { align-items: center; display: inline-flex; flex: 0 0 24px; justify-content: center; width: 24px; }
+  .rcpc-mobile-sort__direction svg { display: block; fill: var(--color-gray-400); }
+  .rcpc-mobile-sort__direction [data-direction='asc'] .rcpc-mobile-sort__asc,
+  .rcpc-mobile-sort__direction [data-direction='desc'] .rcpc-mobile-sort__desc { fill: var(--color-black); }
+}

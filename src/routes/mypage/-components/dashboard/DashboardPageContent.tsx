@@ -9,7 +9,7 @@ import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import type { MyRcpcReadServices, InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { pendingOrders } from '../shared/pendingConfirmationOrders'
-import { MyPageLayout, MyPageMobileFilterSheet } from '../../MypageComponentsView'
+import { MyPageLayout } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import type { MyRcpcQuery } from '@/api/myRcpc'
 import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
@@ -22,7 +22,7 @@ import windowsBackground from '@/assets/figma/windows-card-render.png'
 import windowIcon from '@/assets/figma/icon-window.png'
 import moreIcon from '@/assets/figma/notice-zoom-in.svg'
 import groupChevron from '@/assets/figma/mypage-group-chevron.png'
-import sortIcon from '@/assets/figma/icon-unfold-less.svg'
+import { RcpcMobileSort } from '../RcpcMobileSort'
 import type { SortConfig } from '@/components/ui/SortButtonControl'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 
@@ -53,10 +53,6 @@ async function readStorageSummary(read: MyAccountReadServices, signal: AbortSign
   return { rentalCount, partCount, totalCount: rentalCount + partCount }
 }
 
-const mobileFavoriteSortLabels: Partial<Record<SortKey, string>> = { productNo: 'RCPC', serverRoom: '서버 위치', serverStatus: '서버 상태', servicePeriod: '이용 기간', traffic: '트래픽 사용량' }
-const mobileFavoriteSortByLabel: Record<string, SortKey> = Object.fromEntries(Object.entries(mobileFavoriteSortLabels).map(([sort, label]) => [label, sort])) as Record<string, SortKey>
-const mobileFavoriteSortItems = Object.values(mobileFavoriteSortLabels)
-
 export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquiries }: { detailMode?: boolean; read: MyAccountReadServices; rcpcs: MyRcpcReadServices; inquiries: InquiryReadServices }) {
   const { storefront, myAccount } = useServices()
   const { rcpcId, id } = useParams()
@@ -65,7 +61,6 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
   const owner = capability?.memberRole === 'owner'
   const commerce = owner && capability?.commerceAvailable === true
   const [favoriteSort, setFavoriteSort] = useState<SortConfig<SortKey>>({ key: 'serverStatus', direction: 'asc' })
-  const [mobileFavoriteSortOpen, setMobileFavoriteSortOpen] = useState(false)
   const [selectedFavorites, setSelectedFavorites] = useState<ReadonlySet<number>>(() => new Set())
   const detailRentalId = Number(rcpcId ?? id ?? '')
   const profile = useQuery({ queryKey: ['my-account', 'read', 'profile'], enabled: owner,
@@ -108,7 +103,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
 
       <section className="mypage-home-section mypage-home-section--rcpc">
         {heading(favoriteHeading, detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc')}
-        <div className="mypage-home-mobile-heading"><Link to={detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc'}>{favoriteHeading} <img alt="" height={24} src={groupChevron} width={24}/></Link><button aria-expanded={mobileFavoriteSortOpen} aria-haspopup="dialog" className="mypage-mobile-filter-trigger" onClick={() => setMobileFavoriteSortOpen(true)} type="button">{mobileFavoriteSortLabels[favoriteSort.key] ?? '서버 상태'}<img alt="" src={sortIcon}/></button></div>
+        <div className="mypage-home-mobile-heading"><Link to={detailMode ? '/mypage/rcpc' : owner ? '/mypage/favorites' : '/mypage/rcpc'}>{favoriteHeading} <img alt="" height={24} src={groupChevron} width={24}/></Link><RcpcMobileSort sort={favoriteSort} onChange={setFavoriteSort}/></div>
         <AccountQueryState pending={favoritePending} error={favoriteError} retry={refetchFavorites}/>
         {favoriteItems ? <RcpcDashboardTable api={rcpcs} canEditAlias={owner} canExtend={commerce} emptyMessage={detailMode ? '선택한 RCPC를 찾을 수 없습니다.' : '즐겨찾기로 등록된 RCPC가 없습니다.'} items={favoriteItems} mutations={owner ? myAccount.rcpcMutations : undefined} onAliasSaved={refetchFavorites} onSelectedChange={setSelectedFavorites} onSort={setFavoriteSort} selectable={detailMode} selected={selectedFavorites} sortConfig={favoriteSort} mobileVariant="rcpc" showAccessValuesByDefault/> : null}
       </section>
@@ -131,6 +126,5 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
         </div>
       </div>
     </div>
-    <MyPageMobileFilterSheet items={mobileFavoriteSortItems} open={mobileFavoriteSortOpen} onClose={() => setMobileFavoriteSortOpen(false)} onSelect={label => setFavoriteSort({ key: mobileFavoriteSortByLabel[label] ?? favoriteSort.key, direction: 'asc' })}/>
   </></MyPageLayout>
 }

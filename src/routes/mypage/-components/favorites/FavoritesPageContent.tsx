@@ -1,3 +1,4 @@
+import { RcpcMobileSort } from '../RcpcMobileSort'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { InquiryAction } from '../inquiries/InquiryAction'
 import { InquiryRefundApplicationDialog } from '../InquiryRefundApplication'
@@ -7,7 +8,7 @@ import type { createCustomerRcpcMutations, SavedRcpcGroup } from '@/api/customer
 import { ApiClientError } from '@/api/httpClient'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { Pagination } from '@/components/ui/PaginationControl'
-import { MyPageLayout, MyPageMobileFilterSheet } from '../../MypageComponentsView'
+import { MyPageLayout } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import { isAccountReadDenied } from '../accountReadAccess'
 import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
@@ -38,19 +39,6 @@ import './favorites-qa.css'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type GroupSelection = 'all' | 'unclassified' | number
-type SortKey = NonNullable<MyRcpcQuery['sort']>
-
-const mobileSortLabels: Partial<Record<SortKey, string>> = {
-  productNo: 'RCPC',
-  serverRoom: '서버 위치',
-  serverStatus: '서버 상태',
-  servicePeriod: '이용 기간',
-  traffic: '트래픽 사용량',
-  favoriteEdited: '즐겨찾기 변경순',
-}
-const mobileSortByLabel = Object.fromEntries(Object.entries(mobileSortLabels).map(([sort, label]) => [label, sort])) as Record<string, SortKey>
-const mobileSortItems = Object.values(mobileSortLabels)
-
 const groupQueryKey = (organizationId: string) => ['my-rcpc-groups', organizationId] as const
 
 function flattenGroups(groups: readonly SavedRcpcGroup[]): SavedRcpcGroup[] {
@@ -79,7 +67,6 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
   const refundTriggerRef = useRef<HTMLElement | null>(null)
   const [page, setPage] = useState(0)
   const [filters, setFilters] = useState<MyRcpcQuery>({ size: 20, sort: 'serverStatus', sortDirection: 'asc' })
-  const [mobileSortOpen, setMobileSortOpen] = useState(false)
   const [creating, setCreating] = useState(false), [editing, setEditing] = useState(false), [assigning, setAssigning] = useState(false)
   const [groupEditMode, setGroupEditMode] = useState(false)
   const [mobileGroupOpen, setMobileGroupOpen] = useState(false)
@@ -206,7 +193,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
           <button disabled={selectedRentalIds.length === 0 || !myAccount.inquiryApi} onClick={() => { refundTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setRefundRentalIds([...selectedRentalIds]) }} type="button">해지신청</button>
           {canExtend && selectedExtensionItems.length ? <RcpcExtensionCheckout key={selectedExtensionItems.map(item => item.rentalId).join(',')} api={api} rentalIds={selectedExtensionItems.map(item => item.rentalId)} displayTargets={selectedExtensionItems.map(extensionTarget)} triggerLabel="기간연장"/> : <button type="button" disabled>기간연장</button>}
         </RcpcSelectionMenu>
-        <div className="favorites-mobile-sort-control"><button aria-expanded={!accessDenied && mobileSortOpen} aria-haspopup="dialog" disabled={accessDenied} onClick={() => setMobileSortOpen(true)} type="button">{mobileSortLabels[filters.sort ?? 'serverStatus'] ?? '서버 상태'} <span aria-hidden="true" className="rcpc-status-sort-icon"/></button></div>
+        <div className="favorites-mobile-sort-control"><RcpcMobileSort favorites disabled={accessDenied} sort={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onChange={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })}/></div>
       </header>
       {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedRentals(new Set()) }} returnFocusRef={refundTriggerRef}/> : null}
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
@@ -221,7 +208,6 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       </> : null}
     </section>
     </div></div>
-    <MyPageMobileFilterSheet items={mobileSortItems} onClose={() => setMobileSortOpen(false)} onSelect={label => { const sort = mobileSortByLabel[label]; if (sort) updateFilters({ sort, sortDirection: sort === 'favoriteEdited' ? 'desc' : 'asc' }) }} open={!accessDenied && mobileSortOpen}/>
   </MyPageLayout>
 }
 
