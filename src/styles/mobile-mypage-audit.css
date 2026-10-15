@@ -227,6 +227,10 @@
   .mobile-rcpc-card > header strong { flex: 1 1 0; max-width: none; min-width: 0; }
   .mobile-rcpc-card > header strong > span { overflow: hidden; text-overflow: ellipsis; }
   .mobile-rcpc-card > header strong > button { flex-shrink: 0; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card > header { flex-wrap: nowrap; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card > header strong > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card > header > button { flex-shrink: 0; }
+  .mypage-shell :is(.rcpc-list-page, .favorites-page) .mobile-rcpc-card > header > .mobile-rcpc-card__spec { flex: 0 0 auto; white-space: nowrap; }
   /* Mobile dashboard, local Figma 768:19779 and card 839:27483. */
   .mypage-shell:has(.mypage-home) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .mypage-home-mobile-heading { margin-bottom: 12px; }
