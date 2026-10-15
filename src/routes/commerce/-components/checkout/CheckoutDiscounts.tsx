@@ -3,6 +3,7 @@ import type { OrderBenefitQuote } from '@/api/ordersPayments'
 import { ApiClientError } from '@/api/httpClient'
 import { Button } from '@/components/ui/ButtonControl'
 import { NativeSelect } from '@/components/ui/SelectControl'
+import { useLocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { CheckoutField, CheckoutSectionTitle } from './CheckoutFields'
 
 interface Props {
@@ -16,6 +17,12 @@ function benefitErrorMessage(error: Error) {
     if (error.kind === 'network') return '할인혜택 정보를 불러오지 못했습니다. 네트워크 연결을 확인한 후 다시 시도해 주세요.'
   }
   return '할인혜택 정보를 불러오지 못했습니다. 다시 시도해 주세요.'
+}
+
+function CheckoutCouponOption({ coupon }: { coupon: OrderBenefitQuote['coupons'][number] }) {
+  const { uiText } = useUiTranslation()
+  const name = useLocalizedServiceName('coupon', coupon.name)
+  return <option value={coupon.userCouponId}>{name} ({uiText('{amount}원 할인', { amount: coupon.discountAmount.toLocaleString('ko-KR') })})</option>
 }
 
 export function CheckoutDiscounts({ quote, couponId, points, disabled, pending, error, onCoupon, onPoints, onRetry, onReset }: Props) {
@@ -33,7 +40,7 @@ export function CheckoutDiscounts({ quote, couponId, points, disabled, pending, 
   return <section className="checkout-discounts" aria-busy={pending}>
     <CheckoutSectionTitle>{uiText("할인혜택")}</CheckoutSectionTitle>
     <CheckoutField label={uiText("쿠폰 할인")}><div className="coupon-select-field"><NativeSelect aria-label={uiText("쿠폰 할인")} disabled={disabled || pending || !currentQuote?.coupons.length} value={currentQuote ? couponId ?? '' : ''} onChange={event => onCoupon(event.target.value ? Number(event.target.value) : null)}>
-      <option value="">{uiText(couponLabel)}</option>{currentQuote?.coupons.map(coupon => <option key={coupon.userCouponId} value={coupon.userCouponId}>{coupon.name} ({uiText('{amount}원 할인', { amount: coupon.discountAmount.toLocaleString('ko-KR') })})</option>)}
+      <option value="">{uiText(couponLabel)}</option>{currentQuote?.coupons.map(coupon => <CheckoutCouponOption key={coupon.userCouponId} coupon={coupon} />)}
     </NativeSelect></div></CheckoutField>
     <p className="commerce-help">{uiText("*사용 조건에 맞는 쿠폰만 선택할 수 있습니다.")}</p>
     <CheckoutField label={uiText("포인트 사용")}><div className="field-with-button"><input aria-label={uiText("사용할 포인트")} inputMode="numeric" disabled={disabled || !currentQuote || currentQuote.availablePoints === 0} value={pending ? points : !currentQuote || currentQuote.availablePoints === 0 ? '' : points} onChange={event => changePoints(event.target.value)} placeholder={uiText(pointsPlaceholder)} /><button disabled={disabled || pending || !currentQuote || maxPoints === 0} type="button" onClick={() => changePoints(String(maxPoints))}>{uiText("전액사용")}</button></div><small className="commerce-points-owned"><span>{uiText("보유 포인트")}</span><b>{currentQuote ? `${currentQuote.availablePoints.toLocaleString('ko-KR')} P` : uiText(unavailableLabel)}</b></small></CheckoutField>

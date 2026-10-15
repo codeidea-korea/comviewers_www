@@ -19,7 +19,8 @@ export function useLocalizedServiceName(kind: ServiceNameKind, name: string | nu
   const [result, setResult] = useState({ key: '', text: '' })
   useEffect(() => {
     watchServiceNameSession(sessionStore)
-    if (session.status !== 'authenticated' || !/^\/mypage(?:\/|$)/u.test(pathname) || !isServiceNameLocale(locale)
+    const allowedPage = /^\/mypage(?:\/|$)/u.test(pathname) || (kind === 'coupon' && /^\/checkout\/?$/u.test(pathname))
+    if (session.status !== 'authenticated' || !allowedPage || !isServiceNameLocale(locale)
       || registered !== source || !canTranslateServiceName(kind, source)) return
     return subscribeServiceName(scope, locale, source, text => setResult({ key, text }))
   }, [key, kind, locale, pathname, registered, scope, session.status, sessionStore, source])

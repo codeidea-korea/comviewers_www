@@ -25,7 +25,7 @@ import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckou
 import { CheckoutExtensionContent } from './-components/checkout/CheckoutExtensionContent'
 
 type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote;
-  created?: { orderNo: string; finalAmount: number }; receiptLocked?: boolean }
+  created?: { orderNo: string; finalAmount: number } }
 
 function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const { uiText } = useUiTranslation()
@@ -118,8 +118,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     if (payment.amount !== current.benefits.finalAmount
       || (current.created && payment.orderNo !== current.created.orderNo))
       throw new Error('주문 금액을 확인할 수 없습니다. 주문내역을 확인해 주세요.')
-    const preparedAttempt = { ...current, created: { orderNo: payment.orderNo, finalAmount: payment.amount },
-      receiptLocked: current.receiptLocked || payment.paymentMethod === 'virtual_account' }
+    const preparedAttempt = { ...current, created: { orderNo: payment.orderNo, finalAmount: payment.amount } }
     attemptRef.current = preparedAttempt
     setAttempt(preparedAttempt)
     if (payment.paymentStatus === 'approved') {
@@ -194,7 +193,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
               </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
               {profile.isError && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
               <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
-              {showReceipt && <fieldset className="checkout-input-fields" disabled={!!attempt && (!paymentRetryReady || !!attempt.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
+              {showReceipt && <fieldset className="checkout-input-fields" disabled={!!attempt && !paymentRetryReady}><CheckoutReceipt form={form} /></fieldset>}
             </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt && !paymentRetryReady} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
     </div>
   </AppShell>

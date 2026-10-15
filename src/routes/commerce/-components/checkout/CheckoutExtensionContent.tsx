@@ -27,7 +27,7 @@ import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } f
 type CreatedOrder = { orderNo: string; finalAmount: number }
 type Attempt = {
   body: ExtensionCheckoutInput; quote: ExtensionQuote; benefits: OrderBenefitQuote
-  preparation: Omit<CheckoutPaymentPreparation, 'orderNo' | 'finalAmount'>; created?: CreatedOrder; receiptLocked?: boolean
+  preparation: Omit<CheckoutPaymentPreparation, 'orderNo' | 'finalAmount'>; created?: CreatedOrder
 }
 
 export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutState }) {
@@ -145,7 +145,6 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     if (controller.signal.aborted) return
     if (payment.orderNo !== created.orderNo || payment.amount !== created.finalAmount)
       throw new Error('주문 금액을 확인할 수 없습니다. 주문내역을 확인해 주세요.')
-    current = { ...current, receiptLocked: current.receiptLocked || payment.paymentMethod === 'virtual_account' }
     attemptRef.current = current
     setAttempt(current)
     if (payment.paymentStatus === 'approved') {
@@ -224,7 +223,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
           error={attempt ? null : quote.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={resetDiscounts} onReset={resetDiscounts} />
         {profile.isError && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
         <fieldset className="checkout-input-fields" disabled={Boolean(attempt)}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
-        {showReceipt && <fieldset className="checkout-input-fields" disabled={Boolean(attempt) && (!paymentRetryReady || !!attempt?.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
+        {showReceipt && <fieldset className="checkout-input-fields" disabled={Boolean(attempt) && !paymentRetryReady}><CheckoutReceipt form={form} /></fieldset>}
         {canRevise && <Button variant="secondary" onClick={() => { attemptRef.current = null; setAttempt(null); submit.reset(); retryQuotes() }}>{uiText("입력 수정 후 견적 다시 확인")}</Button>}
       </div><CheckoutSummary variant={hasPurchase ? 'cart' : 'extension'} extensionAmount={hasPurchase && current.items.length ? current.extensionAmount : undefined} quote={currentSummary!} benefits={shownBenefits} form={form} directEasyPayMethods={methods.data}
         paymentAvailabilityError={availabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setAvailabilityError(null); setPaymentNotice(null) }}
