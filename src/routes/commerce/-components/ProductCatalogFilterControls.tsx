@@ -35,7 +35,7 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
   const roomGroups = Array.from(new Set(metadata?.rooms.map(room => room.groupName || '서버실') ?? [])).map(label => ({ label,
     options: metadata!.rooms.filter(room => (room.groupName || '서버실') === label).map(room => ({ value: String(room.id), label: room.name })),
   }))
-  const selectedRoomLabels = selected.rooms.map(id => metadata?.rooms.find(room => String(room.id) === id)?.name ?? `서버실 ${id}`)
+  const selectedRoomLabels = selected.rooms.map(id => metadata?.rooms.find(room => String(room.id) === id)?.name ?? t('catalogUi.serverRoomId', { id }))
   const priceLabel = t(selected.priceBasis === 'unit' ? 'money.productAmount' : 'money.monthlyRental')
   const selectedOptions = selected.filterOptionIds ?? []
   const groupsByCategory = (categoryCode: string) => metadata?.groups.filter(group => group.categoryCode === categoryCode) ?? []
@@ -76,10 +76,10 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
       {primarySelectors.map(selector => <DropdownSelect className="product-selector-field" controls={`catalog-${selector.id}`} disabled={!metadata} expanded={open === selector.id} hasPopup={false} key={selector.id} label={selectorKeys[selector.id] ? <TranslatedText id={selectorKeys[selector.id]} /> : selector.label} onToggle={() => setOpen(current => current === selector.id ? null : selector.id)}
         triggerIcon={<img alt="" src={selectorChevronDownIcon} />} value={<span className="notranslate" translate="no">{selector.value}</span>}
         panel={open === selector.id ? <>
-          <button aria-label={`${selector.label} 선택 닫기`} className="product-mobile-selector-backdrop" onClick={dismiss} type="button" />
+          <button aria-label={t('catalogUi.closeSelector', { label: selectorKeys[selector.id] ? t(selectorKeys[selector.id]) : selector.label })} className="product-mobile-selector-backdrop" onClick={dismiss} type="button" />
           <div className="product-mobile-server-sheet">
             <span aria-hidden="true" className="product-mobile-bottom-sheet__handle" />
-          <GroupedMultiSelect ariaLabel={`${selector.label} 선택`} chevronIcon={filterChevronUpIcon} className="server-room-select-panel" groups={selector.groups} id={`catalog-${selector.id}`} onChange={values => {
+          <GroupedMultiSelect ariaLabel={t('catalogUi.chooseFilter', { label: selectorKeys[selector.id] ? t(selectorKeys[selector.id]) : selector.label })} chevronIcon={filterChevronUpIcon} className="server-room-select-panel" groups={selector.groups} id={`catalog-${selector.id}`} onChange={values => {
           if (values.size > 50) { setRoomNotice('검색 조건은 최대 50개까지 선택할 수 있습니다.'); return }
           setRoomNotice('')
           if (selector.id === 'rooms') update({ rooms: [...values] })
@@ -91,9 +91,9 @@ export function ProductCatalogFilterControls({ controls, mobileFilterTrigger }: 
     </div>
     {roomNotice ? <p role="alert">{roomNotice}</p> : null}
     <div className={`selected-filters${hasSelectedFilters ? '' : ' is-empty'}`}><div className="selected-filters__title"><img alt="" src={filterTuneIcon} /><span><TranslatedText id="filter.title" /></span></div><div className="selected-filters__body"><div className="selected-filters__tags">
-      {selectedRoomLabels.length ? <button aria-label={`${t('filter.serverRoom')} ${selectedLabel(selectedRoomLabels)} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ rooms: [] })}><span className="notranslate" translate="no">{t('filter.serverRoom')} {selectedLabel(selectedRoomLabels)}</span><FilterCloseIcon /></button> : null}
-      {tags.map(tag => <button aria-label={`${tag.label} 필터 해제`} key={tag.id} className="selected-filters__tag" type="button" onClick={tag.remove}>{tag.label}<FilterCloseIcon /></button>)}
-      {selected.minPrice !== undefined || selected.maxPrice !== undefined ? <button aria-label={`${priceLabel} 필터 해제`} className="selected-filters__tag" type="button" onClick={() => update({ minPrice: undefined, maxPrice: undefined })}><TranslatedText id={selected.priceBasis === 'unit' ? 'money.productAmount' : 'money.monthlyRental'} /> <TranslatedText id="money.krwAmount" values={{ amount: selected.minPrice?.toLocaleString('ko-KR') ?? '0' }} /> ~ {selected.maxPrice === undefined ? '제한 없음' : <TranslatedText id="money.krwAmount" values={{ amount: selected.maxPrice.toLocaleString('ko-KR') }} />}<FilterCloseIcon /></button> : null}
+      {selectedRoomLabels.length ? <button aria-label={t('catalogUi.removeFilter', { label: `${t('filter.serverRoom')} ${selectedLabel(selectedRoomLabels)}` })} className="selected-filters__tag" type="button" onClick={() => update({ rooms: [] })}><span className="notranslate" translate="no">{t('filter.serverRoom')} {selectedLabel(selectedRoomLabels)}</span><FilterCloseIcon /></button> : null}
+      {tags.map(tag => <button aria-label={t('catalogUi.removeFilter', { label: tag.label })} key={tag.id} className="selected-filters__tag" type="button" onClick={tag.remove}>{tag.label}<FilterCloseIcon /></button>)}
+      {selected.minPrice !== undefined || selected.maxPrice !== undefined ? <button aria-label={t('catalogUi.removeFilter', { label: priceLabel })} className="selected-filters__tag" type="button" onClick={() => update({ minPrice: undefined, maxPrice: undefined })}><TranslatedText id={selected.priceBasis === 'unit' ? 'money.productAmount' : 'money.monthlyRental'} /> <TranslatedText id="money.krwAmount" values={{ amount: selected.minPrice?.toLocaleString('ko-KR') ?? '0' }} /> ~ {selected.maxPrice === undefined ? '제한 없음' : <TranslatedText id="money.krwAmount" values={{ amount: selected.maxPrice.toLocaleString('ko-KR') }} />}<FilterCloseIcon /></button> : null}
       {selected.keyboardConnectionStatus ? <button aria-label="키보드 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ keyboardConnectionStatus: undefined })}>키보드 조건<FilterCloseIcon /></button> : null}
       {selected.mouseConnectionStatus ? <button aria-label="마우스 조건 필터 해제" className="selected-filters__tag" type="button" onClick={() => update({ mouseConnectionStatus: undefined })}>마우스 조건<FilterCloseIcon /></button> : null}
     </div><button className="selected-filters__reset" type="button" onClick={controls.resetFilters}><TranslatedText id="common.reset" /> <img alt="" src={restartAltIcon} /></button></div></div>

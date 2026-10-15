@@ -1,5 +1,16 @@
+import { authTranslations } from './auth-translations'
+import { cartPageOverrides } from './cart-page-translations'
+import { shellTranslations } from './shell-translations'
+import { mypageRcpcTranslations } from './mypage-rcpc-translations'
+import { mypageAccountTranslations } from './mypage-account-translations'
+import { mypageSupportTranslations } from './mypage-support-translations'
+import { checkoutPageTranslations } from './checkout-page-translations'
+import { formsPageTranslations } from './forms-page-translations'
+import { commonPageTranslations } from './common-page-translations'
+import { catalogUiOverrides } from './catalog-ui-translations'
+
 /**
- * User-facing translation draft, 2026-09-21. Wired to DEV user UI via translation-core.
+ * Customer UI translation drafts, extended 2026-10-15 via translation-core.
  * Review table and integration notes: docs/handoff/comviewers-translation-table.md.
  * Keys identify meaning, not global Korean substring replacements.
  * Preserve named placeholders. Amounts stay in KRW; translation is not conversion.
@@ -8,6 +19,16 @@ export const translationLocales = ['vi', 'ja', 'en', 'zh-CN', 'zh-TW'] as const
 export type TranslationLocale = typeof translationLocales[number]
 
 export const translationSourceFiles = {
+  auth: 'src/routes/auth/LoginPageView.tsx',
+  cartPage: 'src/routes/commerce/CartPageView.tsx',
+  shell: 'src/components/layout/HeaderControl.tsx',
+  mypageRcpc: 'src/routes/mypage/MypageComponentsView.tsx',
+  mypageAccount: 'src/routes/mypage/-components/orders/OrderPagesContent.tsx',
+  mypageSupport: 'src/routes/mypage/InquiryPagesView.tsx',
+  checkoutPage: 'src/routes/commerce/CheckoutPageView.tsx',
+  formsPage: 'src/routes/company/ColocationApplyPageView.tsx',
+  commonPage: 'src/components/ui/RichTextEditorCore.tsx',
+  catalogUi: 'src/routes/commerce/-components/ProductResults.tsx',
   nav: 'src/navigation/menuItems.ts',
   session: 'src/app/session/SessionControls.tsx',
   modal: 'src/components/ui/ModalControl.tsx',
@@ -35,6 +56,16 @@ export type TranslationOverride = Readonly<{
 } & Record<TranslationLocale, string>>
 
 export const translationOverrides = [
+  ...authTranslations,
+  ...cartPageOverrides,
+  ...shellTranslations,
+  ...mypageRcpcTranslations,
+  ...mypageAccountTranslations,
+  ...mypageSupportTranslations,
+  ...checkoutPageTranslations,
+  ...formsPageTranslations,
+  ...commonPageTranslations,
+  ...catalogUiOverrides,
   {"key":"common.confirm","source":"modal","ko":"확인","vi":"Xác nhận","ja":"確認","en":"Confirm","zh-CN":"确认","zh-TW":"確認"},
   {"key":"common.close","source":"modal","ko":"닫기","vi":"Đóng","ja":"閉じる","en":"Close","zh-CN":"关闭","zh-TW":"關閉"},
   {"key":"common.cancel","source":"catalog","ko":"취소","vi":"Hủy","ja":"キャンセル","en":"Cancel","zh-CN":"取消","zh-TW":"取消"},

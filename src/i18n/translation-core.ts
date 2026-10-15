@@ -42,6 +42,6 @@ export function setTranslationLocale(value: string) {
 export function translate(key: TranslationKey, values: Values = {}): string {
   const entry = entries.get(key)
   if (!entry) return key
-  return entry[currentLocale].replace(/\{([a-zA-Z]+)\}/g, (token, name: string) =>
+  return entry[currentLocale].replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g, (token, name: string) =>
     Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : token)
 }

@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useRef, useState, type FormEvent, type MouseEvent } from 'react'
 import type { JSONContent } from '@tiptap/core'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
@@ -17,14 +18,16 @@ type EditorAttachment = { id?: string; localId: string; name: string; size?: str
 const escapeHtml = (text: string) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 const toEditorHtml = (paragraphs: string[]) => paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')
 export function CommunityPostCreatePage({ mode = 'create' }: { mode?: 'create' | 'edit' }) {
+  const { uiText } = useUiTranslation()
   const { postId } = useParams()
   const result = usePost(mode === 'edit' ? postId : undefined)
-  if (mode === 'edit' && result.isPending) return <CommunityShell><LoadingState label="게시글을 불러오는 중입니다." /></CommunityShell>
-  if (mode === 'edit' && (result.isError || !result.data || !result.data.isMine)) return <CommunityShell><p role="alert">수정할 게시글을 찾을 수 없습니다.</p><Link to="/community/posts">목록으로</Link></CommunityShell>
+  if (mode === 'edit' && result.isPending) return <CommunityShell><LoadingState label={uiText("게시글을 불러오는 중입니다.")} /></CommunityShell>
+  if (mode === 'edit' && (result.isError || !result.data || !result.data.isMine)) return <CommunityShell><p role="alert">{uiText("수정할 게시글을 찾을 수 없습니다.")}</p><Link to="/community/posts">{uiText("목록으로")}</Link></CommunityShell>
   return <PostEditor key={postId ?? 'new'} mode={mode} editingPost={result.data ?? null} />
 }
 
 function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPost: Post | null }) {
+  const { uiText, t } = useUiTranslation()
   const actions = usePostActions()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -116,14 +119,14 @@ function PostEditor({ mode, editingPost }: { mode: 'create' | 'edit'; editingPos
   return (
     <CommunityShell>
       <form className={`post-editor post-editor--flow content-container${mode === 'edit' ? ' post-editor--edit' : ''}`} onSubmit={submit}>
-        <h1>{mode === 'edit' ? '게시글 수정' : '게시글 작성'}</h1>
-        <label><span>제목</span><input aria-label="제목" aria-describedby={titleError ? 'post-title-error' : undefined} aria-invalid={Boolean(titleError)} onChange={(event) => { setTitle(event.target.value); setNotice('') }} placeholder="제목을 입력해 주세요." value={title} />{titleError ? <small className="post-editor__field-error" id="post-title-error" role="alert">{titleError}</small> : null}</label>
-        <div className="post-editor__editor-field"><span id="post-editor-content-label">내용</span><RichTextEditor uploadImage={actions.uploadImage ? uploadImage : undefined} loadImage={actions.loadImage} onImageUploadPendingChange={setImageUploadPending} ariaLabelledby="post-editor-content-label" onChange={(value) => { setContent(value); setNotice('') }} onDocumentChange={(document) => setRichContent(document)} placeholder="" value={richContent ?? content} />{contentError ? <small className="post-editor__field-error" role="alert">{contentError}</small> : null}</div>
-        <section className={`post-files${attachmentError ? ' post-files--error' : ''}`}><h2>첨부파일</h2><p>* 최대 3개까지 첨부 가능</p><label className="file-select">파일 선택<input className="sr-only" aria-describedby={attachmentError ? 'post-files-error' : undefined} aria-invalid={Boolean(attachmentError)} disabled={imagePending || actions.save.isPending} onChange={(event) => { selectFiles(Array.from(event.target.files ?? [])); event.currentTarget.value = '' }} type="file" multiple /></label>{attachmentError ? <small className="post-files__error" id="post-files-error" role="alert">{attachmentError}</small> : null}{files.map((file) => <div key={file.localId}><span className="post-files__info"><span className="post-files__name" title={file.name}>{file.name}</span><small>{file.size}</small></span><button aria-label={`${file.name} 삭제`} onClick={() => { setFiles((current) => current.filter((item) => item.localId !== file.localId)); setFileNotice(''); setNotice('') }} type="button"><img alt="" src={closeIcon} /></button></div>)}</section>
-        {submitError ? <p className="post-editor__submit-error" role="alert">{submitError}</p> : null}
-        <div className="post-editor__actions"><Link aria-disabled={actions.save.isPending || imagePending} onClick={cancel} ref={cancelLinkRef} to={cancelUrl}>취소</Link><button disabled={actions.save.isPending || imagePending} type="submit">{submitLabel}</button></div>
+        <h1>{uiText(mode === 'edit' ? '게시글 수정' : '게시글 작성')}</h1>
+        <label><span>{uiText("제목")}</span><input aria-label={uiText("제목")} aria-describedby={titleError ? 'post-title-error' : undefined} aria-invalid={Boolean(titleError)} onChange={(event) => { setTitle(event.target.value); setNotice('') }} placeholder={uiText("제목을 입력해 주세요.")} value={title} />{titleError ? <small className="post-editor__field-error" id="post-title-error" role="alert">{uiText(titleError)}</small> : null}</label>
+        <div className="post-editor__editor-field"><span id="post-editor-content-label">{uiText("내용")}</span><RichTextEditor uploadImage={actions.uploadImage ? uploadImage : undefined} loadImage={actions.loadImage} onImageUploadPendingChange={setImageUploadPending} ariaLabelledby="post-editor-content-label" onChange={(value) => { setContent(value); setNotice('') }} onDocumentChange={(document) => setRichContent(document)} placeholder="" value={richContent ?? content} />{contentError ? <small className="post-editor__field-error" role="alert">{uiText(contentError)}</small> : null}</div>
+        <section className={`post-files${attachmentError ? ' post-files--error' : ''}`}><h2>{uiText("첨부파일")}</h2><p>{uiText("* 최대 3개까지 첨부 가능")}</p><label className="file-select">{uiText("파일 선택")}<input className="sr-only" aria-describedby={attachmentError ? 'post-files-error' : undefined} aria-invalid={Boolean(attachmentError)} disabled={imagePending || actions.save.isPending} onChange={(event) => { selectFiles(Array.from(event.target.files ?? [])); event.currentTarget.value = '' }} type="file" multiple /></label>{attachmentError ? <small className="post-files__error" id="post-files-error" role="alert">{uiText(attachmentError)}</small> : null}{files.map((file) => <div key={file.localId}><span className="post-files__info"><span className="post-files__name" title={file.name}>{file.name}</span><small>{file.size}</small></span><button aria-label={t('forms.removeFile', { name: file.name })} onClick={() => { setFiles((current) => current.filter((item) => item.localId !== file.localId)); setFileNotice(''); setNotice('') }} type="button"><img alt="" src={closeIcon} /></button></div>)}</section>
+        {submitError ? <p className="post-editor__submit-error" role="alert">{uiText(submitError)}</p> : null}
+        <div className="post-editor__actions"><Link aria-disabled={actions.save.isPending || imagePending} onClick={cancel} ref={cancelLinkRef} to={cancelUrl}>{uiText("취소")}</Link><button disabled={actions.save.isPending || imagePending} type="submit">{uiText(submitLabel)}</button></div>
       </form>
-      <Modal closeLabel="취소" confirmLabel="확인" confirmDisabled={actions.save.isPending || imagePending} isOpen={cancelOpen} onClose={() => setCancelOpen(false)} onConfirm={() => { if (!submitting.current && !imageUploadLock.current) navigate(cancelUrl) }} returnFocusRef={cancelLinkRef} title={mode === 'edit' ? '게시글 수정을 취소하시겠습니까?' : '게시글 작성을 취소하시겠습니까?'}><p>입력한 내용은 저장되지 않습니다.</p></Modal>
+      <Modal closeLabel={uiText("취소")} confirmLabel={uiText("확인")} confirmDisabled={actions.save.isPending || imagePending} isOpen={cancelOpen} onClose={() => setCancelOpen(false)} onConfirm={() => { if (!submitting.current && !imageUploadLock.current) navigate(cancelUrl) }} returnFocusRef={cancelLinkRef} title={uiText(mode === 'edit' ? '게시글 수정을 취소하시겠습니까?' : '게시글 작성을 취소하시겠습니까?')}><p>{uiText("입력한 내용은 저장되지 않습니다.")}</p></Modal>
     </CommunityShell>
   )
 }

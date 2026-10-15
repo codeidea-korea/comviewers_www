@@ -1,3 +1,4 @@
+import { useAuthTranslation } from '@/routes/auth/authTranslation'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 import { useAuthentication } from '@/app/session/AuthProvider'
@@ -19,6 +20,7 @@ function wait(ms: number) {
 }
 
 export function EmailVerificationPage() {
+  const { authText } = useAuthTranslation()
   const { search } = useLocation()
   const { restoring } = useAuthentication()
   // Router's original query survives auth-scope remounts after URL sanitization.
@@ -77,28 +79,28 @@ export function EmailVerificationPage() {
 
   return (
     <AppShell>
-      <section className="not-ready-page email-verification-page">
+      <section className="not-ready-page email-verification-page notranslate" translate="no">
         <div className="auth-panel auth-panel--result">
           <p className="eyebrow">EMAIL VERIFICATION</p>
-          <h1>{signupCompleted ? '회원가입이 완료되었습니다' : emailVerified ? '이메일 인증이 완료되었습니다' : '이메일 인증'}</h1>
-          {error ? <p role="alert">{error}</p> : null}
+          <h1>{signupCompleted ? authText("회원가입이 완료되었습니다") : emailVerified ? authText("이메일 인증이 완료되었습니다") : authText("이메일 인증")}</h1>
+          {error ? <p role="alert">{authText(error)}</p> : null}
           {signupCompleted ? (
-            <Button as={Link} size="large" to="/">메인으로</Button>
+            <Button as={Link} size="large" to="/">{authText("메인으로")}</Button>
           ) : emailVerified ? null : token ? (
             <>
               <Button disabled={busy || restoring} size="large" onClick={() => { void confirm() }}>
-                {busy ? '인증 중…' : '이메일 인증하기'}
+                {busy ? authText("인증 중…") : authText("이메일 인증하기")}
               </Button>
             </>
           ) : (
             <>
-              <p role="alert">{invalidLinkMessage}</p>
-              <Button as={Link} size="large" to="/">메인으로</Button>
+              <p role="alert">{authText(invalidLinkMessage)}</p>
+              <Button as={Link} size="large" to="/">{authText("메인으로")}</Button>
             </>
           )}
         </div>
       </section>
-      <Toast message={toastMessage} toastKey={toastKey} />
+      <Toast message={authText(toastMessage)} toastKey={toastKey} />
     </AppShell>
   )
 }

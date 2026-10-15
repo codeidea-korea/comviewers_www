@@ -1,6 +1,12 @@
 import type { ChangeEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Modal } from './ModalControl'
+import { useTranslation, type TranslationKey } from '../../i18n/translation'
+
+const imageErrorKeys: Readonly<Record<string, TranslationKey>> = {
+  'JPG, JPEG, PNG 형식의 5MB 이하 이미지를 선택해 주세요.': 'shell.profileImageInvalid',
+  '이미지 미리보기를 불러오지 못했습니다. 다시 선택해 주세요.': 'shell.profileImagePreviewFailed',
+}
 
 export interface ProfileImagePickerProps {
   alt: string
@@ -15,6 +21,7 @@ export interface ProfileImagePickerProps {
 }
 
 export function ProfileImagePicker({ alt, className = '', inputClassName = '', disabled = false, onError, onSelect, resetKey = 0, value, variant = 'catalog' }: ProfileImagePickerProps) {
+  const { t } = useTranslation()
   const readTokenRef = useRef(0)
   const [errorMessage, setErrorMessage] = useState('')
   const reportError = (message: string) => {
@@ -41,8 +48,9 @@ export function ProfileImagePicker({ alt, className = '', inputClassName = '', d
     event.target.value = ''
   }
 
-  const input = <input accept=".jpg,.jpeg,.png" className={inputClassName} disabled={disabled} onChange={selectImage} type="file" />
-  const errorDialog = <Modal isOpen={Boolean(errorMessage)} title="프로필 이미지 업로드 실패" closeLabel="확인" onClose={() => setErrorMessage('')}><p role="alert">{errorMessage}</p></Modal>
-  if (variant === 'auth') return <><div className={`profile-image-picker profile-image-field${className ? ` ${className}` : ''}`}><span>프로필 이미지</span><div className="profile-image-field__row"><div className="profile-image-preview"><img alt={alt} src={value} /></div><div className="profile-image-field__actions"><label className="file-button">이미지 선택{input}</label><small>* JPG, JPEG, PNG 파일<br />* 최대 5MB | 권장 크기: 500 × 500px</small></div></div></div>{errorDialog}</>
-  return <><section className={`profile-image-picker profile-catalog__image${className ? ` ${className}` : ''}`}><strong>프로필 이미지</strong><div><img alt={alt} src={value} /><label>이미지 선택{input}</label><p>* JPG, JPEG, PNG 파일<br />* 최대 5MB | 권장 크기 500 × 500</p></div></section>{errorDialog}</>
+  const input = <input accept=".jpg,.jpeg,.png" aria-label={t('shell.profileImageSelect')} className={inputClassName} disabled={disabled} onChange={selectImage} type="file" />
+  const errorKey = imageErrorKeys[errorMessage]
+  const errorDialog = <Modal isOpen={Boolean(errorMessage)} title="프로필 이미지 업로드 실패" titleTranslationKey="shell.profileImageUploadFailed" closeLabel="확인" onClose={() => setErrorMessage('')}><p className="notranslate" translate="no" role="alert">{errorKey ? t(errorKey) : errorMessage}</p></Modal>
+  if (variant === 'auth') return <><div className={`profile-image-picker profile-image-field${className ? ` ${className}` : ''}`}><span className="notranslate" translate="no">{t('shell.profileImage')}</span><div className="profile-image-field__row"><div className="profile-image-preview"><img alt={alt} src={value} /></div><div className="profile-image-field__actions"><label className="file-button notranslate" translate="no">{t('shell.profileImageSelect')}{input}</label><small className="notranslate" translate="no">{t('shell.profileImageFormats')}<br />{t('shell.profileImageSizeAuth')}</small></div></div></div>{errorDialog}</>
+  return <><section className={`profile-image-picker profile-catalog__image${className ? ` ${className}` : ''}`}><strong className="notranslate" translate="no">{t('shell.profileImage')}</strong><div><img alt={alt} src={value} /><label className="notranslate" translate="no">{t('shell.profileImageSelect')}{input}</label><p className="notranslate" translate="no">{t('shell.profileImageFormats')}<br />{t('shell.profileImageSizeCatalog')}</p></div></section>{errorDialog}</>
 }

@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router'
 import backIcon from '@/assets/figma/chevron-left.svg'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 export function PageBackButton({ fallbackTo, label }: { fallbackTo: string; label: string }) {
+  const { uiText } = useUiTranslation()
   const navigate = useNavigate()
 
   const goBack = () => {
@@ -10,5 +12,5 @@ export function PageBackButton({ fallbackTo, label }: { fallbackTo: string; labe
     else navigate(fallbackTo)
   }
 
-  return <button aria-label={label} className="mypage-page-back" onClick={goBack} type="button"><img alt="" src={backIcon}/></button>
+  return <button aria-label={uiText(label)} className="mypage-page-back" onClick={goBack} type="button"><img alt="" src={backIcon}/></button>
 }

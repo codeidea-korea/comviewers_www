@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -27,6 +28,7 @@ type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefi
   created?: { orderNo: string; finalAmount: number }; receiptLocked?: boolean }
 
 function CheckoutContent({ ids }: { ids: readonly string[] }) {
+  const { uiText } = useUiTranslation()
   const { checkout, myAccount } = useServices()
   const navigate = useNavigate()
   const client = useQueryClient()
@@ -181,16 +183,16 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const pageState = quote ? 'filled' : 'empty'
   const contentStatus = attempt ? null : !result.validSelection ? 'empty' : result.isPending ? 'loading' : result.isError ? 'error' : null
   return <AppShell className={`commerce-shell checkout-page checkout-page--service checkout-page--${pageState}${showReceipt ? ' checkout-page--with-receipt' : ''}`} footerVariant="compact">
-    <div className="content-container commerce-page"><PageTitle>주문서 작성</PageTitle>
+    <div className="content-container commerce-page"><PageTitle>{uiText("주문서 작성")}</PageTitle>
       
-      {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel="선택 상품의 예상 금액을 불러오는 중입니다." errorMessage="선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다." onRetry={() => { void result.refetch() }} errorAction={<Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart" variant="secondary">장바구니로 이동</Button>}><p>장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.</p><Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart">장바구니로 이동</Button></CommerceCartState>
+      {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel={uiText("선택 상품의 예상 금액을 불러오는 중입니다.")} errorMessage={uiText("선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다.")} onRetry={() => { void result.refetch() }} errorAction={<Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart" variant="secondary">{uiText("장바구니로 이동")}</Button>}><p>{uiText("장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.")}</p><Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart">{uiText("장바구니로 이동")}</Button></CommerceCartState>
             : quote ? <div className="checkout-layout" aria-busy={refreshing}><div className="checkout-main">
               <CheckoutProducts items={quote.items} benefits={shownBenefits} refreshing={refreshing} />
               {productUnavailable ? <div className="checkout-product-error">
-                <p role="alert">선택한 상품 중 현재 주문할 수 없는 상품이 있습니다. 장바구니에서 상품 상태를 다시 확인해 주세요.</p>
-                <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">장바구니로 이동</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인'}</Button></div>
+                <p role="alert">{uiText("선택한 상품 중 현재 주문할 수 없는 상품이 있습니다. 장바구니에서 상품 상태를 다시 확인해 주세요.")}</p>
+                <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">{uiText("장바구니로 이동")}</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{uiText(benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인')}</Button></div>
               </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
-              {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
+              {profile.isError && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
               <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
               {showReceipt && <fieldset className="checkout-input-fields" disabled={!!attempt && (!paymentRetryReady || !!attempt.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
             </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt && !paymentRetryReady} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}

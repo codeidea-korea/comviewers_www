@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -57,6 +58,7 @@ export function useToastMessage() {
 }
 
 function TimedToast({ message }: { message: string }) {
+  const { uiText } = useUiTranslation()
   const elementRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(true)
 
@@ -89,7 +91,7 @@ function TimedToast({ message }: { message: string }) {
 
   if (!visible) return null
   return createPortal(
-    <div ref={elementRef} data-ui="toast" role="status" aria-live="polite" aria-atomic="true" style={toastStyle}>{message}</div>,
+    <div ref={elementRef} data-ui="toast" role="status" aria-live="polite" aria-atomic="true" style={toastStyle}>{uiText(message)}</div>,
     document.body,
   )
 }
@@ -101,5 +103,6 @@ export function Toast({ message, toastKey }: { message?: string | null; toastKey
     if (message) activateToast(toastKey)
   }, [message, toastKey])
   if (!message || activeKey !== toastKey) return null
-  return <TimedToast key={`${toastKey}:${message}`} message={message}/>
+  // Locale changes update the same notice; only a new event restarts its lifetime.
+  return <TimedToast key={toastKey} message={message}/>
 }

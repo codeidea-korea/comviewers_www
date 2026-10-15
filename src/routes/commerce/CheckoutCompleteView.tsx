@@ -1,3 +1,4 @@
+import { useUiTranslation, translateUiText } from '@/i18n/uiTranslation'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppShell } from '@/components/layout/AppShellView'
@@ -7,7 +8,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import type { AccountOrderDetail, AccountOrderItem } from '@/api/myAccountOrders'
-import { accountDate, accountKstDate, accountMoney } from '@/lib/accountFormat'
+import { accountDate, accountKstDate } from '@/lib/accountFormat'
+import { formatCheckoutMoney as accountMoney } from './-components/checkout/CheckoutFields'
 import { PageTitle } from './CommerceComponents'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { confirmAttemptKey } from './-components/checkout/confirmAttemptKey'
@@ -18,6 +20,7 @@ export function CheckoutCompletePage() {
 }
 
 function CheckoutPaymentResult() {
+  const { uiText } = useUiTranslation()
   const { checkout, myAccount } = useServices()
   const [params, setParams] = useSearchParams()
   const client = useQueryClient()
@@ -94,34 +97,34 @@ function CheckoutPaymentResult() {
   return <AppShell className={`commerce-shell complete-page complete-page--api ${virtual ? 'complete-page--virtual' : 'complete-page--card'}`}>
     <div className="content-container commerce-page">
       {cancelled ? <>
-        <PageTitle>주문 결과</PageTitle>
+        <PageTitle>{uiText("주문 결과")}</PageTitle>
         <div className="complete-result-state">
-          <p role="alert">{compensated ? '상품 배정이 불가능해 결제가 취소되었습니다.' : '결제가 취소되었습니다.'}</p>
-          <a href="/cart">장바구니로 이동</a>
+          <p role="alert">{uiText(compensated ? '상품 배정이 불가능해 결제가 취소되었습니다.' : '결제가 취소되었습니다.')}</p>
+          <a href="/cart">{uiText("장바구니로 이동")}</a>
         </div>
       </> : result.data && order.data ? <CompleteResult order={order.data} paymentMethod={result.data.paymentMethod} paymentAmount={result.data.amount} paymentStatus={result.data.status} payment={payment} virtualAccount={virtualAccount}
         accountLoading={canRefreshAccount && !virtualAccount && (accountRefresh.isPending || accountRefresh.isFetching)}
         onAccountRefresh={canRefreshAccount && !virtualAccount && !accountRefresh.isFetching
           ? () => { void accountRefresh.refetch() } : undefined} /> : <>
-        <PageTitle>주문 결과</PageTitle>
+        <PageTitle>{uiText("주문 결과")}</PageTitle>
         <div className="complete-result-state">
           {returned.failed && <>
-            <p role="alert">{abandon.isPending ? '결제 상태를 확인하고 있습니다.'
+            <p role="alert">{uiText(abandon.isPending ? '결제 상태를 확인하고 있습니다.'
               : abandon.data?.status === 'cancelled' ? '결제를 취소했습니다. 장바구니에서 다시 주문할 수 있습니다.'
                 : abandon.data?.status === 'failed' ? '결제에 실패했습니다. 장바구니에서 다시 주문할 수 있습니다.'
                 : abandon.data?.status === 'approved' ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
-                  : '결제 종료 여부를 확인하지 못했습니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.'}</p>
-            {failedCallbackValid && !abandon.isPending && !paymentAttemptEnded && <button type="button" onClick={() => abandon.mutate()}>결제 상태 다시 확인</button>}
-            {!paymentAttemptEnded && <a href="/mypage/orders">주문내역 확인</a>}
-            {paymentAttemptEnded && <a href="/cart">장바구니로 이동</a>}
+                  : '결제 종료 여부를 확인하지 못했습니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.')}</p>
+            {failedCallbackValid && !abandon.isPending && !paymentAttemptEnded && <button type="button" onClick={() => abandon.mutate()}>{uiText("결제 상태 다시 확인")}</button>}
+            {!paymentAttemptEnded && <a href="/mypage/orders">{uiText("주문내역 확인")}</a>}
+            {paymentAttemptEnded && <a href="/cart">{uiText("장바구니로 이동")}</a>}
           </>}
-          {confirm.isPending && <p aria-busy="true">결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.</p>}
-          {confirm.isError && <><p role="alert">결제 승인 결과를 확인하지 못했습니다.</p><button type="button" onClick={requestConfirmation} disabled={confirm.isPending}>승인 결과 다시 확인</button></>}
-          {!valid && !callbackValid && !returned.failed && <p role="alert">결제 조회 정보를 확인할 수 없습니다.</p>}
-          {valid && result.isPending && <p aria-busy="true">결제 상태를 확인하고 있습니다.</p>}
-          {result.isError && <><p role="alert">결제 상태를 조회하지 못했습니다.</p><button onClick={() => void result.refetch()} type="button">다시 시도</button></>}
-          {result.data && order.isPending && <LoadingState className="route-loading--compact" label="주문 상세를 불러오는 중입니다." />}
-          {order.isError && <><p role="alert">주문 상세를 불러오지 못했습니다.</p><button type="button" onClick={() => void order.refetch()}>주문 상세 다시 불러오기</button></>}
+          {confirm.isPending && <p aria-busy="true">{uiText("결제 승인 결과를 확인하고 있습니다. 잠시 기다려 주세요.")}</p>}
+          {confirm.isError && <><p role="alert">{uiText("결제 승인 결과를 확인하지 못했습니다.")}</p><button type="button" onClick={requestConfirmation} disabled={confirm.isPending}>{uiText("승인 결과 다시 확인")}</button></>}
+          {!valid && !callbackValid && !returned.failed && <p role="alert">{uiText("결제 조회 정보를 확인할 수 없습니다.")}</p>}
+          {valid && result.isPending && <p aria-busy="true">{uiText("결제 상태를 확인하고 있습니다.")}</p>}
+          {result.isError && <><p role="alert">{uiText("결제 상태를 조회하지 못했습니다.")}</p><button onClick={() => void result.refetch()} type="button">{uiText("다시 시도")}</button></>}
+          {result.data && order.isPending && <LoadingState className="route-loading--compact" label={uiText("주문 상세를 불러오는 중입니다.")} />}
+          {order.isError && <><p role="alert">{uiText("주문 상세를 불러오지 못했습니다.")}</p><button type="button" onClick={() => void order.refetch()}>{uiText("주문 상세 다시 불러오기")}</button></>}
         </div>
       </>}
     </div>
@@ -135,19 +138,19 @@ export function checkoutCompleteUsagePeriod(item: AccountOrderItem, waitingForDe
   if (!waitingForDeposit) return `${accountDate(item.serviceStartedAt)} ~ ${accountDate(item.serviceEndsAt)}`
   const duration = Math.max(1, item.durationUnits ?? 1)
   const waitingDuration: Record<string, string> = {
-    hour: `${duration}시간`,
-    day: `${duration}일`,
-    thirty_day: `${duration * 30}일`,
+    hour: translateUiText('{count}시간', { count: duration }),
+    day: translateUiText('{count}일', { count: duration }),
+    thirty_day: translateUiText('{count}일', { count: duration * 30 }),
   }
   const label = waitingDuration[item.billingUnit]
-  return label ? `입금 완료 즉시 ~ ${label}` : '-'
+  return label ? translateUiText('입금 완료 즉시 ~ {duration}', { duration: label }) : '-'
 }
 
 function completeProduct(item: AccountOrderItem, waitingForDeposit: boolean) {
   const usagePeriod = checkoutCompleteUsagePeriod(item, waitingForDeposit)
   const part = item.billingUnit === 'unit'
   return { key: item.orderItemId, title: item.title.trim() || item.productNo, productNo: item.productNo, serverRoom: item.serverRoomName ?? '-',
-    spec: item.specSummary ?? '기록 없음', specLabel: part ? '기본 설명' as const : 'PC사양' as const,
+    spec: item.specSummary ?? translateUiText('기록 없음'), specLabel: part ? '기본 설명' as const : 'PC사양' as const,
     availability: part ? undefined : item.instantAvailable ? '바로 접속 가능' : '접속 준비 상태 확인 필요',
     monthlyRentalFee: item.billingUnit === 'unit' ? undefined : accountMoney(item.unitPrice), usagePeriod }
 }
@@ -162,22 +165,23 @@ function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, pa
   accountLoading: boolean
   onAccountRefresh?: () => void
 }) {
+  const { uiText } = useUiTranslation()
   const now = usePaymentDisplayClock(paymentMethod === 'virtual_account' && order.paymentStatus === 'pending')
   const currentAttempt = Boolean(payment && payment.paymentId === order.payments[0]?.paymentId)
   const display = orderPaymentDisplay({ ...order, virtualAccountStatus: currentAttempt ? order.virtualAccountStatus : null }, now, paymentStatus)
   // A historical attempt must not expose the current attempt's deposit instructions.
   const waitingForDeposit = paymentMethod === 'virtual_account' && currentAttempt && display.waitingForDeposit
   const bank = virtualAccount?.bankCode ?? payment?.bankName ?? '-'
-  const account = virtualAccount?.accountNumber ?? (accountLoading ? '입금계좌 조회 중…' : '입금계좌를 확인하지 못했습니다.')
+  const account = virtualAccount?.accountNumber ?? uiText(accountLoading ? '입금계좌 조회 중…' : '입금계좌를 확인하지 못했습니다.')
   const depositor = virtualAccount?.customerName ?? payment?.depositorName ?? '-'
   const dueAt = virtualAccount?.dueDate ?? payment?.depositDueAt ?? null
   const depositRows: readonly (readonly [string, ReactNode])[] = waitingForDeposit ? [
-    ['입금은행', bank], ['입금자명', <strong key="depositor">{depositor}</strong>], ['입금계좌', <span key="account"><strong>{account}</strong>{onAccountRefresh ? <button type="button" onClick={onAccountRefresh} style={{ background: 'none', border: 0, color: 'var(--color-blue-500)', cursor: 'pointer', marginInlineStart: 12, textDecoration: 'underline' }}>계좌 다시 확인</button> : null}</span>],
-    ['입금기한', <span className="complete-deadline" key="deadline"><strong>{accountKstDate(dueAt)}</strong><em>* 입금기한 내 미입금 시 자동 취소됩니다.</em></span>],
+    ['입금은행', bank], ['입금자명', <strong key="depositor">{depositor}</strong>], ['입금계좌', <span key="account"><strong>{account}</strong>{onAccountRefresh ? <button type="button" onClick={onAccountRefresh} style={{ background: 'none', border: 0, color: 'var(--color-blue-500)', cursor: 'pointer', marginInlineStart: 12, textDecoration: 'underline' }}>{uiText("계좌 다시 확인")}</button> : null}</span>],
+    ['입금기한', <span className="complete-deadline" key="deadline"><strong>{accountKstDate(dueAt)}</strong><em>{uiText("* 입금기한 내 미입금 시 자동 취소됩니다.")}</em></span>],
   ] : []
   const paymentRows: readonly (readonly [string, ReactNode])[] = [
     ['주문번호', order.orderNo], ['주문일시', accountDate(order.orderedAt)],
-    ['결제방식', paymentMethods[paymentMethod] ?? paymentMethod], ['결제금액', accountMoney(paymentAmount)],
+    ['결제방식', uiText(paymentMethods[paymentMethod] ?? paymentMethod)], ['결제금액', accountMoney(paymentAmount)],
     ['결제상태', <PaymentStatusText key="payment-status" label={display.label} />],
     ...depositRows,
   ]

@@ -11,6 +11,7 @@ type TranslateWindow = Window & {
 
 const widgetId = 'comviewers-google-translate'
 const scriptId = 'comviewers-google-translate-script'
+const languageRequestEvent = 'comviewers:translate-language'
 
 function clearTranslationCookie() {
   document.cookie = 'googtrans=; Max-Age=0; Path=/'
@@ -24,6 +25,7 @@ function resetTranslation() {
 }
 
 function isPublicTrialPage(pathname: string) {
+  pathname = pathname.replace(/\/+$/, '') || '/'
   return pathname === '/' || /^\/(?:products|support)(?:\/[^/]+)?$/.test(pathname)
     || ['/company', '/terms', '/privacy'].includes(pathname)
     || pathname === '/community/posts' || pathname === '/community/reviews'
@@ -39,8 +41,18 @@ export function GoogleTranslateTrial() {
 
 export function ManualTranslationControls({ compact = false }: { compact?: boolean } = {}) {
   const { locale } = useTranslation()
+  const { pathname } = useLocation()
+  const selectLanguage = (value: LanguageChoice) => {
+    // The public widget stays mounted in the desktop utility bar on mobile too.
+    if (isPublicTrialPage(pathname) && document.getElementById(widgetId)) {
+      document.dispatchEvent(new CustomEvent(languageRequestEvent, { detail: value }))
+      return
+    }
+    clearTranslationCookie()
+    setTranslationLocale(value)
+  }
   return <div className="google-translate-trial notranslate" translate="no">
-    <LanguageMenu locale={locale} triggerLabel={compact ? ({ ko: '한국어', en: 'English', ja: '日本語', 'zh-CN': '简体中文', 'zh-TW': '繁體中文', vi: 'Tiếng Việt' }[locale]) : undefined} onSelect={value => { clearTranslationCookie(); setTranslationLocale(value) }} />
+    <LanguageMenu locale={locale} triggerLabel={compact ? ({ ko: '한국어', en: 'English', ja: '日本語', 'zh-CN': '简体中文', 'zh-TW': '繁體中文', vi: 'Tiếng Việt' }[locale]) : undefined} onSelect={selectLanguage} />
   </div>
 }
 
@@ -179,7 +191,7 @@ function TranslateWidget() {
     }
   }, [start])
 
-  const selectLanguage = (value: LanguageChoice) => {
+  const selectLanguage = useCallback((value: LanguageChoice) => {
     if (value === 'ko') {
       if (started.current) resetTranslation()
       else { clearTranslationCookie(); setTranslationLocale('ko') }
@@ -195,7 +207,17 @@ function TranslateWidget() {
       return
     }
     if (status !== 'loading') start()
-  }
+  }, [start, status])
+
+  useEffect(() => {
+    const onLanguageRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+      const value: unknown = event.detail
+      if (value === 'ko' || value === 'en' || value === 'ja' || value === 'zh-CN' || value === 'zh-TW') selectLanguage(value)
+    }
+    document.addEventListener(languageRequestEvent, onLanguageRequest)
+    return () => document.removeEventListener(languageRequestEvent, onLanguageRequest)
+  }, [selectLanguage])
 
   return <div className="google-translate-trial notranslate" translate="no">
     <LanguageMenu locale={locale} onSelect={selectLanguage} status={status} />

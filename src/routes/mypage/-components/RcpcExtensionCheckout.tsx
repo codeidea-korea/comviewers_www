@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -5,8 +6,8 @@ import { useSession } from '@/app/session/SessionProvider'
 import { extensionSelectionSchema } from '@/api/extensionCheckout'
 import { RcpcExtensionSurface, type RcpcDialogTarget } from '@/components/mypage/RcpcDialogsControl'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import { extensionResultText } from './rcpcExtensionPresentation'
 import { Button } from '@/components/ui/ButtonControl'
+import { extensionResultText } from './rcpcExtensionPresentation'
 
 type ExtensionQuote = Awaited<ReturnType<MyRcpcReadServices['extensionCheckout']['quote']>>
 const dateTime = (value: string | null) => value ? value.replace('T', ' ').split('.')[0] : '—'
@@ -14,6 +15,7 @@ const dateTime = (value: string | null) => value ? value.replace('T', ' ').split
 export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialDays = 30, triggerLabel }: {
   api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; triggerLabel?: string
 }) {
+  const { uiText } = useUiTranslation()
   const session = useSession()
   const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
   const [open, setOpen] = useState(false)
@@ -41,18 +43,18 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   const current = quote.data ?? (lastQuote?.scope === quoteScope ? lastQuote.value : undefined)
   const quoteReady = quote.isSuccess && !quote.isFetching && !quote.isPlaceholderData
   if (!owner || !session.customerSession?.commerceAvailable || rentalIds.length === 0) return null
-  return <section aria-label="RCPC 기간 연장">
-    <Button size="small" onClick={() => setOpen(true)}>{triggerLabel ?? `선택 ${rentalIds.length}대 기간 연장`}</Button>
+  return <section aria-label={uiText("RCPC 기간 연장")}>
+    <Button size="small" onClick={() => setOpen(true)}>{triggerLabel !== undefined ? uiText(triggerLabel) : uiText('선택 {count}대 기간 연장', { count: rentalIds.length })}</Button>
     {open ? <RcpcExtensionSurface action={quoteReady && current?.eligible && selection.success
-      ? <Link to="/checkout" state={{ kind: 'extension', selection: selection.data }}>연장 결제하기</Link>
-      : <button disabled type="button">연장 결제하기</button>}
-      busy={quote.isFetching} dateValue={date} error={quote.error?.message} extensionMode={mode === 'days' ? 'period' : 'date'}
+      ? <Link to="/checkout" state={{ kind: 'extension', selection: selection.data }}>{uiText("연장 결제하기")}</Link>
+      : <button disabled type="button">{uiText("연장 결제하기")}</button>}
+      busy={quote.isFetching} dateValue={date} error={uiText(quote.error?.message)} extensionMode={mode === 'days' ? 'period' : 'date'}
       itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
       onModeChange={value => setMode(value === 'date' ? 'date' : 'days')} onPeriodChange={setDays} periodValue={days}
       rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? current?.items.map(item => ({ rcpcId: item.productNo ?? item.rentalId, location: item.serverRoomName ?? undefined, currentEnd: dateTime(item.previousEnd), cpu: item.spec ?? undefined })) ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
-      rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', location: item.serverRoomName, period: item.addedDays == null ? '-' : `${item.addedDays}일`,
-        currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : `${item.monthlyFee.toLocaleString('ko-KR')}원`,
+      rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', location: item.serverRoomName, period: item.addedDays == null ? '-' : uiText('{count}일', { count: item.addedDays }),
+        currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : uiText('{amount}원', { amount: item.monthlyFee.toLocaleString('ko-KR') }),
         payment: extensionResultText(item), warning: !item.eligible }))}
-      totalAmount={current ? current.eligible ? `${current.totalAmount.toLocaleString('ko-KR')}원` : '결제 불가' : '견적 미조회'} /> : null}
+      totalAmount={current ? current.eligible ? uiText('{amount}원', { amount: current.totalAmount.toLocaleString('ko-KR') }) : uiText('결제 불가') : uiText('견적 미조회')} /> : null}
   </section>
 }

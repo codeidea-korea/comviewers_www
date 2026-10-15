@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useRef, useState, type FormEvent } from 'react'
 import { managerInputSchema, type AccountManager, type ManagerInput } from '@/domain/myAccount/managerServices'
 import { DialogActions } from '@/components/ui/DialogActionsControl'
@@ -10,6 +11,7 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
   onBack?: () => void
   manager?: AccountManager; pending: boolean; onSave: (draft: ManagerInput) => Promise<void>; onClose: () => void; onDelete?: () => void; checkLogin: (loginId: string) => Promise<boolean>
 }) {
+  const { uiText } = useUiTranslation()
   const [draft, setDraft] = useState({ name: manager?.name ?? '', loginId: manager?.loginId ?? '', password: '', memo: manager?.memo ?? '' })
   const [error, setError] = useState('')
   const [touched, setTouched] = useState({ name: false, loginId: false, password: false, memo: false })
@@ -23,8 +25,8 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
     const parsed = managerInputSchema.shape.loginId.safeParse(draft.loginId)
     if (!parsed.success) { setLoginError(parsed.error.issues[0].message); return }
     const expected = revision.current; setChecking(true)
-    try { const available = await checkLogin(parsed.data); if (expected === revision.current) { setCheckedId(available ? parsed.data : ''); setLoginError(available ? '' : '이미 사용 중인 아이디입니다.') } }
-    catch { if (expected === revision.current) setLoginError('아이디를 확인하지 못했습니다.') }
+    try { const available = await checkLogin(parsed.data); if (expected === revision.current) { setCheckedId(available ? parsed.data : ''); setLoginError(available ? '' : "이미 사용 중인 아이디입니다.") } }
+    catch { if (expected === revision.current) setLoginError("아이디를 확인하지 못했습니다.") }
     finally { setChecking(false) }
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -33,11 +35,11 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
     setError('')
     setTouched({ name: true, loginId: true, password: true, memo: true })
     const parsed = managerInputSchema.safeParse({ ...draft, password: draft.password || undefined })
-    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? '입력 내용을 확인해 주세요.'); return }
-    if (!manager && !draft.password) { setError('비밀번호를 입력해 주세요.'); return }
-    if (!manager && checkedId !== draft.loginId.trim()) { setLoginError('아이디 중복확인을 먼저 완료해 주세요.'); return }
+    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "입력 내용을 확인해 주세요."); return }
+    if (!manager && !draft.password) { setError("비밀번호를 입력해 주세요."); return }
+    if (!manager && checkedId !== draft.loginId.trim()) { setLoginError("아이디 중복확인을 먼저 완료해 주세요."); return }
     saving.current = true
-    try { await onSave(parsed.data) } catch (cause) { setError(cause instanceof Error ? cause.message : '저장하지 못했습니다.') } finally { saving.current = false }
+    try { await onSave(parsed.data) } catch (cause) { setError(cause instanceof Error ? cause.message : "저장하지 못했습니다.") } finally { saving.current = false }
   }
   const nameResult = managerInputSchema.shape.name.safeParse(draft.name)
   const loginIdResult = managerInputSchema.shape.loginId.safeParse(draft.loginId)
@@ -45,16 +47,16 @@ export function ManagerEditorForm({ manager, pending, onSave, onClose, onDelete,
   const nameFieldError = touched.name && !nameResult.success ? nameResult.error.issues[0]?.message : undefined
   const loginIdFieldError = loginError || (touched.loginId && !loginIdResult.success ? loginIdResult.error.issues[0]?.message : undefined)
   const passwordFieldError = touched.password
-    ? !manager && !draft.password ? '비밀번호를 입력해 주세요.' : !passwordResult.success ? passwordResult.error.issues[0]?.message : undefined
+    ? !manager && !draft.password ? uiText("비밀번호를 입력해 주세요.") : !passwordResult.success ? passwordResult.error.issues[0]?.message : undefined
     : undefined
-  return <form autoComplete="off" noValidate onSubmit={(event) => void submit(event)}><header className="manager-editor-header"><button aria-label="이전 화면으로" disabled={pending} onClick={onBack ?? onClose} type="button"><img alt="" src={backIcon}/></button><h2>{manager ? '담당자 정보' : '담당자 등록'}</h2><button aria-label="닫기" disabled={pending} onClick={onClose} type="button"><img alt="" src={closeIcon}/></button></header>
+  return <form autoComplete="off" noValidate onSubmit={(event) => void submit(event)}><header className="manager-editor-header"><button aria-label={uiText("이전 화면으로")} disabled={pending} onClick={onBack ?? onClose} type="button"><img alt="" src={backIcon}/></button><h2>{manager ? uiText("담당자 정보") : uiText("담당자 등록")}</h2><button aria-label={uiText("닫기")} disabled={pending} onClick={onClose} type="button"><img alt="" src={closeIcon}/></button></header>
     <fieldset disabled={pending} style={{ border: 0, padding: 0, minWidth: 0 }}>
-      <ManagerField autoComplete="off" error={nameFieldError} name="manager-display-name" label="담당자명" value={draft.name} onChange={(event) => { setTouched(current => ({ ...current, name: true })); setDraft((current) => ({ ...current, name: event.target.value })) }} />
-      {manager ? <ManagerField autoComplete="off" disabled label="아이디" name="manager-login-id" showRequired={false} value={draft.loginId}/> : <ManagerField autoComplete="off" error={loginIdFieldError} help={checkedId === draft.loginId.trim() && checkedId ? '사용 가능한 아이디입니다.' : undefined} name="manager-login-id" label="아이디" action={checking ? '확인 중' : '중복확인'} onAction={() => { if (!checking) void check() }} value={draft.loginId} onChange={(event) => { revision.current += 1; setCheckedId(''); setLoginError(''); setTouched(current => ({ ...current, loginId: true })); setDraft((current) => ({ ...current, loginId: event.target.value })) }} />}
-      <ManagerField autoComplete="new-password" error={passwordFieldError} name="manager-new-password" label={manager ? '새 비밀번호' : '비밀번호'} showRequired={!manager} type="password" help={manager ? '변경할 때만 입력해 주세요. 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.' : '8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'} value={draft.password} onChange={(event) => { setTouched(current => ({ ...current, password: true })); setDraft((current) => ({ ...current, password: event.target.value })) }} />
-      <label className="manager-modal__memo"><span>담당자 메모</span><textarea aria-label="담당자 메모" maxLength={500} placeholder="부서, 역할 등 관리용 메모" value={draft.memo} onChange={(event) => setDraft((current) => ({ ...current, memo: event.target.value }))} /></label>
-      {error && <p className="manager-modal__action-error" role="alert">{error}</p>}
-      <DialogActions><Button disabled={pending} size="large" variant="secondary" onClick={manager && onDelete ? onDelete : onClose}>{manager && onDelete ? '담당자 삭제' : manager ? '닫기' : '취소'}</Button><Button disabled={pending || checking} size="large" type="submit">{pending ? '저장 중' : manager ? '수정' : '담당자 등록'}</Button></DialogActions>
+      <ManagerField autoComplete="off" error={nameFieldError} name="manager-display-name" label={uiText("담당자명")} value={draft.name} onChange={(event) => { setTouched(current => ({ ...current, name: true })); setDraft((current) => ({ ...current, name: event.target.value })) }} />
+      {manager ? <ManagerField autoComplete="off" disabled label={uiText("아이디")} name="manager-login-id" showRequired={false} value={draft.loginId}/> : <ManagerField autoComplete="off" error={loginIdFieldError} help={checkedId === draft.loginId.trim() && checkedId ? uiText("사용 가능한 아이디입니다.") : undefined} name="manager-login-id" label={uiText("아이디")} action={checking ? uiText("확인 중") : uiText("중복확인")} onAction={() => { if (!checking) void check() }} value={draft.loginId} onChange={(event) => { revision.current += 1; setCheckedId(''); setLoginError(''); setTouched(current => ({ ...current, loginId: true })); setDraft((current) => ({ ...current, loginId: event.target.value })) }} />}
+      <ManagerField autoComplete="new-password" error={passwordFieldError} name="manager-new-password" label={manager ? uiText("새 비밀번호") : uiText("비밀번호")} showRequired={!manager} type="password" help={manager ? uiText("변경할 때만 입력해 주세요. 8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.") : uiText("8~16자의 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.")} value={draft.password} onChange={(event) => { setTouched(current => ({ ...current, password: true })); setDraft((current) => ({ ...current, password: event.target.value })) }} />
+      <label className="manager-modal__memo"><span>{uiText("담당자 메모")}</span><textarea aria-label={uiText("담당자 메모")} maxLength={500} placeholder={uiText("부서, 역할 등 관리용 메모")} value={draft.memo} onChange={(event) => setDraft((current) => ({ ...current, memo: event.target.value }))} /></label>
+      {error && <p className="manager-modal__action-error" role="alert">{uiText(error)}</p>}
+      <DialogActions><Button disabled={pending} size="large" variant="secondary" onClick={manager && onDelete ? onDelete : onClose}>{manager && onDelete ? uiText("담당자 삭제") : manager ? uiText("닫기") : uiText("취소")}</Button><Button disabled={pending || checking} size="large" type="submit">{pending ? uiText("저장 중") : manager ? uiText("수정") : uiText("담당자 등록")}</Button></DialogActions>
     </fieldset>
   </form>
 }

@@ -1,6 +1,7 @@
 import type { AriaRole, ReactNode } from 'react'
 import { Button } from '../ui/ButtonControl'
 import { LoadingState } from '../ui/LoadingStateControl'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 export type AsyncContentStatus = 'loading' | 'error' | 'empty' | null
 
@@ -32,7 +33,8 @@ export function EmptyState({
   className?: string
   role?: AriaRole
 }) {
-  return <div className={mergeClasses('data-state', 'data-state--empty', className)} role={role}>{children}</div>
+  const { uiText } = useUiTranslation()
+  return <div className={mergeClasses('data-state', 'data-state--empty', className)} role={role}>{typeof children === 'string' ? uiText(children) : children}</div>
 }
 
 export function ErrorState({
@@ -46,10 +48,11 @@ export function ErrorState({
   onRetry?: () => void
   retryLabel?: string
 }) {
+  const { uiText } = useUiTranslation()
   return (
     <div className={mergeClasses('data-state', 'data-state--error', className)} role="alert">
-      <p className="data-state__message">{message}</p>
-      {onRetry ? <Button onClick={onRetry} size="small" variant="secondary">{retryLabel}</Button> : null}
+      <p className="data-state__message">{typeof message === 'string' ? uiText(message) : message}</p>
+      {onRetry ? <Button onClick={onRetry} size="small" variant="secondary">{uiText(retryLabel)}</Button> : null}
     </div>
   )
 }

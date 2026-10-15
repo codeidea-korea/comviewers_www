@@ -16,7 +16,7 @@ export function CartEstimateSummary({ estimate, selectedCount, disabled, quoteEr
   const { locale, t } = useTranslation()
   return <aside className={`purchase-summary cart-summary${quoteError ? ' cart-summary--error' : ''}`}>
     <h2><TranslatedText id="cart.estimatedOrder" /></h2>
-    {quoteError ? <p className="cart-summary__error" role="alert">주문 금액을 확인하지 못했습니다. <button onClick={onRetryQuote} type="button"><TranslatedText id="common.retry" /></button></p> : null}
+    {quoteError ? <p className="cart-summary__error" role="alert"><TranslatedText id="cart.quoteFailed" /> <button onClick={onRetryQuote} type="button"><TranslatedText id="common.retry" /></button></p> : null}
     <div className="purchase-summary__box cart-summary__box">
       <dl>
         <div className="purchase-summary__products cart-summary__products">

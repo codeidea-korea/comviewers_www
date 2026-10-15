@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { InquiryReadServices, MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
@@ -29,6 +30,7 @@ type Props = {
 const requestCodes = ['as_request', 'setup_change', 'refund_cancel', 'inquiry'] as const
 
 export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo, fixedTarget = false, standalone = false, onClose, onCreated }: Props) {
+  const { uiText, t } = useUiTranslation()
   const session = useSession()
   const hasFixedTarget = fixedTarget
   const fixedIds = [...new Set(initialIds)]
@@ -49,7 +51,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     queryFn: ({ signal }) => loadAuthorizedRcpcs(rcpcApi, signal),
   })
   const products = useMemo(() => sortInquiryChoices(rcpcs.data ?? [], initialProductNo), [initialProductNo, rcpcs.data])
-  const serverRooms = products.flatMap(product => product.serverRoomId === null ? [] : [{ id: product.serverRoomId, name: product.location ?? '서버실 정보 없음' }])
+  const serverRooms = products.flatMap(product => product.serverRoomId === null ? [] : [{ id: product.serverRoomId, name: product.location ?? uiText("서버실 정보 없음") }])
     .filter((room, index, rooms) => rooms.findIndex(candidate => candidate.id === room.id) === index)
     .sort((left, right) => left.name.localeCompare(right.name, 'ko'))
   const visibleProducts = hasFixedTarget || serverRoomId === null ? products : products.filter(product => product.serverRoomId === serverRoomId)
@@ -61,15 +63,15 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const codes = requestCodes
   const selectedCode = typeIndex === null ? undefined : codes[typeIndex]
   const validateTargets = () => {
-    if (invalidFixedTarget || hasMissingTargets || (hasFixedTarget && !fixedIds.every(id => selectedIds.includes(id)))) return '문의 대상 RCPC를 확인할 수 없습니다. 다시 시도해 주세요.'
-    if (selectedIds.length > 20) return '최대 20대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요.'
-    if (!hasFixedTarget && serverRoomId !== null && selectedProducts.some(product => product.serverRoomId !== serverRoomId)) return '선택한 서버실의 문의 상품을 다시 확인해 주세요.'
-    if (!selectedIds.length && selectedCode !== 'inquiry') return '선택한 문의 유형은 문의 상품을 선택해 주세요.'
+    if (invalidFixedTarget || hasMissingTargets || (hasFixedTarget && !fixedIds.every(id => selectedIds.includes(id)))) return "문의 대상 RCPC를 확인할 수 없습니다. 다시 시도해 주세요."
+    if (selectedIds.length > 20) return "최대 20대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요."
+    if (!hasFixedTarget && serverRoomId !== null && selectedProducts.some(product => product.serverRoomId !== serverRoomId)) return "선택한 서버실의 문의 상품을 다시 확인해 주세요."
+    if (!selectedIds.length && selectedCode !== 'inquiry') return "선택한 문의 유형은 문의 상품을 선택해 주세요."
     return ''
   }
   const create = useMutation({
     mutationFn: () => {
-      if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error('문의 유형과 내용을 확인해 주세요.')
+      if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error("문의 유형과 내용을 확인해 주세요.")
       const targetNotice = validateTargets()
       if (targetNotice) throw new Error(targetNotice)
       if (!hasSameInquiryServerRoom(selectedProducts)) throw new Error(bulkInquiryServerRoomNotice)
@@ -98,16 +100,16 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   if (step === 'product' && addingProducts) return showStep(
     <ProductChoiceContent
       standalone={standalone}
-      title={`문의 상품 추가 (${additionalProducts.length})`}
+      title={t("mypageSupport.template3", { value0: additionalProducts.length })}
       variant="addition"
-      actionLabel="추가하기"
+      actionLabel={uiText("추가하기")}
       allowEmpty={false}
       maxSelection={Math.max(0, 20 - selectedIds.length)}
       notice={rcpcs.isPending
-        ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
+        ? <LoadingState className="route-loading--compact" label={uiText("문의 가능한 상품을 확인하고 있습니다.")} />
         : rcpcs.isError
-          ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
-          : !additionalProducts.length ? <p>추가할 수 있는 RCPC가 없습니다.</p> : null}
+          ? <p role="alert">{uiText("문의 가능한 상품을 불러오지 못했습니다.")} <button onClick={() => void rcpcs.refetch()} type="button">{uiText("다시 시도")}</button></p>
+          : !additionalProducts.length ? <p>{uiText("추가할 수 있는 RCPC가 없습니다.")}</p> : null}
       selectionNotice={productNotice}
       onClose={closeProductPicker}
       onNext={() => {
@@ -120,14 +122,14 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onSelectedChange={ids => { setProductNotice(''); setAdditionalIds([...new Set(ids)]) }}
       products={additionalProducts}
       selectedIds={additionalIds}
-    />, '문의 상품 추가', 'inquiry-preview-layer inquiry-detail-preview', closeProductPicker)
+    />, uiText("문의 상품 추가"), 'inquiry-preview-layer inquiry-detail-preview', closeProductPicker)
 
   if (step === 'product') return showStep(
     <ProductChoiceContent
       standalone={standalone}
       allowEmpty={!hasFixedTarget}
       lockedIds={hasFixedTarget ? fixedIds : []}
-      filters={hasFixedTarget ? undefined : <label className="inquiry-product-choice__room"><span>서버실</span><NativeSelect aria-label="문의 상품 서버실" disabled={rcpcs.isPending || rcpcs.isError} value={serverRoomId ?? ''} onChange={event => {
+      filters={hasFixedTarget ? undefined : <label className="inquiry-product-choice__room"><span>{uiText("서버실")}</span><NativeSelect aria-label={uiText("문의 상품 서버실")} disabled={rcpcs.isPending || rcpcs.isError} value={serverRoomId ?? ''} onChange={event => {
           const id = event.target.value ? Number(event.target.value) : null
           if (id === serverRoomId || (id !== null && !serverRooms.some(room => room.id === id))) return
           setServerRoomId(id)
@@ -136,12 +138,12 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
           setProductNotice('')
           setTypeNotice('')
           create.reset()
-        }}><option value="">전체 서버실</option>{serverRooms.map(room => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</NativeSelect></label>}
+        }}><option value="">{uiText("전체 서버실")}</option>{serverRooms.map(room => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</NativeSelect></label>}
       notice={<>{rcpcs.isPending
-        ? <LoadingState className="route-loading--compact" label="문의 가능한 상품을 확인하고 있습니다." />
+        ? <LoadingState className="route-loading--compact" label={uiText("문의 가능한 상품을 확인하고 있습니다.")} />
         : rcpcs.isError
-          ? <p role="alert">문의 가능한 상품을 불러오지 못했습니다. <button onClick={() => void rcpcs.refetch()} type="button">다시 시도</button></p>
-          : visibleProducts.length === 0 ? <p>문의 가능한 RCPC가 없습니다.</p> : null}</>}
+          ? <p role="alert">{uiText("문의 가능한 상품을 불러오지 못했습니다.")} <button onClick={() => void rcpcs.refetch()} type="button">{uiText("다시 시도")}</button></p>
+          : visibleProducts.length === 0 ? <p>{uiText("문의 가능한 RCPC가 없습니다.")}</p> : null}</>}
       selectionNotice={productNotice}
       onClose={closeProductPicker}
       onEmpty={() => { setSelectedIds([]); setProductNotice(''); setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); create.reset(); setStep('type') }}
@@ -156,20 +158,20 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       ])]) }}
       products={visibleProducts}
       selectedIds={selectedIds}
-    />, '상품 선택', 'inquiry-preview-layer inquiry-preview-layer--select-product', closeProductPicker)
+    />, uiText("상품 선택"), 'inquiry-preview-layer inquiry-preview-layer--select-product', closeProductPicker)
 
   if (step === 'type') return showStep(
     <TypeChoiceContent
       standalone={standalone}
       onBack={() => hasFixedTarget ? close() : setStep('product')}
-      backLabel={hasFixedTarget ? '닫기' : '이전'}
+      backLabel={hasFixedTarget ? uiText("닫기") : uiText("이전")}
       onClose={close}
       notice={typeNotice}
       onNext={() => {
         if (!selectedCode) return
         const targetNotice = validateTargets()
         if (targetNotice) {
-          setTypeNotice(rcpcs.isPending ? '문의 대상 RCPC를 확인하고 있습니다.' : targetNotice)
+          setTypeNotice(rcpcs.isPending ? "문의 대상 RCPC를 확인하고 있습니다." : targetNotice)
           return
         }
         if (!hasSameInquiryServerRoom(selectedProducts)) {
@@ -177,14 +179,14 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
           return
         }
         if (selectedCode === 'refund_cancel' && !(session.status === 'authenticated' && session.customerSession?.commerceAvailable)) {
-          setTypeNotice('해지 신청 문의를 접수할 수 있는 권한이 없습니다.')
+          setTypeNotice("해지 신청 문의를 접수할 수 있는 권한이 없습니다.")
           return
         }
         if (selectedCode === 'refund_cancel') {
           const targetIds = new Set(selectedProducts.map(item => Number(item.rcpcId)))
           const rentalIds = [...new Set((rcpcs.data ?? []).filter(item => targetIds.has(item.pcAssetId)).map(item => item.rentalId))]
           if (!rentalIds.length) {
-            setTypeNotice('문의 대상 RCPC의 렌탈 정보를 확인할 수 없습니다. 상품을 다시 선택해 주세요.')
+            setTypeNotice("문의 대상 RCPC의 렌탈 정보를 확인할 수 없습니다. 상품을 다시 선택해 주세요.")
             return
           }
           setRefundRentalIds(rentalIds)
@@ -198,7 +200,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onSelectedChange={(index) => { setTypeIndex(index); setTypeNotice('') }}
       options={codes.map((code) => inquiryTypes[code])}
       selectedIndex={typeIndex}
-    />, '문의 유형 선택', 'inquiry-preview-layer inquiry-preview-layer--select-type')
+    />, uiText("문의 유형 선택"), 'inquiry-preview-layer inquiry-preview-layer--select-type')
 
   if (step === 'refund') return <InquiryRefundApplicationDialog api={api} initialRentalIds={refundRentalIds} onClose={() => setStep('type')} onComplete={close} standalone={standalone} />
 
@@ -222,7 +224,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onAddProducts={() => { setProductNotice(''); setAdditionalIds([]); setAddingProducts(true); setStep('product') }}
       onClose={close}
       selectedRcpcs={selectedProducts}
-      submitLabel={standalone ? '전송' : '문의 접수'}
+      submitLabel={standalone ? uiText("전송") : uiText("문의 접수")}
     />
   return standalone ? <main className="inquiry-mobile-page">{write}</main> : <InquiryWritePopup backdropClassName="inquiry-preview-layer inquiry-preview-layer--write" onClose={close}>{write}</InquiryWritePopup>
 }

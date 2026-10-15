@@ -1,4 +1,5 @@
 import { useTranslation } from '@/i18n/translation'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { Product } from '../../../domain/products/types'
 import { useNavigate } from 'react-router'
 import { ProductCard } from '../../../components/product/ProductCardView'
@@ -13,6 +14,7 @@ import countryEmptyIcon from '../../../assets/figma/product-country-empty.png'
 import { ProductServerState } from '../../../components/product/ProductServerStateView'
 function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Product) => void; product: Product }) {
   const { t } = useTranslation()
+  const { uiText } = useUiTranslation()
   const navigate = useNavigate()
   const mouseActive = product.mouseIncluded === true
   const keyboardActive = product.keyboardIncluded === true
@@ -37,19 +39,19 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       <td><span className="tag tag--red">{product.gpu ?? t('common.noInformation')}</span></td>
       <td>
         <span className="product-table-peripherals">
-          <i className="is-mouse"><img alt={product.mouseIncluded === null ? '마우스 정보 없음' : mouseActive ? '마우스 사용 가능' : '마우스 사용 불가'} src={mouseActive ? mouseActiveIcon : mouseIcon} /></i>
-          <i className="is-keyboard"><img alt={product.keyboardIncluded === null ? '키보드 정보 없음' : keyboardActive ? '키보드 사용 가능' : '키보드 사용 불가'} src={keyboardActive ? keyboardActiveIcon : keyboardIcon} /></i>
+          <i className="is-mouse"><img alt={uiText(product.mouseIncluded === null ? '마우스 정보 없음' : mouseActive ? '마우스 사용 가능' : '마우스 사용 불가')} src={mouseActive ? mouseActiveIcon : mouseIcon} /></i>
+          <i className="is-keyboard"><img alt={uiText(product.keyboardIncluded === null ? '키보드 정보 없음' : keyboardActive ? '키보드 사용 가능' : '키보드 사용 불가')} src={keyboardActive ? keyboardActiveIcon : keyboardIcon} /></i>
         </span>
       </td>
       <td>
         <span className="product-table-country">
-          {product.country && product.ip ? <><span className="product-table-country__name">{product.country === "Korea" ? <img alt="대한민국" src={flagKorea} /> : null}<span>{product.country}</span></span><small>{product.ip}</small></> : <img alt="국가/IP 정보 없음" height={20} src={countryEmptyIcon} width={20} />}
+          {product.country && product.ip ? <><span className="product-table-country__name">{product.country === "Korea" ? <img alt={uiText('대한민국')} src={flagKorea} /> : null}<span>{product.country}</span></span><small>{product.ip}</small></> : <img alt={uiText('국가/IP 정보 없음')} height={20} src={countryEmptyIcon} width={20} />}
         </span>
       </td>
       <td><ProductServerState state={product.serverState} /></td>
       <td className="product-table-price"><strong>{t('money.krwAmount', { amount: product.setupFee.toLocaleString('ko-KR') })}</strong></td>
       <td className="product-table-price"><strong>{productPrice === null ? t('common.noInformation') : t('money.krwAmount', { amount: productPrice.toLocaleString('ko-KR') })}</strong></td>
-      <td><button disabled={productPrice === null} aria-label={`${product.productId} 장바구니 담기`} onClick={() => onAddToCart(product)} type="button"><img alt="" src={shoppingBagIcon} /></button></td>
+      <td><button disabled={productPrice === null} aria-label={t('catalogUi.addProduct', { id: product.productId })} onClick={() => onAddToCart(product)} type="button"><img alt="" src={shoppingBagIcon} /></button></td>
     </tr>
   )
 }
@@ -61,7 +63,7 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
   return (
 <div className="product-table-wrap">
               <table className="product-list-table notranslate" translate="no">
-                <caption className="sr-only">RCPC 상품 목록</caption>
+                <caption className="sr-only">{t('catalogUi.productList')}</caption>
                 <colgroup>
                   <col style={{ width: '52px' }} />
                   <col style={{ width: '108px' }} />

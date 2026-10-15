@@ -40,14 +40,14 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
   const statusCopy = t(!item.available ? 'checkout.unavailable' : item.instantAvailable === null ? 'product.connectionUnknown' : item.instantAvailable ? 'product.available' : 'product.preparing')
   const points = getCartItemPoints(item)
   return <article className={`purchase-row cart-item cart-item--${kind} purchase-row--${kind}${hasNotice ? ' cart-item--has-notice' : ''}`}>
-    {soldOut && <div className="cart-item__sold-out" role="status">[품절] <TranslatedText id="cart.soldOut" /> 선택을 해제한 후 주문해 주세요.</div>}
-    {!soldOut && stockReserved && <div className="cart-item__sold-out" role="status">[결제 대기] <TranslatedText id="cart.stockReserved" /> 선택을 해제한 후 주문해 주세요.</div>}
+    {soldOut && <div className="cart-item__sold-out" role="status"><TranslatedText id="cart.soldOutBadge" /> <TranslatedText id="cart.soldOut" /> <TranslatedText id="cart.deselectNotice" /></div>}
+    {!soldOut && stockReserved && <div className="cart-item__sold-out" role="status"><TranslatedText id="cart.reservedBadge" /> <TranslatedText id="cart.stockReserved" /> <TranslatedText id="cart.deselectNotice" /></div>}
     <header className="purchase-row__header cart-item__header">
       <label><Checkbox checked={selected} disabled={disabled} onChange={onToggle} /><span className="cart-item__number"><TranslatedText id="product.number" /><b>{item.productId}</b></span>{partner ? <span className="cart-item__product-name">{item.label}</span> : <small>{item.location}</small>}</label>
-      <button aria-label={`${item.label} 삭제`} disabled={disabled} onClick={onRemove} type="button"><img alt="" src={closeIcon} /></button>
+      <button aria-label={t('cart.removeProduct', { name: item.label })} disabled={disabled} onClick={onRemove} type="button"><img alt="" src={closeIcon} /></button>
     </header>
     <div className="purchase-row__body cart-item__body">
-      <div className="purchase-row__image cart-item__image"><img alt={visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{!item.image ? <ProductOsOverlay label={visual.label} /> : null}</div>
+      <div className="purchase-row__image cart-item__image"><img alt={visual.label ? t('cart.productImage', { name: visual.label }) : t('cart.defaultImage')} src={visual.image} />{!item.image ? <ProductOsOverlay label={visual.label} /> : null}</div>
       <div className="purchase-row__details cart-item__details">
         {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{item.instantAvailable !== null && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span className="notranslate" translate="no">{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><TranslatedText id="money.setupFee" /><span><CartMoney value={item.setupFee} /></span></p><p><span className="notranslate" translate="no">{cartPriceLabel(item)}</span><span><CartMoney value={item.rentalFee} /></span></p></div>}

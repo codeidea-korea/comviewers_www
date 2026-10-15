@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import './rcpc-list-controls.css'
 import { RcpcFilterSelect } from './RcpcFilterSelect'
@@ -5,6 +6,7 @@ import { RcpcFilterSelect } from './RcpcFilterSelect'
 type NativeAction = { button: HTMLButtonElement; label: string; disabled: boolean }
 
 export function RcpcSelectionMenu({ children, label, className = '', nativeOnMobile = false }: { children: ReactNode; label: string; className?: string; nativeOnMobile?: boolean }) {
+  const { uiText } = useUiTranslation()
   const [open, setOpen] = useState(false)
   const id = useId()
   const container = useRef<HTMLDivElement>(null)
@@ -32,14 +34,14 @@ export function RcpcSelectionMenu({ children, label, className = '', nativeOnMob
     return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape) }
   }, [open])
   return <div className={`rcpc-selection-menu${nativeOnMobile ? ' rcpc-selection-menu--native' : ''}${open ? ' is-open' : ''}`} ref={container}>
-    {nativeOnMobile ? <span className="rcpc-selection-menu__native-wrap"><RcpcFilterSelect aria-label={label} className="rcpc-selection-menu__native" disabled={!nativeActions.some(action => !action.disabled)} value="" onChange={event => {
+    {nativeOnMobile ? <span className="rcpc-selection-menu__native-wrap"><RcpcFilterSelect aria-label={uiText(label)} className="rcpc-selection-menu__native" disabled={!nativeActions.some(action => !action.disabled)} value="" onChange={event => {
       const choice = event.currentTarget.value
       event.currentTarget.value = ''
       if (!choice) return
       const action = nativeActions[Number(choice)]
       if (action && !action.button.disabled) action.button.click()
-    }}><option value="">선택작업</option>{nativeActions.map((action, index) => <option disabled={action.disabled} key={index} value={index}>{action.label}</option>)}</RcpcFilterSelect></span> : null}
-    <button aria-controls={id} aria-expanded={open} className="rcpc-selection-menu__trigger" onClick={() => setOpen(value => !value)} ref={trigger} type="button">선택작업 <i aria-hidden="true" /></button>
-    <nav aria-label={label} className={`rcpc-bulk-actions mypage-selection-actions ${className}`} id={id} ref={actions} onClick={event => { if (event.target instanceof Element && event.target.closest('button:not(:disabled)')) setOpen(false) }}>{children}</nav>
+    }}><option value="">{uiText("선택작업")}</option>{nativeActions.map((action, index) => <option disabled={action.disabled} key={index} value={index}>{action.label}</option>)}</RcpcFilterSelect></span> : null}
+    <button aria-controls={id} aria-expanded={open} className="rcpc-selection-menu__trigger" onClick={() => setOpen(value => !value)} ref={trigger} type="button">{uiText("선택작업")} <i aria-hidden="true" /></button>
+    <nav aria-label={uiText(label)} className={`rcpc-bulk-actions mypage-selection-actions ${className}`} id={id} ref={actions} onClick={event => { if (event.target instanceof Element && event.target.closest('button:not(:disabled)')) setOpen(false) }}>{children}</nav>
   </div>
 }

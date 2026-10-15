@@ -1,8 +1,10 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useState } from 'react'
 import { useServices } from '@/app/ServiceProvider'
 import defaultProfile from '@/assets/figma/user-profile.svg'
 
 export function ProfileAvatar({ attachmentId }: { attachmentId?: string | null }) {
+  const { uiText } = useUiTranslation()
   const mutations = useServices().myAccount.profileMutations
   const [source, setSource] = useState('')
   const [failed, setFailed] = useState(false)
@@ -17,5 +19,5 @@ export function ProfileAvatar({ attachmentId }: { attachmentId?: string | null }
     }).catch(() => { if (!controller.signal.aborted) setFailed(true) })
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [attachmentId, mutations])
-  return <img alt="프로필" className={source ? undefined : 'is-default'} src={source || defaultProfile} title={failed ? '프로필 이미지를 불러오지 못했습니다.' : undefined}/>
+  return <img alt={uiText("프로필")} className={source ? undefined : 'is-default'} src={source || defaultProfile} title={failed ? uiText("프로필 이미지를 불러오지 못했습니다.") : undefined}/>
 }

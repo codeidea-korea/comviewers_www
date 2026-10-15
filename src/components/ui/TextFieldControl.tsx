@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { AriaAttributes, InputHTMLAttributes, MouseEventHandler, ReactNode } from 'react'
 import type { ButtonIcon } from './ButtonControl'
 import { useId } from 'react'
@@ -42,6 +43,7 @@ export function TextField({
   onTrailingIconClick,
   ...inputProps
 }: TextFieldProps) {
+  const { uiText } = useUiTranslation()
   const generatedId = useId()
   const inputId = id ?? generatedId
   const message = error || success || helperText
@@ -52,7 +54,7 @@ export function TextField({
 
   return (
     <div className={mergeClasses(rootClasses, className)}>
-      <label className="text-field__label" htmlFor={inputId}>{label}</label>
+      <label className="text-field__label" htmlFor={inputId}>{typeof label === 'string' ? uiText(label) : label}</label>
       {labelAction ? <span className="text-field__label-action">{labelAction}</span> : null}
       <span className={`text-field__control ${controlClassName}`.trim()}>
         <input
@@ -62,10 +64,12 @@ export function TextField({
           id={inputId}
           className={inputClassName}
           {...inputProps}
+          placeholder={inputProps.placeholder ? uiText(inputProps.placeholder) : undefined}
+          aria-label={inputProps['aria-label'] ? uiText(inputProps['aria-label']) : undefined}
         />
         {trailingIcon && onTrailingIconClick ? (
           <button
-            aria-label={trailingActionLabel}
+            aria-label={trailingActionLabel ? uiText(trailingActionLabel) : undefined}
             aria-pressed={trailingActionPressed}
             className="text-field__trailing-action"
             disabled={disabled}
@@ -80,9 +84,9 @@ export function TextField({
       </span>
       {messages?.length ? (
         <span className="text-field__messages" id={messageId}>
-          {messages.map((item) => <span className={`text-field__message text-field__message--${item.tone || 'default'}`} key={item.text}>* {item.text}</span>)}
+          {messages.map((item) => <span className={`text-field__message text-field__message--${item.tone || 'default'}`} key={item.text}>* {uiText(item.text)}</span>)}
         </span>
-      ) : message ? <span className="text-field__message" id={messageId}>* {message}</span> : null}
+      ) : message ? <span className="text-field__message" id={messageId}>* {typeof message === 'string' ? uiText(message) : message}</span> : null}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { ReactNode, RefObject } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -99,8 +100,9 @@ export function DialogLayer({
   title,
   titleTranslationKey,
 }: DialogLayerProps) {
+  const { uiText } = useUiTranslation()
   const { t } = useTranslation()
-  const accessibleTitle = titleTranslationKey ? t(titleTranslationKey) : title
+  const accessibleTitle = titleTranslationKey ? t(titleTranslationKey) : title ? uiText(title) : title
   const backdropRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
   const dialogRef = useRef<HTMLElement | null>(null)
@@ -195,7 +197,7 @@ export function DialogLayer({
         role="dialog"
         tabIndex={-1}
       >
-        {showTitle ? <h2 id={titleId}>{titleTranslationKey ? <TranslatedText id={titleTranslationKey} /> : title}</h2> : null}
+        {showTitle ? <h2 id={titleId}>{titleTranslationKey ? <TranslatedText id={titleTranslationKey} /> : accessibleTitle}</h2> : null}
         {children}
       </section>}
     </div>,

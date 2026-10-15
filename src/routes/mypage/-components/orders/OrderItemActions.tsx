@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useRef, useState } from 'react'
 import { TranslatedText, useTranslation } from '@/i18n/translation'
 import { useMutation, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
@@ -23,6 +24,7 @@ import { useSession } from '@/app/session/SessionProvider'
 const rentalActionsClosed = (item: AccountOrderItem) => Boolean(item.rentalId) && (item.customerRentalStatus === 'termination_waiting' || ['terminated', 'refunded'].includes(item.rentalStatus ?? ''))
 
 export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatus, orderDetail, variant = 'default' }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; paymentStatus: string; orderStatus: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; variant?: 'default' | 'purchase-summary' | 'dashboard' }) {
+  useUiTranslation()
   const { t } = useTranslation()
   const { myAccount } = useServices()
   const session = useSession()
@@ -52,15 +54,15 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const now = Date.now()
   const canConfirm = (!cManager || Boolean(item.rentalId)) && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
-  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={confirmation.error?.message} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
+  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={uiText(confirmation.error?.message)} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   if (variant === 'dashboard') return <>
-    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>포인트 받기</span> : null}</Button> : null}
+    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>{uiText("포인트 받기")}</span> : null}</Button> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (variant === 'purchase-summary') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</Button> : null}
-    {item.expectedPoints !== null ? <b><img alt="" src={tollIcon}/>포인트 {item.expectedPoints.toLocaleString('ko-KR')}P 받기</b> : null}
+    {item.expectedPoints !== null ? <b><img alt="" src={tollIcon}/>{uiText('포인트 {points}P 받기', { points: item.expectedPoints.toLocaleString('ko-KR') })}</b> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
@@ -77,7 +79,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
       {confirmedAt
         ? t('order.confirmedDate', { date: accountDate(confirmedAt).slice(0, 10) })
         : `${t('order.purchaseConfirmation')}${item.automaticConfirmationAt ? ` (${t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})` : ''}`}
-      {canConfirm && item.expectedPoints !== null ? <span className="order-catalog-item__points-tooltip"><span className="order-catalog-item__points-icon" aria-hidden="true"><img alt="" src="/assets/figma-tooltip.svg" /></span>포인트 받기<i aria-hidden="true" /></span> : null}
+      {canConfirm && item.expectedPoints !== null ? <span className="order-catalog-item__points-tooltip"><span className="order-catalog-item__points-icon" aria-hidden="true"><img alt="" src="/assets/figma-tooltip.svg" /></span>{uiText("포인트 받기")}<i aria-hidden="true" /></span> : null}
     </button>}
     <div className="order-catalog-item__actions">
       {!cManager && <div className="order-catalog-item__action-primary">
@@ -96,6 +98,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
 }
 
 export function OrderItemSupportActions({ item, orderNo, orderDetail, paymentStatus, orderStatus }: { api: MyAccountReadServices; item: AccountOrderItem; orderNo?: string; orderDetail?: UseQueryResult<AccountOrderDetail, Error>; paymentStatus: string; orderStatus: string }) {
+  useUiTranslation()
   const { t } = useTranslation()
   const { myAccount } = useServices()
 

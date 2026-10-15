@@ -1,7 +1,9 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useState } from 'react'
 import { useServices } from '@/app/ServiceProvider'
 
 export function ReviewAuthorAvatar({ path, fallback }: { path: string | null; fallback: string }) {
+  const { uiText } = useUiTranslation()
   const { reviews } = useServices()
   const [source, setSource] = useState('')
   const [failed, setFailed] = useState(false)
@@ -17,5 +19,5 @@ export function ReviewAuthorAvatar({ path, fallback }: { path: string | null; fa
     }).catch(() => { if (!controller.signal.aborted) setFailed(true) })
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [path, reviews])
-  return <img alt="작성자 프로필" src={source || fallback} title={failed ? '프로필 이미지를 불러오지 못했습니다.' : undefined} />
+  return <img alt={uiText('작성자 프로필')} src={source || fallback} title={failed ? uiText('프로필 이미지를 불러오지 못했습니다.') : undefined} />
 }

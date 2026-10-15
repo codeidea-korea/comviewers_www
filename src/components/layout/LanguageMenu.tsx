@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { PageLocale } from '../../i18n/translation'
 
@@ -17,6 +18,7 @@ export function LanguageMenu({ locale, onSelect, status, triggerLabel }: {
   onSelect: (value: LanguageChoice) => void
   status?: 'idle' | 'loading' | 'ready' | 'error'
 }) {
+  const { uiText } = useUiTranslation()
   const [open, setOpen] = useState(false)
   const menuId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
@@ -49,13 +51,13 @@ export function LanguageMenu({ locale, onSelect, status, triggerLabel }: {
     <button
       aria-controls={menuId}
       aria-expanded={open}
-      aria-label={`언어: ${selected?.label ?? '한국어'}`}
+      aria-label={uiText('언어: {language}', { language: selected?.label ?? '한국어' })}
       className="language-menu__trigger"
       onClick={() => setOpen(current => !current)}
       ref={triggerRef}
       type="button"
     >{triggerLabel ?? selected?.label ?? '한국어'}<span aria-hidden="true" className="language-menu__chevron" /></button>
-    {open ? <div aria-label="번역 언어" className="language-menu__list" id={menuId} role="group">
+    {open ? <div aria-label={uiText('번역 언어')} className="language-menu__list" id={menuId} role="group">
       {languages.map(language => <button
         aria-pressed={language.value === locale}
         key={language.value}
@@ -63,7 +65,7 @@ export function LanguageMenu({ locale, onSelect, status, triggerLabel }: {
         type="button"
       >{language.label}</button>)}
     </div> : null}
-    {status === 'loading' ? <span className="language-menu__status" role="status">번역기 불러오는 중…</span> : null}
-    {status === 'error' ? <span className="language-menu__status language-menu__status--error" role="alert">번역기를 불러오지 못했습니다.</span> : null}
+    {status === 'loading' ? <span className="language-menu__status" role="status">{uiText('번역기 불러오는 중…')}</span> : null}
+    {status === 'error' ? <span className="language-menu__status language-menu__status--error" role="alert">{uiText('번역기를 불러오지 못했습니다.')}</span> : null}
   </div>
 }

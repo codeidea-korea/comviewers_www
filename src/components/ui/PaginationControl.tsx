@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import chevronLeft from '../../assets/figma/pagination-chevron-left.svg'
 import chevronRight from '../../assets/figma/pagination-chevron-right.svg'
 import ellipsis from '../../assets/figma/pagination-ellipsis.svg'
@@ -25,6 +26,7 @@ function createPageItems(currentPage: number, totalPages: number): (number | str
 }
 
 export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: PaginationProps) {
+  const { uiText } = useUiTranslation()
   const { t } = useTranslation()
   const numericTotal = Number(totalPages)
   if (!Number.isFinite(numericTotal) || numericTotal <= 0) return null
@@ -34,7 +36,7 @@ export function Pagination({ currentPage = 1, onPageChange, totalPages = 68 }: P
   const pages = createPageItems(safeCurrent, safeTotal)
 
   return (
-    <nav aria-label="페이지 이동" className="pagination notranslate" translate="no">
+    <nav aria-label={uiText('페이지 이동')} className="pagination notranslate" translate="no">
       <button aria-label={t('common.previousPage')} className="pagination__arrow" disabled={safeCurrent === 1} onClick={() => onPageChange?.(safeCurrent - 1)} type="button">
         <img alt="" src={chevronLeft} />
       </button>

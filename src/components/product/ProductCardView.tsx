@@ -31,6 +31,7 @@ function PriceValue({ amount, compact = false }: { amount: number | null; compac
 }
 
 export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddToCart?: (product: Product) => void; product: Product; size?: 'medium' | 'large' }) {
+  const { t } = useTranslation()
   const isLarge = size === 'large'
   const part = product.pricingType === 'one_time' && product.billingUnit === 'unit'
   const productPrice = part ? product.unitPrice : product.unitPrice ?? product.monthlyPrice
@@ -39,7 +40,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
   return (
     <article className={`product-card product-card--${size}`}>
       <div className="product-card__image">
-        <img alt={product.image ? `${product.title ?? product.productId} 상품 이미지` : visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />
+        <img alt={product.image || visual.label ? t('cart.productImage', { name: product.image ? product.title ?? product.productId : visual.label ?? '' }) : t('cart.defaultImage')} src={visual.image} />
         {!product.image ? <ProductOsOverlay label={visual.label} /> : null}
       </div>
       <div className="product-card__info">
@@ -59,7 +60,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
               <ProductSpec
                 className="product-card__spec--ip"
                 label="IP"
-                value={product.country && product.ip ? <>{product.country === "Korea" ? <img alt="대한민국" className="flag" src={flagKorea} /> : null}<span>{product.country}</span><small>{product.ip}</small></> : <img alt="국가/IP 정보 없음" className="flag" height={20} src={countryEmptyIcon} width={20} />}
+                value={product.country && product.ip ? <>{product.country === "Korea" ? <img alt={t('catalogUi.korea')} className="flag" src={flagKorea} /> : null}<span>{product.country}</span><small>{product.ip}</small></> : <img alt={t('catalogUi.countryUnknown')} className="flag" height={20} src={countryEmptyIcon} width={20} />}
               />
               <ProductSpec
                 label={<TranslatedText id="product.serverStatus" />}
@@ -76,7 +77,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
           {isLarge ? <button disabled={productPrice === null} className="product-card__cart" onClick={() => onAddToCart?.(product)} type="button"><TranslatedText id="cart.add" /> <img alt="" src={shoppingBagIcon} /></button> : null}
         </div>
       </div>
-      <Link aria-label={`상품 ${product.productId} 상세 보기`} className="product-card__detail-overlay" to={`/products/${product.productId}`} />
+      <Link aria-label={t('catalogUi.productDetails', { id: product.productId })} className="product-card__detail-overlay" to={`/products/${product.productId}`} />
     </article>
   )
 }

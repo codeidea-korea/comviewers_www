@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 export type AccountDatePreset = 'today' | 'week' | 'month' | 'quarter'
 export function accountDateRange(preset: AccountDatePreset) {
   const to = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
@@ -8,5 +9,6 @@ export function accountDateRange(preset: AccountDatePreset) {
   return { from: date.toISOString().slice(0, 10), to }
 }
 export function AccountDatePresets({ onChange }: { onChange: (dates: { from: string; to: string }) => void }) {
-  return <div className="account-date-presets">{([{ value: 'today', label: '오늘' }, { value: 'week', label: '1주일' }, { value: 'month', label: '1개월' }, { value: 'quarter', label: '3개월' }] as const).map(item => <button type="button" key={item.value} onClick={() => onChange(accountDateRange(item.value))}>{item.label}</button>)}</div>
+  const { uiText } = useUiTranslation()
+  return <div className="account-date-presets">{([{ value: 'today', label: uiText("오늘") }, { value: 'week', label: uiText("1주일") }, { value: 'month', label: uiText("1개월") }, { value: 'quarter', label: uiText("3개월") }] as const).map(item => <button type="button" key={item.value} onClick={() => onChange(accountDateRange(item.value))}>{item.label}</button>)}</div>
 }

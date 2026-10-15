@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { InputHTMLAttributes } from 'react'
 
 export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -15,7 +16,8 @@ export function Radio({
   onIcon,
   ...inputProps
 }: RadioProps) {
-  const input = <input {...inputProps} checked={checked} type="radio" />
+  const { uiText } = useUiTranslation()
+  const input = <input {...inputProps} aria-label={inputProps['aria-label'] ? uiText(inputProps['aria-label']) : undefined} checked={checked} type="radio" />
 
   if (children === undefined) return input
 
@@ -23,7 +25,7 @@ export function Radio({
     <label className={className}>
       {input}
       {offIcon && onIcon ? <img alt="" aria-hidden="true" className={iconClassName} src={checked ? onIcon : offIcon} /> : null}
-      {children}
+      {typeof children === 'string' ? uiText(children) : children}
     </label>
   )
 }

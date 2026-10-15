@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MyRcpcItem } from '@/api/myRcpc'
@@ -10,12 +11,13 @@ import { favoriteUngroupedCountQuery } from './favoritesAccess'
 import { orderFavoriteGroups } from './favorites/orderFavoriteGroups'
 
 export function RcpcFavoriteButton({ api, mutations, item, compact = false }: { api: MyRcpcReadServices; mutations: ReturnType<typeof createCustomerRcpcMutations>; item: MyRcpcItem; compact?: boolean }) {
+  const { uiText } = useUiTranslation()
   const [open, setOpen] = useState(false), [creating, setCreating] = useState(false)
   const cache = useQueryClient()
   const groups = useQuery({ queryKey: ['my-rcpc-groups', api.organizationId], queryFn: ({ signal }) => mutations.groups(signal), enabled: open })
   const unclassified = useQuery({ queryKey: ['my-rcpcs', api.organizationId, 'favorite-unclassified-count'], queryFn: ({ signal }) => api.list(favoriteUngroupedCountQuery, signal), enabled: open })
   const visualGroups: FavoriteGroupOption[] = [
-    { id: 'unclassified', label: '미분류', parentId: null, count: unclassified.data?.totalElements },
+    { id: 'unclassified', label: uiText("미분류"), parentId: null, count: unclassified.data?.totalElements },
     ...orderFavoriteGroups(groups.data ?? []).flatMap(root => [
       { id: String(root.id), label: root.name, parentId: null, count: root.rcpcCount + root.children.reduce((total, child) => total + child.rcpcCount, 0) },
       ...root.children.map(child => ({ id: String(child.id), label: child.name, parentId: String(root.id), count: child.rcpcCount })),
@@ -25,14 +27,14 @@ export function RcpcFavoriteButton({ api, mutations, item, compact = false }: { 
     setOpen(false); await Promise.all([cache.invalidateQueries({ queryKey: ['my-rcpcs', api.organizationId] }), cache.invalidateQueries({ queryKey: ['my-rcpc-groups', api.organizationId] })])
   } })
   const createGroup = useMutation({ mutationFn: ({ name, parentId }: { name: string; parentId: string | null }) => mutations.createGroup({ name, parentGroupId: parentId ? Number(parentId) : null }), onSuccess: async () => { await groups.refetch(); setCreating(false); setOpen(true) } })
-  const label = item.preference.favorite ? '즐겨찾기 해제' : '즐겨찾기 추가'
+  const label = item.preference.favorite ? uiText("즐겨찾기 해제") : uiText("즐겨찾기 추가")
   const openSettings = () => { save.reset(); createGroup.reset(); setCreating(false); setOpen(true) }
   const closeSettings = () => { if (!save.isPending) { save.reset(); setOpen(false) } }
   const openNewGroup = () => { save.reset(); createGroup.reset(); setOpen(false); setCreating(true) }
   const closeNewGroup = () => { if (!createGroup.isPending) { createGroup.reset(); setCreating(false); setOpen(true) } }
   return <><button aria-label={label} className={compact ? 'mypage-home-rcpc__favorite' : undefined} type="button" disabled={save.isPending} onClick={() => { save.reset(); if (item.preference.favorite) { save.mutate(null); return } openSettings() }}>{compact ? <img alt="" src={item.preference.favorite ? starFilled : starEmpty}/> : label}</button>
     {!open && save.error ? <p role="alert">{save.error.message}</p> : null}
-    <FavoritesSettingsDialog error={groups.error || unclassified.error ? '그룹을 조회하지 못했습니다.' : save.error?.message} groups={visualGroups} isOpen={open} onClose={closeSettings} onNewGroup={openNewGroup} onSave={(id) => save.mutate(id === 'unclassified' ? null : Number(id))} pending={save.isPending || groups.isPending || unclassified.isPending} />
+    <FavoritesSettingsDialog error={groups.error || unclassified.error ? uiText("그룹을 조회하지 못했습니다.") : save.error?.message} groups={visualGroups} isOpen={open} onClose={closeSettings} onNewGroup={openNewGroup} onSave={(id) => save.mutate(id === 'unclassified' ? null : Number(id))} pending={save.isPending || groups.isPending || unclassified.isPending} />
     <NewFavoritesGroupDialog error={createGroup.error?.message} groups={visualGroups} isOpen={creating} onAdd={(name, parentId) => createGroup.mutate({ name, parentId })} onClose={closeNewGroup} pending={createGroup.isPending} />
   </>
 }

@@ -22,6 +22,7 @@ const menuTranslationKeys: Readonly<Record<string, TranslationKey>> = {
   cart: 'nav.cart',
   signup: 'nav.signup',
   'my-rcpc': 'nav.myRcpc',
+  'my-favorites': 'shell.favorites',
   'my-inquiries': 'nav.inquiries',
 }
 
@@ -65,9 +66,9 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
     <header className={`site-header site-header--${state}${scrolled ? ' site-header--scrolled' : ''}${mobileOpen ? ' site-header--menu-open' : ''}`}>
       <div className="site-header__utility">
         <div className="site-header__inner">
-          <p>게임부터 작업까지, 원하는 PC 환경을 RCPC로 간편하게</p>
+          <p><TranslatedText id="shell.tagline" /></p>
           <div className="site-header__utility-actions">
-            <nav aria-label="사용자 메뉴" className="utility-menu notranslate" translate="no">
+            <nav aria-label={t('shell.userMenu')} className="utility-menu notranslate" translate="no">
               {visibleUtilityItems.map((item) => <Fragment key={item.id}>
                 {item.id === 'login'
                   ? <SessionControls loginLabel="로그인" />
@@ -88,7 +89,7 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
           <Link className="site-logo" to={restricted ? '/mypage/rcpc' : '/'}>
             <img alt="ComViewers" src={isMain && !scrolled && !mobileOpen ? logoWhite : logoPrimary} />
           </Link>
-          <nav aria-label="주 메뉴" className="main-menu">
+          <nav aria-label={t('shell.mainMenu')} className="main-menu">
             {visibleMenuItems.map((item) => <Link key={item.id} to={item.href}><MenuLabel item={item} /></Link>)}
           </nav>
           <div className="mobile-header-actions">
@@ -101,12 +102,12 @@ export function Header({ cartCount, onCartClick, state = 'sub' }: { cartCount?: 
               <img alt="" aria-hidden="true" src={shoppingBagIcon} />
               {cartCount !== undefined ? <span className="mobile-cart-button__count">{cartCount}</span> : null}
             </button>
-            <button aria-controls="mobile-site-menu" aria-expanded={mobileOpen} aria-label={mobileOpen ? '메뉴 닫기' : '메뉴 열기'} className={`mobile-menu-toggle${mobileOpen ? ' is-open' : ''}`} onClick={() => setMobileOpen((current) => !current)} ref={mobileToggleRef} type="button">{mobileOpen ? <img alt="" className="mobile-menu-toggle__close" src={closeIcon} /> : <><span /><span /><span /></>}</button>
+            <button aria-controls="mobile-site-menu" aria-expanded={mobileOpen} aria-label={t(mobileOpen ? 'shell.closeMenu' : 'shell.openMenu')} className={`mobile-menu-toggle${mobileOpen ? ' is-open' : ''}`} onClick={() => setMobileOpen((current) => !current)} ref={mobileToggleRef} type="button">{mobileOpen ? <img alt="" className="mobile-menu-toggle__close" src={closeIcon} /> : <><span /><span /><span /></>}</button>
           </div>
         </div>
       </div>
-      {mobileOpen ? <button aria-label="메뉴 외부 영역 닫기" className="mobile-menu-backdrop" onClick={closeMobileMenu} type="button" /> : null}
-      {mobileOpen ? <nav aria-label="모바일 메뉴" className="mobile-site-menu is-open" id="mobile-site-menu">
+      {mobileOpen ? <button aria-label={t('shell.closeMenuBackdrop')} className="mobile-menu-backdrop" onClick={closeMobileMenu} type="button" /> : null}
+      {mobileOpen ? <nav aria-label={t('shell.mobileMenu')} className="mobile-site-menu is-open" id="mobile-site-menu">
         <div className="mobile-site-menu__main">
           {visibleMenuItems.map((item) => <Link key={item.id} onClick={closeMobileMenu} to={item.href}><MenuLabel item={item} /></Link>)}
         </div>

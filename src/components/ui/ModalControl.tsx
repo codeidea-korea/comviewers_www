@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { ReactNode } from 'react'
 import type { ButtonOwnProps } from './ButtonControl'
 import type { DialogLayerProps } from './DialogLayerControl'
@@ -14,8 +15,9 @@ const commonActionKeys: Readonly<Record<string, TranslationKey>> = {
 }
 
 function ModalActionLabel({ label, translationKey }: { label: string; translationKey?: TranslationKey }) {
+  const { uiText } = useUiTranslation()
   const key = translationKey ?? commonActionKeys[label]
-  return key ? <TranslatedText id={key} /> : label
+  return key ? <TranslatedText id={key} /> : uiText(label)
 }
 
 export interface ModalProps extends Pick<DialogLayerProps, 'isOpen' | 'onClose' | 'returnFocusRef' | 'title' | 'titleTranslationKey'> {

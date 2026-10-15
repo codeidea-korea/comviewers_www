@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { ReactNode } from 'react'
 
 export interface SortConfig<Key extends string = string> { key: Key; direction: 'asc' | 'desc' }
@@ -27,12 +28,13 @@ export function sortRows<Row, Key extends string>(rows: readonly Row[], sortConf
 export interface SortButtonProps<Key extends string = string> { children?: ReactNode; className?: string; icon?: string; label: string; onSort: (key: Key) => void; sortConfig?: SortConfig<Key> | null; sortKey: Key }
 
 export function SortButton<Key extends string>({ children, className = '', icon, label, onSort, sortConfig, sortKey }: SortButtonProps<Key>) {
+  const { uiText } = useUiTranslation()
   const direction = sortConfig?.key === sortKey ? sortConfig.direction : 'none'
   const directionLabel = direction === 'asc' ? '오름차순' : direction === 'desc' ? '내림차순' : '기본'
 
   return (
     <button
-      aria-label={`${label} 정렬: ${directionLabel}`}
+      aria-label={uiText('{label} 정렬: {direction}', { label: uiText(label), direction: uiText(directionLabel) })}
       aria-pressed={direction !== 'none'}
       className={`table-sort-button ${className}`.trim()}
       data-sort-direction={direction}
@@ -40,7 +42,7 @@ export function SortButton<Key extends string>({ children, className = '', icon,
       onClick={() => onSort(sortKey)}
       type="button"
     >
-      {children}<img alt="" src={icon} />
+      {typeof children === 'string' ? uiText(children) : children}<img alt="" src={icon} />
     </button>
   )
 }

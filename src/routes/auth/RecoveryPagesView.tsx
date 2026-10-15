@@ -1,3 +1,4 @@
+import { useAuthTranslation } from '@/routes/auth/authTranslation'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { getPublicAccountApi } from '@/api/publicAccount'
@@ -8,7 +9,7 @@ import { Modal } from '@/components/ui/ModalControl'
 import { TextField } from '@/components/ui/TextFieldControl'
 import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField } from './AuthComponentsView'
 import { LoginPage } from './LoginPageView'
-import { formatPasswordResetCountdown as countdown, formatPasswordResetRetryTime, passwordResetCountdownLabel, readPasswordResetRetryAt, resolvePasswordResetRateLimit, resolvePasswordResetRetryAt, writePasswordResetRetryAt } from './passwordResetCooldown'
+import { formatPasswordResetCountdown as countdown, formatPasswordResetRetryTime, readPasswordResetRetryAt, resolvePasswordResetRateLimit, resolvePasswordResetRetryAt, writePasswordResetRetryAt } from './passwordResetCooldown'
 
 const idRecoveryResultKey = 'comviewers.id-recovery.result'
 const passwordResetRequestKey = 'comviewers.password-reset.request'
@@ -71,6 +72,7 @@ function useEmailFields(filled = false) {
 }
 
 function FindIdPage() {
+  const { authText } = useAuthTranslation()
   const navigate = useNavigate()
   const api = getPublicAccountApi()
   const [name, setName] = useState('')
@@ -89,25 +91,27 @@ function FindIdPage() {
     finally { setBusy(false) }
   }
   return <AuthPage variant="find-id"><AuthPanel>
-    <AuthHeading description="회원가입 시 등록한 이름과 이메일을 입력해 주세요." title="아이디 찾기" />
+    <AuthHeading description={authText("회원가입 시 등록한 이름과 이메일을 입력해 주세요.")} title={authText("아이디 찾기")} />
     <form className="auth-form" onSubmit={submit}>
-      <TextField label="이름" onChange={(event) => setName(event.target.value)} placeholder="이름 입력" required value={name} />
-      <EmailAddressField domain={email.emailDomain} domainPlaceholder="" error={error} id={email.emailId} onDomainChange={email.setEmailDomain} onIdChange={(event) => email.setEmailId(event.target.value)} required />
-      <Button disabled={busy || !name || !email.emailId || !email.emailDomain} size="large" type="submit">{busy ? '요청 중' : '아이디 찾기'}</Button>
+      <TextField label={authText("이름")} onChange={(event) => setName(event.target.value)} placeholder={authText("이름 입력")} required value={name} />
+      <EmailAddressField domain={email.emailDomain} domainPlaceholder="" error={authText(error)} id={email.emailId} onDomainChange={email.setEmailDomain} onIdChange={(event) => email.setEmailId(event.target.value)} required />
+      <Button disabled={busy || !name || !email.emailId || !email.emailDomain} size="large" type="submit">{busy ? authText("요청 중") : authText("아이디 찾기")}</Button>
     </form>
   </AuthPanel></AuthPage>
 }
 
 function FindIdCompletePage() {
+  const { authText } = useAuthTranslation()
   const locationState = useLocation().state
   const [result] = useState(() => isMaskedUsernameState(locationState)
     ? locationState
     : readSessionObject(idRecoveryResultKey, isMaskedUsernameState))
   const maskedUsername = result?.maskedUsername
-  return <AuthPage variant="find-id-complete"><AuthPanel result><AuthHeading title="아이디 찾기" description={maskedUsername ? '아이디 찾기가 완료되었습니다.' : '아이디 찾기 요청 정보가 없습니다.'} />{maskedUsername ? <dl className="single-result"><dt>아이디</dt><dd>{maskedUsername}</dd></dl> : null}<div className="result-actions"><Button as={Link} size="large" to="/account/find-password" variant="secondary">비밀번호 찾기</Button><Button as={Link} size="large" to="/login">로그인하기</Button></div></AuthPanel></AuthPage>
+  return <AuthPage variant="find-id-complete"><AuthPanel result><AuthHeading title={authText("아이디 찾기")} description={maskedUsername ? authText("아이디 찾기가 완료되었습니다.") : authText("아이디 찾기 요청 정보가 없습니다.")} />{maskedUsername ? <dl className="single-result"><dt>{authText("아이디")}</dt><dd>{maskedUsername}</dd></dl> : null}<div className="result-actions"><Button as={Link} size="large" to="/account/find-password" variant="secondary">{authText("비밀번호 찾기")}</Button><Button as={Link} size="large" to="/login">{authText("로그인하기")}</Button></div></AuthPanel></AuthPage>
 }
 
 function FindPasswordPage() {
+  const { authText, t } = useAuthTranslation()
   const navigate = useNavigate()
   const api = getPublicAccountApi()
   const [loginId, setLoginId] = useState('')
@@ -134,16 +138,17 @@ function FindPasswordPage() {
     finally { setBusy(false) }
   }
   return <AuthPage variant="find-password"><AuthPanel>
-    <AuthHeading description={<>회원가입 시 등록한 아이디와 이메일 주소를 입력해 주세요.<br />회원정보 확인 후 비밀번호 재설정 메일을 보내드립니다.</>} title="비밀번호 찾기" />
+    <AuthHeading description={<>{authText("회원가입 시 등록한 아이디와 이메일 주소를 입력해 주세요.")}<br />{authText("회원정보 확인 후 비밀번호 재설정 메일을 보내드립니다.")}</>} title={authText("비밀번호 찾기")} />
     <form className="auth-form" onSubmit={submit}>
-      <TextField label="아이디" onChange={(event) => setLoginId(event.target.value)} placeholder="아이디" required value={loginId} />
-      <EmailAddressField domain={email.emailDomain} domainPlaceholder="" error={error} id={email.emailId} onDomainChange={email.setEmailDomain} onIdChange={(event) => email.setEmailId(event.target.value)} required />
-      <Button disabled={busy || cooldown.remaining > 0 || !loginId || !email.emailId || !email.emailDomain} size="large" type="submit">{busy ? '요청 중' : cooldown.remaining > 0 ? `${countdown(cooldown.remaining)} 후 다시 요청` : '비밀번호 재설정'}</Button>
+      <TextField label={authText("아이디")} onChange={(event) => setLoginId(event.target.value)} placeholder={authText("아이디")} required value={loginId} />
+      <EmailAddressField domain={email.emailDomain} domainPlaceholder="" error={authText(error)} id={email.emailId} onDomainChange={email.setEmailDomain} onIdChange={(event) => email.setEmailId(event.target.value)} required />
+      <Button disabled={busy || cooldown.remaining > 0 || !loginId || !email.emailId || !email.emailDomain} size="large" type="submit">{busy ? authText("요청 중") : cooldown.remaining > 0 ? t('auth.retryCountdown', { time: countdown(cooldown.remaining) }) : authText("비밀번호 재설정")}</Button>
     </form>
   </AuthPanel></AuthPage>
 }
 
 function PasswordSentPage() {
+  const { authText, t, locale } = useAuthTranslation()
   const locationState = useLocation().state
   const [state] = useState(() => isPasswordResetRequestState(locationState)
     ? locationState
@@ -167,18 +172,19 @@ function PasswordSentPage() {
     }
     finally { setBusy(false) }
   }
-  return <AuthPage variant="password-sent"><AuthPanel result><AuthHeading title="비밀번호 찾기" /><div className="result-copy">
-    <p>{state?.requested ? <>입력하신 이메일 주소로 <strong>비밀번호 재설정 메일</strong>을 발송했습니다.<br />메일의 링크를 통해 새 비밀번호를 설정해 주세요.</> : '비밀번호 재설정 요청 정보가 없습니다.'}</p>
+  return <AuthPage variant="password-sent"><AuthPanel result><AuthHeading title={authText("비밀번호 찾기")} /><div className="result-copy">
+    <p>{state?.requested ? <>{locale === 'ko' ? <>입력하신 이메일 주소로 <strong>비밀번호 재설정 메일</strong>을 발송했습니다.</> : t('auth.resetEmailSent')}<br />{authText("메일의 링크를 통해 새 비밀번호를 설정해 주세요.")}</> : authText("비밀번호 재설정 요청 정보가 없습니다.")}</p>
     {state?.email ? <dl><div><dt>Email</dt><dd>{state.email}</dd></div></dl> : null}
     <hr />
-    <p><strong>비밀번호 재설정 메일을 받지 못하셨나요?</strong><br />스팸메일함을 확인하거나 메일을 다시 보내 주세요.</p>
-    {state?.username && state.email && cooldown.remaining > 0 ? <p aria-label={passwordResetCountdownLabel(cooldown.remaining)} aria-live="off" className="resend-timer" role="timer"><b>{formatPasswordResetRetryTime(cooldown.retryAt)}</b>부터 메일을 다시 보낼 수 있습니다. 남은 시간 <strong>{countdown(cooldown.remaining)}</strong></p> : null}
-    {notice ? <p role="status">{notice}</p> : null}
-    {error ? <p className="form-error" role="alert">{error}</p> : null}
-  </div><div className="result-actions">{state?.username && state.email ? <Button disabled={busy || cooldown.remaining > 0 || !api} onClick={() => { void resend() }} size="large" type="button" variant="secondary">{busy ? '요청 중' : '메일 다시 보내기'}</Button> : <Button as={Link} size="large" to="/account/find-password" variant="secondary">다시 요청</Button>}<Button as={Link} size="large" to="/login">로그인하기</Button></div></AuthPanel></AuthPage>
+    <p><strong>{authText("비밀번호 재설정 메일을 받지 못하셨나요?")}</strong><br />{authText("스팸메일함을 확인하거나 메일을 다시 보내 주세요.")}</p>
+    {state?.username && state.email && cooldown.remaining > 0 ? <p aria-label={t('auth.resendCountdown', { time: countdown(cooldown.remaining) })} aria-live="off" className="resend-timer" role="timer">{locale === 'ko' ? <><b>{formatPasswordResetRetryTime(cooldown.retryAt)}</b>부터 메일을 다시 보낼 수 있습니다. 남은 시간 </> : t('auth.resendAt', { time: formatPasswordResetRetryTime(cooldown.retryAt) })} <strong>{countdown(cooldown.remaining)}</strong></p> : null}
+    {notice ? <p role="status">{authText(notice)}</p> : null}
+    {error ? <p className="form-error" role="alert">{authText(error)}</p> : null}
+  </div><div className="result-actions">{state?.username && state.email ? <Button disabled={busy || cooldown.remaining > 0 || !api} onClick={() => { void resend() }} size="large" type="button" variant="secondary">{busy ? authText("요청 중") : authText("메일 다시 보내기")}</Button> : <Button as={Link} size="large" to="/account/find-password" variant="secondary">{authText("다시 요청")}</Button>}<Button as={Link} size="large" to="/login">{authText("로그인하기")}</Button></div></AuthPanel></AuthPage>
 }
 
 function ResetPasswordPage() {
+  const { authText } = useAuthTranslation()
   const api = getPublicAccountApi()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -239,29 +245,29 @@ function ResetPasswordPage() {
   }
   const helperText = '8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.'
   const resetContent = <>
-      {linkState === 'checking' ? <p role="status">재설정 링크를 확인하고 있습니다.</p> : null}
-      {linkState === 'invalid' ? <p role="alert">재설정 링크가 유효하지 않거나 만료되었거나 이미 사용되었습니다. <Link to="/account/find-password">비밀번호 재설정 메일을 다시 요청해 주세요.</Link></p> : null}
-      {linkState === 'unavailable' ? <div><p role="alert">재설정 링크를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.</p><Button onClick={() => setValidationAttempt(attempt => attempt + 1)} type="button" variant="secondary">다시 시도</Button></div> : null}
+      {linkState === 'checking' ? <p role="status">{authText("재설정 링크를 확인하고 있습니다.")}</p> : null}
+      {linkState === 'invalid' ? <p role="alert">{authText("재설정 링크가 유효하지 않거나 만료되었거나 이미 사용되었습니다.")}<Link to="/account/find-password">{authText("비밀번호 재설정 메일을 다시 요청해 주세요.")}</Link></p> : null}
+      {linkState === 'unavailable' ? <div><p role="alert">{authText("재설정 링크를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.")}</p><Button onClick={() => setValidationAttempt(attempt => attempt + 1)} type="button" variant="secondary">{authText("다시 시도")}</Button></div> : null}
       {linkState === 'ready' ? <div className="popup-form">
-        <PasswordField autoComplete="new-password" error={passwordError} helperText={helperText} label="새 비밀번호" maxLength={16} onChange={(event) => { setPasswordTouched(true); setPasswordPolicyError(''); setPassword(event.target.value); setError('') }} required value={password} />
-        <PasswordField autoComplete="new-password" error={confirmationError} helperText={helperText} label="비밀번호 확인" maxLength={16} onChange={(event) => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} required value={confirmation} />
-        {error ? <p className="form-error" role="alert">{error}</p> : null}
+        <PasswordField autoComplete="new-password" error={authText(passwordError)} helperText={authText(helperText)} label={authText("새 비밀번호")} maxLength={16} onChange={(event) => { setPasswordTouched(true); setPasswordPolicyError(''); setPassword(event.target.value); setError('') }} required value={password} />
+        <PasswordField autoComplete="new-password" error={authText(confirmationError)} helperText={authText(helperText)} label={authText("비밀번호 확인")} maxLength={16} onChange={(event) => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} required value={confirmation} />
+        {error ? <p className="form-error" role="alert">{authText(error)}</p> : null}
       </div> : null}
     </>
   const goToLogin = () => navigate('/login', { replace: true, state: complete ? { passwordReset: true } : undefined })
   if (mobileViewport) return <AuthPage variant="reset-password"><AuthPanel>
-    <AuthHeading title={complete ? '비밀번호가 변경되었습니다.' : '비밀번호 재설정'} />
+    <AuthHeading title={complete ? authText("비밀번호가 변경되었습니다.") : authText("비밀번호 재설정")} />
     <div className="auth-form">
-      {complete ? <p>새로 설정한 비밀번호로 다시 로그인해 주세요.</p> : resetContent}
-      {!complete && linkState === 'ready' ? <Button disabled={busy || !validPassword || password !== confirmation} onClick={() => { void submit() }} size="large" type="button">{busy ? '변경 중…' : '확인'}</Button> : null}
-      {complete || linkState === 'invalid' || linkState === 'unavailable' ? <Button onClick={goToLogin} size="large" type="button">로그인하기</Button> : null}
+      {complete ? <p>{authText("새로 설정한 비밀번호로 다시 로그인해 주세요.")}</p> : resetContent}
+      {!complete && linkState === 'ready' ? <Button disabled={busy || !validPassword || password !== confirmation} onClick={() => { void submit() }} size="large" type="button">{busy ? authText("변경 중…") : authText("확인")}</Button> : null}
+      {complete || linkState === 'invalid' || linkState === 'unavailable' ? <Button onClick={goToLogin} size="large" type="button">{authText("로그인하기")}</Button> : null}
     </div>
   </AuthPanel></AuthPage>
   return <><LoginPage redirectAuthenticated={false} />
-    <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? '변경 중…' : '확인'} isOpen={!complete} onClose={goToLogin} onConfirm={linkState === 'ready' ? () => { void submit() } : undefined} showClose={linkState !== 'ready'} title="비밀번호 재설정">
+    <Modal className="modal--wide modal--password-reset" confirmDisabled={busy || !validPassword || password !== confirmation} confirmLabel={busy ? authText("변경 중…") : authText("확인")} isOpen={!complete} onClose={goToLogin} onConfirm={linkState === 'ready' ? () => { void submit() } : undefined} showClose={linkState !== 'ready'} title={authText("비밀번호 재설정")}>
       {resetContent}
     </Modal>
-    <Modal confirmLabel="로그인하기" isOpen={complete} onClose={() => navigate('/login', { replace: true, state: { passwordReset: true } })} onConfirm={() => navigate('/login', { replace: true, state: { passwordReset: true } })} showClose={false} title="비밀번호가 변경되었습니다."><p>새로 설정한 비밀번호로 다시 로그인해 주세요.</p></Modal>
+    <Modal confirmLabel={authText("로그인하기")} isOpen={complete} onClose={() => navigate('/login', { replace: true, state: { passwordReset: true } })} onConfirm={() => navigate('/login', { replace: true, state: { passwordReset: true } })} showClose={false} title={authText("비밀번호가 변경되었습니다.")}><p>{authText("새로 설정한 비밀번호로 다시 로그인해 주세요.")}</p></Modal>
   </>
 }
 

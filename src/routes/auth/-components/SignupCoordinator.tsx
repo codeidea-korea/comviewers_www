@@ -1,3 +1,4 @@
+import { useAuthTranslation } from '@/routes/auth/authTranslation'
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { getPublicAccountApi, type RegistrationInput } from '@/api/publicAccount'
@@ -28,6 +29,7 @@ interface SignupCoordinatorValue {
 const SignupCoordinatorContext = createContext<SignupCoordinatorValue | null>(null)
 
 export function SignupCoordinatorProvider({ children }: { children: ReactNode }) {
+  const { authText } = useAuthTranslation()
   const api = getPublicAccountApi()
   const navigate = useNavigate()
   const { message, toastKey, setMessage } = useToastMessage()
@@ -111,7 +113,7 @@ export function SignupCoordinatorProvider({ children }: { children: ReactNode })
 
   return <SignupCoordinatorContext.Provider value={{ awaitingEmail, begin, resend, busy, cancel, error }}>
     {children}
-    <Toast message={message} toastKey={toastKey} />
+    <Toast message={authText(message)} toastKey={toastKey} />
   </SignupCoordinatorContext.Provider>
 }
 

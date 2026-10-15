@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { StorageProductRow } from './StorageProductRow'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -10,6 +11,7 @@ import { useMixedStorageSelection, type StorageSelectedGroup } from './MixedStor
 const emptyOffers: NonNullable<Awaited<ReturnType<MyAccountReadServices['partStorageOffers']>>> = []
 
 export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
+  useUiTranslation()
   const shared=useMixedStorageSelection()
   const [page,setPage]=useState(0)
   const offers = useQuery({ queryKey: ['my-account','read','part-storage',page], queryFn: () => api.partStorageOffers(page) })
@@ -44,14 +46,14 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
   }
   if (offers.isPending || (!offers.isError && rows.length===0)) return null
   return <section className="part-storage-selection">
-    {offers.isError && <p role="alert">예약 상품을 불러오지 못했습니다. <button onClick={() => void offers.refetch()} type="button">다시 시도</button></p>}
+    {offers.isError && <p role="alert">{uiText("예약 상품을 불러오지 못했습니다.")} <button onClick={() => void offers.refetch()} type="button">{uiText("다시 시도")}</button></p>}
     {availableRows.map(row => <StorageProductRow key={row.id} productNo={row.productNo} title={row.title} serverRoom={row.serverRoomName}
       selected={selectedIds.includes(row.id)} disabled={shared?.locked} onSelect={checked => setSelected(checked ? [...selectedIds,row.id] : selectedIds.filter(id=>id!==row.id))}
-      description={row.description || '등록된 상품 설명이 없습니다.'} fees={[{ label: '상품금액', amount: row.unitPrice }, { label: '세팅비', amount: row.setupFee }]}
-      quantity={<QuantityStepper label={`${row.productNo} 수량`} showLabel={false} value={quantity(row)} minimum={row.minimumQuantity} maximum={Math.min(row.maximumQuantity,row.availableQuantity)} unit="개" disabled={shared?.locked} onChange={value=>setQuantities(old=>({...old,[row.id]:value}))}/>}
+      description={row.description || uiText('등록된 상품 설명이 없습니다.')} fees={[{ label: uiText('상품금액'), amount: row.unitPrice }, { label: uiText('세팅비'), amount: row.setupFee }]}
+      quantity={<QuantityStepper label={uiText('{name} 수량', { name: row.productNo })} showLabel={false} value={quantity(row)} minimum={row.minimumQuantity} maximum={Math.min(row.maximumQuantity,row.availableQuantity)} unit={uiText("개")} disabled={shared?.locked} onChange={value=>setQuantities(old=>({...old,[row.id]:value}))}/>}
       amount={(row.unitPrice+row.setupFee)*quantity(row)} points={0} />)}
-    {rows.length>=50||page>0?<nav className="storage-pages"><button type="button" disabled={page===0||shared?.locked} onClick={()=>changePage(page-1)}>이전</button><span>{page+1}페이지</span><button type="button" disabled={(rows.length<50)||shared?.locked} onClick={()=>changePage(page+1)}>다음</button></nav>:null}
-    {new Set(selectedRows.map(row=>row.productNo)).size!==selectedRows.length&&<p role="alert">같은 품번의 보관 상품은 한 건씩 선택해 주세요.</p>}
-    {!shared&&<button type="button" disabled={!valid || !Number.isSafeInteger(total)} onClick={startCheckout}>선택 상품 주문서 작성</button>}
+    {rows.length>=50||page>0?<nav className="storage-pages"><button type="button" disabled={page===0||shared?.locked} onClick={()=>changePage(page-1)}>{uiText("이전")}</button><span>{uiText('{page}페이지', { page: page + 1 })}</span><button type="button" disabled={(rows.length<50)||shared?.locked} onClick={()=>changePage(page+1)}>{uiText("다음")}</button></nav>:null}
+    {new Set(selectedRows.map(row=>row.productNo)).size!==selectedRows.length&&<p role="alert">{uiText("같은 품번의 보관 상품은 한 건씩 선택해 주세요.")}</p>}
+    {!shared&&<button type="button" disabled={!valid || !Number.isSafeInteger(total)} onClick={startCheckout}>{uiText("선택 상품 주문서 작성")}</button>}
   </section>
 }

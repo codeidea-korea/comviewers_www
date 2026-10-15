@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import type { AccountStorageItem } from '@/api/myAccountSchemas'
@@ -7,6 +8,7 @@ import { useMixedStorageSelection, type StorageSelectedGroup } from './MixedStor
 import { StorageProductRow } from './StorageProductRow'
 
 export function StorageSelectionCheckout({ items }: { items: readonly AccountStorageItem[] }) {
+  useUiTranslation()
   const shared=useMixedStorageSelection()
   const [selected, setSelected] = useState<readonly string[]>(() => items.filter(item => item.status === 'stored' && (!item.paymentDueAt || new Date(`${item.paymentDueAt}+09:00`).getTime() > Date.now())).map(item => item.id))
   const [units, setUnits] = useState<Record<string, number>>({})
@@ -40,17 +42,17 @@ export function StorageSelectionCheckout({ items }: { items: readonly AccountSto
     navigate('/checkout', { state })
   }
   if (!available.length && shared) return null
-  return <section className="storage-selection">{!shared&&<div className="storage-catalog__toolbar"><label><input checked={allSelected} disabled={!available.length} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> 모두 선택</label></div>}{available.map(item => <StorageProductRow key={item.id}
-    productNo={item.productNo} title={item.productTitle ?? '상품명 미등록'} serverRoom={item.serverRoomName} imageUrl={item.imageUrl}
-    description={item.specSummary ?? '등록된 PC 사양 정보가 없습니다.'} instantAvailable={item.instantAvailable}
+  return <section className="storage-selection">{!shared&&<div className="storage-catalog__toolbar"><label><input checked={allSelected} disabled={!available.length} onChange={event=>selectAll(event.target.checked)} type="checkbox"/> {uiText("모두 선택")}</label></div>}{available.map(item => <StorageProductRow key={item.id}
+    productNo={item.productNo} title={item.productTitle ?? uiText('상품명 미등록')} serverRoom={item.serverRoomName} imageUrl={item.imageUrl}
+    description={item.specSummary ?? uiText('등록된 PC 사양 정보가 없습니다.')} instantAvailable={item.instantAvailable}
     selected={selected.includes(item.id)} disabled={shared?.locked} onSelect={checked => setSelected(previous => checked ? [...previous, item.id] : previous.filter(id => id !== item.id))}
-    fees={[{ label: '세팅비', amount: item.setupFee }, { label: item.pricingType === 'rental' ? '월 렌탈료' : '상품금액', amount: item.unitPrice }]}
-    quantity={item.pricingType==='rental'?<QuantityStepper label={`${item.productNo ?? '보관 상품'} 이용기간`} showLabel={false} value={duration(item)} minimum={item.minUnits} maximum={item.maxUnits} unit={item.billingUnit==='thirty_day'?'개월':item.billingUnit==='day'?'일':item.billingUnit==='hour'?'시간':''} disabled={shared?.locked} onChange={value=>setUnits(previous=>({...previous,[item.id]:value}))}/>: '1개'}
+    fees={[{ label: uiText('세팅비'), amount: item.setupFee }, { label: item.pricingType === 'rental' ? uiText('월 렌탈료') : uiText('상품금액'), amount: item.unitPrice }]}
+    quantity={item.pricingType==='rental'?<QuantityStepper label={uiText('{name} 이용기간', { name: item.productNo ?? uiText('보관 상품') })} showLabel={false} value={duration(item)} minimum={item.minUnits} maximum={item.maxUnits} unit={item.billingUnit==='thirty_day'?uiText('개월'):item.billingUnit==='day'?uiText('일'):item.billingUnit==='hour'?uiText('시간'):''} disabled={shared?.locked} onChange={value=>setUnits(previous=>({...previous,[item.id]:value}))}/>: uiText('1개')}
     amount={base(item)+(item.setupFee??0)} points={item.pricingType==='rental'?Math.floor(base(item)/100):0}
   />)}
-    {!shared&&<button type="button" disabled={!valid || !Number.isSafeInteger(total)} onClick={startCheckout}>선택 상품 주문서 작성</button>}
+    {!shared&&<button type="button" disabled={!valid || !Number.isSafeInteger(total)} onClick={startCheckout}>{uiText("선택 상품 주문서 작성")}</button>}
     {!available.length && (shared?.hasPending
-      ? <p className="mypage-empty storage-empty" role="status">예약 상품을 불러오는 중입니다.</p>
-      : !shared?.hasError ? <p className="mypage-empty storage-empty">결제할 예약 상품이 없습니다.</p> : null)}
+      ? <p className="mypage-empty storage-empty" role="status">{uiText("예약 상품을 불러오는 중입니다.")}</p>
+      : !shared?.hasError ? <p className="mypage-empty storage-empty">{uiText("결제할 예약 상품이 없습니다.")}</p> : null)}
   </section>
 }

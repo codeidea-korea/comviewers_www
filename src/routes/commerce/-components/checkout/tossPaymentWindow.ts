@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslation'
 import { z } from 'zod'
 import type { PreparedPayment } from '@/api/ordersPayments'
 
@@ -173,12 +174,12 @@ export function isPaymentWindowCancelled(error: unknown): boolean {
 }
 
 export function paymentWindowError(error: unknown): string {
-  if (error instanceof Error && /^결제|^현재 결제|^이미 결제|^주문서에서/.test(error.message)) return error.message
+  if (error instanceof Error && /^결제|^현재 결제|^이미 결제|^주문서에서/.test(error.message)) return translateUiText(error.message)
   const fallback = '결제창을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.'
-  if (!import.meta.env.DEV || !error || typeof error !== 'object') return fallback
+  if (!import.meta.env.DEV || !error || typeof error !== 'object') return translateUiText(fallback)
   const code = 'code' in error && typeof error.code === 'string' && /^[A-Z][A-Z0-9_]{1,79}$/.test(error.code) ? error.code : null
   const name = error instanceof Error && /^[A-Za-z]{1,60}Error$/.test(error.name) ? error.name : null
   // Never expose provider messages, keys, checkout payloads, or customer details.
   const diagnostic = code ?? name
-  return diagnostic ? `${fallback} (오류 코드: ${diagnostic})` : fallback
+  return diagnostic ? translateUiText('{message} (오류 코드: {code})', { message: translateUiText(fallback), code: diagnostic }) : translateUiText(fallback)
 }

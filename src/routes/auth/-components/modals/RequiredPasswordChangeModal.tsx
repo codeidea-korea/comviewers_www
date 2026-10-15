@@ -1,3 +1,4 @@
+import { useAuthTranslation } from '@/routes/auth/authTranslation'
 import { useRef, useState } from 'react'
 import { useAuthentication } from '@/app/session/AuthProvider'
 import { ApiClientError } from '@/api/httpClient'
@@ -11,6 +12,7 @@ type Props = {
 }
 
 export function RequiredPasswordChangeModal({ onClose, onComplete }: Props) {
+  const { authText } = useAuthTranslation()
   const auth = useAuthentication()
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -44,21 +46,21 @@ export function RequiredPasswordChangeModal({ onClose, onComplete }: Props) {
     } finally { locked.current = false; setBusy(false) }
   }
 
-  return <Modal className="modal--wide modal--password-reset modal--required-password-change" isOpen title="비밀번호 재설정"
-    closeLabel="취소" onClose={() => { if (!locked.current) { setPassword(''); setConfirmation(''); onClose() } }}
-    confirmLabel={busy ? '변경 중…' : '변경 후 로그인'} confirmDisabled={busy} onConfirm={() => { void submit() }}>
-    <p>관리자가 생성한 계정입니다. 최초 로그인 시 사용할 비밀번호를 새로 설정해 주세요.</p>
+  return <Modal className="modal--wide modal--password-reset modal--required-password-change" isOpen title={authText("비밀번호 재설정")}
+    closeLabel={authText("취소")} onClose={() => { if (!locked.current) { setPassword(''); setConfirmation(''); onClose() } }}
+    confirmLabel={busy ? authText("변경 중…") : authText("변경 후 로그인")} confirmDisabled={busy} onConfirm={() => { void submit() }}>
+    <p>{authText("관리자가 생성한 계정입니다. 최초 로그인 시 사용할 비밀번호를 새로 설정해 주세요.")}</p>
     <form className="popup-form popup-form--stacked" noValidate onSubmit={event => { event.preventDefault(); void submit() }}
       onKeyDown={event => { if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault() }}>
-      <PasswordField autoComplete="new-password" label="새 비밀번호" maxLength={16} required disabled={busy}
-        helperText="8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요."
-        error={touched ? passwordError : undefined} value={password}
+      <PasswordField autoComplete="new-password" label={authText("새 비밀번호")} maxLength={16} required disabled={busy}
+        helperText={authText("8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해 주세요.")}
+        error={authText(touched ? passwordError : undefined)} value={password}
         onChange={event => { setTouched(true); setPassword(event.target.value); setError('') }} />
-      <PasswordField autoComplete="new-password" label="비밀번호 확인" maxLength={16} required disabled={busy}
-        error={confirmationTouched ? confirmationError : undefined} value={confirmation}
+      <PasswordField autoComplete="new-password" label={authText("비밀번호 확인")} maxLength={16} required disabled={busy}
+        error={authText(confirmationTouched ? confirmationError : undefined)} value={confirmation}
         onChange={event => { setConfirmationTouched(true); setConfirmation(event.target.value); setError('') }} />
-      <button type="submit" hidden disabled={busy}>변경 후 로그인</button>
-      {error ? <p className="form-error" role="alert">{error}</p> : null}
+      <button type="submit" hidden disabled={busy}>{authText("변경 후 로그인")}</button>
+      {error ? <p className="form-error" role="alert">{authText(error)}</p> : null}
     </form>
   </Modal>
 }

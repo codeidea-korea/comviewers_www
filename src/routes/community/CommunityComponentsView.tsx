@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { ReactNode } from 'react'
 import { TranslatedText } from '@/i18n/translation'
 import { RelativeLink as Link } from '../../components/navigation/RelativeLinkView'
@@ -30,7 +31,8 @@ export function CommunityShell({ children, description, isolated = false, plain 
 }
 
 export function CommunityTabs({ active }: { active: 'posts' | 'reviews' }) {
-  return <nav aria-label="커뮤니티 구분" className="community-tabs">{communityTabs.map((tab) => <Link className={tab.id === active ? 'is-active' : ''} key={tab.id} to={tab.href}><TranslatedText id={tab.id === 'reviews' ? 'nav.rentalReviews' : 'nav.community'} /></Link>)}</nav>
+  const { uiText } = useUiTranslation()
+  return <nav aria-label={uiText("커뮤니티 구분")} className="community-tabs">{communityTabs.map((tab) => <Link className={tab.id === active ? 'is-active' : ''} key={tab.id} to={tab.href}><TranslatedText id={tab.id === 'reviews' ? 'nav.rentalReviews' : 'nav.community'} /></Link>)}</nav>
 }
 
 export function BoardToolbar({ count, onSearchChange, onSearchSubmit, onSortChange, onWrite, search = '', showWrite = false, sort = 'latest', sortOptions, writeLabel, writeTo }: { count: number; onSearchChange: (value: string) => void; onSearchSubmit?: (value: string) => void; onSortChange: (value: string) => void; onWrite?: () => void; search?: string; showWrite?: boolean; sort?: string; sortOptions?: readonly { label: string; value: string }[]; writeLabel?: string; writeTo?: string }) {
@@ -38,8 +40,9 @@ export function BoardToolbar({ count, onSearchChange, onSearchSubmit, onSortChan
 }
 
 export function Stars({ tone = 'gold', value }: { tone?: string; value: number }) {
+  const { t } = useUiTranslation()
   return (
-    <span aria-label={`별점 ${value}점`} className={`review-stars review-stars--${tone}`}>
+    <span aria-label={t('forms.rating', { value })} className={`review-stars review-stars--${tone}`}>
       {Array.from({ length: 5 }, (_, index) => {
         const filled = index < value
         return <span aria-hidden="true" className={`review-star review-star--${filled ? 'filled' : 'empty'}`} key={index}><img alt="" src={filled ? reviewStarFilled : reviewStarEmpty} /></span>

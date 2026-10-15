@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { UIEvent } from 'react'
 import type { NativeSelectProps, DropdownSelectProps, DropdownOptionListProps, GroupedMultiSelectProps, SelectGroup, SelectOption, DismissibleSelectProps, OptionKeyEvent } from './selectTypes'
 import { useEffect, useRef, useState } from 'react'
@@ -8,9 +9,10 @@ const normalizeOption = (option: string | SelectOption): SelectOption => (
 )
 
 export function NativeSelect({ children, options, placeholder, ...props }: NativeSelectProps) {
+  const { uiText } = useUiTranslation()
   return (
-    <select data-ui="native-select" {...props}>
-      {placeholder ? <option value={placeholder.value ?? ''}>{placeholder.label}</option> : null}
+    <select data-ui="native-select" {...props} aria-label={props['aria-label'] ? uiText(props['aria-label']) : undefined}>
+      {placeholder ? <option value={placeholder.value ?? ''}>{uiText(placeholder.label)}</option> : null}
       {options?.map((option) => {
         const normalized = normalizeOption(option)
         return <option disabled={normalized.disabled} key={normalized.value} value={normalized.value}>{normalized.label}</option>
@@ -21,9 +23,10 @@ export function NativeSelect({ children, options, placeholder, ...props }: Nativ
 }
 
 export function DropdownSelect({ className, controls, disabled, expanded, hasPopup = 'listbox', label, onToggle, panel, triggerIcon, value }: DropdownSelectProps) {
+  const { uiText } = useUiTranslation()
   return (
     <div className={className} data-ui="dropdown-select">
-      <span>{label}</span>
+      <span>{typeof label === 'string' ? uiText(label) : label}</span>
       <button aria-controls={controls} aria-expanded={expanded} aria-haspopup={hasPopup || undefined} disabled={disabled} onClick={onToggle} type="button">
         <strong>{value}</strong>
         {triggerIcon}
@@ -34,6 +37,7 @@ export function DropdownSelect({ className, controls, disabled, expanded, hasPop
 }
 
 export function DropdownOptionList({ className, id, label, onClose, onSelect, options, selected }: DropdownOptionListProps) {
+  const { uiText } = useUiTranslation()
   const listRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const selectedOption = listRef.current?.querySelector<HTMLElement>('[role="option"][aria-selected="true"]')
@@ -60,7 +64,7 @@ export function DropdownOptionList({ className, id, label, onClose, onSelect, op
   }
 
   return (
-    <div aria-label={`${label} 선택`} className={className} id={id} ref={listRef} role="listbox">
+    <div aria-label={uiText('{label} 선택', { label: uiText(label) })} className={className} id={id} ref={listRef} role="listbox">
       {options.map((option) => (
         <button aria-selected={selected === option} key={option} onClick={() => onSelect(option)} onKeyDown={handleKeyDown} role="option" type="button">{option}</button>
       ))}
@@ -69,6 +73,7 @@ export function DropdownOptionList({ className, id, label, onClose, onSelect, op
 }
 
 export function GroupedMultiSelect({ ariaLabel, chevronIcon, className, groups, id, onChange, selectedValues, thumbTravel = 0 }: GroupedMultiSelectProps) {
+  const { uiText } = useUiTranslation()
   const [expandedGroups, setExpandedGroups] = useState(() => new Set(groups.map((group) => group.label)))
   const [scrollProgress, setScrollProgress] = useState(0)
   const toggleGroup = (groupLabel: string) => setExpandedGroups((current) => {
@@ -99,7 +104,7 @@ export function GroupedMultiSelect({ ariaLabel, chevronIcon, className, groups, 
   }
 
   return (
-    <div aria-label={ariaLabel} className={className} data-ui="grouped-multi-select" id={id} role="group">
+    <div aria-label={uiText(ariaLabel)} className={className} data-ui="grouped-multi-select" id={id} role="group">
       <div className={`${className}__scroll`} onScroll={updateScrollProgress}>
         {groups.map((group, groupIndex) => {
           const values = group.options.map((option) => typeof option === 'string' ? option : option.value)
@@ -110,10 +115,10 @@ export function GroupedMultiSelect({ ariaLabel, chevronIcon, className, groups, 
             <section key={group.label}>
               <div className={`${className}__group`}>
                 <label>
-                  <Checkbox aria-label={`${group.label} 전체 선택`} checked={selectedCount === values.length} indeterminate={selectedCount > 0 && selectedCount < values.length} inputClassName={selectedCount > 0 && selectedCount < values.length ? `${className}__check--mixed` : undefined} onChange={(event) => toggleGroupSelection(group, event.target.checked)} />
+                  <Checkbox aria-label={uiText('{label} 전체 선택', { label: group.label })} checked={selectedCount === values.length} indeterminate={selectedCount > 0 && selectedCount < values.length} inputClassName={selectedCount > 0 && selectedCount < values.length ? `${className}__check--mixed` : undefined} onChange={(event) => toggleGroupSelection(group, event.target.checked)} />
                   <span>{group.label}</span>
                 </label>
-                <button aria-controls={optionsId} aria-expanded={expanded} aria-label={`${group.label} 그룹 ${expanded ? '접기' : '펼치기'}`} onClick={() => toggleGroup(group.label)} type="button"><img alt="" src={chevronIcon} /></button>
+                <button aria-controls={optionsId} aria-expanded={expanded} aria-label={uiText(expanded ? '{label} 그룹 접기' : '{label} 그룹 펼치기', { label: group.label })} onClick={() => toggleGroup(group.label)} type="button"><img alt="" src={chevronIcon} /></button>
               </div>
               {expanded ? <div className={`${className}__options`} id={optionsId}>
                 {group.options.map((option) => {

@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { ButtonHTMLAttributes, ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 import { Icon } from './IconControl'
 
@@ -37,6 +38,7 @@ export function Button<C extends ElementType = 'button'>({
   type = 'button',
   ...buttonProps
 }: ButtonProps<C>) {
+  const { uiText } = useUiTranslation()
   const Component: ElementType = as ?? 'button'
   const iconTone = disabled ? 'disabled' : ['primary', 'outline'].includes(variant) ? 'inverse' : 'default'
   const classes = mergeClasses(
@@ -57,7 +59,7 @@ export function Button<C extends ElementType = 'button'>({
       className={mergeClasses(classes, className)}
     >
       {leadingIcon ? <span className="button__icon button__icon--leading"><Icon name={leadingIcon} size={size === 'large' ? 20 : 18} tone={iconTone} /></span> : null}
-      {children}
+      {typeof children === 'string' ? uiText(children) : children}
       {trailingIcon ? <span className="button__icon button__icon--trailing"><Icon name={trailingIcon} size={size === 'large' ? 20 : 18} tone={iconTone} /></span> : null}
     </Component>
   )

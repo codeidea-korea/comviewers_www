@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useState } from 'react'
 import { TranslatedText, useTranslation } from '@/i18n/translation'
 import { useMutation, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
@@ -7,6 +8,7 @@ import { Modal } from '@/components/ui/ModalControl'
 import { Button } from '@/components/ui/ButtonControl'
 
 export function RefundWithdrawalAction({ order, itemId, rentalId }: { order: UseQueryResult<AccountOrderDetail, Error>; itemId: string; rentalId: string | null }) {
+  useUiTranslation()
   const { t } = useTranslation()
   const { myAccount } = useServices()
   const client = useQueryClient()
@@ -23,7 +25,7 @@ export function RefundWithdrawalAction({ order, itemId, rentalId }: { order: Use
     setOpen(false)
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['my-refund-requests'] }), client.invalidateQueries({ queryKey: ['my-rcpcs'] }), client.invalidateQueries({ queryKey: ['refund-application-candidates'] })])
   } })
-  return <><Button size="small" variant="secondary" disabled={!myAccount.inquiryApi || !canWithdraw} onClick={() => setOpen(true)}><TranslatedText id="refund.withdrawTermination" /></Button><Modal isOpen={open} title={t('refund.withdrawTermination')} closeLabel={t('common.cancel')} confirmLabel="철회하기" confirmDisabled={cancel.isPending} onClose={() => { if (!cancel.isPending) setOpen(false) }} onConfirm={() => cancel.mutate()}>
-    <p>해지 신청을 철회하시겠습니까?</p>{cancel.error && <p role="alert">{cancel.error.message}</p>}
+  return <><Button size="small" variant="secondary" disabled={!myAccount.inquiryApi || !canWithdraw} onClick={() => setOpen(true)}><TranslatedText id="refund.withdrawTermination" /></Button><Modal isOpen={open} title={t('refund.withdrawTermination')} closeLabel={t('common.cancel')} confirmLabel={uiText("철회하기")} confirmDisabled={cancel.isPending} onClose={() => { if (!cancel.isPending) setOpen(false) }} onConfirm={() => cancel.mutate()}>
+    <p>{uiText("해지 신청을 철회하시겠습니까?")}</p>{cancel.error && <p role="alert">{uiText(cancel.error.message)}</p>}
   </Modal></>
 }

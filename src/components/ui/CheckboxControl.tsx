@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef } from 'react'
 import defaultCheckIcon from '../../assets/figma/auth-checkbox-check.svg'
 import type { CSSProperties, InputHTMLAttributes } from 'react'
@@ -23,6 +24,7 @@ export function Checkbox({
   visualClassName = 'checkbox__visual',
   ...inputProps
 }: CheckboxProps) {
+  const { uiText } = useUiTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function Checkbox({
 
   const input = (
     <input
-      {...inputProps}
+      {...inputProps} aria-label={inputProps['aria-label'] ? uiText(inputProps['aria-label']) : undefined}
       checked={checked}
       className={`checkbox__input checkbox__input--${variant}${inputClassName ? ` ${inputClassName}` : ''}`}
       ref={inputRef}
@@ -48,7 +50,7 @@ export function Checkbox({
     <label className={className}>
       {input}
       {visualClassName ? <span aria-hidden="true" className={visualClassName}><img alt="" src={checkIcon} /></span> : null}
-      <span>{children}</span>
+      <span>{typeof children === 'string' ? uiText(children) : children}</span>
     </label>
   )
 }

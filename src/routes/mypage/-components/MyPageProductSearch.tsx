@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -10,6 +11,7 @@ import { productNoSearchSchema } from '@/api/productNo'
 import { managerScopedPath } from './managerPortalPath'
 
 export function MyPageProductSearch() {
+  const { uiText } = useUiTranslation()
   const { myAccount } = useServices()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -39,12 +41,12 @@ export function MyPageProductSearch() {
     const sequence = ++submitSequence.current
     if (!api || !productNo) {
       setOpen(false)
-      setNotice('일치하는 RCPC가 없습니다.')
+      setNotice("일치하는 RCPC가 없습니다.")
       return
     }
     if (!productNoSearchSchema.safeParse(productNo).success) {
       setOpen(false)
-      setNotice('품번은 영문과 숫자로 입력해 주세요.')
+      setNotice("품번은 영문과 숫자로 입력해 주세요.")
       return
     }
     setNotice('')
@@ -52,21 +54,21 @@ export function MyPageProductSearch() {
       const exact = await resolveExactProductNo(productNo, (query, page, size) => api.list({ productNo: query, page, size }))
       if (sequence !== submitSequence.current) return
       if (exact) select(exact)
-      else { setOpen(false); setNotice('일치하는 RCPC가 없습니다.') }
+      else { setOpen(false); setNotice("일치하는 RCPC가 없습니다.") }
     } catch {
-      if (sequence === submitSequence.current) { setOpen(false); setNotice('품번을 검색하지 못했습니다.') }
+      if (sequence === submitSequence.current) { setOpen(false); setNotice("품번을 검색하지 못했습니다.") }
     }
   }
   return <div className="mypage-sidebar__search-area" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }} onFocus={() => setOpen(true)}>
-    <SearchField className="mypage-sidebar__search" controlClassName="mypage-sidebar__search-row" icon={searchIcon} label="품번 검색" labelClassName="" maxLength={16} placeholder=" " value={value}
+    <SearchField className="mypage-sidebar__search" controlClassName="mypage-sidebar__search-row" icon={searchIcon} label={uiText("품번 검색")} labelClassName="" maxLength={16} placeholder=" " value={value}
       autoCapitalize="characters" autoCorrect="off" spellCheck={false}
       onCompositionStart={() => { submitSequence.current += 1; setComposing(true) }}
       onCompositionEnd={event => { setValue(event.currentTarget.value); setComposing(false) }}
       onChange={event => { submitSequence.current += 1; setValue(event.target.value); setNotice(''); setOpen(true) }}
       onSubmit={input => { void submit(input) }}/>
-    {value ? <button aria-label="품번 검색어 지우기" className="mypage-sidebar__search-clear" onClick={() => { submitSequence.current += 1; setValue(''); setKeyword(''); setNotice(''); setOpen(false) }} type="button"><img alt="" src={closeIcon}/></button> : null}
-    {open && !composing && keyword && keyword === value.trim().toUpperCase() && myAccount.rcpcApi && <div className="mypage-sidebar__recent" aria-label="품번 검색 결과">
-      {result.isPending ? <p role="status">검색 중…</p> : result.isError ? <p role="alert">품번을 검색하지 못했습니다.</p> : result.data?.items.length ? result.data.items.map(item => <button key={item.rentalId} type="button" onClick={() => select(item.productNo)}>{item.productNo}</button>) : <p>일치하는 RCPC가 없습니다.</p>}
-    </div>}{notice && <p className="mypage-sidebar__search-notice" role="status">{notice}</p>}
+    {value ? <button aria-label={uiText("품번 검색어 지우기")} className="mypage-sidebar__search-clear" onClick={() => { submitSequence.current += 1; setValue(''); setKeyword(''); setNotice(''); setOpen(false) }} type="button"><img alt="" src={closeIcon}/></button> : null}
+    {open && !composing && keyword && keyword === value.trim().toUpperCase() && myAccount.rcpcApi && <div className="mypage-sidebar__recent" aria-label={uiText("품번 검색 결과")}>
+      {result.isPending ? <p role="status">{uiText("검색 중…")}</p> : result.isError ? <p role="alert">{uiText("품번을 검색하지 못했습니다.")}</p> : result.data?.items.length ? result.data.items.map(item => <button key={item.rentalId} type="button" onClick={() => select(item.productNo)}>{item.productNo}</button>) : <p>{uiText("일치하는 RCPC가 없습니다.")}</p>}
+    </div>}{notice && <p className="mypage-sidebar__search-notice" role="status">{uiText(notice)}</p>}
   </div>
 }

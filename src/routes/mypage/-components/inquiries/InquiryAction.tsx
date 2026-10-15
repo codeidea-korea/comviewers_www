@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router'
@@ -24,6 +25,7 @@ export function InquiryAction({ initialIds = [], initialTargets = [], initialPro
   children?: ReactNode
   onCreated?: () => void
 }) {
+  const { uiText } = useUiTranslation()
   const { myAccount } = useServices()
   const client = useQueryClient()
   const navigate = useNavigate()
@@ -34,13 +36,13 @@ export function InquiryAction({ initialIds = [], initialTargets = [], initialPro
   const check = useMutation({
     mutationFn: async (ids: readonly number[]) => {
       const api = myAccount.rcpcApi
-      if (!api) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
+      if (!api) throw new Error("문의 대상 RCPC를 확인할 수 없습니다.")
       const items = await client.fetchQuery({
         queryKey: ['my-rcpcs', api.organizationId, 'authorized-options'],
         queryFn: ({ signal }) => loadAuthorizedRcpcs(api, signal),
       })
       const targets = [...new Set(ids)].map(id => items.find(item => item.pcAssetId === id))
-      if (targets.some(target => !target)) throw new Error('문의 대상 RCPC를 확인할 수 없습니다.')
+      if (targets.some(target => !target)) throw new Error("문의 대상 RCPC를 확인할 수 없습니다.")
       if (!hasSameInquiryServerRoom(targets.filter(target => target !== undefined))) throw new Error(bulkInquiryServerRoomNotice)
     },
   })
@@ -69,12 +71,12 @@ export function InquiryAction({ initialIds = [], initialTargets = [], initialPro
     setOpen(true)
   }
   return <>
-    <Modal isOpen={Boolean(notice)} title={notice === bulkInquiryServerRoomNotice ? '일괄 문의 불가' : '문의 접수 안내'} showClose={false} onClose={() => setNotice('')} onConfirm={() => setNotice('')}>
-      <p>{notice}</p>
+    <Modal isOpen={Boolean(notice)} title={notice === bulkInquiryServerRoomNotice ? uiText("일괄 문의 불가") : uiText("문의 접수 안내")} showClose={false} onClose={() => setNotice('')} onConfirm={() => setNotice('')}>
+      <p>{uiText(notice)}</p>
     </Modal>
     {appearance === 'text'
-      ? <button aria-busy={check.isPending} className={`inquiry-action-link${className ? ` ${className}` : ''}`} disabled={unavailable} onClick={openInquiry} type="button">{check.isPending ? '확인 중…' : children}</button>
-      : <Button aria-busy={check.isPending} className={className} disabled={unavailable} onClick={openInquiry} size="small" variant="secondary">{check.isPending ? '확인 중…' : children}</Button>}
+      ? <button aria-busy={check.isPending} className={`inquiry-action-link${className ? ` ${className}` : ''}`} disabled={unavailable} onClick={openInquiry} type="button">{check.isPending ? uiText("확인 중…") : typeof children === "string" ? uiText(children) : children}</button>
+      : <Button aria-busy={check.isPending} className={className} disabled={unavailable} onClick={openInquiry} size="small" variant="secondary">{check.isPending ? uiText("확인 중…") : typeof children === "string" ? uiText(children) : children}</Button>}
     {open && myAccount.inquiryApi && (requestId !== undefined
       ? <InquiryConversationDialog api={myAccount.inquiryApi} id={requestId} onClose={() => setOpen(false)} />
       : myAccount.rcpcApi ? <InquiryDialog api={myAccount.inquiryApi} rcpcApi={myAccount.rcpcApi} initialIds={openedIds} initialProductNo={initialProductNo} fixedTarget={fixedTarget} onClose={() => setOpen(false)} onCreated={onCreated} /> : null)}

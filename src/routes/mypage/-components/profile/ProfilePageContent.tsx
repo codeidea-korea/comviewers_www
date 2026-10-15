@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router'
@@ -16,6 +17,7 @@ import { SocialLoginButtons } from '@/routes/auth/AuthComponentsView'
 type ProfileMutations = ReturnType<typeof createCustomerProfileMutations>
 
 export function ProfilePageContent({ api, mutations, withdrawal }: { api: Pick<MyAccountReadServices, 'profile'>; mutations?: ProfileMutations; withdrawal?: CustomerWithdrawalApi }) {
+  useUiTranslation()
   const [confirmedPassword, setConfirmedPassword] = useState<string | null>(null)
   const result = useAccountRead(['profile'], (signal) => api.profile(signal))
   const profile = result.data
@@ -27,6 +29,7 @@ export function ProfilePageContent({ api, mutations, withdrawal }: { api: Pick<M
   return <ConfirmedProfilePage profile={profile} mutations={mutations} withdrawal={withdrawal} currentPassword={confirmedPassword ?? ''}/>
 }
 function SocialProfileGate({ mutations, profile, withdrawal }: { mutations: ProfileMutations; profile: AccountProfileRead; withdrawal?: CustomerWithdrawalApi }) {
+  useUiTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const auth = useAuthentication()
@@ -36,22 +39,24 @@ function SocialProfileGate({ mutations, profile, withdrawal }: { mutations: Prof
   const linked = useQuery({ queryKey: ['my-account', 'social-providers', profile.username], queryFn: () => auth.linkedSocialProviders(), enabled: offerReauth })
   const start = useMutation({ mutationFn: (provider: SocialAuthProvider) => mutations.startSocialReauth(provider), onSuccess: ({ authorizationUrl }) => window.location.assign(authorizationUrl) })
   if (returnedFromSocialAuth && status.data?.confirmed && !status.isFetching) return <ConfirmedProfilePage profile={profile} mutations={mutations} withdrawal={withdrawal} currentPassword=""/>
-  return <Modal className="modal--social-reauth" isOpen title="간편 로그인으로 본인 확인" closeLabel="닫기" onClose={() => void navigate('/mypage')}><div className="popup-form"><p>회원님의 정보를 안전하게 보호하기 위해 가입한 간편 로그인 수단으로 다시 인증해 주세요.</p>
-    {(returnedFromSocialAuth && (status.isPending || status.isFetching)) || linked.isPending ? <p role="status">로그인 수단을 확인하고 있습니다.</p> : null}
-    {status.isError || linked.isError ? <p role="alert">본인 확인 정보를 불러오지 못했습니다. 다시 시도해 주세요.</p> : null}
-    {offerReauth && linked.data?.length === 0 ? <p role="alert">연결된 간편 로그인 수단이 없습니다.</p> : null}
-    {offerReauth && linked.data?.length ? <SocialLoginButtons allowedProviders={linked.data} onSelect={provider => { if (!start.isPending) start.mutate(provider) }} title="가입한 계정으로 인증"/> : null}
-    {start.isError ? <p role="alert">간편 로그인 인증을 시작하지 못했습니다. 다시 시도해 주세요.</p> : null}
+  return <Modal className="modal--social-reauth" isOpen title={uiText("간편 로그인으로 본인 확인")} closeLabel={uiText("닫기")} onClose={() => void navigate('/mypage')}><div className="popup-form"><p>{uiText("회원님의 정보를 안전하게 보호하기 위해 가입한 간편 로그인 수단으로 다시 인증해 주세요.")}</p>
+    {(returnedFromSocialAuth && (status.isPending || status.isFetching)) || linked.isPending ? <p role="status">{uiText("로그인 수단을 확인하고 있습니다.")}</p> : null}
+    {status.isError || linked.isError ? <p role="alert">{uiText("본인 확인 정보를 불러오지 못했습니다. 다시 시도해 주세요.")}</p> : null}
+    {offerReauth && linked.data?.length === 0 ? <p role="alert">{uiText("연결된 간편 로그인 수단이 없습니다.")}</p> : null}
+    {offerReauth && linked.data?.length ? <SocialLoginButtons allowedProviders={linked.data} onSelect={provider => { if (!start.isPending) start.mutate(provider) }} title={uiText("가입한 계정으로 인증")}/> : null}
+    {start.isError ? <p role="alert">{uiText("간편 로그인 인증을 시작하지 못했습니다. 다시 시도해 주세요.")}</p> : null}
   </div></Modal>
 }
 function ProfilePasswordGate({ mutations, onConfirmed }: { mutations: ProfileMutations; onConfirmed: (password: string) => void }) {
+  useUiTranslation()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const confirm = useMutation({ mutationFn: mutations.confirmPassword, onSuccess: () => onConfirmed(password) })
-  return <Modal className={`modal--password-confirm${confirm.isError ? ' is-filled' : ''}`} isOpen title="비밀번호 확인" closeLabel="닫기" confirmLabel={confirm.isPending ? '확인 중…' : '확인'} confirmDisabled={!password || confirm.isPending} onClose={() => { if (!confirm.isPending) void navigate('/mypage') }} onConfirm={() => { if (password && !confirm.isPending) confirm.mutate(password) }}><div className="popup-form"><p>회원님의 정보를 안전하게 보호하기 위해 비밀번호를 한번 더 확인합니다.</p><TextField autoComplete="current-password" error={confirm.isError ? '비밀번호가 일치하지 않습니다.' : ''} label="비밀번호 확인" maxLength={100} onChange={event => { setPassword(event.target.value); confirm.reset() }} type="password" value={password}/></div></Modal>
+  return <Modal className={`modal--password-confirm${confirm.isError ? ' is-filled' : ''}`} isOpen title={uiText("비밀번호 확인")} closeLabel={uiText("닫기")} confirmLabel={confirm.isPending ? uiText('확인 중…') : uiText('확인')} confirmDisabled={!password || confirm.isPending} onClose={() => { if (!confirm.isPending) void navigate('/mypage') }} onConfirm={() => { if (password && !confirm.isPending) confirm.mutate(password) }}><div className="popup-form"><p>{uiText("회원님의 정보를 안전하게 보호하기 위해 비밀번호를 한번 더 확인합니다.")}</p><TextField autoComplete="current-password" error={confirm.isError ? uiText('비밀번호가 일치하지 않습니다.') : ''} label={uiText("비밀번호 확인")} maxLength={100} onChange={event => { setPassword(event.target.value); confirm.reset() }} type="password" value={password}/></div></Modal>
 }
 function ConfirmedProfilePage({ profile, mutations, withdrawal, currentPassword }: { profile: AccountProfileRead; mutations?: ProfileMutations; withdrawal?: CustomerWithdrawalApi; currentPassword: string }) {
+  useUiTranslation()
   return <section className="profile-settings-page__content">{mutations
     ? <ProfileEditor key={profile.updatedAt ?? profile.username} mutations={mutations} profile={profile} withdrawal={withdrawal} currentPassword={currentPassword} />
-    : <AccountInfo rows={[["아이디", profile.username], ["이름", profile.name], ["닉네임", profile.nickname], ["닉네임 변경 가능일", accountDate(profile.nicknameChangeAvailableAt)], ["이메일", profile.email], ["연락처", profile.phone], ["메신저", profile.messengerType], ["메신저 ID", profile.messengerId], ["마케팅 이메일", profile.marketingEmailAgreed ? '동의' : '미동의'], ["동의 상태 변경일", accountDate(profile.marketingEmailConsentChangedAt)]]}/>}</section>
+    : <AccountInfo rows={[[uiText("아이디"), profile.username], [uiText("이름"), profile.name], [uiText("닉네임"), profile.nickname], [uiText("닉네임 변경 가능일"), accountDate(profile.nicknameChangeAvailableAt)], [uiText("이메일"), profile.email], [uiText("연락처"), profile.phone], [uiText("메신저"), profile.messengerType], [uiText("메신저 ID"), profile.messengerId], [uiText("마케팅 이메일"), profile.marketingEmailAgreed ? uiText('동의') : uiText('미동의')], [uiText("동의 상태 변경일"), accountDate(profile.marketingEmailConsentChangedAt)]]}/>}</section>
 }

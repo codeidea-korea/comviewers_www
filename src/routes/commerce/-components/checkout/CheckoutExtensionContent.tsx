@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -30,6 +31,7 @@ type Attempt = {
 }
 
 export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutState }) {
+  const { uiText } = useUiTranslation()
   const { checkout, myAccount } = useServices()
   const api = myAccount.rcpcApi?.extensionCheckout
   const navigate = useNavigate()
@@ -208,22 +210,22 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
   )
   const canRevise = Boolean(attempt && !attempt.created && (submit.error?.name === 'ZodError' || createRejected))
   return <AppShell className={`commerce-shell checkout-page checkout-page--service checkout-page--${current ? 'filled' : 'empty'}${showReceipt ? ' checkout-page--with-receipt' : ''}`} footerVariant="compact">
-    <div className="content-container commerce-page"><PageTitle>주문서 작성</PageTitle>
-      {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel="선택 상품의 예상 금액을 불러오는 중입니다." errorMessage={quote.error?.message} onRetry={retryQuotes}>
-        <p>주문할 상품을 다시 선택해 주세요.</p><Button as={RelativeLink} size="large" to={fromStorage ? '/mypage/storage' : '/mypage/rcpc'}>목록으로 이동</Button>
+    <div className="content-container commerce-page"><PageTitle>{uiText("주문서 작성")}</PageTitle>
+      {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel={uiText("선택 상품의 예상 금액을 불러오는 중입니다.")} errorMessage={uiText(quote.error?.message)} onRetry={retryQuotes}>
+        <p>{uiText("주문할 상품을 다시 선택해 주세요.")}</p><Button as={RelativeLink} size="large" to={fromStorage ? '/mypage/storage' : '/mypage/rcpc'}>{uiText("목록으로 이동")}</Button>
       </CommerceCartState> : current ? <div className="checkout-layout" aria-busy={!attempt && quote.isFetching}><div className="checkout-main">
         {hasPurchase && currentSummary && <CheckoutProducts items={currentSummary.items} benefits={shownBenefits} refreshing={!attempt && !quoteReady} />}
         {current.items.length > 0 && <CheckoutExtensionProducts quote={current} mixed={hasPurchase} />}
         {!attempt && (!quote.isFetching && current.eligible && !benefitsMatch) && <div className="checkout-product-error">
-          <p role="alert">선택한 상품의 상태 또는 금액이 변경되었습니다. 다시 확인해 주세요.</p>
-          <Button size="small" variant="secondary" disabled={quote.isFetching} onClick={retryQuotes}>상품 상태 다시 확인</Button>
+          <p role="alert">{uiText("선택한 상품의 상태 또는 금액이 변경되었습니다. 다시 확인해 주세요.")}</p>
+          <Button size="small" variant="secondary" disabled={quote.isFetching} onClick={retryQuotes}>{uiText("상품 상태 다시 확인")}</Button>
         </div>}
         <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={Boolean(attempt)} pending={!attempt && quote.isFetching}
           error={attempt ? null : quote.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={resetDiscounts} onReset={resetDiscounts} />
-        {profile.isError && <p role="alert">회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.</p>}
+        {profile.isError && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
         <fieldset className="checkout-input-fields" disabled={Boolean(attempt)}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
         {showReceipt && <fieldset className="checkout-input-fields" disabled={Boolean(attempt) && (!paymentRetryReady || !!attempt?.receiptLocked)}><CheckoutReceipt form={form} /></fieldset>}
-        {canRevise && <Button variant="secondary" onClick={() => { attemptRef.current = null; setAttempt(null); submit.reset(); retryQuotes() }}>입력 수정 후 견적 다시 확인</Button>}
+        {canRevise && <Button variant="secondary" onClick={() => { attemptRef.current = null; setAttempt(null); submit.reset(); retryQuotes() }}>{uiText("입력 수정 후 견적 다시 확인")}</Button>}
       </div><CheckoutSummary variant={hasPurchase ? 'cart' : 'extension'} extensionAmount={hasPurchase && current.items.length ? current.extensionAmount : undefined} quote={currentSummary!} benefits={shownBenefits} form={form} directEasyPayMethods={methods.data}
         paymentAvailabilityError={availabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setAvailabilityError(null); setPaymentNotice(null) }}
         refreshing={!attempt && !quoteReady} locked={Boolean(attempt) && !paymentRetryReady} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}

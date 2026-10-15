@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useState } from 'react'
 import { useAuthentication, type SocialAuthProvider } from '@/app/session/AuthProvider'
 import { Navigate, useLocation } from 'react-router'
@@ -10,6 +11,7 @@ const methods: readonly { provider: SocialAuthProvider; label: string }[] = [
 ]
 
 export function LoginMethodsPage() {
+  useUiTranslation()
   const { search } = useLocation()
   const params = new URLSearchParams(search)
   params.set('section', 'login-methods')
@@ -17,6 +19,7 @@ export function LoginMethodsPage() {
 }
 
 export function LoginMethodsSection() {
+  useUiTranslation()
   const auth = useAuthentication()
   const [linked, setLinked] = useState<SocialAuthProvider[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,15 +38,15 @@ export function LoginMethodsSection() {
 
   return <section className="login-methods-panel">
       <header className="login-methods-panel__header">
-        <h2>로그인 및 보안</h2>
-        <p>가입한 간편 로그인 수단을 확인할 수 있습니다. 기존 계정에 다른 로그인 수단을 추가하는 기능은 지원하지 않습니다.</p>
+        <h2>{uiText("로그인 및 보안")}</h2>
+        <p>{uiText("가입한 간편 로그인 수단을 확인할 수 있습니다. 기존 계정에 다른 로그인 수단을 추가하는 기능은 지원하지 않습니다.")}</p>
       </header>
-      {loading ? <p role="status">로그인 수단을 확인하고 있습니다.</p> : <ul className="login-methods-panel__list">
+      {loading ? <p role="status">{uiText("로그인 수단을 확인하고 있습니다.")}</p> : <ul className="login-methods-panel__list">
         {methods.map(({ provider, label }) => <li key={provider}>
-          <span><strong>{label}</strong><small>간편 로그인</small></span>
-          <span className="login-methods-panel__status">{linked.includes(provider) ? '사용 중' : '미사용'}</span>
+          <span><strong>{uiText(label)}</strong><small>{uiText("간편 로그인")}</small></span>
+          <span className="login-methods-panel__status">{linked.includes(provider) ? uiText('사용 중') : uiText('미사용')}</span>
         </li>)}
       </ul>}
-      {message ? <p className="login-methods-panel__error" role="alert">{message}</p> : null}
+      {message ? <p className="login-methods-panel__error" role="alert">{uiText(message)}</p> : null}
     </section>
 }

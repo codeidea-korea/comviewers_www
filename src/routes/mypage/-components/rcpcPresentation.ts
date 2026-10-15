@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslation'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import type { MyRcpcItem } from '@/api/myRcpc'
 
@@ -17,18 +18,18 @@ export function rentalDaysRemaining(item: RentalPeriodItem, now = new Date()): n
 }
 
 export function rentalPeriodText(item: RentalPeriodItem): string {
-  if (endedRental(item.rentalStatus)) return '이용 종료'
-  if (rentalStartsLater(item)) return '이용 시작 전'
+  if (endedRental(item.rentalStatus)) return translateUiText('이용 종료')
+  if (rentalStartsLater(item)) return translateUiText('이용 시작 전')
   const endsAt = item.serviceEndsAt ? Date.parse(item.serviceEndsAt) : NaN
   const now = Date.now()
   if (Number.isFinite(endsAt) && now >= endsAt) {
     const elapsedDays = Math.floor((now - endsAt) / 86_400_000)
-    return elapsedDays === 0 ? '만료됨' : `${elapsedDays}일 지남`
+    return elapsedDays === 0 ? translateUiText('만료됨') : translateUiText('{v0}일 지남', { v0: elapsedDays })
   }
   const days = rentalDaysRemaining(item)
   if (days === null) return '-'
-  if (days < 0) return `${Math.abs(days)}일 지남`
-  return days === 0 ? '오늘 만료' : `${days}일 남음`
+  if (days < 0) return translateUiText('{v0}일 지남', { v0: Math.abs(days) })
+  return days === 0 ? translateUiText('오늘 만료') : translateUiText('{v0}일 남음', { v0: days })
 }
 export function rentalOperationalStatus(item: RentalPeriodItem) {
   if (item.rentalStatus !== 'active') return null
@@ -62,7 +63,7 @@ export function extensionTarget(item: MyRcpcItem) {
     currentEnd: item.serviceEndExclusiveDate ?? undefined,
     location: item.serverRoomName ?? undefined,
     os: [spec?.osName, spec?.osVersion].filter(Boolean).join(' '),
-    cpu: [spec?.cpuModel, spec?.cpuCores == null ? null : `${spec.cpuCores}코어`, spec?.cpuThreads == null ? null : `${spec.cpuThreads}스레드`].filter(Boolean).join(' · '),
+    cpu: [spec?.cpuModel, spec?.cpuCores == null ? null : translateUiText('{v0}코어', { v0: spec.cpuCores }), spec?.cpuThreads == null ? null : translateUiText('{v0}스레드', { v0: spec.cpuThreads })].filter(Boolean).join(' · '),
     ram: [spec?.ramGb == null ? null : `${spec.ramGb}GB`, spec?.ramType].filter(Boolean).join(' '),
     disk: spec ? [`SSD ${spec.ssdGb ?? '-'}GB`, `HDD ${spec.hddGb ?? '-'}GB`].join(' / ') : '',
     gpu: [spec?.gpuModel, spec?.gpuVramGb == null ? null : `${spec.gpuVramGb}GB`].filter(Boolean).join(' · '),

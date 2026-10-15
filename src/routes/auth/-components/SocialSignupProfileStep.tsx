@@ -1,3 +1,4 @@
+import { useAuthTranslation } from '@/routes/auth/authTranslation'
 import { useRef, useState, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
@@ -34,6 +35,7 @@ const formSchema = z.object({
 })
 
 export function SocialSignupProfileStep() {
+  const { authText } = useAuthTranslation()
   const auth = useAuthentication()
   const sessionStore = useSessionStore()
   const navigate = useNavigate()
@@ -124,20 +126,20 @@ export function SocialSignupProfileStep() {
   }
 
   return <AuthPage variant="profile"><AuthPanel>
-    <AuthHeading current={2} title="간편 회원가입" total={2} />
-    {context.isPending ? <LoadingState className="route-loading--compact" label="소셜 계정 정보를 확인하고 있습니다." /> : null}
-    {context.isError ? <p role="alert">소셜 가입 정보가 만료되었거나 유효하지 않습니다. <Link to="/login">다시 로그인해 주세요.</Link></p> : null}
-    {signedUp ? <section><p>회원가입이 완료되었습니다.</p>{error && <p role="alert">{error}</p>}<Button disabled={busy} onClick={() => { void retryImage() }} type="button">이미지 저장 다시 시도</Button><Link to="/mypage">마이페이지로 이동</Link></section> : context.data ? <form className="auth-form profile-form" onSubmit={submit}>
-      <h2>회원정보 입력</h2>
-      <ProfileImagePicker alt="선택한 프로필 이미지" disabled={busy} value={imagePreview} variant="auth"
+    <AuthHeading current={2} title={authText("간편 회원가입")} total={2} />
+    {context.isPending ? <LoadingState className="route-loading--compact" label={authText("소셜 계정 정보를 확인하고 있습니다.")} /> : null}
+    {context.isError ? <p role="alert">{authText("소셜 가입 정보가 만료되었거나 유효하지 않습니다.")}<Link to="/login">{authText("다시 로그인해 주세요.")}</Link></p> : null}
+    {signedUp ? <section><p>{authText("회원가입이 완료되었습니다.")}</p>{error && <p role="alert">{authText(error)}</p>}<Button disabled={busy} onClick={() => { void retryImage() }} type="button">{authText("이미지 저장 다시 시도")}</Button><Link to="/mypage">{authText("마이페이지로 이동")}</Link></section> : context.data ? <form className="auth-form profile-form" onSubmit={submit}>
+      <h2>{authText("회원정보 입력")}</h2>
+      <ProfileImagePicker alt={authText("선택한 프로필 이미지")} disabled={busy} value={imagePreview} variant="auth"
         onSelect={(source, file) => { setImagePreview(source); setImageFile(file); setError('') }}/>
-      <TextField label="이름" name="name" maxLength={18} onChange={(event) => setName(event.target.value)} placeholder="이름 입력" required value={name} />
-      <TextField error={nicknameError} label="닉네임" name="nickname" maxLength={18} onChange={(event) => { nicknameRevision.current += 1; setNickname(event.target.value); setNicknameError('') }} required value={nickname} />
-      <fieldset className="email-field"><legend><span className="required-mark">*</span>E-mail</legend><div className="email-field__row"><input aria-label="이메일 아이디" readOnly value={context.data.email.split('@')[0] ?? ''} /><span>@</span><input aria-label="이메일 도메인" readOnly value={context.data.email.split('@')[1] ?? ''} /><NativeSelect aria-label="이메일 도메인 선택" disabled value={context.data.email.split('@')[1] ?? ''}><option>{context.data.email.split('@')[1] ?? ''}</option></NativeSelect></div></fieldset>
-      <fieldset className="split-field"><legend>핸드폰</legend><div><NativeSelect aria-label="휴대전화 앞자리" name="phone-prefix" onChange={event => setPhone1(event.target.value)} value={phone1}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label="휴대전화 중간자리" inputMode="numeric" maxLength={4} name="phone-middle" onChange={event => setPhone2(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone2} /><input aria-label="휴대전화 끝자리" inputMode="numeric" maxLength={4} name="phone-last" onChange={event => setPhone3(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone3} /></div></fieldset>
-      <fieldset className="split-field split-field--messenger"><legend>메신저 ID</legend><div><NativeSelect aria-label="메신저 선택" name="messengerType" value={messengerType} onChange={event => setMessengerType(event.target.value)}><option value="">메신저 선택</option>{messengerOptions.map(option => <option key={option} value={option}>{messengerOptionLabel(option)}</option>)}</NativeSelect><input aria-label="메신저 아이디" maxLength={100} name="messengerId" onChange={event => setMessengerId(event.target.value)} value={messengerId}/></div></fieldset>
-      {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
-      <Button disabled={busy} size="large" type="submit">{busy ? '처리 중' : '회원가입'}</Button>
+      <TextField label={authText("이름")} name="name" maxLength={18} onChange={(event) => setName(event.target.value)} placeholder={authText("이름 입력")} required value={name} />
+      <TextField error={authText(nicknameError)} label={authText("닉네임")} name="nickname" maxLength={18} onChange={(event) => { nicknameRevision.current += 1; setNickname(event.target.value); setNicknameError('') }} required value={nickname} />
+      <fieldset className="email-field"><legend><span className="required-mark">*</span>E-mail</legend><div className="email-field__row"><input aria-label={authText("이메일 아이디")} readOnly value={context.data.email.split('@')[0] ?? ''} /><span>@</span><input aria-label={authText("이메일 도메인")} readOnly value={context.data.email.split('@')[1] ?? ''} /><NativeSelect aria-label={authText("이메일 도메인 선택")} disabled value={context.data.email.split('@')[1] ?? ''}><option>{context.data.email.split('@')[1] ?? ''}</option></NativeSelect></div></fieldset>
+      <fieldset className="split-field"><legend>{authText("핸드폰")}</legend><div><NativeSelect aria-label={authText("휴대전화 앞자리")} name="phone-prefix" onChange={event => setPhone1(event.target.value)} value={phone1}>{phonePrefixOptions.map(option => <option key={option}>{option}</option>)}</NativeSelect><input aria-label={authText("휴대전화 중간자리")} inputMode="numeric" maxLength={4} name="phone-middle" onChange={event => setPhone2(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone2} /><input aria-label={authText("휴대전화 끝자리")} inputMode="numeric" maxLength={4} name="phone-last" onChange={event => setPhone3(event.target.value.replace(/\D/g, '').slice(0, 4))} value={phone3} /></div></fieldset>
+      <fieldset className="split-field split-field--messenger"><legend>{authText("메신저 ID")}</legend><div><NativeSelect aria-label={authText("메신저 선택")} name="messengerType" value={messengerType} onChange={event => setMessengerType(event.target.value)}><option value="">{authText("메신저 선택")}</option>{messengerOptions.map(option => <option key={option} value={option}>{authText(messengerOptionLabel(option))}</option>)}</NativeSelect><input aria-label={authText("메신저 아이디")} maxLength={100} name="messengerId" onChange={event => setMessengerId(event.target.value)} value={messengerId}/></div></fieldset>
+      {error ? <p aria-live="polite" className="form-error">{authText(error)}</p> : null}
+      <Button disabled={busy} size="large" type="submit">{busy ? authText("처리 중") : authText("회원가입")}</Button>
     </form> : null}
   </AuthPanel></AuthPage>
 }

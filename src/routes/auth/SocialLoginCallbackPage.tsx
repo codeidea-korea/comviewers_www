@@ -1,3 +1,4 @@
+import { useAuthTranslation } from '@/routes/auth/authTranslation'
 import { Navigate, useNavigate } from 'react-router'
 import { useEffect, useRef } from 'react'
 import { useAuthentication } from '@/app/session/AuthProvider'
@@ -8,6 +9,7 @@ import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { clearSocialLink } from './socialLinkIntent'
 
 function SocialProfileReauthReturn() {
+  const { authText } = useAuthTranslation()
   const navigate = useNavigate()
   const redirected = useRef(false)
   useEffect(() => {
@@ -15,10 +17,11 @@ function SocialProfileReauthReturn() {
     redirected.current = true
     void navigate('/mypage/profile', { replace: true, state: { socialProfileReauthReturned: true } })
   }, [navigate])
-  return <LoadingState className="route-loading--compact" label="본인 확인을 완료하고 있습니다." />
+  return <LoadingState className="route-loading--compact" label={authText("본인 확인을 완료하고 있습니다.")} />
 }
 
 export function SocialLoginCallbackPage() {
+  const { authText } = useAuthTranslation()
   const auth = useAuthentication()
   const session = useSession()
   const result = new URLSearchParams(window.location.search).get('result')
@@ -43,8 +46,8 @@ export function SocialLoginCallbackPage() {
         ? '간편 로그인 본인 확인을 완료하지 못했습니다. 가입한 계정으로 다시 시도해 주세요.'
       : '간편 로그인을 완료하지 못했습니다. 다시 시도해 주세요.'
   return <AuthPage><AuthPanel result>
-    <AuthHeading title="간편 로그인" />
-    {waiting ? <LoadingState className="route-loading--compact" label="로그인 상태를 확인하고 있습니다." /> : <p role="alert">{message}</p>}
-    {!waiting ? <Link className="button button--large button--primary" to={result === 'reauth_error' || result === 'reauth_success' ? '/mypage/profile' : '/login'}>{result === 'reauth_error' || result === 'reauth_success' ? '내 정보 수정으로 돌아가기' : '기존 가입 방식으로 로그인하기'}</Link> : null}
+    <AuthHeading title={authText("간편 로그인")} />
+    {waiting ? <LoadingState className="route-loading--compact" label={authText("로그인 상태를 확인하고 있습니다.")} /> : <p role="alert">{authText(message)}</p>}
+    {!waiting ? <Link className="button button--large button--primary" to={result === 'reauth_error' || result === 'reauth_success' ? '/mypage/profile' : '/login'}>{result === 'reauth_error' || result === 'reauth_success' ? authText("내 정보 수정으로 돌아가기") : authText("기존 가입 방식으로 로그인하기")}</Link> : null}
   </AuthPanel></AuthPage>
 }

@@ -1,4 +1,6 @@
-export const accountMoney = (value: number | null) => value === null ? '-' : `${value.toLocaleString('ko-KR')}원`
+import { translate } from '@/i18n/translation-core'
+
+export const accountMoney = (value: number | null) => value === null ? '-' : translate('money.krwAmount', { amount: value.toLocaleString('ko-KR') })
 export const accountDate = (value: string | null) => value?.replace('T', ' ') ?? '-'
 
 const kstDateTime = new Intl.DateTimeFormat('en-GB', {

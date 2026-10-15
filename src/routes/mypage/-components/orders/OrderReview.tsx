@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
@@ -8,6 +9,7 @@ import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import { Button } from '@/components/ui/ButtonControl'
 
 export function OrderReview({ item }: { item: AccountOrderItem }) {
+  useUiTranslation()
   const { reviews } = useServices()
   const client = useQueryClient()
   const [open, setOpen] = useState(false)
@@ -35,13 +37,13 @@ export function OrderReview({ item }: { item: AccountOrderItem }) {
     save.reset()
   }
   const reviewId = item.reviewId ?? save.data?.id
-  if (reviewId) return <RelativeLink to={`/products/${encodeURIComponent(item.productNo)}?reviewId=${encodeURIComponent(reviewId)}#reviews`}>후기 보기</RelativeLink>
+  if (reviewId) return <RelativeLink to={`/products/${encodeURIComponent(item.productNo)}?reviewId=${encodeURIComponent(reviewId)}#reviews`}>{uiText("후기 보기")}</RelativeLink>
   return <>
-    <Button size="small" variant="secondary" onClick={openReview}>후기 작성</Button>
+    <Button size="small" variant="secondary" onClick={openReview}>{uiText("후기 작성")}</Button>
     <ProductReviewDialog
       eligibleRentals={sourceId && allowed ? [{ id: sourceId, label: `${item.title} · ${item.productNo}` }] : []}
       eligibilityPending={eligible.isPending}
-      error={eligible.error?.message ?? (eligible.isSuccess && !allowed ? '이미 후기를 작성했거나 현재 후기 작성 대상이 아닙니다.' : save.error?.message)}
+      error={uiText(eligible.error?.message ?? (eligible.isSuccess && !allowed ? '이미 후기를 작성했거나 현재 후기 작성 대상이 아닙니다.' : save.error?.message))}
       isOpen={open}
       onClose={closeReview}
       onSubmit={(draft, rentalId) => save.mutate({ draft, rentalId })}

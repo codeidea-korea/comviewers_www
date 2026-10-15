@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -42,6 +43,7 @@ export function InquiryConversationDialog({ api, id, onClose, standalone = false
   return <InquiryChat key={`${api.organizationId}:${standalone ? id : activeId}`} api={api} id={standalone ? id : activeId} onClose={onClose} onSelectInquiry={selectInquiry} standalone={standalone} />
 }
 function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: InquiryReadServices; id: number; onClose: () => void; onSelectInquiry: (id: number) => void; standalone: boolean }) {
+  const { uiText, locale } = useUiTranslation()
   const session = useSession()
   const isManager = session.status === 'authenticated' && session.role === 'C_MANAGER'
   const client = useQueryClient()
@@ -59,6 +61,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const [addingProducts, setAddingProducts] = useState(false)
   const additionCloseRef = useRef<(() => void) | null>(null)
   const { message: outcome, setMessage: setOutcome, toastKey } = useToastMessage()
+  const [outcomeValues, setOutcomeValues] = useState<Readonly<Record<string, string | number>>>({})
   const { myAccount } = useServices()
   const rcpcDetails = useQuery({ ...serverPresenceQueryOptions, queryKey: ['my-rcpcs', myAccount.rcpcApi?.organizationId, 'authorized-options'], enabled: productsOpen && Boolean(myAccount.rcpcApi), queryFn: ({ signal }) => loadAuthorizedRcpcs(myAccount.rcpcApi!, signal) })
   const [refundOpen, setRefundOpen] = useState(false)
@@ -127,24 +130,24 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
     }
   }
   const close = onClose
-  const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : '문의'
+  const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : uiText("문의")
   const selectProductMenu = (action: 'products' | 'add') => {
     setProductMenuOpen(false)
     if (action === 'add' && (closed || targetCount >= 20 || !myAccount.rcpcApi)) return
     setProductsOpen(action === 'products')
     setAddingProducts(action === 'add')
   }
-  const conversation = <section aria-label={standalone ? '문의 상세' : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <InquiryChatHeader title={`[${chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] ${type}`} standalone={standalone} disabled={!chat.data} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
+  const conversation = <section aria-label={standalone ? uiText("문의 상세") : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
+      <InquiryChatHeader title={`[${chat.data ? uiText(customerStatusLabel(chat.data.operationRequest.customerVisibleStatus)) : uiText("조회 중")}] ${uiText(type)}`} standalone={standalone} disabled={!chat.data} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
       <InquiryChatMenu open={productMenuOpen && Boolean(chat.data)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
       <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
         {chat.data && requestInfo.data ? <>
-          {requestInfo.data?.items[0] ? <time>{new Date(requestInfo.data.items[0].createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</time> : null}
+          {requestInfo.data?.items[0] ? <time>{new Date(requestInfo.data.items[0].createdAt).toLocaleDateString(locale, { timeZone: 'Asia/Seoul' })}</time> : null}
           {chat.data.operationRequest.targets.filter(target => !target.addedAt).map((target, index) => <InquiryChatProduct key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} target={target} onSelect={setProductConversation} />)}
-          {!isManager && requestInfo.data?.items[0]?.requestType === 'refund_cancel' ? <><AccountQueryState pending={refundLink.isPending} error={refundLink.error} retry={refundLink.refetch}/>{refund ? <button className="inquiry-chat__refund-action" onClick={() => setRefundOpen(true)} type="button">{refund.status === 'requested' ? '해지 신청 상세 / 철회' : '해지 신청 상세'}</button> : refundLink.data ? <p className="inquiry-chat__system">연결된 해지 신청 내역이 없습니다.</p> : null}</> : null}
-          {hasEarlierMessages ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? '불러오는 중…' : '이전 대화 더보기'}</button> : null}
-          {earlier.isError ? <p role="alert">{earlier.error.message}</p> : null}
+          {!isManager && requestInfo.data?.items[0]?.requestType === 'refund_cancel' ? <><AccountQueryState pending={refundLink.isPending} error={refundLink.error} retry={refundLink.refetch}/>{refund ? <button className="inquiry-chat__refund-action" onClick={() => setRefundOpen(true)} type="button">{refund.status === 'requested' ? uiText("해지 신청 상세 / 철회") : uiText("해지 신청 상세")}</button> : refundLink.data ? <p className="inquiry-chat__system">{uiText("연결된 해지 신청 내역이 없습니다.")}</p> : null}</> : null}
+          {hasEarlierMessages ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? uiText("불러오는 중…") : uiText("이전 대화 더보기")}</button> : null}
+          {earlier.isError ? <p role="alert">{uiText(earlier.error.message)}</p> : null}
           {timeline.map(entry => {
             if (entry.kind === 'product') return <InquiryChatProduct key={`added-product:${entry.index}`} target={entry.target} onSelect={setProductConversation} />
             const item = entry.message
@@ -156,28 +159,28 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
               <div className="inquiry-chat__message-row">
                 <p>{item.content}</p>
                 <div className="inquiry-chat__message-meta">
-                  <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
+                  <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
                 </div>
               </div>
               {item.attachments.map((attachment) => <InquiryAttachmentDownload key={attachment.id} api={api} requestId={id} attachment={attachment}/>)}
             </article>
           })}
-          {!messages.length ? <p className="inquiry-chat__system">등록된 메시지가 없습니다.</p> : null}
-          {readError ? <p role="alert">읽음 상태를 반영하지 못했습니다. <button type="button" onClick={() => { void api.markRead(id, lastId).then(() => { lastRead.current = lastId; setReadError(false) }).catch(() => setReadError(true)) }}>다시 시도</button></p> : null}
+          {!messages.length ? <p className="inquiry-chat__system">{uiText("등록된 메시지가 없습니다.")}</p> : null}
+          {readError ? <p role="alert">{uiText("읽음 상태를 반영하지 못했습니다.")} <button type="button" onClick={() => { void api.markRead(id, lastId).then(() => { lastRead.current = lastId; setReadError(false) }).catch(() => setReadError(true)) }}>{uiText("다시 시도")}</button></p> : null}
         </> : null}
       </div>
       {productConversation && <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/>}
       {refundOpen && refund ? <RefundDetail key={refund.id} api={api} requestId={refund.id} onClose={() => setRefundOpen(false)}/> : null}
-      {chat.data && requestInfo.data ? (closed ? <footer className="inquiry-chat__closed" role="status">처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
+      {chat.data && requestInfo.data ? (closed ? <footer className="inquiry-chat__closed" role="status">{uiText("처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.")}</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
         <div className="inquiry-chat__attachments"><InquiryAttachments api={api} requestId={id} files={files} disabled={send.isPending} onBusy={setAttachmentBusy} onChange={(next) => { setFiles(next); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }}/></div>
-        <label><span className="sr-only">새 메시지</span><textarea aria-label="새 메시지" ref={composerRef} readOnly={send.isPending || attachmentBusy} maxLength={4000} placeholder="메시지를 입력해 주세요." value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
-        <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? '전송 중…' : send.isError ? '재전송' : '전송'}</Button>
-        {send.isError ? <p role="alert">{send.error.message}</p> : null}
+        <label><span className="sr-only">{uiText("새 메시지")}</span><textarea aria-label={uiText("새 메시지")} ref={composerRef} readOnly={send.isPending || attachmentBusy} maxLength={4000} placeholder={uiText("메시지를 입력해 주세요.")} value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
+        <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? uiText("전송 중…") : send.isError ? uiText("재전송") : uiText("전송")}</Button>
+        {send.isError ? <p role="alert">{uiText(send.error.message)}</p> : null}
       </form>) : null}
     </section>
-  const content = addingProducts && !closed && chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap(target => target.pcAssetId === null ? [] : [target.pcAssetId])} total={targetCount} closed={closed} embedded pickerOpen closeRequestRef={additionCloseRef} onOutcome={setOutcome} onClosePicker={() => setAddingProducts(false)} showTrigger={false}/> : productsOpen && chat.data ? <InquiryChatProducts targets={chat.data.operationRequest.targets} status={customerStatusLabel(chat.data.operationRequest.customerVisibleStatus)} rcpcItems={rcpcDetails.data} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
+  const content = addingProducts && !closed && chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap(target => target.pcAssetId === null ? [] : [target.pcAssetId])} total={targetCount} closed={closed} embedded pickerOpen closeRequestRef={additionCloseRef} onOutcome={(message, values) => { setOutcomeValues(values); setOutcome(message) }} onClosePicker={() => setAddingProducts(false)} showTrigger={false}/> : productsOpen && chat.data ? <InquiryChatProducts targets={chat.data.operationRequest.targets} status={customerStatusLabel(chat.data.operationRequest.customerVisibleStatus)} rcpcItems={rcpcDetails.data} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
     <AccountQueryState pending={rcpcDetails.isPending && rcpcDetails.fetchStatus !== 'idle'} error={rcpcDetails.error} retry={rcpcDetails.refetch}/>
     {productConversation ? <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/> : null}
   </InquiryChatProducts> : conversation
-  return <><Toast message={outcome} toastKey={toastKey}/>{standalone ? content : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" focusKey={addingProducts ? 'add-products' : productsOpen ? 'products' : 'chat'} isOpen onClose={addingProducts && !closed ? () => additionCloseRef.current?.() : close} showTitle={false} title={addingProducts ? '문의 상품 추가' : productsOpen ? '문의 상품' : '문의 상세'}>{content}</DialogLayer>}</>
+  return <><Toast message={uiText(outcome, outcomeValues)} toastKey={toastKey}/>{standalone ? content : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-detail-preview" focusKey={addingProducts ? 'add-products' : productsOpen ? 'products' : 'chat'} isOpen onClose={addingProducts && !closed ? () => additionCloseRef.current?.() : close} showTitle={false} title={addingProducts ? uiText("문의 상품 추가") : productsOpen ? uiText("문의 상품") : uiText("문의 상세")}>{content}</DialogLayer>}</>
 }

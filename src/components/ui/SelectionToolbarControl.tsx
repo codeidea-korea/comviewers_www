@@ -1,5 +1,6 @@
 import type { ChangeEventHandler, MouseEventHandler, ReactNode } from 'react'
 import { Checkbox } from './CheckboxControl'
+import { TranslatedText } from '@/i18n/translation'
 
 export interface SelectionToolbarProps {
   checked: boolean
@@ -14,9 +15,9 @@ export interface SelectionToolbarProps {
 
 export function SelectionToolbar({ checked, children, className = '', indeterminate = false, onChange, onRemove, removeDisabled = false, removeLabel = '선택 삭제' }: SelectionToolbarProps) {
   return <div className={`selection-toolbar${className ? ` ${className}` : ''}`}>
-    <Checkbox checked={checked} indeterminate={indeterminate} onChange={onChange} visualClassName="">모두선택</Checkbox>
+    <Checkbox checked={checked} indeterminate={indeterminate} onChange={onChange} visualClassName=""><TranslatedText id="cart.selectAll" /></Checkbox>
     {children}
-    <button disabled={removeDisabled} onClick={onRemove} type="button">{removeLabel}</button>
+    <button disabled={removeDisabled} onClick={onRemove} type="button">{removeLabel === '선택 삭제' ? <TranslatedText id="cart.removeSelected" /> : removeLabel}</button>
   </div>
 }
 

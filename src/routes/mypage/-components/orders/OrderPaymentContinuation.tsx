@@ -1,3 +1,4 @@
+import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
@@ -6,6 +7,7 @@ import { Modal } from '@/components/ui/ModalControl'
 import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } from '@/routes/commerce/-components/checkout/tossPaymentWindow'
 
 export function OrderPaymentContinuation({ orderNo, orderStatus, paymentStatus }: { orderNo: string; orderStatus: string; paymentStatus: string }) {
+  useUiTranslation()
   const { checkout } = useServices()
   const navigate = useNavigate()
   const client = useQueryClient()
@@ -65,11 +67,11 @@ export function OrderPaymentContinuation({ orderNo, orderStatus, paymentStatus }
     finally { busy.current = false }
   }
   if (!checkout.resume || paymentStatus !== 'pending' || !['created', 'payment_pending'].includes(orderStatus)) return null
-  return <section><button type="button" disabled={resume.isPending || cancelled} onClick={() => { if (unresolvedOrderId) void continuePayment(); else setOpen(true) }}>{resume.isPending ? '결제 진행 중…' : cancelled ? '결제 취소됨' : unresolvedOrderId ? '결제 상태 다시 확인' : '결제 이어가기'}</button>
-    {!open && resume.isError && <p className="checkout-submit-error" role="alert">{resume.error.message}</p>}
-    <Modal isOpen={open} title="결제 이어가기" closeLabel="닫기" confirmLabel={resume.isPending ? '준비 중…' : '결제 준비'} confirmDisabled={resume.isPending} onClose={() => { if (!resume.isPending) setOpen(false) }} onConfirm={() => void continuePayment()}>
-      <p>기존 주문의 결제를 이어갑니다. 결제수단을 아직 준비하지 않은 주문은 카드로 시작합니다.</p>
-      {resume.isError && <p className="checkout-submit-error" role="alert">{resume.error.message}</p>}
+  return <section><button type="button" disabled={resume.isPending || cancelled} onClick={() => { if (unresolvedOrderId) void continuePayment(); else setOpen(true) }}>{resume.isPending ? uiText('결제 진행 중…') : cancelled ? uiText('결제 취소됨') : unresolvedOrderId ? uiText('결제 상태 다시 확인') : uiText('결제 이어가기')}</button>
+    {!open && resume.isError && <p className="checkout-submit-error" role="alert">{uiText(resume.error.message)}</p>}
+    <Modal isOpen={open} title={uiText("결제 이어가기")} closeLabel={uiText("닫기")} confirmLabel={resume.isPending ? uiText('준비 중…') : uiText('결제 준비')} confirmDisabled={resume.isPending} onClose={() => { if (!resume.isPending) setOpen(false) }} onConfirm={() => void continuePayment()}>
+      <p>{uiText("기존 주문의 결제를 이어갑니다. 결제수단을 아직 준비하지 않은 주문은 카드로 시작합니다.")}</p>
+      {resume.isError && <p className="checkout-submit-error" role="alert">{uiText(resume.error.message)}</p>}
     </Modal>
   </section>
 }

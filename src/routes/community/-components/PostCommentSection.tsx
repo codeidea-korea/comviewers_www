@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import type { usePostDetail } from './hooks/usePostDetail'
@@ -15,6 +16,7 @@ export function PostCommentSection({
   setCommentMenuIndex, editingCommentId, setEditingCommentId, addComment, setCommentDeleteId,
   displayedCommentCount, commentAuthenticated,
 }: CommentSectionProps) {
+  const { uiText } = useUiTranslation()
   const [loginOpen, setLoginOpen] = useState(false)
   const registerButtonRef = useRef<HTMLButtonElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
@@ -41,12 +43,12 @@ export function PostCommentSection({
   }
   return (
     <section className="comment-section">
-      {commentQuery.isPending ? <LoadingState className="route-loading--compact" label="댓글을 불러오는 중입니다." /> : commentQuery.isError ? <p role="alert">댓글을 불러오지 못했습니다.</p> : null}
-      <h2>댓글 <b>{displayedCommentCount}</b>{editingCommentId ? <small className="comment-editing-label" role="status">댓글 수정 중</small> : null}</h2>
+      {commentQuery.isPending ? <LoadingState className="route-loading--compact" label={uiText("댓글을 불러오는 중입니다.")} /> : commentQuery.isError ? <p role="alert">{uiText("댓글을 불러오지 못했습니다.")}</p> : null}
+      <h2>{uiText("댓글")} <b>{displayedCommentCount}</b>{editingCommentId ? <small className="comment-editing-label" role="status">{uiText("댓글 수정 중")}</small> : null}</h2>
       {commentAllowed ? <label className={editingCommentId ? 'comment-editor--editing' : undefined}>
-        <span className="sr-only">{editingCommentId ? '댓글 수정' : '댓글 입력'}</span>
-        <textarea ref={commentInputRef} maxLength={1000} onChange={(event) => setComment(event.target.value)} onClick={() => { if (!commentAuthenticated) requestLogin() }} onFocus={() => { if (!commentAuthenticated) requestLogin() }} placeholder="댓글을 입력해 주세요." readOnly={!commentAuthenticated} rows={5} value={comment} />
-        <button disabled={commentAuthenticated && (!comment.trim() || comment.length > 1000 || commentQuery.save.isPending || commentQuery.remove.isPending)} onClick={registerComment} ref={registerButtonRef} type="button">{editingCommentId ? '수정 완료' : '댓글 등록'}</button>
+        <span className="sr-only">{uiText(editingCommentId ? '댓글 수정' : '댓글 입력')}</span>
+        <textarea ref={commentInputRef} maxLength={1000} onChange={(event) => setComment(event.target.value)} onClick={() => { if (!commentAuthenticated) requestLogin() }} onFocus={() => { if (!commentAuthenticated) requestLogin() }} placeholder={uiText("댓글을 입력해 주세요.")} readOnly={!commentAuthenticated} rows={5} value={comment} />
+        <button disabled={commentAuthenticated && (!comment.trim() || comment.length > 1000 || commentQuery.save.isPending || commentQuery.remove.isPending)} onClick={registerComment} ref={registerButtonRef} type="button">{uiText(editingCommentId ? '수정 완료' : '댓글 등록')}</button>
       </label> : null}
       <div>
         {comments.map((item, index) => (
@@ -55,22 +57,22 @@ export function PostCommentSection({
               {item.authorProfileImageUrl ? <img alt="" src={item.authorProfileImageUrl} /> : item.avatar === 'orange' ? <img alt="" src={reviewAvatarOrange} /> : item.avatar === 'pink' ? <img alt="" src={reviewAvatarPink} /> : <img alt="" src={commentFace} />}
             </span>
             <div>
-              <span className="comment-author"><strong>{item.author}</strong><time>{item.date}</time>{item.edited ? <small>수정됨</small> : null}</span>
+              <span className="comment-author"><strong>{item.author}</strong><time>{item.date}</time>{item.edited ? <small>{uiText("수정됨")}</small> : null}</span>
               <p>{item.content}</p>
             </div>
             {item.isMine ? <span className="comment-menu-anchor">
-              <button aria-expanded={commentMenuIndex === index} aria-label="댓글 메뉴" onClick={() => setCommentMenuIndex((current) => current === index ? null : index)} type="button">⋮</button>
+              <button aria-expanded={commentMenuIndex === index} aria-label={uiText("댓글 메뉴")} onClick={() => setCommentMenuIndex((current) => current === index ? null : index)} type="button">⋮</button>
               {commentMenuIndex === index ? (
                 <div className="comment-menu">
-                  <button onClick={() => { setComment(item.content); setEditingCommentId(item.id); setCommentMenuIndex(null); setEditFocusRequest(previous => previous + 1) }} type="button">수정</button>
-                  <button onClick={() => { setCommentDeleteId(item.id); setCommentMenuIndex(null) }} type="button">삭제</button>
+                  <button onClick={() => { setComment(item.content); setEditingCommentId(item.id); setCommentMenuIndex(null); setEditFocusRequest(previous => previous + 1) }} type="button">{uiText("수정")}</button>
+                  <button onClick={() => { setCommentDeleteId(item.id); setCommentMenuIndex(null) }} type="button">{uiText("삭제")}</button>
                 </div>
               ) : null}
             </span> : null}
           </article>
         ))}
       </div>
-      <Modal closeLabel="취소" confirmLabel="로그인하기" isOpen={loginOpen} onClose={() => setLoginOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`)} returnFocusRef={registerButtonRef} title="로그인이 필요합니다."><p>댓글을 작성하려면 로그인해 주세요.<br />로그인 후 댓글 작성을 계속할 수 있습니다.</p></Modal>
+      <Modal closeLabel={uiText("취소")} confirmLabel={uiText("로그인하기")} isOpen={loginOpen} onClose={() => setLoginOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`)} returnFocusRef={registerButtonRef} title={uiText("로그인이 필요합니다.")}><p>{uiText("댓글을 작성하려면 로그인해 주세요.")}<br />{uiText("로그인 후 댓글 작성을 계속할 수 있습니다.")}</p></Modal>
     </section>
   )
 }

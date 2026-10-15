@@ -1,3 +1,4 @@
+import { useUiTranslation } from '@/i18n/uiTranslation'
 import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { useEffect, useRef, useState } from 'react'
 import anydeskIcon from '@/assets/figma/icon-connect-anydesk.svg'
@@ -25,27 +26,29 @@ function accessDeadline(serviceEndsAt: string): number {
 
 function remoteAccessErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    if (error.status === 401 || error.kind === 'authentication') return '로그인 상태를 확인한 뒤 다시 시도해 주세요.'
-    if (error.status === 403) return '원격정보가 등록되지 않았거나 조회 권한이 없습니다. 이용 기간과 접근 권한을 확인해 주세요.'
-    if (error.status === 400 || error.status === 404 || error.status === 409) return '원격 접속정보를 확인할 수 없습니다. 장치의 등록 상태를 확인해 주세요.'
-    if (error.status === 429) return '요청이 많습니다. 잠시 후 다시 시도해 주세요.'
-    if (error.kind === 'network') return '서버에 연결하지 못했습니다. 네트워크 연결을 확인해 주세요.'
+    if (error.status === 401 || error.kind === 'authentication') return "로그인 상태를 확인한 뒤 다시 시도해 주세요."
+    if (error.status === 403) return "원격정보가 등록되지 않았거나 조회 권한이 없습니다. 이용 기간과 접근 권한을 확인해 주세요."
+    if (error.status === 400 || error.status === 404 || error.status === 409) return "원격 접속정보를 확인할 수 없습니다. 장치의 등록 상태를 확인해 주세요."
+    if (error.status === 429) return "요청이 많습니다. 잠시 후 다시 시도해 주세요."
+    if (error.kind === 'network') return "서버에 연결하지 못했습니다. 네트워크 연결을 확인해 주세요."
   }
-  if (error instanceof Error && error.message === 'expired') return '이용 기간이 종료되어 접속정보를 조회할 수 없습니다.'
-  if (error instanceof Error && error.message === 'unavailable') return '원격 비밀번호가 등록되지 않았습니다.'
-  return '원격 접속정보 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+  if (error instanceof Error && error.message === 'expired') return "이용 기간이 종료되어 접속정보를 조회할 수 없습니다."
+  if (error instanceof Error && error.message === 'unavailable') return "원격 비밀번호가 등록되지 않았습니다."
+  return "원격 접속정보 조회에 실패했습니다. 잠시 후 다시 시도해 주세요."
 }
 
 export function RcpcRemoteAccess({ api, item, compact = false, autoRevealId = false }: { api: MyRcpcReadServices; item: RemoteAccessItem; compact?: boolean; autoRevealId?: boolean }) {
+  const { uiText } = useUiTranslation()
   const anyDeskId = item.remoteSupport?.anyDeskMaskedId ?? null
   const teamViewerId = item.remoteSupport?.teamViewerMaskedId ?? null
-  return <section className={compact ? 'rcpc-remote-access rcpc-remote-access--compact' : 'rcpc-remote-access'}>{!compact && <h3>원격 접속 정보</h3>}
+  return <section className={compact ? 'rcpc-remote-access rcpc-remote-access--compact' : 'rcpc-remote-access'}>{!compact && <h3>{uiText("원격 접속 정보")}</h3>}
     <RemoteProvider key={`${item.rentalId}:anydesk`} api={api} item={item} accessType="anydesk" maskedId={anyDeskId} passwordConfigured={item.remoteSupport?.anyDeskPasswordConfigured ?? false} compact={compact} autoRevealId={autoRevealId}/>
     <RemoteProvider key={`${item.rentalId}:teamviewer`} api={api} item={item} accessType="teamviewer" maskedId={teamViewerId} passwordConfigured={item.remoteSupport?.teamViewerPasswordConfigured ?? false} compact={compact} autoRevealId={autoRevealId}/>
   </section>
 }
 
 function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, compact, autoRevealId }: { api: MyRcpcReadServices; item: RemoteAccessItem; accessType: RemoteAccessType; maskedId: string | null; passwordConfigured: boolean; compact: boolean; autoRevealId: boolean }) {
+  const { uiText, t } = useUiTranslation()
   // Credentials never enter Query/mutation caches, storage, URLs, or logs.
   const [revealed, setRevealed] = useState<Revealed | null>(null)
   const [visibleId, setVisibleId] = useState<string | null>(null)
@@ -112,7 +115,7 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
         copying = true
         await navigator.clipboard.writeText(identifier.remoteId)
         controller.signal.throwIfAborted()
-        setMessage('ID가 복사되었습니다.')
+        setMessage("ID가 복사되었습니다.")
         return
       }
       const value = await api.reveal(item.rentalId, accessType, controller.signal)
@@ -126,10 +129,10 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
         copying = true
         await navigator.clipboard.writeText(text)
         controller.signal.throwIfAborted()
-        setMessage('비밀번호가 복사되었습니다.')
+        setMessage("비밀번호가 복사되었습니다.")
       } else setRevealed(value)
     } catch (error) {
-      if (!controller.signal.aborted) setMessage(copying ? '복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.' : remoteAccessErrorMessage(error))
+      if (!controller.signal.aborted) setMessage(copying ? "복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요." : remoteAccessErrorMessage(error))
     } finally {
       if (activeRequests.current[action] === controller) {
         activeRequests.current = { ...activeRequests.current, [action]: undefined }
@@ -139,21 +142,21 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
   }
   const providerName = accessType === 'anydesk' ? 'AnyDesk' : 'TeamViewer'
   const displayedId = revealed?.remoteId ?? visibleId ?? maskedId?.replace(/./g, '*') ?? '-'
-  const displayedPassword = passwordConfigured ? revealed?.password ?? '********' : '미등록'
+  const displayedPassword = passwordConfigured ? revealed?.password ?? '********' : uiText("미등록")
   const providerHeading = <h4 className="rcpc-remote-provider__heading"><img alt="" src={accessType === 'anydesk' ? anydeskIcon : teamviewerIcon}/>{providerName}</h4>
-  if (!maskedId && !passwordConfigured) return <article className={compact ? 'rcpc-remote-provider--compact' : undefined}>{providerHeading}<p className="rcpc-remote-provider__empty">원격정보 없음</p></article>
+  if (!maskedId && !passwordConfigured) return <article className={compact ? 'rcpc-remote-provider--compact' : undefined}>{providerHeading}<p className="rcpc-remote-provider__empty">{uiText("원격정보 없음")}</p></article>
   if (compact) return <article className="rcpc-remote-provider--compact">{providerHeading}
     <div className="rcpc-remote-provider__credentials">
-      <div className="rcpc-remote-provider__line"><TooltipText text={`ID ${displayedId}`} tooltipText={displayedId} enabled={Boolean(revealed?.remoteId ?? visibleId)}/><button aria-label={`${providerName} ID 복사`} aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}><img alt="" src={copyIcon}/></button></div>
-      <div className="rcpc-remote-provider__line"><TooltipText text={`PW ${displayedPassword}`} tooltipText={displayedPassword} enabled={passwordConfigured && Boolean(revealed?.password)}/><span className="rcpc-remote-provider__actions">{maskedId && passwordConfigured ? <button aria-label={`${providerName} 비밀번호 ${revealed ? '숨기기' : '보기'}`} aria-pressed={Boolean(revealed)} aria-busy={Boolean(busy.reveal)} disabled={busy.reveal} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}><img alt="" height={16} src={revealed ? eyeIcon : eyeClosedIcon} width={16}/></button> : null}<button aria-label={`${providerName} 비밀번호 복사`} aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}><img alt="" src={copyIcon}/></button></span></div>
+      <div className="rcpc-remote-provider__line"><TooltipText text={`ID ${displayedId}`} tooltipText={displayedId} enabled={Boolean(revealed?.remoteId ?? visibleId)}/><button aria-label={t("mypageRcpc.ui100", { v0: providerName })} aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}><img alt="" src={copyIcon}/></button></div>
+      <div className="rcpc-remote-provider__line"><TooltipText text={`PW ${displayedPassword}`} tooltipText={displayedPassword} enabled={passwordConfigured && Boolean(revealed?.password)}/><span className="rcpc-remote-provider__actions">{maskedId && passwordConfigured ? <button aria-label={t("mypageRcpc.ui101", { v0: providerName, v1: uiText(revealed ? '숨기기' : '보기') })} aria-pressed={Boolean(revealed)} aria-busy={Boolean(busy.reveal)} disabled={busy.reveal} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}><img alt="" height={16} src={revealed ? eyeIcon : eyeClosedIcon} width={16}/></button> : null}<button aria-label={t("mypageRcpc.ui104", { v0: providerName })} aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}><img alt="" src={copyIcon}/></button></span></div>
     </div>
-    {message ? <Toast message={message} toastKey={toastKey}/> : null}
+    {message ? <Toast message={uiText(message)} toastKey={toastKey}/> : null}
   </article>
   return <article>{providerHeading}
-    <p>ID: {maskedId ? displayedId : '등록되지 않음'}</p><p>비밀번호: {passwordConfigured ? revealed ? revealed.password ?? '등록되지 않음' : '••••••••' : '등록되지 않음'}</p>
-    <button aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId || !passwordConfigured} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}>{revealed ? '숨기기' : '보기'}</button>
-    <button aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}>ID 복사</button>
-    <button aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}>비밀번호 복사</button>
-    {message ? <Toast message={message} toastKey={toastKey}/> : null}
+    <p>ID: {maskedId ? displayedId : uiText("등록되지 않음")}</p><p>{uiText("비밀번호:")} {passwordConfigured ? revealed ? revealed.password ?? uiText("등록되지 않음") : '••••••••' : uiText("등록되지 않음")}</p>
+    <button aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId || !passwordConfigured} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}>{revealed ? uiText("숨기기") : uiText("보기")}</button>
+    <button aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}>{uiText("ID 복사")}</button>
+    <button aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}>{uiText("비밀번호 복사")}</button>
+    {message ? <Toast message={uiText(message)} toastKey={toastKey}/> : null}
   </article>
 }
