@@ -15,16 +15,16 @@ const slides = [
 
 export function HomeHeroSection() {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [paused, setPaused] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [prefersReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const [interacting, setInteracting] = useState(false)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const moveSlide = (direction: number) => setActiveIndex(index => (index + direction + slides.length) % slides.length)
 
   useEffect(() => {
-    if (paused || interacting) return
+    if (prefersReducedMotion || interacting) return
     const timer = window.setTimeout(() => setActiveIndex(index => (index + 1) % slides.length), 5000)
     return () => window.clearTimeout(timer)
-  }, [activeIndex, paused, interacting])
+  }, [activeIndex, prefersReducedMotion, interacting])
 
   return (
       <section className="home-hero" aria-label="메인 배너" aria-roledescription="캐러셀"
@@ -53,7 +53,6 @@ export function HomeHeroSection() {
               <button aria-label="이전 배너" onClick={() => moveSlide(-1)} type="button"><Icon name="chevron-left" size={12} tone="inverse" /></button>
               <span aria-label={`${slides.length}개 중 ${activeIndex + 1}번째 배너`}><b>{activeIndex + 1}</b><span> / {slides.length}</span></span>
               <button aria-label="다음 배너" onClick={() => moveSlide(1)} type="button"><Icon name="chevron-right" size={12} tone="inverse" /></button>
-              <button aria-label={paused ? '배너 자동 전환 재생' : '배너 자동 전환 일시정지'} onClick={() => setPaused(value => !value)} type="button">{paused ? '▶' : 'Ⅱ'}</button>
             </div>
           </div>
         </div>

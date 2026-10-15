@@ -37,7 +37,13 @@
 }
 .hero-pagination__controls > button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 767px) {
-  .app-shell--home .home-hero > .home-hero__slide--native-ratio .home-hero__image { object-position: center; }
+  .app-shell--home .home-hero > .home-hero__slide .home-hero__image {
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    object-position: center;
+    width: 100%;
+  }
   .hero-pagination__controls { gap: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
