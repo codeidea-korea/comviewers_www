@@ -1,5 +1,17 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-15 기존 배포 스크립트 중심 단순화
+
+[배포 스크립트](deploy/deploy-www.sh)가 직접 실행되도록 단순화해 서버까지 반영했다. 별도 엔진/503/CPU·캐시 강제를 제거하고 잠금·무백업 원자 교체·주요 자산 응답 해시·시간제한·후보 보호·2GiB 여유 확인을 유지한다. [현재 ADR0038](../docs/decisions/0038-backup-free-deployment-runtime.md), [서버 결과](../tmp/deploy-no-backup-20261015/simplified-install-result.json)를 따른다. L3 서버 반영/L0 문서·정적 리뷰·Bash/Nginx 구문·앱파일/프로세스 보존 확인이며 앱 빌드/배포·기능 테스트는 미실행이다. 다른 작업의 웹 소스는 보존했고 아래 설치형 런타임 설명은 이전 이력이다.
+
+## 2026-10-15 무백업 배포 보호 보완
+
+[진입점](deploy/deploy-www.sh)은 잠금 아래 서버 설치 런타임을 실행한다. 고정 원격 commit 빌드·선삭제 없는 원자 교체·이전 파일 즉시 삭제·HTML/manifest JS/CSS 실제 HTTPS 해시·중복 후보 보존·시간/자원/용량 제한을 적용했다. 공개 전환 동안503 점검 상태에서 확인하고 실패 시 유지한다. 백업은 생성하지 않는다. [ADR0038](../docs/decisions/0038-backup-free-deployment-runtime.md), [설치 대조](../tmp/deploy-no-backup-20261015/hardened-install-result.json)를 따른다. L3 도구 반영·L0 정적 리뷰/AST/해시 확인이며 별도 작업의 릴리스 `20261015-050210-2154775`가 새 도구에서 verified 완료된 기록을 확인했다. 도구 작업에서 기능 테스트·앱 빌드는 실행하지 않았고 동시 프론트 소스 변경을 보존했다.
+
+## 2026-10-15 배포 백업 생성 중단
+
+사용자 지시로 [배포 스크립트](deploy/deploy-www.sh)의 기존 `dist` 보관·자동 롤백을 제거하고 서버에 반영했다. 후보 빌드·권한 설정 후 기존 `dist`를 삭제·교체하며 완료/실패 시 임시 후보를 정리한다. 성공한 `--prepare`는 활성화/`--discard`까지 유지하고 `--rollback`은 거부한다. clean 검사에서는 이 배포 파일만 제외하고 다른 변경 검사·`pull --ff-only`는 유지한다. [공통 정책](../docs/handoff/comviewers-project-manual.md#5-서버-배포-방법), [서버 결과](../tmp/deploy-no-backup-20261015/installed.json)를 따른다. L3 스크립트 반영·L0 문서 정적 리뷰이며 앱 테스트·빌드·실제 배포·기존 백업 삭제는 수행하지 않았다. 교체 시 짧은 공백이 있을 수 있고 실패하면 재배포가 필요하다.
+
 ## 2026-10-15 Safari 상품 상세 필터 표시 보완
 
 `SHOP_PRODUCT-001-GRID` QA의 월 렌탈료 슬라이더 흰 네모·모바일 헤더 여백·필터 버튼 아이콘 지적을 반영했다. [공통 슬라이더 스타일](src/styles/commerce.css)에 기존 모바일 drawer의 WebKit appearance·배경·테두리·그림자 초기화를 옮겨 데스크톱에도 적용한다. 별도 검은 4×12px 표시선과 투명 20×24px 조작 영역·포커스·금액 선택 처리는 유지한다. 현재 모바일에는 초기화가 이미 있었으므로 QA가 이전 배포본인지 데스크톱 Safari인지 실제 재검수에서 구분해야 한다.

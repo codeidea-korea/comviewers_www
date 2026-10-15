@@ -1,210 +1,164 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-readonly APP_REPO="/home/comviewers_www/user"
 readonly APP_NAME="user"
+readonly APP_REPO="/home/comviewers_www/$APP_NAME"
 readonly DEPLOY_ROOT="/var/lib/comviewers-deploy"
+readonly WORK_ROOT="/home/comviewers-deploy-work"
 readonly LOCK_FILE="/run/lock/comviewers-deploy.lock"
-readonly PUBLIC_URL="https://comviewers.codeidea.io/"
-
-MODE="deploy"
-RELEASE_DIR=""
-if [[ $# -eq 2 && "$1" =~ ^--(prepare|activate|rollback)$ ]]; then
-  MODE="${1#--}"
-  RELEASE_DIR="$2"
-elif [[ $# -gt 0 ]]; then
-  echo "Usage: $0 [--prepare|--activate|--rollback RELEASE_DIR]" >&2
-  exit 2
+readonly BASE_PATH="/"
+MODE=deploy RELEASE_DIR="" WORK_DIR="" OWNED=false ACTIVATION_STARTED=false
+fail() { echo "ERROR: $*" >&2; exit 1; }
+if [[ "${1:-}" == --rollback ]]; then fail "Backups and rollback are disabled."; fi
+if [[ $# -eq 2 && "$1" =~ ^--(prepare|activate|discard)$ ]]; then
+  MODE="${1#--}" RELEASE_DIR="$2"
+elif [[ $# -ne 0 ]]; then
+  fail "Usage: $0 [--prepare|--activate|--discard RELEASE_DIR]"
 fi
-
-log() {
-  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
-}
-
-fail() {
-  log "ERROR: $*" >&2
-  exit 1
-}
-
-require_command() {
-  command -v "$1" >/dev/null 2>&1 || fail "Required command not found: $1"
-}
-
-acquire_deploy_lock() {
-  if [[ "${COMVIEWERS_DEPLOY_LOCK_HELD:-}" == "1" ]]; then
-    local expected_lock
-    local inherited_lock
-    expected_lock="$(readlink -f "$LOCK_FILE" 2>/dev/null || true)"
-    inherited_lock="$(readlink -f "/proc/$$/fd/9" 2>/dev/null || true)"
-    [[ -n "$expected_lock" && "$inherited_lock" == "$expected_lock" ]] \
-      || fail "Inherited file descriptor 9 does not reference $LOCK_FILE."
-    flock -n 9 || fail "Inherited ComViewers deployment lock is not available."
-    return
-  fi
-
+[[ $EUID -eq 0 ]] || fail "Run as root."
+for command in git npm curl flock timeout tar python3 realpath readlink install mkdir touch date df awk find chown chmod rm; do
+  command -v "$command" >/dev/null || fail "Missing command: $command"
+done
+if [[ "${COMVIEWERS_DEPLOY_LOCK_HELD:-}" == 1 ]]; then
+  [[ "$(readlink -f /proc/$$/fd/9)" == "$LOCK_FILE" ]] || fail "Invalid inherited deployment lock."
+  flock -n 9 || fail "Deployment lock unavailable."
+else
   exec 9>"$LOCK_FILE"
-  flock -n 9 || fail "Another ComViewers deployment is already running."
+  flock -n 9 || fail "Another deployment is running."
+fi
+export COMVIEWERS_DEPLOY_LOCK_HELD=1
+[[ -n "$RELEASE_DIR" ]] || RELEASE_DIR="$DEPLOY_ROOT/$(date '+%Y%m%d-%H%M%S')-$$/$APP_NAME"
+release_id="${RELEASE_DIR#"$DEPLOY_ROOT"/}"
+release_id="${release_id%/"$APP_NAME"}"
+[[ "$release_id" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+$ && "$RELEASE_DIR" == "$DEPLOY_ROOT/$release_id/$APP_NAME" ]] || fail "Invalid release directory."
+[[ "$(realpath -m "$RELEASE_DIR")" == "$RELEASE_DIR" ]] || fail "Release path is not canonical."
+WORK_DIR="$WORK_ROOT/$release_id/$APP_NAME"
+[[ "$(realpath -m "$WORK_DIR")" == "$WORK_DIR" ]] || fail "Work path is not canonical."
+cleanup() {
+  local code=$?
+  trap - EXIT
+  if $OWNED && ! $ACTIVATION_STARTED && [[ $code -ne 0 ]]; then
+    rm -rf -- "$WORK_DIR" "$RELEASE_DIR" || echo "ERROR: Temporary preparation cleanup failed." >&2
+  fi
+  exit "$code"
+}
+trap cleanup EXIT
+
+artifact_check() {
+  timeout --kill-after=5 120 python3 - "$1" "$2" "$RELEASE_DIR/hashes.json" "$BASE_PATH" <<'PY'
+import hashlib, json, subprocess, sys
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import unquote, urljoin, urlsplit
+mode, directory, metadata, base = sys.argv[1:]
+root = Path(directory)
+class Assets(HTMLParser):
+    refs = []
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == 'base': raise RuntimeError('HTML base is unsupported')
+        if tag == 'script' and a.get('src'): self.refs.append(a['src'])
+        if tag == 'link' and set(a.get('rel', '').split()) & {'stylesheet', 'modulepreload'} and a.get('href'): self.refs.append(a['href'])
+if mode == 'record':
+    parser = Assets(); parser.feed((root / 'index.html').read_text())
+    if not parser.refs: raise RuntimeError('Built HTML has no primary assets')
+    records = [{'file': 'index.html', 'url': base}]
+    for ref in parser.refs:
+        u = urlsplit(urljoin('https://comviewers.codeidea.io' + base, ref))
+        if u.scheme != 'https' or u.netloc != 'comviewers.codeidea.io' or not u.path.startswith(base): raise RuntimeError('Unexpected asset origin')
+        records.append({'file': unquote(u.path[len(base):]), 'url': u.path + ('?' + u.query if u.query else '')})
+    for row in records:
+        p = root / row['file']
+        if not p.is_file() or p.resolve() != p or root not in p.parents: raise RuntimeError('Invalid primary asset')
+        row['sha256'] = hashlib.sha256(p.read_bytes()).hexdigest()
+    Path(metadata).write_text(json.dumps(records))
+else:
+    for row in json.loads(Path(metadata).read_text()):
+        p = root / row['file']
+        if not p.is_file() or p.resolve() != p or root not in p.parents or hashlib.sha256(p.read_bytes()).hexdigest() != row['sha256']: raise RuntimeError('Prepared asset changed')
+        if mode != 'verify': continue
+        for local in [True, False]:
+            args = ['curl', '--silent', '--show-error', '--noproxy', '*', '--connect-timeout', '5', '--max-time', '15']
+            if local: args += ['--resolve', 'comviewers.codeidea.io:443:127.0.0.1']
+            data = subprocess.check_output(args + ['--write-out', '\n%{http_code}', 'https://comviewers.codeidea.io' + row['url']], timeout=20)
+            body, _, code = data.rpartition(b'\n')
+            if code != b'200' or hashlib.sha256(body).hexdigest() != row['sha256']: raise RuntimeError('Served primary asset differs from this release')
+PY
 }
 
-validate_release_dir() {
-  local release_dir="$1"
-  local expected_root
-  local relative_path
-  local release_id
-  local resolved_dir
-
-  expected_root="$(realpath -m -- "$DEPLOY_ROOT")"
-  resolved_dir="$(realpath -m -- "$release_dir")"
-  [[ "$release_dir" == "$resolved_dir" ]] \
-    || fail "Release directory must be canonical: $release_dir"
-  [[ "$resolved_dir" == "$expected_root/"* ]] \
-    || fail "Release directory is outside $DEPLOY_ROOT: $release_dir"
-
-  relative_path="${resolved_dir#"$expected_root"/}"
-  release_id="${relative_path%/"$APP_NAME"}"
-  [[ "$relative_path" == "$release_id/$APP_NAME" \
-    && "$release_id" != */* \
-    && "$release_id" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+$ ]] \
-    || fail "Invalid release directory: $release_dir"
-}
-
-require_repo() {
-  [[ -d "$APP_REPO/.git" ]] || fail "Git repository not found: $APP_REPO"
-  [[ -z "$(git -C "$APP_REPO" status --porcelain)" ]] \
-    || fail "Working tree is not clean: $APP_REPO"
-  git -C "$APP_REPO" symbolic-ref --quiet --short HEAD >/dev/null \
-    || fail "Detached HEAD is not supported: $APP_REPO"
-}
-
-update_repo() {
-  local branch
-  branch="$(git -C "$APP_REPO" symbolic-ref --quiet --short HEAD)"
-  log "Fetching $APP_REPO"
-  git -C "$APP_REPO" fetch --prune origin
-  git -C "$APP_REPO" show-ref --verify --quiet "refs/remotes/origin/$branch" \
-    || fail "Remote branch origin/$branch not found: $APP_REPO"
-  log "Pulling $APP_REPO ($branch)"
-  git -C "$APP_REPO" pull --ff-only origin "$branch"
-}
-
-http_code() {
-  curl --silent --show-error --output /dev/null --write-out '%{http_code}' "$1"
+exchange_candidate() {
+  timeout --kill-after=5 120 python3 - "$WORK_DIR/dist" "$APP_REPO/dist" "$1" <<'PY'
+import ctypes, os, shutil, sys
+from pathlib import Path
+candidate, live = map(Path, sys.argv[1:3])
+for p in [candidate, live.parent] + ([live] if live.exists() else []):
+    if p.is_symlink() or not p.is_dir() or p.resolve() != p: raise RuntimeError('Noncanonical deployment directory')
+if live.is_symlink(): raise RuntimeError('Live directory is a symlink')
+if candidate.stat().st_dev != live.parent.stat().st_dev or (live.exists() and live.stat().st_dev != candidate.stat().st_dev): raise RuntimeError('Atomic replacement requires the same filesystem')
+for p in [candidate, live] + list(candidate.rglob('*')) + (list(live.rglob('*')) if live.exists() else []):
+    if os.path.ismount(p): raise RuntimeError('Mounted deployment paths are unsupported')
+if any(p.is_symlink() for p in candidate.rglob('*')): raise RuntimeError('Candidate must not contain symlinks')
+lib = ctypes.CDLL(None, use_errno=True)
+exchange = getattr(lib, 'renameat2', None)
+if exchange is None: raise RuntimeError('libc renameat2 is required')
+exchange.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+exchange.restype = ctypes.c_int
+if sys.argv[3] == 'activate':
+    if live.exists():
+        if exchange(-100, os.fsencode(candidate), -100, os.fsencode(live), 2) != 0:
+            number = ctypes.get_errno(); raise OSError(number, os.strerror(number))
+        shutil.rmtree(candidate)  # Immediately remove the obsolete live tree; retain no backup.
+    else: os.rename(candidate, live)
+PY
 }
 
 prepare_release() {
-  local release_dir="$1"
-  local candidate_dir="$release_dir/dist.candidate"
-
-  validate_release_dir "$release_dir"
-  require_repo
-  update_repo
-  install -d -o root -g root -m 750 "$release_dir"
-
-  [[ ! -e "$candidate_dir" ]] || fail "Candidate already exists: $candidate_dir"
-  [[ ! -e "$release_dir/dist.previous" ]] || fail "Backup already exists: $release_dir/dist.previous"
-  [[ ! -e "$release_dir/activated" ]] || fail "Release is already active: $release_dir"
-
-  log "Selected user frontend commit"
-  git -C "$APP_REPO" rev-parse HEAD | tee "$release_dir/commit.txt"
-
-  log "Installing dependencies: $APP_REPO"
-  npm --prefix "$APP_REPO" ci
-
-  log "Building user frontend candidate"
-  VITE_API_BASE_URL=/ \
-  VITE_ENABLE_PUBLISHING_PREVIEWS=false \
-    npm --prefix "$APP_REPO" run build -- --outDir "$candidate_dir" --emptyOutDir
-  [[ -f "$candidate_dir/index.html" ]] \
-    || fail "Frontend build did not create index.html: $candidate_dir"
-}
-
-rollback_release() {
-  local release_dir="$1"
-  local live_dir="$APP_REPO/dist"
-  local backup_dir="$release_dir/dist.previous"
-  local failed_dir="$release_dir/dist.failed"
-
-  validate_release_dir "$release_dir"
-  [[ -f "$release_dir/activated" ]] || return 0
-  [[ ! -e "$failed_dir" ]] || fail "Failed deployment evidence already exists: $failed_dir"
-
-  log "Rolling back user frontend"
-  if [[ -d "$live_dir" ]]; then
-    mv "$live_dir" "$failed_dir"
-  fi
-  if [[ -d "$backup_dir" ]]; then
-    mv "$backup_dir" "$live_dir"
-  fi
-  rm -f "$release_dir/activated"
-}
-
-ROLLBACK_ON_ERR=false
-rollback_on_error() {
-  local exit_code=$?
-  trap - ERR
-  if $ROLLBACK_ON_ERR && [[ -n "$RELEASE_DIR" ]]; then
-    rollback_release "$RELEASE_DIR" || true
-  fi
-  exit "$exit_code"
+  [[ ! -e "$RELEASE_DIR" && ! -L "$RELEASE_DIR" && ! -e "$WORK_DIR" && ! -L "$WORK_DIR" ]] || fail "Release already exists; its candidate was preserved."
+  [[ -d "$APP_REPO/.git" ]] || fail "Repository is missing."
+  local status branch commit free
+  status="$(timeout --kill-after=5 120 git -C "$APP_REPO" status --porcelain -- . ":(exclude)deploy/deploy-www.sh")"
+  [[ -z "$status" ]] || fail "Application worktree is not clean."
+  branch="$(timeout --kill-after=5 120 git -C "$APP_REPO" symbolic-ref --quiet --short HEAD)"
+  [[ -n "$branch" && "$branch" != -* ]] || fail "Attached branch required."
+  timeout --kill-after=5 120 git -C "$APP_REPO" fetch --no-tags origin "+refs/heads/$branch:refs/remotes/origin/$branch"
+  commit="$(timeout --kill-after=5 120 git -C "$APP_REPO" rev-parse --verify "refs/remotes/origin/$branch^{commit}")"
+  timeout --kill-after=5 120 git -C "$APP_REPO" merge-base --is-ancestor HEAD "$commit" || fail "Local HEAD is ahead of or diverges from the remote."
+  for directory in /home /var/lib; do
+    free="$(df -PB1 "$directory" | awk 'NR==2 {print $4}')"
+    [[ "$free" =~ ^[0-9]+$ && "$free" -ge 2147483648 ]] || fail "At least 2 GiB free space is required."
+  done
+  install -d -o root -g root -m 750 "$DEPLOY_ROOT/$release_id" "$WORK_ROOT/$release_id"
+  mkdir "$RELEASE_DIR"
+  OWNED=true
+  mkdir "$WORK_DIR" "$WORK_DIR/source"
+  printf '%s\n' "$commit" > "$RELEASE_DIR/commit.txt"
+  timeout --kill-after=5 120 git -C "$APP_REPO" archive --format=tar "$commit" | timeout --kill-after=5 120 tar -xf - -C "$WORK_DIR/source"
+  (cd "$WORK_DIR/source"
+   timeout --kill-after=10 600 npm ci
+   VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
+  artifact_check record "$WORK_DIR/dist"
+  exchange_candidate check
+  echo "Prepared $APP_NAME: $commit"
 }
 
 activate_release() {
-  local release_dir="$1"
-  local candidate_dir="$release_dir/dist.candidate"
-  local live_dir="$APP_REPO/dist"
-  local backup_dir="$release_dir/dist.previous"
-  local user_code
-
-  validate_release_dir "$release_dir"
-  [[ -f "$candidate_dir/index.html" ]] || fail "Prepared user candidate not found: $candidate_dir"
-  [[ ! -e "$backup_dir" ]] || fail "Backup already exists: $backup_dir"
-  [[ ! -e "$release_dir/activated" ]] || fail "Release is already active: $release_dir"
-
-  if [[ -d "$live_dir" ]]; then
-    mv "$live_dir" "$backup_dir"
-  else
-    touch "$release_dir/no-previous-dist"
-  fi
-
-  if ! mv "$candidate_dir" "$live_dir"; then
-    if [[ -d "$backup_dir" ]]; then
-      mv "$backup_dir" "$live_dir"
-    fi
-    fail "Could not activate user frontend candidate."
-  fi
-
-  touch "$release_dir/activated"
-  chown -R root:www-data "$live_dir"
-  find "$live_dir" -type d -exec chmod 750 {} +
-  find "$live_dir" -type f -exec chmod 640 {} +
-
-  user_code="$(http_code "$PUBLIC_URL" || true)"
-  if [[ "$user_code" != "200" ]]; then
-    rollback_release "$release_dir"
-    fail "User frontend smoke check failed: HTTP ${user_code:-unreachable}"
-  fi
-
-  log "User frontend deployment completed: user=$user_code"
-  log "Release evidence: $release_dir"
+  ACTIVATION_STARTED=true
+  [[ -f "$RELEASE_DIR/commit.txt" && -f "$RELEASE_DIR/hashes.json" && ! -e "$RELEASE_DIR/activated" ]] || fail "Prepared release is missing or already activated."
+  artifact_check check "$WORK_DIR/dist"
+  exchange_candidate check
+  chown -R root:www-data "$WORK_DIR/dist"
+  find "$WORK_DIR/dist" -type d -exec chmod 750 {} +
+  find "$WORK_DIR/dist" -type f -exec chmod 640 {} +
+  exchange_candidate activate
+  touch "$RELEASE_DIR/activated"
+  artifact_check verify "$APP_REPO/dist"
+  rm -rf -- "$WORK_DIR"
+  echo "Deployed $APP_NAME without backups. Metadata: $RELEASE_DIR"
 }
 
-[[ $EUID -eq 0 ]] || fail "Run this script as root."
-for command_name in git npm curl flock install mv chown find chmod rm touch tee readlink realpath; do
-  require_command "$command_name"
-done
-acquire_deploy_lock
-trap rollback_on_error ERR
-
-if [[ "$MODE" == "deploy" ]]; then
-  RELEASE_DIR="$DEPLOY_ROOT/$(date '+%Y%m%d-%H%M%S')-$$/$APP_NAME"
-  prepare_release "$RELEASE_DIR"
-  ROLLBACK_ON_ERR=true
-  activate_release "$RELEASE_DIR"
-elif [[ "$MODE" == "prepare" ]]; then
-  prepare_release "$RELEASE_DIR"
-elif [[ "$MODE" == "activate" ]]; then
-  ROLLBACK_ON_ERR=true
-  activate_release "$RELEASE_DIR"
-else
-  rollback_release "$RELEASE_DIR"
-fi
+case "$MODE" in
+  deploy) prepare_release; activate_release ;;
+  prepare) prepare_release ;;
+  activate) activate_release ;;
+  discard) rm -rf -- "$WORK_DIR" ;;
+esac
