@@ -1,4 +1,5 @@
 import moreVertical from '@/assets/figma/comment-more-fill.svg'
+import modalClose from '@/assets/figma/inquiry-modal-close.svg'
 import './inquiry-chat-menu.css'
 
 export type InquiryChatMenuAction = 'products' | 'add'
@@ -6,6 +7,14 @@ export type InquiryChatMenuAction = 'products' | 'add'
 interface MenuProps {
   addDisabled: boolean
   onSelect: (action: InquiryChatMenuAction) => void
+}
+
+export function InquiryChatHeader({ title, onClose, ...menuProps }: Parameters<typeof InquiryChatMenuTrigger>[0] & { title: string; onClose: () => void }) {
+  return <header>
+    <InquiryChatMenuTrigger {...menuProps}/>
+    <h2>{title}</h2>
+    <button aria-label="닫기" className="inquiry-chat__close" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
+  </header>
 }
 
 export function InquiryChatMenuTrigger({ standalone, disabled = false, open, onToggle, addDisabled, onSelect }: MenuProps & {

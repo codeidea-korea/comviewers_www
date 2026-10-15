@@ -32,6 +32,7 @@ import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentD
 import { accountKstDate } from '@/lib/accountFormat'
 import { PageBackButton } from '@/components/common/PageBackButton'
 import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
+import { RcpcFilterSelect } from '../RcpcFilterSelect'
 import './orders-mobile.css'
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
@@ -147,6 +148,8 @@ const displayOrderDate = (value: string | null) => {
 }
 
 export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
+  const mobile = useMobileInquiryViewport()
+  const FilterSelect = mobile ? RcpcFilterSelect : 'select'
   const { t } = useTranslation()
   const { myAccount } = useServices()
 
@@ -246,7 +249,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
         <div className="orders-list-toolbar">
           <strong><TranslatedText id="product.totalCount" values={{ count: result.data?.totalElements ?? 0 }} /></strong>
           <span><label>
-            <select
+            <FilterSelect
               aria-label={t('rental.status')}
               onChange={(event) => {
                 setRentalStatus((event.target.value || undefined) as AccountOrderQuery['rentalStatus'])
@@ -258,7 +261,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
               <option value="">{t('rental.status')}</option>
               {Object.entries(rentalStatusKeys)
                 .map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
-            </select>
+            </FilterSelect>
           </label>
           <button aria-expanded={periodOpen} aria-label={`기간 선택, 조회기간 ${dates.from.replaceAll('-', '.')} ~ ${dates.to.replaceAll('-', '.')}`} onClick={() => setPeriodOpen(true)} type="button"><span className="orders-period-label--desktop">{dates.from.replaceAll('-', '.')} ~ {dates.to.replaceAll('-', '.')}</span><span className="orders-period-label--mobile">기간 선택</span></button></span>
         </div>

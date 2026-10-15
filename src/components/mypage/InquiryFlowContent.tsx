@@ -2,9 +2,10 @@ import type { ReactNode, RefObject } from 'react'
 import type { InquiryComposer, InquiryTarget } from './inquiryFlowTypes'
 import { useState } from 'react'
 import { InquiryProductsPanel, type InquiryProductDetails } from './InquiryProductsPanel'
-import productThumb from '../../assets/figma/windows-card-render.png'
+import { InquiryChatProductCard } from './InquiryChatProductCard'
+import { Button } from '../ui/ButtonControl'
 import addIcon from '../../assets/figma/icon-add.svg'
-import { InquiryChatMenu, InquiryChatMenuTrigger, type InquiryChatMenuAction } from './InquiryChatMenu'
+import { InquiryChatMenu, InquiryChatHeader, type InquiryChatMenuAction } from './InquiryChatMenu'
 import modalClose from '../../assets/figma/inquiry-modal-close.svg'
 import radioOff from '../../assets/figma/select-radio-off.svg'
 import radioOn from '../../assets/figma/select-radio-on.svg'
@@ -94,25 +95,20 @@ export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, on
   />
   return (
     <section aria-label={standalone ? '문의 작성' : undefined} aria-modal={standalone ? undefined : true} className="inquiry-preview-dialog inquiry-chat" role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <header>
-        {standalone ? <button aria-label="문의 목록으로" onClick={onClose} type="button"><img alt="" className="inquiry-chat__back-icon" src={backChevron}/></button> : null}
-        <InquiryChatMenuTrigger standalone={standalone} disabled={composer.pending} open={menuOpen} onToggle={() => setMenuOpen(open => !open)} addDisabled={addDisabled} onSelect={selectMenuItem}/>
-        <h2>{`[작성 중] ${inquiryType}`}</h2>
-        {!standalone ? <button aria-label="닫기" onClick={onClose} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose} /></button> : null}
-      </header>
+      <InquiryChatHeader title={`[작성 중] ${inquiryType}`} standalone={standalone} disabled={composer.pending} open={menuOpen} onToggle={() => setMenuOpen(open => !open)} addDisabled={addDisabled} onSelect={selectMenuItem} onClose={onClose}/>
       <InquiryChatMenu open={menuOpen} onClose={() => setMenuOpen(false)} addDisabled={addDisabled} onSelect={selectMenuItem}/>
       <div className="inquiry-chat__scroll">
         
         {selectedRcpcs.length > 1 ? <p className="inquiry-chat__bulk-summary">선택한 RCPC {selectedRcpcs.length}대 일괄 문의</p> : null}
-        {selectedRcpcs.map((rcpc) => <article className="inquiry-chat__product" data-order-id={rcpc.orderId} data-rcpc-id={rcpc.rcpcId} data-selection-id={rcpc.selectionId} key={rcpc.selectionId ?? String(rcpc.rcpcId)}><span>선택 품목</span><img alt="RCPC 상품" src={productThumb} /><div><small>{rcpc.productNo}</small><b>{rcpc.alias?.trim() || '별명없음'}</b><em>{rcpc.location ?? '서버실 정보 없음'}</em></div></article>)}
+        {selectedRcpcs.map((rcpc) => <InquiryChatProductCard data-order-id={rcpc.orderId} data-rcpc-id={rcpc.rcpcId} data-selection-id={rcpc.selectionId} key={rcpc.selectionId ?? String(rcpc.rcpcId)} productNo={rcpc.productNo} alias={rcpc.alias} serverRoomName={rcpc.location}/>)}
         <p className="inquiry-chat__system">문의 유형과 대상 RCPC를 확인한 뒤 내용을 작성해 주세요.</p>
       </div>
       {composer.notice ? <p role={composer.notice === '문의 초안을 저장했습니다.' ? 'status' : 'alert'} className={`mypage-notice ${composer.notice === '문의 초안을 저장했습니다.' ? 'mypage-notice--success' : 'mypage-notice--error'}`}>{composer.notice}</p> : null}
-      <footer className="inquiry-chat__draft-composer"><img alt="" src={addIcon} /><input maxLength={4000} disabled={composer.pending} aria-label="문의 메시지" onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => {
+      <form className="inquiry-chat__composer" onSubmit={event => { event.preventDefault(); submitMessage() }}><div className="inquiry-chat__attachments"><img alt="" className="inquiry-chat__draft-attachment-icon" src={addIcon}/></div><label><span className="sr-only">새 메시지</span><textarea maxLength={4000} readOnly={composer.pending} aria-label="새 메시지" onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => {
         if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
         event.preventDefault()
         submitMessage()
-      }} placeholder="메시지를 입력해 주세요." value={message} /><button disabled={composer.pending || !message.trim()} onClick={submitMessage} type="button">{composer.pending ? '처리 중…' : submitLabel}</button></footer>
+      }} placeholder="메시지를 입력해 주세요." value={message}/></label><Button disabled={composer.pending || !message.trim()} type="submit">{composer.pending ? '전송 중…' : submitLabel}</Button></form>
     </section>
   )
 }

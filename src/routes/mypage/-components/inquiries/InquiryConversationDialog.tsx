@@ -6,9 +6,8 @@ import { DialogLayer } from '@/components/ui/DialogLayerControl'
 import { Button } from '@/components/ui/ButtonControl'
 import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { useSession } from '@/app/session/SessionProvider'
-import modalClose from '@/assets/figma/inquiry-modal-close.svg'
-import { InquiryChatMenu, InquiryChatMenuTrigger } from '@/components/mypage/InquiryChatMenu'
-import productThumb from '@/assets/figma/windows-card-render.png'
+import { InquiryChatMenu, InquiryChatHeader } from '@/components/mypage/InquiryChatMenu'
+import { InquiryChatProductCard } from '@/components/mypage/InquiryChatProductCard'
 import { AccountQueryState } from '../AccountQueryState'
 import { InquiryProductConversations } from '../InquiryProductConversations'
 import { inquiryTypeLabel } from '../InquiryPresentation'
@@ -20,7 +19,6 @@ import { InquiryChatProducts } from './InquiryChatProducts'
 import { useServices } from '@/app/ServiceProvider'
 import { loadAuthorizedRcpcs } from '../rcpcPresentation'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
-import './inquiry-detail-qa.css'
 
 const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
 
@@ -30,9 +28,7 @@ type TimelineEntry = { kind: 'message'; time: number; message: Chat['messages'][
   | { kind: 'product'; time: number; target: ChatTarget; index: number }
 
 function InquiryChatProduct({ target, onSelect }: { target: ChatTarget; onSelect: (productNo: string) => void }) {
-  return <article className="inquiry-chat__product">
-    <span>문의 상품</span><img alt="RCPC 상품" src={productThumb}/><div><small>{target.productNo ?? '상품 정보 없음'}</small><button type="button" onClick={() => target.productNo && onSelect(target.productNo)}>{target.alias?.trim() || '별명없음'}</button><em>{target.serverRoomName ?? '서버실 정보 없음'}</em></div>
-  </article>
+  return <InquiryChatProductCard productNo={target.productNo} alias={target.alias} serverRoomName={target.serverRoomName} onSelect={() => { if (target.productNo) onSelect(target.productNo) }}/>
 }
 
 export function InquiryConversationDialog({ api, id, onClose, standalone = false }: { api: InquiryReadServices; id: number; onClose: () => void; standalone?: boolean }) {
@@ -139,11 +135,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
     setAddingProducts(action === 'add')
   }
   const conversation = <section aria-label={standalone ? '문의 상세' : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <header>
-        <InquiryChatMenuTrigger standalone={standalone} disabled={!chat.data} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
-        <h2>[{chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] {type}</h2>
-        <button aria-label="닫기" className="inquiry-chat__close" onClick={close} type="button"><img alt="" className="inquiry-chat__icon inquiry-chat__icon--close" src={modalClose}/></button>
-      </header>
+      <InquiryChatHeader title={`[${chat.data ? customerStatusLabel(chat.data.operationRequest.customerVisibleStatus) : '조회 중'}] ${type}`} standalone={standalone} disabled={!chat.data} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
       <InquiryChatMenu open={productMenuOpen && Boolean(chat.data)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
       <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
