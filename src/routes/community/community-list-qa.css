@@ -13,7 +13,7 @@
 }
 @media (max-width: 767px) {
   .community-shell .community-hero .community-hero__decoration { display: block; left: auto; right: 0; }
-  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container { box-sizing: border-box; padding-inline: 12px; width: 100%; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container { box-sizing: border-box; max-width: none; padding-inline: 12px; width: 100%; }
   .community-shell .board-page.board-page--community-posts { display: grid; grid-template-columns: 222px minmax(0, 1fr); }
   .community-shell .board-page.board-page--community-posts > :not(.community-tabs, .board-write-button--mobile) { grid-column: 1 / -1; }
   .community-shell .board-page.board-page--community-posts > .community-tabs { grid-column: 1; grid-row: 1; min-width: 0; }
@@ -23,10 +23,10 @@
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar > span { grid-column: 1; grid-row: 1; }
   .community-shell .board-page .board-toolbar .board-toolbar__search { display: none; }
-  .community-shell .board-page .board-toolbar .board-toolbar__mobile-search { align-items: center; background: transparent; border: 0; display: flex; grid-column: 2; grid-row: 1; justify-content: center; padding: 0; }
-  .community-shell .board-page .board-toolbar .board-toolbar__mobile-search img { height: 24px; width: 24px; }
+  .community-shell .board-page .board-toolbar .board-toolbar__mobile-search { align-items: center; background: transparent; border: 0; display: flex; grid-column: 2; grid-row: 1; height: 24px; justify-content: center; padding: 0; width: 24px; }
+  .community-shell .board-page .board-toolbar .board-toolbar__mobile-search img { flex: 0 0 20px; height: 20px; width: 20px; }
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page.content-container .board-toolbar .board-toolbar__sort { border: 0; display: inline-grid; font-size: 14px; font-weight: 400; grid-column: 1 / -1; grid-row: 2; height: 24px; justify-self: end; letter-spacing: -.03em; line-height: 24px; position: relative; width: max-content; }
-  .community-shell .board-toolbar__sort .board-toolbar__sort-label { display: block; grid-area: 1 / 1; padding-right: 20px; visibility: hidden; white-space: nowrap; }
-  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page .board-toolbar .board-toolbar__sort select { appearance: none; background: transparent; border: 0; border-radius: 0; color: var(--color-gray-500); font: inherit; grid-area: 1 / 1; height: 24px; padding: 0 20px 0 0; width: 100%; -webkit-text-fill-color: var(--color-gray-500); }
+  .community-shell .board-toolbar__sort .board-toolbar__sort-label { display: block; grid-area: 1 / 1; padding-right: 24px; visibility: hidden; white-space: nowrap; }
+  .community-shell:has(.community-hero:not(.community-hero--support)) .board-page .board-toolbar .board-toolbar__sort select { appearance: none; background: transparent; border: 0; border-radius: 0; color: var(--color-gray-500); font: inherit; grid-area: 1 / 1; height: 24px; min-width: 0; padding: 0 24px 0 0; width: 100%; -webkit-text-fill-color: var(--color-gray-500); }
   .community-shell:has(.community-hero:not(.community-hero--support)) .board-page .board-toolbar .board-toolbar__sort img { height: 7.4px; pointer-events: none; right: 0; top: 8.3px; width: 12px; }
 }
