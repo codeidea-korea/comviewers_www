@@ -18,7 +18,7 @@ import { DialogLayer } from '@/components/ui/DialogLayerControl'
 import { Checkbox } from '@/components/ui/CheckboxControl'
 import { FavoritesSettingsDialog, NewFavoritesGroupDialog, type FavoriteGroupOption } from '../modals/FavoritesGroupDialogs'
 import { endedRental, extensionBlocked, extensionTarget } from '../rcpcPresentation'
-import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
+import { RcpcListTable } from '../RcpcListSurface'
 import { useSession } from '@/app/session/SessionProvider'
 import { useServices } from '@/app/ServiceProvider'
 import { canManageFavorites, FavoritesManageOnly } from '../favoritesAccess'
@@ -212,7 +212,12 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedRentals(new Set()) }} returnFocusRef={refundTriggerRef}/> : null}
       {canManage ? <FavoritesSettingsDialog error={assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
       {rowsData ? <>
-      <RcpcDashboardTable api={api} canEditAlias={owner} canExtend={canExtend} className="favorites-table" items={rowsData.items} selected={visibleSelection} onSelectedChange={setSelectedRentals} sortConfig={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} mobileVariant="rcpc" onAliasSaved={() => rows.refetch()}/>
+      <RcpcListTable api={api} canEditAlias={owner} canExtend={canExtend} items={rowsData.items} sortConfig={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage="즐겨찾기로 등록된 RCPC가 없습니다." mutations={canManage ? mutations : undefined} selection={{
+        header: <Checkbox aria-label="현재 페이지 RCPC 전체 선택" checked={allSelected} indeterminate={partiallySelected} disabled={selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>,
+        isSelected: item => visibleSelection.has(item.rentalId),
+        isDisabled: extensionBlocked,
+        onChange: (item, checked) => setSelectedRentals(previous => new Set(checked ? [...previous, item.rentalId] : [...previous].filter(id => id !== item.rentalId))),
+      }}/>
       {rowsData.totalPages > 1 ? <Pagination currentPage={rowsData.page + 1} totalPages={rowsData.totalPages} onPageChange={(nextPage) => { setPage(nextPage - 1); setSelectedRentals(new Set()) }}/> : null}
       </> : null}
     </section>

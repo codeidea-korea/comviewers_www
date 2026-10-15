@@ -39,7 +39,7 @@
     font-size: 14px;
     padding: 0;
   }
-  .rcpc-list-page .rcpc-list--table,
+  .rcpc-list--table,
   .mypage-home-section--rcpc > .mypage-home-rcpc { display: none; }
   .inquiry-catalog__table { display: none; }
   .manager-catalog__table { display: none; }

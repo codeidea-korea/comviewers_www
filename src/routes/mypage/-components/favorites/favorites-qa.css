@@ -2,11 +2,14 @@
 .mypage-shell .favorites-page .favorites-results__summary .favorites-results__filters { display: flex; justify-content: flex-end; width: auto; }
 .mypage-shell .favorites-page .favorites-results__summary { border-bottom: 1px solid var(--color-gray-200); }
 .mypage-shell .favorites-page .favorites-results .favorites-results__toolbar { border-top: 0; }
+.favorites-results > .rcpc-list--table { overflow-x: auto; }
+.favorites-results > .pagination { height: 24px; margin-top: 60px; }
 @media (min-width: 768px) {
   .mypage-shell .mypage-layout:has(.favorites-page) > .mypage-sidebar { margin-top: 0; }
   .mypage-shell .favorites-page .favorites-results__summary .favorites-results__filters { gap: 8px; }
 }
 @media (max-width: 767px) {
+  .favorites-results > .pagination { margin-top: 40px; }
   .mypage-shell:has(.favorites-page) .mypage-mobile-header__exit--home { display: none; }
   .mypage-shell .favorites-page .favorites-results__summary { align-items: center; display: flex; flex-wrap: wrap; }
   .mypage-shell .favorites-page .favorites-results__filters .favorites-results__region { display: none; }
