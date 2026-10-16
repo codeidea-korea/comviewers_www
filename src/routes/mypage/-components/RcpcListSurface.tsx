@@ -1,6 +1,7 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { InquiryAction } from './inquiries/InquiryAction'
+import { InquirySearchAction } from './inquiries/InquirySearchAction'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import type { MyRcpcItem, MyRcpcQuery } from '@/api/myRcpc'
@@ -179,7 +180,7 @@ function RcpcState({ item }: { item: MyRcpcItem }) {
 
 function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
   return <div className="rcpc-list__actions" role="cell">
-    <span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span>
+    <span><RcpcReboot api={api} item={item}/><InquirySearchAction productNo={item.productNo}/></span>
     <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
   </div>
 }
@@ -213,7 +214,7 @@ export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, 
       <div><dt>{uiText("트래픽 사용량")}</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
     </dl>
     <footer>
-      <span><RcpcReboot api={api} item={item}/><InquiryAction fixedTarget initialIds={[item.pcAssetId]} /></span>
+      <span><RcpcReboot api={api} item={item}/><InquirySearchAction productNo={item.productNo}/></span>
       <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
     </footer>
   </article>

@@ -1,5 +1,5 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { managerScopedPath } from '../managerPortalPath'
@@ -57,14 +57,20 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
   const { uiText, t, locale } = useUiTranslation()
 
   const [params] = useSearchParams()
-  const [query, setQuery] = useState<OperationRequestQuery>({ page: 0, size: 20 })
-  const [productSearch, setProductSearch] = useState('')
+  const initialProductNo = (params.get('productNo') ?? '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16)
+  const [query, setQuery] = useState<OperationRequestQuery>({ page: 0, size: 20, productNo: initialProductNo || undefined })
+  const [productSearch, setProductSearch] = useState(initialProductNo)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const mobile = useMobileInquiryViewport()
   const FilterSelect = mobile ? RcpcFilterSelect : NativeSelect
   const initialIds = [...new Set((params.get('pcAssetIds') ?? '').split(',').filter(value => /^[1-9]\d*$/.test(value)).map(Number).filter(Number.isSafeInteger))].slice(0, 20)
-  const initialProductNo = (params.get('productNo') ?? '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16)
-  const [createOpen, setCreateOpen] = useState(initialIds.length > 0 || !!initialProductNo)
+  const createProductNo = params.get('compose') === '1' ? initialProductNo : ''
+  const [createOpen, setCreateOpen] = useState(initialIds.length > 0 || params.get('compose') === '1')
+  useEffect(() => {
+    setProductSearch(initialProductNo)
+    setQuery(current => ({ ...current, page: 0, productNo: initialProductNo || undefined }))
+    setCreateOpen(initialIds.length > 0 || params.get('compose') === '1')
+  }, [initialProductNo, params])
   const [canRetainRows, setCanRetainRows] = useState(true)
   const rows = useQuery({
     queryKey: ['operation-requests', api.organizationId, query],
@@ -89,7 +95,7 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
   }
   return <MyPageLayout title={uiText("문의 관리")}><section className="inquiry-catalog">
     {!accessDenied && !waitingForRows && detailId && onCloseDetail ? <InquiryConversationDialog key={`${api.organizationId}:${detailId}`} api={api} id={detailId} onClose={onCloseDetail}/> : null}
-    {!accessDenied && !waitingForRows && createOpen && <InquiryDialog api={api} rcpcApi={rcpcApi} initialIds={initialIds} initialProductNo={initialProductNo} onClose={() => setCreateOpen(false)}/>}
+    {!accessDenied && !waitingForRows && createOpen && <InquiryDialog api={api} rcpcApi={rcpcApi} initialIds={initialIds} initialProductNo={createProductNo} onClose={() => setCreateOpen(false)}/>}
     <div className="inquiry-catalog__filters">
       <button aria-expanded={mobileSearchOpen} aria-label={uiText("품번 검색 열기")} className="inquiry-catalog__search-toggle" disabled={accessDenied} onClick={() => setMobileSearchOpen(open => !open)} type="button"><img alt="" src={mypageSearch}/></button>
       <label><span className="sr-only">{uiText("문의 유형")}</span><FilterSelect disabled={accessDenied} value={query.requestType ?? ''} onChange={event => setQuery(current => ({ ...current, page: 0, requestType: (event.target.value || undefined) as OperationRequestQuery['requestType'] }))}><option value="">{uiText("전체 문의 유형")}</option>{Object.entries(inquiryTypes).map(([code, label]) => <option key={code} value={code}>{uiText(label)}</option>)}</FilterSelect></label>
@@ -102,17 +108,17 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
     </MobileBottomSheet>
     {query.productNo ? <div className="inquiry-catalog__mobile-search-tag"><span>{uiText("품번:")} {query.productNo}</span><button aria-label={uiText("품번 검색 조건 해제")} disabled={accessDenied} onClick={() => { setProductSearch(''); setQuery(current => ({ ...current, page: 0, productNo: undefined })) }} type="button">×</button></div> : null}
     {!accessDenied ? <AccountQueryState pending={rows.isPending} error={rows.error} retry={rows.refetch}/> : null}
-    {data ? <><div aria-busy={rows.isPlaceholderData} aria-label={uiText("문의 목록")} className="inquiry-catalog__table" inert={rows.isPlaceholderData} role="table"><div className="inquiry-catalog__head" role="row"><span role="columnheader">{uiText("문의 유형")}</span><span role="columnheader">{uiText("대상 RCPC")}</span><span role="columnheader">{uiText("최근 메시지")}</span><span role="columnheader">{uiText("최근 활동")}</span><span role="columnheader">{uiText("문의 상태")}</span><span role="columnheader">{uiText("등록일")}</span></div>{data.items.map(item => <div className="inquiry-catalog__row" key={item.operationRequestId} role="row">
-      <span role="cell"><InquiryAction appearance="text" className="inquiry-catalog__row-link" requestId={item.operationRequestId}>{uiText(inquiryTypeLabel(item.requestType))}<span className="sr-only"> {uiText("문의 상세 보기")}</span></InquiryAction></span><span role="cell">{item.targetProductNos || uiText("선택안함")}</span><span role="cell"><small>{item.lastMessage ? uiText(messageAuthorLabel(item.lastMessageAuthorType)) : ''}</small><small>{item.lastMessage ?? uiText("등록된 메시지가 없습니다.")}</small></span><span role="cell">{activityLabel(item.lastActivityAt, locale, t, uiText)}</span><span role="cell">{uiText(customerStatusLabel(item.customerVisibleStatus))}</span><span role="cell">{registrationDate(item.createdAt)}</span>
+    {data ? <><div aria-busy={rows.isPlaceholderData} aria-label={uiText("문의 목록")} className="inquiry-catalog__table" inert={rows.isPlaceholderData} role="table"><div className="inquiry-catalog__head" role="row"><span role="columnheader">{uiText("문의 유형")}</span><span role="columnheader">{uiText("대상 RCPC")}</span><span role="columnheader">{uiText("최근 메시지")}</span><span role="columnheader">{uiText("최근 활동")}</span><span role="columnheader">{uiText("문의 상태")}</span><span role="columnheader">{uiText("등록일")}</span><span role="columnheader">{uiText("보기")}</span></div>{data.items.map(item => <div className="inquiry-catalog__row" key={item.operationRequestId} role="row">
+      <span role="cell">{uiText(inquiryTypeLabel(item.requestType))}</span><span role="cell">{item.targetProductNos || uiText("선택안함")}</span><span role="cell"><small>{item.lastMessage ? uiText(messageAuthorLabel(item.lastMessageAuthorType)) : ''}</small><small>{item.lastMessage ?? uiText("등록된 메시지가 없습니다.")}</small></span><span role="cell">{activityLabel(item.lastActivityAt, locale, t, uiText)}</span><span role="cell">{uiText(customerStatusLabel(item.customerVisibleStatus))}</span><span role="cell">{registrationDate(item.createdAt)}</span><span role="cell"><InquiryAction requestId={item.operationRequestId}>{uiText("보기")}</InquiryAction></span>
     </div>)}{!data.items.length ? <p className="mypage-empty">{query.requestType || query.customerVisibleStatus || query.productNo ? uiText("검색 조건에 해당하는 문의가 없습니다.") : uiText("등록된 문의 내역이 없습니다.")}</p> : null}</div><div aria-busy={rows.isPlaceholderData} aria-label={uiText("모바일 문의 목록")} className="mobile-inquiry-list" inert={rows.isPlaceholderData}>{data.items.map(item => <article className="mobile-inquiry-card" key={item.operationRequestId}>
-      <h2><InquiryAction appearance="text" requestId={item.operationRequestId}>{uiText(inquiryTypeLabel(item.requestType))}</InquiryAction></h2>
+      <h2>{uiText(inquiryTypeLabel(item.requestType))}</h2>
       <dl>
         <div><dt>{uiText("대상 RCPC")}</dt><dd>{item.targetProductNos || uiText("선택안함")}</dd></div>
         <div><dt>{item.lastMessage ? uiText(messageAuthorLabel(item.lastMessageAuthorType)) : uiText("최근 메시지")}</dt><dd>{item.lastMessage ?? uiText("등록된 메시지가 없습니다.")}</dd></div>
         <div><dt>{uiText("최근 활동")}</dt><dd>{activityLabel(item.lastActivityAt, locale, t, uiText)}</dd></div>
         <div><dt>{uiText("문의 상태")}</dt><dd>{uiText(customerStatusLabel(item.customerVisibleStatus))}</dd></div>
         <div><dt>{uiText("등록일")}</dt><dd>{registrationDate(item.createdAt)}</dd></div>
-      </dl>
+      </dl><InquiryAction requestId={item.operationRequestId}>{uiText("보기")}</InquiryAction>
     </article>)}{!data.items.length ? <p className="mypage-empty">{query.requestType || query.customerVisibleStatus || query.productNo ? uiText("검색 조건에 해당하는 문의가 없습니다.") : uiText("등록된 문의 내역이 없습니다.")}</p> : null}</div>{Math.ceil(data.total / data.size) > 1 ? <Pagination currentPage={(rows.isPlaceholderData ? query.page ?? 0 : data.page) + 1} totalPages={Math.ceil(data.total / data.size)} onPageChange={page => setQuery(previous => ({ ...previous, page: page - 1 }))}/> : null}</> : null}
     {accessDenied ? <AccountReadDeniedDialog key={api.organizationId} resource={uiText("문의")}/> : null}
   </section></MyPageLayout>
