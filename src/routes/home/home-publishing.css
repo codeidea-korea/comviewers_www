@@ -58,45 +58,66 @@ html.translated-ltr .app-shell--home :is(
 .app-shell--home .home-product-grid .product-card,
 .app-shell--home .home-product-grid .product-card__info { min-width: 0; }
 
-/* Specification rows must grow with translated labels and hardware names. */
+/* Keep the Korean card's text slots in every locale; truncate within them. */
 .app-shell--home .home-product-grid .product-card--medium { height: auto; min-height: 465px; }
 .app-shell--home .home-product-grid .product-card__image { flex-shrink: 0; }
 .app-shell--home .home-product-grid .product-card__info { gap: 18px; }
 .app-shell--home .home-product-grid .product-card__specs {
   display: flex;
   gap: 14.6px;
-  height: auto;
-  min-height: 226px;
+  flex: 0 0 226px;
+  height: 226px;
+  min-height: 0;
 }
 .app-shell--home .home-product-grid .product-card__spec:nth-child(n) {
-  height: auto;
-  min-height: 17px;
+  flex: 0 0 auto;
+  grid-template-columns: 40px minmax(0, 1fr);
+  height: 17px;
+  min-height: 0;
   position: static;
+  width: 100%;
 }
-.app-shell--home .home-product-grid .product-card__spec:first-child { min-height: 27px; }
-.app-shell--home .home-product-grid .product-card__spec--cpu dd {
+.app-shell--home .home-product-grid .product-card__spec:first-child { height: 27px; }
+.app-shell--home .home-product-grid .product-card__spec--cpu:nth-child(n) { height: 34px; }
+.app-shell--home .home-product-grid .product-card__spec:nth-child(n+4) { height: 25px; }
+.app-shell--home .home-product-grid .product-card__spec > :is(dt, dd) {
   display: block;
-  height: auto;
-  min-height: 34px;
-  overflow: visible;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+}
+.app-shell--home .home-product-grid .product-card__spec--cpu dd {
+  display: -webkit-box;
+  height: 34px;
+  line-height: 17px;
+  min-height: 0;
   overflow-wrap: anywhere;
-  -webkit-line-clamp: unset;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
-.app-shell--home .home-product-grid .product-card__spec--os dd { white-space: normal; }
-.app-shell--home .home-product-grid .product-card:is(:lang(en), :lang(ja), :lang(zh)) .product-card__spec {
-  grid-template-columns: 80px minmax(0, 1fr);
-}
-.app-shell--home .home-product-grid .product-card__spec dt { min-width: 0; overflow-wrap: normal; word-break: normal; }
+.app-shell--home .home-product-grid .product-card__spec:nth-child(n+4) > dd { width: fit-content; }
 .app-shell--home .home-product-grid .product-card__purchase { flex: 0 0 auto; height: auto; }
 .app-shell--home .home-product-grid .product-card__price { height: auto; min-height: 34px; padding-top: 16px; }
 .app-shell--home .home-product-grid .product-card__price > span {
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  height: auto;
+  flex-wrap: nowrap;
+  gap: 8px;
+  height: 18px;
   min-height: 18px;
   position: static;
 }
-.app-shell--home .home-product-grid .product-card__price-value { flex-shrink: 0; margin-left: auto; }
+.app-shell--home .home-product-grid .product-card__price > span > .notranslate:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-shell--home .home-product-grid .product-card__price-value { flex-shrink: 0; margin-left: auto; max-width: calc(100% - 8px); min-width: 0; }
+.app-shell--home .home-product-grid .product-card__price-value b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .home-outline-button__icon {
   align-items: center;
@@ -112,38 +133,6 @@ html.translated-ltr .app-shell--home :is(
   flex: 0 0 auto;
   height: 10px;
   width: 6.16667px;
-}
-
-.app-shell--home .home-product-grid .product-card__spec {
-  grid-template-columns: 40px minmax(0, 1fr);
-  width: 100%;
-}
-.app-shell--home .home-product-grid .product-card:lang(en) .product-card__spec {
-  grid-template-columns: minmax(50px, max-content) minmax(0, 1fr);
-}
-.app-shell--home .home-product-grid .product-card:lang(en) .product-card__spec--number {
-  grid-template-columns: 50px minmax(0, 1fr);
-}
-.app-shell--home .home-product-grid .product-card:lang(zh-TW) .product-card__specs {
-  gap: 12px;
-  min-height: 0;
-}
-.app-shell--home .home-product-grid .product-card:is(:lang(ja), :lang(zh-CN), :lang(zh-TW)) .product-card__spec {
-  grid-template-columns: 56px minmax(0, 1fr);
-}
-.app-shell--home .home-product-grid .product-card:lang(zh-TW) .product-card__spec--cpu dd { min-height: 0; }
-
-.app-shell--home .home-product-grid :is(
-  .product-card__spec--ram,
-  .product-card__spec--disk,
-  .product-card__spec--gpu
-) > dd {
-  display: block;
-  max-width: 100%;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  width: fit-content;
 }
 
 .home-section-heading__arrow {
