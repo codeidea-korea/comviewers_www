@@ -122,13 +122,14 @@
     display: grid;
     gap: 0 8px;
     grid-column: 2;
-    grid-template-columns: auto minmax(0, 1fr);
+    /* Keep room for the server-room badge's 6px inline padding on both sides. */
+    grid-template-columns: minmax(0, max-content) minmax(12px, 1fr);
     height: auto;
     min-width: 0;
   }
-  .orders-catalog-list .order-catalog-item__heading > strong { line-height: 24px; white-space: nowrap; }
+  .orders-catalog-list .order-catalog-item__heading > strong { line-height: 24px; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
   .orders-catalog-list .order-catalog-item__heading > small { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .orders-catalog-list .order-catalog-item__state { grid-column: 1 / -1; min-height: 28px; }
+  .orders-catalog-list .order-catalog-item__state { flex-wrap: wrap; grid-column: 1 / -1; min-height: 28px; min-width: 0; overflow-wrap: anywhere; }
   .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status]:not([data-status='disabled']) { border-radius: 50%; box-sizing: border-box; height: 24px; object-fit: scale-down; padding: 2px; width: 24px; }
   .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status='on'] { background: var(--color-surface-success-soft); }
   .mypage-shell .orders-catalog-list .order-catalog-item__state img[data-status='off'],

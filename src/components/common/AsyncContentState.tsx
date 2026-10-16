@@ -34,7 +34,8 @@ export function EmptyState({
   role?: AriaRole
 }) {
   const { uiText } = useUiTranslation()
-  return <div className={mergeClasses('data-state', 'data-state--empty', className)} role={role}>{typeof children === 'string' ? uiText(children) : children}</div>
+  const translatedMessage = typeof children === 'string'
+  return <div className={mergeClasses('data-state', 'data-state--empty', className, translatedMessage && 'notranslate')} role={role} translate={translatedMessage ? 'no' : undefined}>{translatedMessage ? uiText(children) : children}</div>
 }
 
 export function ErrorState({
