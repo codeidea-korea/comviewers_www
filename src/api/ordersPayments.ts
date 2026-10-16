@@ -36,9 +36,19 @@ export interface PaymentPreparationRequest {
   cashReceiptIdentifier: string | null
 }
 
+const checkoutCancellation = z.object({
+  status: z.enum(['completed', 'partial', 'pending', 'blocked']), orderNo: z.string().nullable(), reason: z.string().nullable(),
+  items: z.array(z.object({ orderItemId: id, sourceType: z.string(), sourceId: id.nullable(), restoredItemId: id.nullable(),
+    status: z.enum(['restored', 'skipped', 'not_applicable']), reason: z.string().nullable() })),
+})
+export type CheckoutCancellation = z.infer<typeof checkoutCancellation>
+export interface CheckoutCancellationRequest { creationKey: string; source: 'cart' | 'extension'; originalRequest: unknown }
+
 export function createOrdersPaymentsApi(client: ApiClient, organizationId: string) {
   const scoped = { authenticated: true, customerOrganizationId: organizationId } as const
   return {
+    cancelCheckout: (body: CheckoutCancellationRequest) => client.request('/api/v1/orders/checkout-cancellation', checkoutCancellation,
+      { ...scoped, method: 'POST', body: { ...body, creationKey: z.uuidv4().parse(body.creationKey) } }),
     directEasyPayMethods: (signal?: AbortSignal) => client.request('/api/v1/payments/direct-easy-pay-methods', directEasyPayMethods, { ...scoped, signal }),
     resume: (orderNo: string, key: string) => client.request('/api/v1/payments/resume', prepared, { ...scoped, method: 'POST', body: { orderNo, paymentMethod: 'card', cashReceiptType: 'not_requested', cashReceiptIdentifier: null }, idempotencyKey: z.uuidv4().parse(key) }),
     benefitQuote: (body: { cartItemIds: number[]; userCouponId: number | null; pointAmount: number }, signal?: AbortSignal) => client.request('/api/v1/orders/quote', benefitQuote, { ...scoped, method: 'POST', body, signal }),

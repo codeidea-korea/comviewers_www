@@ -1,0 +1,36 @@
+const reasons: Readonly<Record<string, string>> = {
+  source_snapshot_unavailable: '주문 생성 당시 구매 목록의 복구 정보가 없습니다.',
+  cart_owner_changed: '장바구니 소유 상태가 변경되어 복구하지 못했습니다.',
+  product_already_in_cart: '다른 탭 등에서 이미 같은 상품을 담아 기존 항목을 유지했습니다.',
+  product_conditions_changed: '상품 조건이 변경되어 복구하지 못했습니다.',
+  cart_requoted: '상품·수량·기간을 새 장바구니 항목으로 복구했습니다. 현재 조건으로 다시 견적됩니다.',
+  storage_ready: '기존 보관함 배정과 결제기한을 유지해 복구했습니다.',
+  storage_changed_or_expired: '보관함이 변경되었거나 결제기한이 만료되어 복구하지 못했습니다.',
+  storage_cart_link_changed: '보관함과 장바구니의 연결이 변경되어 기존 항목을 유지했습니다.',
+  extension_offer_ready: '유효한 연장 제안을 다시 구매할 수 있습니다.',
+  extension_changed_or_expired: '연장 조건이 변경되었거나 제안이 만료되어 복구하지 못했습니다.',
+  direct_extension_can_be_requoted: '기존 이용기간을 유지했습니다. 기간 연장은 현재 조건으로 다시 견적할 수 있습니다.',
+  CANCELLED_BEFORE_CREATION: '주문 생성 전에 취소되어 구매 목록을 유지했습니다.',
+  LEGACY_CHECKOUT_BINDING_MISSING: '이 주문은 취소 복구에 필요한 생성 이력을 확인할 수 없습니다.',
+  EXPIRATION_IN_PROGRESS: '주문 만료 처리가 진행 중입니다. 잠시 후 다시 확인해 주세요.',
+  PAYMENT_STATE_CHANGED: '결제 상태가 변경되었습니다. 다시 확인해 주세요.',
+  ORDER_NOT_UNAPPROVED: '미승인 주문이 아니므로 자동으로 취소하지 않았습니다.',
+  SOURCE_RESTORE_PARTIAL: '일부 항목은 현재 상태가 변경되어 복구하지 못했습니다.',
+  PAYMENT_APPROVED: '이미 결제가 완료되었습니다. 주문내역에서 확인해 주세요.',
+  VIRTUAL_ACCOUNT_DEPOSIT_POSSIBLE: '입금 가능한 가상계좌가 있어 주문과 선점을 유지했습니다.',
+  PAYMENT_COMPENSATION_PENDING: '결제 정정 처리가 완료되지 않았습니다.',
+  PROVIDER_STATE_UNRESOLVED: '결제사에서 안전한 미승인 종료를 확인하지 못했습니다.',
+  PROVIDER_QUERY_FAILED: '결제사 상태를 조회하지 못했습니다. 잠시 후 다시 확인해 주세요.',
+  PROVIDER_IDENTITY_MISMATCH: '결제 정보가 일치하지 않아 주문과 선점을 유지했습니다.',
+  APPROVAL_DISPATCH_UNRESOLVED: '결제 승인 요청의 결과를 확인 중입니다.',
+  AUTHORIZATION_REVOKED: '회원 또는 조직의 이용 권한이 변경되어 주문서 취소를 중단했습니다. 주문내역을 확인해 주세요.',
+  CANCELLATION_ACTOR_MISSING: '취소 요청자 정보를 확인할 수 없어 자동 처리를 중단했습니다. 주문내역을 확인해 주세요.',
+  CANCELLATION_RECONCILING: '주문서 취소와 결제 상태를 확인 중입니다. 잠시 후 다시 확인해 주세요.',
+  CANCELLATION_NO_LONGER_PENDING: '주문서 취소 대상의 상태가 변경되었습니다. 주문내역을 확인해 주세요.',
+  RETIRED_PAYMENT_REVIEW_REQUIRED: '이전 결제 시도의 결과를 확인 중입니다. 주문내역을 확인해 주세요.',
+  SYSTEM_PAYMENT_RECONCILIATION_REQUIRED: '결제사 결과가 확인되어 주문서 취소를 중단했습니다. 주문내역에서 처리 결과를 확인해 주세요.',
+}
+
+export function checkoutCancellationReason(reason: string | null | undefined): string {
+  return reason ? reasons[reason] ?? '구매 목록의 현재 상태가 변경되었습니다. 목록에서 다시 확인해 주세요.' : ''
+}

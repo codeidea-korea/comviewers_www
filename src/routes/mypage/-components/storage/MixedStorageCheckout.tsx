@@ -1,6 +1,6 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
 import { accountMoney } from '../shared/AccountReadCommon'
 
@@ -25,6 +25,7 @@ export function MixedStorageCheckout({ children, rentalsState = 'ready', hasExte
   const [groups, setGroups] = useState<Groups>({ rentals: empty, parts: { ...empty, state: 'pending' },
     extensions: { ...empty, state: hasExtensionSource ? 'pending' : 'ready' } })
   const navigate = useNavigate()
+  const location = useLocation()
   const report = useCallback((kind: keyof Groups, group: StorageSelectedGroup) => setGroups(previous => ({ ...previous, [kind]: group })), [])
   const hasPending = rentalsState === 'pending' || groups.parts.state === 'pending' || groups.extensions.state === 'pending'
   const hasError = rentalsState === 'error' || groups.parts.state === 'error' || groups.extensions.state === 'error'
@@ -42,7 +43,7 @@ export function MixedStorageCheckout({ children, rentalsState = 'ready', hasExte
   const startCheckout = () => {
     if (!valid) return
     const offerIds = groups.extensions.items.map(item => item.id)
-    const state = extensionCheckoutStateSchema.parse({ kind: 'extension', ...(offerIds.length ? { offerIds } : {}), selection: {
+    const state = extensionCheckoutStateSchema.parse({ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, ...(offerIds.length ? { offerIds } : {}), selection: {
       rentalIds: groups.extensions.items.map(item => item.rentalId), pointAmount: 0,
       ...(offerIds.length ? { offerIds } : {}),
       ...(groups.rentals.items.length ? { storageItems: groups.rentals.items.map(item => ({ itemId: item.id, durationUnits: item.units })) } : {}),

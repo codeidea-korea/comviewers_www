@@ -23,29 +23,36 @@ import { useInvalidateProductCatalog } from './-components/hooks/useInvalidatePr
 import './checkout-mobile.css'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
 import { CheckoutExtensionContent } from './-components/checkout/CheckoutExtensionContent'
+import { CheckoutCancellation } from './-components/checkout/CheckoutCancellation'
+import { checkoutCreationBody } from '@/domain/checkout/httpCheckoutRepository'
+import { checkoutReturnTo } from '@/domain/checkout/checkoutReturnTo'
+import { useCheckoutRecovery } from './-components/checkout/hooks/useCheckoutRecovery'
 
 type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote;
   created?: { orderNo: string; finalAmount: number } }
 
-function CheckoutContent({ ids }: { ids: readonly string[] }) {
+function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: string }) {
   const { uiText } = useUiTranslation()
   const { checkout, myAccount } = useServices()
   const navigate = useNavigate()
+  const recovery = useCheckoutRecovery(`cart:${JSON.stringify(ids)}`, returnTo)
   const client = useQueryClient()
   const invalidateCatalog = useInvalidateProductCatalog()
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const unresolvedCustomerCancellation = useRef(false)
   const [paymentRetryReady, setPaymentRetryReady] = useState(false)
+  const [paymentClosed, setPaymentClosed] = useState(false)
   const [couponId, setCouponId] = useState<number | null>(null)
   const [points, setPoints] = useState('0')
   const [paymentAvailabilityError, setPaymentAvailabilityError] = useState<string | null>(null)
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null)
   const [attempt, setAttempt] = useState<CheckoutAttempt | null>(null)
+  const [cancellationStarted, setCancellationStarted] = useState(false)
   const attemptRef = useRef<CheckoutAttempt | null>(null)
   const submitting = useRef(false)
   const windowAbort = useRef<AbortController | null>(null)
   useEffect(() => () => windowAbort.current?.abort(), [])
-  const result = useCheckoutQuote(ids, !attempt)
+  const result = useCheckoutQuote(ids, !attempt && !recovery.record)
   const directEasyPayMethods = useQuery({ queryKey: ['checkout', 'direct-easy-pay-methods'],
     queryFn: ({ signal }) => checkout.directEasyPayMethods!(signal), enabled: Boolean(checkout.directEasyPayMethods), retry: false })
   const availableDirectEasyPay = directEasyPayMethods.data
@@ -53,7 +60,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     queryFn: ({ signal }) => checkout.benefitQuote!(ids, couponId, Number(points), signal),
     // Preserve point limits while typing, but never reuse a different coupon's quote.
     placeholderData: previous => previous?.userCouponId === couponId ? previous : undefined,
-    enabled: Boolean(checkout.benefitQuote && result.data?.checkoutEligible && !attempt), retry: false,
+    enabled: Boolean(checkout.benefitQuote && result.data?.checkoutEligible && !attempt && !recovery.record), retry: false,
     staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
   const invalidDiscountSelection = benefits.error instanceof ApiClientError && benefits.error.code === 'C001'
   function retryBenefitQuote() {
@@ -91,15 +98,15 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
       return
     }
     if (status === 'cancelled' || status === 'failed') {
-      attemptRef.current = null
-      setAttempt(null)
+      setPaymentClosed(true)
       setUnresolvedOrderId(null)
       setPaymentRetryReady(false)
       unresolvedCustomerCancellation.current = false
-      setPaymentNotice(status === 'failed' ? '결제에 실패했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.' : '결제를 취소했습니다. 결제수단을 변경하거나 다시 주문할 수 있습니다.')
+      setPaymentNotice('결제가 종료되었습니다. 주문내역에서 처리 결과를 확인해 주세요.')
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
       return
     }
+    if (status === 'approved') recovery.clear()
     throw new Error(status === 'approved'
       ? '이미 승인된 결제입니다. 주문내역에서 처리 결과를 확인해 주세요.'
       : '결제 상태를 확인 중입니다. 결제 상태를 다시 확인하거나 주문내역을 확인해 주세요.')
@@ -119,9 +126,11 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
       || (current.created && payment.orderNo !== current.created.orderNo))
       throw new Error('주문 금액을 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     const preparedAttempt = { ...current, created: { orderNo: payment.orderNo, finalAmount: payment.amount } }
+    recovery.bindOrder(payment.orderNo)
     attemptRef.current = preparedAttempt
     setAttempt(preparedAttempt)
     if (payment.paymentStatus === 'approved') {
+      recovery.clear()
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
       if (!controller.signal.aborted) navigate(`/checkout/complete?paymentId=${payment.paymentId}`)
       return
@@ -138,7 +147,7 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
     }
   } })
   async function submitOrder() {
-    if (submitting.current) return
+    if (submitting.current || cancellationStarted || paymentClosed || (!attemptRef.current && recovery.record)) return
     setPaymentAvailabilityError(null)
     setPaymentNotice(null)
     let current = attemptRef.current
@@ -168,7 +177,9 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
       const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
       current = { quote: result.data, benefits: benefits.data, input: { cartItemIds: ids, contact: draft.contact, payment,
         cashReceiptType: draft.receiptType, cashReceiptIdentifier: draft.receiptIdentifier, userCouponId: couponId,
-        pointAmount: Number(points), expectedFinalAmount: benefits.data.finalAmount, idempotencyKey: crypto.randomUUID() } }
+        pointAmount: Number(points), expectedFinalAmount: benefits.data.finalAmount, creationKey: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() } }
+      try { recovery.persist({ creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) }) }
+      catch (error) { setPaymentAvailabilityError(error instanceof Error ? error.message : '주문서 복구 정보를 보관하지 못했습니다.'); return }
       attemptRef.current = current
       setAttempt(current)
     }
@@ -181,6 +192,12 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
   const refreshing = !attempt && (result.isFetching || !benefitReady)
   const pageState = quote ? 'filled' : 'empty'
   const contentStatus = attempt ? null : !result.validSelection ? 'empty' : result.isPending ? 'loading' : result.isError ? 'error' : null
+  if (!attempt && recovery.record) return <AppShell className="commerce-shell checkout-page checkout-page--service" footerVariant="compact">
+    <div className="content-container commerce-page"><PageTitle>{uiText('주문서 작성')}</PageTitle>
+      <p role="status">{uiText('이전에 생성 요청한 주문서가 있습니다. 주문서 작성 취소에서 결제와 구매 목록의 상태를 확인해 주세요.')}</p>
+      <CheckoutCancellation disabled={false} returnTo={recovery.record.returnTo} request={() => recovery.record?.request ?? null} onLock={() => setCancellationStarted(true)} onReturn={recovery.clear}/>
+    </div>
+  </AppShell>
   return <AppShell className={`commerce-shell checkout-page checkout-page--service checkout-page--${pageState}${showReceipt ? ' checkout-page--with-receipt' : ''}`} footerVariant="compact">
     <div className="content-container commerce-page"><PageTitle>{uiText("주문서 작성")}</PageTitle>
       
@@ -193,8 +210,13 @@ function CheckoutContent({ ids }: { ids: readonly string[] }) {
               </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
               {profile.isError && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
               <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
-              {showReceipt && <fieldset className="checkout-input-fields" disabled={!!attempt && !paymentRetryReady}><CheckoutReceipt form={form} /></fieldset>}
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={!!attempt && !paymentRetryReady} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitError={submit.error?.message} onSubmit={() => void submitOrder()} /></div> : null}
+              {showReceipt && <fieldset className="checkout-input-fields" disabled={cancellationStarted || (!!attempt && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={cancellationStarted || (!!attempt && !paymentRetryReady)} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitDisabled={cancellationStarted || paymentClosed} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
+              cancellation={<CheckoutCancellation disabled={submit.isPending} returnTo={returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
+                const current = attemptRef.current
+                return current ? { creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) } : null
+              }}/>} /></div> : null}
+      {contentStatus && <CheckoutCancellation disabled={false} returnTo={returnTo} request={() => null} onLock={() => setCancellationStarted(true)}/>}
     </div>
   </AppShell>
 }
@@ -204,5 +226,5 @@ export function CheckoutPage() {
   const extension = extensionCheckoutStateSchema.safeParse(location.state)
   if (extension.success) return <CheckoutExtensionContent state={extension.data} key={JSON.stringify(extension.data)} />
   const ids = params.getAll('cartItemId')
-  return <CheckoutContent ids={ids} key={JSON.stringify(ids)} />
+  return <CheckoutContent ids={ids} returnTo={checkoutReturnTo(params.get('returnTo'))} key={JSON.stringify(ids)} />
 }

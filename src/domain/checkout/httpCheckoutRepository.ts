@@ -2,9 +2,14 @@ import type { createCartApi } from '@/api/cart'
 import type { CartRepository } from '@/domain/cart/cartRepository'
 import { apiCartItemIdSchema } from '@/domain/cart/httpCartRepository'
 import { cartSchema } from '@/domain/cart/schemas'
-import { checkoutQuoteSchema, checkoutSelectionSchema, type CheckoutRepository } from './checkoutRepository'
+import { checkoutQuoteSchema, checkoutSelectionSchema, type CheckoutRepository, type CheckoutSubmission } from './checkoutRepository'
 import type { ApiClient } from '@/api/httpClient'
 import { createOrdersPaymentsApi } from '@/api/ordersPayments'
+
+export function checkoutCreationBody(input: CheckoutSubmission) {
+  return { cartItemIds: input.cartItemIds.map(value => Number(apiCartItemIdSchema.parse(value))), contact: input.contact,
+    userCouponId: input.userCouponId, pointAmount: input.pointAmount, expectedFinalAmount: input.expectedFinalAmount }
+}
 
 export function createHttpCheckoutRepository(api: ReturnType<typeof createCartApi>, cart: CartRepository, client: ApiClient, organizationId: string): CheckoutRepository {
   const orders = createOrdersPaymentsApi(client, organizationId)
@@ -57,8 +62,7 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
       })
     },
     async start(input) {
-      const created = await orders.order({ cartItemIds: input.cartItemIds.map(value => Number(apiCartItemIdSchema.parse(value))), contact: input.contact,
-        userCouponId: input.userCouponId, pointAmount: input.pointAmount, expectedFinalAmount: input.expectedFinalAmount }, input.idempotencyKey)
+      const created = await orders.order(checkoutCreationBody(input), input.creationKey)
       if (created.finalAmount === 0) return orders.settleInternal(created.orderNo, input.idempotencyKey)
       const payment = await orders.prepare({ orderNo: created.orderNo, paymentMethod: input.payment,
         cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',
@@ -66,6 +70,7 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
       return payment
     },
     payment: orders.payment,
+    cancelCheckout: orders.cancelCheckout,
     preparePayment: input => input.finalAmount === 0 ? orders.settleInternal(input.orderNo, input.idempotencyKey)
       : orders.prepare({ orderNo: input.orderNo, paymentMethod: input.payment,
         cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',

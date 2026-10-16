@@ -76,7 +76,7 @@ function ProductDetailContent() {
         queryClient.invalidateQueries({ queryKey: cartQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: checkoutQueryKeys.all }),
       ])
-      navigate(checkoutUrl([cartItemId]))
+      navigate(checkoutUrl([cartItemId], `${location.pathname}${location.search}${location.hash}`))
     },
     onError: (error) => setMessage(error instanceof Error ? error.message : '바로구매를 시작하지 못했습니다.'),
   })

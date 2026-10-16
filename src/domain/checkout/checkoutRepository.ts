@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { cartSchema, type CartItem } from '@/domain/cart/schemas'
+import { checkoutReturnTo } from './checkoutReturnTo'
 
 const amount = z.number().int().nonnegative().safe()
 export const checkoutSelectionSchema = z.array(z.string().min(1)).min(1).max(100).refine(
@@ -18,12 +19,13 @@ export const checkoutQuoteSchema = z.object({
   benefits: z.enum(['unconnected', 'available']),
 })
 export type CheckoutQuote = z.infer<typeof checkoutQuoteSchema>
-export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
+export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; creationKey: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
 export type CheckoutStartResult = import('@/api/ordersPayments').PreparedPayment
 export type CheckoutPaymentPreparation = Pick<CheckoutSubmission, 'payment' | 'cashReceiptType' | 'cashReceiptIdentifier' | 'idempotencyKey'> & { orderNo: string; finalAmount: number }
 export interface CheckoutRepository {
   quote(cartItemIds: readonly string[], signal?: AbortSignal, knownCartItems?: readonly CartItem[]): Promise<CheckoutQuote>
   start?(input: CheckoutSubmission): Promise<CheckoutStartResult>
+  cancelCheckout?(input: import('@/api/ordersPayments').CheckoutCancellationRequest): Promise<import('@/api/ordersPayments').CheckoutCancellation>
   preparePayment?(input: CheckoutPaymentPreparation): Promise<CheckoutStartResult>
   payment?(paymentId: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').PaymentDetail>
   abandon?(providerOrderId: string, customerCancelled?: boolean, allowRetry?: boolean): Promise<import('@/api/ordersPayments').PaymentAbandonment>
@@ -38,8 +40,9 @@ export const checkoutQueryKeys = {
   quote: (ids: readonly string[]) => ['checkout', 'quote', ids] as const,
 }
 
-export function checkoutUrl(ids: readonly string[]): string {
+export function checkoutUrl(ids: readonly string[], returnTo = '/cart'): string {
   const params = new URLSearchParams()
   checkoutSelectionSchema.parse(ids).forEach((id) => params.append('cartItemId', id))
+  params.set('returnTo', checkoutReturnTo(returnTo))
   return `/checkout?${params.toString()}`
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { AppShell } from '@/components/layout/AppShellView'
 import { PageBackButton } from '@/components/common/PageBackButton'
 import { SelectionToolbar } from '@/components/ui/SelectionToolbarControl'
@@ -23,6 +23,7 @@ const cartNoticeKeys: Readonly<Record<string, TranslationKey>> = {
 export function CartPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const session = useSession()
   const cart = useCart()
   const noticeKey = cartNoticeKeys[cart.notice]
@@ -49,7 +50,7 @@ export function CartPage() {
       setBlockedProducts(cart.unavailableItems.map(({ id, label }) => ({ id, label })))
       return
     }
-    void navigate(checkoutUrl(cart.selectedIds))
+    void navigate(checkoutUrl(cart.selectedIds, `${location.pathname}${location.search}${location.hash}`))
   }
   return <AppShell className={`commerce-shell cart-page${empty ? ' cart-page--empty' : ''}`} footerVariant="compact">
     <div className="content-container commerce-page">

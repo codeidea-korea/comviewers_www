@@ -2,7 +2,7 @@ import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslatio
 import { StorageProductRow } from './StorageProductRow'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
@@ -18,6 +18,7 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
   const [selected, setSelected] = useState<number[] | null>(null)
   const [quantities, setQuantities] = useState<Record<number,number>>({})
   const navigate = useNavigate()
+  const location = useLocation()
   const rows = offers.data ?? emptyOffers
   const availableRows = useMemo(() => rows.filter(row => row.status === 'stored'), [rows])
   const selectedIds = useMemo(() => selected ?? availableRows.map(row => row.id), [selected, availableRows])
@@ -39,7 +40,7 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
   const changePage=(next:number)=>{setPage(next);setSelected(null)}
   const startCheckout = () => {
     if (!valid || !Number.isSafeInteger(total)) return
-    const state = extensionCheckoutStateSchema.parse({ kind: 'extension', selection: { rentalIds: [], pointAmount: 0,
+    const state = extensionCheckoutStateSchema.parse({ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, selection: { rentalIds: [], pointAmount: 0,
       partOffers: selectedRows.map(row => ({ offerId: row.id, quantity: quantity(row) })),
     } })
     navigate('/checkout', { state })

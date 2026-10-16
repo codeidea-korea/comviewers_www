@@ -14,6 +14,8 @@ import { PageTitle } from './CommerceComponents'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { confirmAttemptKey } from './-components/checkout/confirmAttemptKey'
 import { useInvalidateProductCatalog } from './-components/hooks/useInvalidateProductCatalog'
+import { useSession } from '@/app/session/SessionProvider'
+import { clearCheckoutRecoveryForOrder } from '@/domain/checkout/checkoutRecovery'
 
 export function CheckoutCompletePage() {
   return <CheckoutPaymentResult />
@@ -22,6 +24,7 @@ export function CheckoutCompletePage() {
 function CheckoutPaymentResult() {
   const { uiText } = useUiTranslation()
   const { checkout, myAccount } = useServices()
+  const session = useSession()
   const [params, setParams] = useSearchParams()
   const client = useQueryClient()
   const invalidateCatalog = useInvalidateProductCatalog()
@@ -69,6 +72,15 @@ function CheckoutPaymentResult() {
   const cancelled = compensated || result.data?.status === 'cancelled'
   const order = useQuery({ queryKey: ['my-account', 'read', 'order', result.data?.orderNo], enabled: !cancelled && Boolean(myAccount.readApi && result.data?.orderNo), queryFn: ({ signal }) => myAccount.readApi!.order(result.data!.orderNo, signal), retry: false,
     refetchInterval: query => query.state.data?.paymentStatus === 'pending' ? 10000 : false })
+  useEffect(() => {
+    const verifiedAccountIssued = confirm.data?.paymentId === paymentId && confirm.data.status === 'WAITING_FOR_DEPOSIT'
+      || (order.data?.orderNo === result.data?.orderNo && order.data?.paymentMethod === 'virtual_account'
+        && ['issued', 'partially_paid'].includes(order.data.virtualAccountStatus ?? ''))
+    if (session.status === 'authenticated' && session.customerSession && result.data
+      && (result.data.status === 'approved' || verifiedAccountIssued)) {
+      clearCheckoutRecoveryForOrder(session.customerSession.customerOrganizationId, session.customerSession.customerMemberId, result.data.orderNo)
+    }
+  }, [session, result.data, confirm.data, paymentId, order.data])
   const virtual = result.data?.paymentMethod === 'virtual_account'
   const payment = order.data?.payments.find(item => item.paymentId === String(paymentId))
   const currentPayment = payment?.paymentId === order.data?.payments[0]?.paymentId

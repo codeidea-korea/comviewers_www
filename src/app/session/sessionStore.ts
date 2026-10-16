@@ -1,5 +1,6 @@
 import { customerSessionSchema, type CustomerSession } from '@/api/customerSession'
 import { z } from 'zod'
+import { clearCheckoutRecovery } from '@/domain/checkout/checkoutRecovery'
 
 const idSchema = z.union([z.string(), z.number().int().positive().safe()])
   .transform(String).refine(value => /^[1-9]\d{0,18}$/.test(value) && BigInt(value) <= 9223372036854775807n)
@@ -52,7 +53,10 @@ export function createSessionStore(): SessionStore {
     scheduleExpiry()
     listeners.forEach(listener => listener())
   }
-  const logout = () => publish({ status: 'anonymous', revision: state.revision + 1, scopeRevision: state.scopeRevision + 1 }, null)
+  const logout = () => {
+    clearCheckoutRecovery()
+    publish({ status: 'anonymous', revision: state.revision + 1, scopeRevision: state.scopeRevision + 1 }, null)
+  }
   return {
     getSnapshot: () => state,
     subscribe(listener) {

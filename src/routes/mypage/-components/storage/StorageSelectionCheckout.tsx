@@ -1,6 +1,6 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import type { AccountStorageItem } from '@/api/myAccountSchemas'
 import { extensionCheckoutStateSchema } from '@/domain/checkout/extensionCheckoutState'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
@@ -13,6 +13,7 @@ export function StorageSelectionCheckout({ items }: { items: readonly AccountSto
   const [selected, setSelected] = useState<readonly string[]>(() => items.filter(item => item.status === 'stored' && (!item.paymentDueAt || new Date(`${item.paymentDueAt}+09:00`).getTime() > Date.now())).map(item => item.id))
   const [units, setUnits] = useState<Record<string, number>>({})
   const navigate = useNavigate()
+  const location = useLocation()
   const available = useMemo(() => items.filter(item => item.status === 'stored' && (!item.paymentDueAt || new Date(`${item.paymentDueAt}+09:00`).getTime() > Date.now())), [items])
   const selectedItems = useMemo(() => available.filter(item => selected.includes(item.id)), [available, selected])
   const selectAll = useCallback((checked: boolean) => setSelected(checked ? available.map(item => item.id) : []), [available])
@@ -36,7 +37,7 @@ export function StorageSelectionCheckout({ items }: { items: readonly AccountSto
   const allSelected=available.length>0&&selectedItems.length===available.length
   const startCheckout = () => {
     if (!valid || !Number.isSafeInteger(total)) return
-    const state = extensionCheckoutStateSchema.parse({ kind: 'extension', selection: { rentalIds: [], pointAmount: 0,
+    const state = extensionCheckoutStateSchema.parse({ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, selection: { rentalIds: [], pointAmount: 0,
       storageItems: selectedItems.map(item => ({ itemId: Number(item.id), durationUnits: item.pricingType === 'rental' ? duration(item) : null })),
     } })
     navigate('/checkout', { state })

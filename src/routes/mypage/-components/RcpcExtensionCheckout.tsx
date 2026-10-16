@@ -1,6 +1,6 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from '@/app/session/SessionProvider'
 import { extensionSelectionSchema } from '@/api/extensionCheckout'
@@ -17,6 +17,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
 }) {
   const { uiText } = useUiTranslation()
   const session = useSession()
+  const location = useLocation()
   const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'days' | 'date'>('days')
@@ -46,7 +47,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   return <section aria-label={uiText("RCPC 기간 연장")}>
     <Button size="small" onClick={() => setOpen(true)}>{triggerLabel !== undefined ? uiText(triggerLabel) : uiText('선택 {count}대 기간 연장', { count: rentalIds.length })}</Button>
     {open ? <RcpcExtensionSurface action={quoteReady && current?.eligible && selection.success
-      ? <Link to="/checkout" state={{ kind: 'extension', selection: selection.data }}>{uiText("연장 결제하기")}</Link>
+      ? <Link to="/checkout" state={{ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, selection: selection.data }}>{uiText("연장 결제하기")}</Link>
       : <button disabled type="button">{uiText("연장 결제하기")}</button>}
       busy={quote.isFetching} dateValue={date} error={uiText(quote.error?.message)} extensionMode={mode === 'days' ? 'period' : 'date'}
       itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
