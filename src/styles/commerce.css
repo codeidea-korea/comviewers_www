@@ -432,8 +432,8 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
 .checkout-discounts .field-with-button { gap: 0; justify-content: space-between; }
 .checkout-discounts .field-with-button input { flex: 1; font-size: 18px; font-weight: 500; height: 49px; letter-spacing: -.54px; }
 .checkout-discounts .field-with-button input::placeholder { color: var(--color-gray-400); opacity: 1; }
-.checkout-discounts .field-with-button button { background: var(--color-gray-100); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-gray-500); flex: 0 0 72px; font-size: 14px; font-weight: 500; height: 34px; letter-spacing: -.42px; padding: 8px 10px; position: relative; top: .5px; white-space: nowrap; }
-.checkout-discounts .field-with-button button:not(:disabled) { background: var(--color-white); color: var(--color-black); }
+.checkout-discounts .field-with-button > .checkout-points-apply { align-items: center; background: var(--color-gray-100); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-gray-500); display: inline-flex; flex: 0 0 auto; font-size: 14px; font-weight: 500; height: 34px; justify-content: center; letter-spacing: -.42px; line-height: 20px; min-width: 72px; padding: 0 10px; white-space: nowrap; }
+.checkout-discounts .field-with-button > .checkout-points-apply:not(:disabled) { background: var(--color-white); color: var(--color-black); }
 .checkout-page .order-summary { border: 0; display: flex; flex-direction: column; gap: 20px; height: auto; padding: 0; position: relative; top: 0; }
 .checkout-page .order-summary__box { border: 1px solid var(--color-gray-200); border-radius: 8px; height: auto; min-height: 724px; padding-bottom: 20px; position: relative; width: 340px; }
 .checkout-page .order-summary h2 { font-size: 14px; font-weight: 700; height: 17px; left: 19px; letter-spacing: -.42px; line-height: 17px; margin: 0; position: absolute; top: 19px; }
