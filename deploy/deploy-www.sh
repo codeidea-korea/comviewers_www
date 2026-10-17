@@ -9,8 +9,28 @@ readonly WORK_ROOT="/home/comviewers-deploy-work"
 readonly LOCK_FILE="/run/lock/comviewers-deploy.lock"
 readonly BASE_PATH="/"
 MODE=deploy RELEASE_DIR="" WORK_DIR="" OWNED=false ACTIVATION_STARTED=false
-log() { printf '[%s] %s\n' "$APP_LABEL" "$*"; }
-fail() { log "[오류] $*" >&2; exit 1; }
+log() {
+  local level="$1" message color
+  shift
+  message="$*"
+  case "$level" in
+    info) color='36' ;;
+    prepare) color='1;36' ;;
+    build) color='1;33' ;;
+    activate) color='1;35' ;;
+    verify) color='1;94' ;;
+    success) color='1;32' ;;
+    warning) color='1;33' ;;
+    error) color='1;31' ;;
+    *) color='36' ;;
+  esac
+  if [[ -t 1 && "${TERM:-dumb}" != dumb && -z "${NO_COLOR+x}" ]]; then
+    printf '\033[%sm[%s] %s\033[0m\n' "$color" "$APP_LABEL" "$message"
+  else
+    printf '[%s] %s\n' "$APP_LABEL" "$message"
+  fi
+}
+fail() { log error "[오류] $*" >&2; exit 1; }
 quiet_command() {
   local output status
   if output="$("$@" 2>&1)"; then
@@ -50,14 +70,14 @@ cleanup() {
   local code=$?
   trap - EXIT
   if $OWNED && ! $ACTIVATION_STARTED && [[ $code -ne 0 ]]; then
-    rm -rf -- "$WORK_DIR" "$RELEASE_DIR" || log "[오류] 임시 준비 파일 정리에 실패했습니다." >&2
+    rm -rf -- "$WORK_DIR" "$RELEASE_DIR" || log error "[오류] 임시 준비 파일 정리에 실패했습니다." >&2
   fi
   if [[ $code -ne 0 ]]; then
-    log "[오류] 배포 중단 (종료 코드: $code). 후보 작업 경로: $WORK_DIR, 배포 기록 경로: $RELEASE_DIR" >&2
+    log error "[오류] 배포 중단 (종료 코드: $code). 후보 작업 경로: $WORK_DIR, 배포 기록 경로: $RELEASE_DIR" >&2
     if $ACTIVATION_STARTED; then
-      log "[오류] 백업과 롤백이 없으며 일부 반영되었을 수 있습니다." >&2
+      log warning "[오류] 백업과 롤백이 없으며 일부 반영되었을 수 있습니다." >&2
     else
-      log "[오류] 백업과 롤백은 비활성화되어 있습니다." >&2
+      log warning "[오류] 백업과 롤백은 비활성화되어 있습니다." >&2
     fi
   fi
   rmdir -- "${WORK_DIR%/*}" "$WORK_ROOT" 2>/dev/null || true
@@ -134,7 +154,7 @@ PY
 }
 
 prepare_release() {
-  log "소스 확인"
+  log prepare "소스 확인"
   [[ ! -e "$RELEASE_DIR" && ! -L "$RELEASE_DIR" && ! -e "$WORK_DIR" && ! -L "$WORK_DIR" ]] || fail "배포 후보가 이미 존재하여 기존 후보를 보존했습니다."
   [[ -d "$APP_REPO/.git" ]] || fail "저장소를 찾을 수 없습니다."
   local status branch commit free
@@ -155,17 +175,17 @@ prepare_release() {
   mkdir "$WORK_DIR" "$WORK_DIR/source"
   printf '%s\n' "$commit" > "$RELEASE_DIR/commit.txt"
   timeout --kill-after=5 120 git -C "$APP_REPO" archive --format=tar "$commit" | timeout --kill-after=5 120 tar -xf - -C "$WORK_DIR/source"
-  log "설치/빌드"
+  log build "설치/빌드"
   (cd "$WORK_DIR/source"
    quiet_command timeout --kill-after=10 600 npm ci
    VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false quiet_command timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
   artifact_check record "$WORK_DIR/dist"
   exchange_candidate check
-  log "준비 완료: $commit (후보: $WORK_DIR/dist, 기록: $RELEASE_DIR)"
+  log success "준비 완료: $commit (후보: $WORK_DIR/dist, 기록: $RELEASE_DIR)"
 }
 
 activate_release() {
-  log "반영"
+  log activate "반영"
   ACTIVATION_STARTED=true
   [[ -f "$RELEASE_DIR/commit.txt" && -f "$RELEASE_DIR/hashes.json" && ! -e "$RELEASE_DIR/activated" ]] || fail "준비한 배포 후보가 없거나 이미 반영되었습니다."
   artifact_check check "$WORK_DIR/dist"
@@ -175,15 +195,15 @@ activate_release() {
   find "$WORK_DIR/dist" -type f -exec chmod 640 {} +
   exchange_candidate activate
   touch "$RELEASE_DIR/activated"
-  log "검증"
+  log verify "검증"
   artifact_check verify "$APP_REPO/dist"
   rm -rf -- "$WORK_DIR"
-  log "배포 완료 (백업 없음). 배포 기록: $RELEASE_DIR"
+  log success "배포 완료 (백업 없음). 배포 기록: $RELEASE_DIR"
 }
 
 case "$MODE" in
   deploy) prepare_release; activate_release ;;
   prepare) prepare_release ;;
   activate) activate_release ;;
-  discard) rm -rf -- "$WORK_DIR"; log "후보 작업 파일 정리 완료: $WORK_DIR" ;;
+  discard) rm -rf -- "$WORK_DIR"; log success "후보 작업 파일 정리 완료: $WORK_DIR" ;;
 esac
