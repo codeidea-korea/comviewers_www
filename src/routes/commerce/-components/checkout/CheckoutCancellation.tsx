@@ -29,13 +29,20 @@ export function CheckoutCancellation({ request, returnTo, disabled, onLock, onRe
     return result
   } })
   const finished = cancel.data?.status === 'completed' || cancel.data?.status === 'partial'
+  function returnToPreviousPage() {
+    onReturn?.()
+    navigate(checkoutReturnTo(returnTo), { replace: true })
+  }
   async function cancelCheckout() {
     if (active.current || disabled || finished) return
     const input = request()
-    if (!input) { onReturn?.(); navigate(checkoutReturnTo(returnTo), { replace: true }); return }
+    if (!input) { returnToPreviousPage(); return }
     active.current = true
     onLock()
-    try { await cancel.mutateAsync(input) } catch { /* Keep the creation key and permit an explicit retry. */ }
+    try {
+      const result = await cancel.mutateAsync(input)
+      if (result.status === 'completed') returnToPreviousPage()
+    } catch { /* Keep the creation key and permit an explicit retry. */ }
     finally { active.current = false }
   }
   return <>
@@ -45,11 +52,11 @@ export function CheckoutCancellation({ request, returnTo, disabled, onLock, onRe
     {cancel.data && !finished && <p className="checkout-submit-error" role="alert">{uiText(cancel.data.status === 'pending'
       ? '결제 상태가 아직 확인되지 않아 주문서를 취소하지 못했습니다. 다시 확인해 주세요.'
       : '현재 결제 상태에서는 주문서를 취소할 수 없습니다. 주문내역을 확인해 주세요.')} {uiText(checkoutCancellationReason(cancel.data.reason))}</p>}
-    <Modal isOpen={Boolean(finished && !acknowledged)} title={uiText(cancel.data?.status === 'partial' ? '주문 취소 · 구매 목록 복구 확인' : '주문서 취소 완료')}
+    <Modal isOpen={Boolean(cancel.data?.status === 'partial' && !acknowledged)} title={uiText('주문 취소 · 구매 목록 복구 확인')}
       showClose={false} onClose={() => { /* Acknowledge the restore result before returning. */ }} onConfirm={() => {
-        setAcknowledged(true); onReturn?.(); navigate(checkoutReturnTo(returnTo), { replace: true })
+        setAcknowledged(true); returnToPreviousPage()
       }}>
-      <p>{uiText(cancel.data?.status === 'partial' ? '주문은 취소했으나 일부 구매 목록을 복구하지 못했습니다. 아래 결과를 확인해 주세요.' : '주문서를 취소했습니다. 구매 목록은 현재 조건으로 다시 견적됩니다.')}</p>
+      <p>{uiText('주문은 취소했으나 일부 구매 목록을 복구하지 못했습니다. 아래 결과를 확인해 주세요.')}</p>
       {cancel.data?.items.map(item => <p key={`${item.orderItemId}:${item.sourceType}:${item.sourceId ?? 'none'}`}>{uiText('주문 항목')} {item.orderItemId}: {uiText(item.status === 'restored' ? '복구 완료' : item.status === 'not_applicable' ? '복구 대상 아님' : '복구하지 못함')} {uiText(checkoutCancellationReason(item.reason))}</p>)}
     </Modal>
   </>
