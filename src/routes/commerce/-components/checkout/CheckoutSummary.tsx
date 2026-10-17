@@ -26,24 +26,25 @@ const paymentOptions: readonly { value: PaymentMethod; label?: string; translati
   { value: 'kakao-pay', label: '카카오페이', directEasyPay: 'kakaoPay', icon: kakaoPayIcon },
   { value: 'global-card', label: '', cardLogos: true },
 ]
-export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitDisabled, submitError, onSubmit, cancellation, variant = 'cart', extensionAmount }: { quote: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitDisabled?: boolean; submitError?: string; onSubmit: () => void; cancellation?: ReactNode; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
+export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitDisabled, submitError, onSubmit, cancellation, variant = 'cart', extensionAmount }: { quote?: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitDisabled?: boolean; submitError?: string; onSubmit: () => void; cancellation?: ReactNode; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
   const { uiText, locale, t } = useUiTranslation()
-  const amount = quote.estimate
+  const amount = quote?.estimate
+  const unavailable = refreshing || !amount
   return <aside className="order-summary">
     <div className="order-summary__box">
       <h2><TranslatedText id="checkout.paymentAmount" /></h2>
       <dl className="order-summary__amounts">
-        <div><dt>{variant === 'extension' ? uiText('기간 연장') : <TranslatedText id="cart.rentalProducts" />}</dt><dd className="notranslate" translate="no">{money(refreshing ? null : amount.rentalTotal)}</dd></div>
-        {variant === 'cart' && <><div className="sub"><dt>ㄴ <TranslatedText id="money.setupFee" /></dt><dd className="notranslate" translate="no">{money(refreshing ? null : amount.rentalSetupTotal)}</dd></div>
-        <div className="sub"><dt>ㄴ <TranslatedText id="money.rentalAmount" /></dt><dd className="notranslate" translate="no">{money(refreshing ? null : amount.rentalMonthlyTotal)}</dd></div>
-        <div><dt><TranslatedText id="nav.parts" /></dt><dd className="notranslate" translate="no">{money(refreshing ? null : amount.partTotal)}</dd></div></>}
-        {extensionAmount !== undefined && <div><dt>{uiText("기간 연장")}</dt><dd className="notranslate" translate="no">{money(refreshing ? null : extensionAmount)}</dd></div>}
-        <div><dt><TranslatedText id="checkout.orderTotal" /></dt><dd className="notranslate" translate="no">{money(refreshing ? null : amount.expectedTotal)}</dd></div>
+        <div><dt>{variant === 'extension' ? uiText('기간 연장') : <TranslatedText id="cart.rentalProducts" />}</dt><dd className="notranslate" translate="no">{money(unavailable ? null : amount.rentalTotal)}</dd></div>
+        {variant === 'cart' && <><div className="sub"><dt>ㄴ <TranslatedText id="money.setupFee" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : amount.rentalSetupTotal)}</dd></div>
+        <div className="sub"><dt>ㄴ <TranslatedText id="money.rentalAmount" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : amount.rentalMonthlyTotal)}</dd></div>
+        <div><dt><TranslatedText id="nav.parts" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : amount.partTotal)}</dd></div></>}
+        {extensionAmount !== undefined && <div><dt>{uiText("기간 연장")}</dt><dd className="notranslate" translate="no">{money(unavailable ? null : extensionAmount)}</dd></div>}
+        <div><dt><TranslatedText id="checkout.orderTotal" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : amount.expectedTotal)}</dd></div>
       </dl>
       <div aria-hidden="true" className="order-summary__rule" />
-      <section className="order-summary__benefits"><h3><TranslatedText id="checkout.benefitsAmount" /></h3><dl><div><dt><TranslatedText id="checkout.couponDiscount" /></dt><dd className="notranslate" translate="no">{money(refreshing ? null : benefits?.couponDiscountAmount ?? 0)}</dd></div><div><dt><TranslatedText id="checkout.pointsUsed" /></dt><dd className="notranslate" translate="no">{money(refreshing ? null : benefits?.pointUsedAmount ?? 0)}</dd></div></dl></section>
+      <section className="order-summary__benefits"><h3><TranslatedText id="checkout.benefitsAmount" /></h3><dl><div><dt><TranslatedText id="checkout.couponDiscount" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : benefits?.couponDiscountAmount ?? 0)}</dd></div><div><dt><TranslatedText id="checkout.pointsUsed" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : benefits?.pointUsedAmount ?? 0)}</dd></div></dl></section>
       <div aria-hidden="true" className="order-summary__rule" />
-      <section className="order-summary__final"><dl><div className="order-summary__total"><dt><TranslatedText id="checkout.finalTotal" /></dt><dd className="notranslate" translate="no">{locale === 'ko' ? <><strong>{refreshing ? '-' : (benefits?.finalAmount ?? amount.expectedTotal).toLocaleString('ko-KR')}</strong><span>{uiText("원")}</span></> : <strong>{money(refreshing ? null : benefits?.finalAmount ?? amount.expectedTotal)}</strong>}</dd></div></dl><div className="order-summary__coupon"><TranslatedText id="checkout.expectedPoints" /><strong className="notranslate" translate="no">{refreshing || (benefits?.expectedPoints ?? amount.pointTotal) === null ? '-' : t('money.pointAmount', { points: (benefits?.expectedPoints ?? amount.pointTotal ?? 0).toLocaleString('ko-KR') })}</strong></div></section>
+      <section className="order-summary__final"><dl><div className="order-summary__total"><dt><TranslatedText id="checkout.finalTotal" /></dt><dd className="notranslate" translate="no">{locale === 'ko' ? <><strong>{unavailable ? '-' : (benefits?.finalAmount ?? amount.expectedTotal).toLocaleString('ko-KR')}</strong><span>{uiText("원")}</span></> : <strong>{money(unavailable ? null : benefits?.finalAmount ?? amount.expectedTotal)}</strong>}</dd></div></dl><div className="order-summary__coupon"><TranslatedText id="checkout.expectedPoints" /><strong className="notranslate" translate="no">{unavailable || (benefits?.expectedPoints ?? amount.pointTotal) === null ? '-' : t('money.pointAmount', { points: (benefits?.expectedPoints ?? amount.pointTotal ?? 0).toLocaleString('ko-KR') })}</strong></div></section>
       <div aria-hidden="true" className="order-summary__rule" />
       <fieldset className="payment-methods" disabled={locked}><legend><TranslatedText id="checkout.paymentMethod" /></legend><div className="payment-methods__options">{paymentOptions.filter(option => !option.directEasyPay || directEasyPayMethods?.[option.directEasyPay] || form.payment === option.value).map(({ value, label, translationKey, cardLogos, directEasyPay, icon }) => {
         const unavailable = Boolean(directEasyPay && !directEasyPayMethods?.[directEasyPay])
@@ -57,11 +58,11 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
       </div>
       
     </div>
-    {!quote.checkoutEligible && <div role="alert"><p><TranslatedText id="checkout.unavailable" /></p>{quote.issues.map((issue) => <p className="notranslate" translate="no" key={issue}>{uiText(cartIssueMessage(issue))}</p>)}</div>}
+    {quote && !quote.checkoutEligible && <div role="alert"><p><TranslatedText id="checkout.unavailable" /></p>{quote.issues.map((issue) => <p className="notranslate" translate="no" key={issue}>{uiText(cartIssueMessage(issue))}</p>)}</div>}
     {paymentAvailabilityError && <p className="checkout-submit-error" role="alert">{uiText(paymentAvailabilityError)}</p>}
     {paymentNotice && <p className="checkout-payment-notice" role="status">{uiText(paymentNotice)}</p>}
     {submitError ? <p className="checkout-submit-error" role="alert">{uiText(submitError)} <RelativeLink to="/mypage/orders"><TranslatedText id="checkout.viewOrders" /></RelativeLink></p> : null}
-    <Button className="commerce-primary-button" disabled={refreshing || submitting || submitDisabled || !quote.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" />: checkingPayment ? uiText('결제 상태 다시 확인') : <TranslatedText id="checkout.order" />}</Button>
+    <Button className="commerce-primary-button" disabled={unavailable || submitting || submitDisabled || !quote?.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" />: checkingPayment ? uiText('결제 상태 다시 확인') : <TranslatedText id="checkout.order" />}</Button>
     {cancellation}
   </aside>
 }

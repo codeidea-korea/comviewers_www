@@ -125,7 +125,6 @@
   .checkout-page.checkout-page--service .order-summary__agreements { gap: 12px; margin: 0; width: 100%; }
   .checkout-page .order-summary__agreement label { line-height: 17px; }
 }
-.checkout-page .order-summary > .checkout-cancel-button { margin-top: 12px; }
 .checkout-page .checkout-discounts .field-with-button > .checkout-points-clear { align-items: center; background: transparent; border: 0; display: inline-flex; flex: 0 0 24px; height: 24px; justify-content: center; padding: 4px; width: 24px; }
 .checkout-page .checkout-discounts .field-with-button > .checkout-points-clear[hidden] { display: none; }
 .checkout-points-clear img { height: 14px; width: 14px; }

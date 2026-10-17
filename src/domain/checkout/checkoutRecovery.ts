@@ -1,13 +1,28 @@
 import { z } from 'zod'
 import type { CheckoutCancellationRequest } from '@/api/ordersPayments'
 import { checkoutReturnTo } from './checkoutReturnTo'
+import { checkoutQuoteSchema } from './checkoutRepository'
+import { orderBenefitQuoteSchema } from '@/api/ordersPayments'
+import { extensionQuoteSchema } from '@/api/extensionCheckout'
 
 const prefix = 'comviewers.checkout.recovery.v1:'
 // Tab session only. Keep the creation payload briefly; never persist receipt identifiers or PG credentials.
 const lifetime = 2 * 60 * 60 * 1000
+const requestLimit = 65536
+const recordLimit = 512 * 1024
+const payment = z.enum(['virtual-account', 'card', 'payco', 'naver-pay', 'kakao-pay', 'global-card'])
+const displaySchema = z.discriminatedUnion('source', [
+  z.object({ source: z.literal('cart'), quote: checkoutQuoteSchema, benefits: orderBenefitQuoteSchema, payment }),
+  z.object({ source: z.literal('extension'), quote: extensionQuoteSchema, payment }),
+])
+export type CheckoutRecoveryDisplay = z.infer<typeof displaySchema>
+export const checkoutRecoveryContactSchema = z.object({ contact: z.object({ name: z.string().max(100), email: z.string().max(255),
+  phone: z.string().max(30), messengerType: z.string().max(50).nullable(), messengerId: z.string().max(100).nullable() }) })
 const recordSchema = z.object({ expiresAt: z.number().int().positive(), returnTo: z.string().max(2048),
   request: z.object({ creationKey: z.uuidv4(), source: z.enum(['cart', 'extension']), originalRequest: z.record(z.string(), z.unknown()) }),
   orderNo: z.string().max(100).nullable().default(null),
+  // Invalid/missing display data must never discard the authoritative cancellation request.
+  display: displaySchema.optional().catch(undefined),
 })
 export type CheckoutRecovery = z.infer<typeof recordSchema>
 
@@ -30,7 +45,7 @@ export function readCheckoutRecovery(key: string): CheckoutRecovery | null {
   try {
     const raw = sessionStorage.getItem(key)
     if (!raw) return null
-    if (raw.length > 65536) { sessionStorage.removeItem(key); return null }
+    if (raw.length > recordLimit) { sessionStorage.removeItem(key); return null }
     const parsed = recordSchema.safeParse(JSON.parse(raw))
     if (!parsed.success || parsed.data.expiresAt <= Date.now() || parsed.data.expiresAt > Date.now() + lifetime) { sessionStorage.removeItem(key); return null }
     scheduleExpiry(key, parsed.data.expiresAt)
@@ -38,13 +53,23 @@ export function readCheckoutRecovery(key: string): CheckoutRecovery | null {
   } catch { return null }
 }
 
-export function saveCheckoutRecovery(key: string, request: CheckoutCancellationRequest, returnTo: string): CheckoutRecovery {
+export function saveCheckoutRecovery(key: string, request: CheckoutCancellationRequest, returnTo: string, display?: CheckoutRecoveryDisplay): CheckoutRecovery {
   const record = recordSchema.parse({ expiresAt: Date.now() + lifetime, request, returnTo: checkoutReturnTo(returnTo), orderNo: null })
-  const raw = JSON.stringify(record)
-  if (raw.length > 65536) throw new Error('주문서 복구 정보를 보관할 수 없습니다.')
-  try { sessionStorage.setItem(key, raw) } catch { throw new Error('주문서 복구 정보를 보관할 수 없습니다. 브라우저 저장 공간을 확인해 주세요.') }
+  const base = JSON.stringify(record)
+  if (base.length > requestLimit) throw new Error('주문서 복구 정보를 보관할 수 없습니다.')
+  // Display snapshots cannot create/pay orders and contain no receipt identifiers or PG credentials.
+  const parsed = displaySchema.safeParse(display)
+  const withDisplay = parsed.success && parsed.data.source === request.source ? { ...record, display: parsed.data } : record
+  const raw = JSON.stringify(withDisplay)
+  let saved = record
+  try {
+    if (raw.length <= recordLimit) {
+      try { sessionStorage.setItem(key, raw); saved = withDisplay }
+      catch { sessionStorage.setItem(key, base) }
+    } else sessionStorage.setItem(key, base)
+  } catch { throw new Error('주문서 복구 정보를 보관할 수 없습니다. 브라우저 저장 공간을 확인해 주세요.') }
   scheduleExpiry(key, record.expiresAt)
-  return record
+  return saved
 }
 
 export function clearCheckoutRecovery(key?: string): void {

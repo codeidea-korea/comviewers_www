@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from '@/app/session/SessionProvider'
 import type { CheckoutCancellationRequest } from '@/api/ordersPayments'
 import { bindCheckoutRecoveryOrder, checkoutRecoveryKey, clearCheckoutRecovery, readCheckoutRecovery, saveCheckoutRecovery } from '@/domain/checkout/checkoutRecovery'
+import type { CheckoutRecoveryDisplay } from '@/domain/checkout/checkoutRecovery'
 
 export function useCheckoutRecovery(identity: string, returnTo: string) {
   const session = useSession()
@@ -12,9 +13,9 @@ export function useCheckoutRecovery(identity: string, returnTo: string) {
   const record = saved.key === key ? saved.record : null
   return {
     record,
-    persist(request: CheckoutCancellationRequest) {
+    persist(request: CheckoutCancellationRequest, display?: CheckoutRecoveryDisplay) {
       if (!key) throw new Error('주문서의 조직과 회원을 확인할 수 없습니다.')
-      setSaved({ key, record: saveCheckoutRecovery(key, request, returnTo) })
+      setSaved({ key, record: saveCheckoutRecovery(key, request, returnTo, display) })
     },
     bindOrder(orderNo: string) { if (key) bindCheckoutRecoveryOrder(key, orderNo) },
     clear() { if (key) clearCheckoutRecovery(key); setSaved({ key, record: null }) },

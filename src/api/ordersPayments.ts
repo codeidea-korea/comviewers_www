@@ -21,6 +21,7 @@ const benefitQuote = z.object({ subtotalAmount: count, setupFeeAmount: count, co
   itemExpectedPoints: z.array(z.object({ cartItemId: id, expectedPoints: count })).optional(),
   coupons: z.array(z.object({ userCouponId: id, name: z.string(), serverRoomId: id.nullable(), expiresAt: time, discountAmount: count })) })
 export type OrderBenefitQuote = z.infer<typeof benefitQuote>
+export { benefitQuote as orderBenefitQuoteSchema }
 const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: z.number().int().positive().safe() })
 const confirmation = z.object({ paymentId: id, orderId: z.string(), providerPaymentId: z.string(), status: z.string(), approved: z.boolean(), replayed: z.boolean(), virtualAccount: z.object({ bankCode: z.string(), accountNumber: z.string(), customerName: z.string().nullable(), dueDate: z.string() }).nullable() })
 const abandonment = z.object({ status: z.enum(['cancelled', 'failed', 'pending', 'approved', 'retryable']) })

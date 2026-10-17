@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import { checkoutDraftSchema } from '@/domain/checkout/checkoutDraft'
 import { emailDomainOptions } from '@/lib/formOptions'
+import { checkoutRecoveryContactSchema, type CheckoutRecovery } from '@/domain/checkout/checkoutRecovery'
 
 export type PaymentMethod = '' | 'virtual-account' | 'card' | 'payco' | 'naver-pay' | 'kakao-pay' | 'global-card'
 export type ReceiptType = 'not_requested' | 'income_deduction' | 'business_expense'
@@ -17,8 +18,15 @@ export interface CheckoutContact {
   messengerId: string
 }
 type CheckoutValidationError = { path: string; message: string }
-export function useCheckoutForm() {
+type Profile = { name: string | null; email: string | null; phone: string | null; messengerType: string | null; messengerId: string | null }
+function profileContact(profile: Profile): CheckoutContact {
+  const [emailId = '', emailDomain = ''] = (profile.email ?? '').split('@')
+  const phone = (profile.phone ?? '').replace(/\D/g, '')
+  return { name: profile.name ?? '', emailId, emailDomain, phonePrefix: phone.slice(0, 3) || '010', phoneMiddle: phone.slice(3, -4), phoneLast: phone.slice(-4), messenger: profile.messengerType ?? '', messengerId: profile.messengerId ?? '' }
+}
+export function useCheckoutForm(recovery?: CheckoutRecovery | null) {
   const contactEdited = useRef(false)
+  const restoredKey = useRef<string | null>(null)
   const [contact, setContact] = useState<CheckoutContact>({ name: '', emailId: '', emailDomain: '', phonePrefix: '010', phoneMiddle: '', phoneLast: '', messenger: '', messengerId: '' })
   const [emailDomainSelection, setEmailDomainSelection] = useState('')
   const [payment, setPaymentState] = useState<PaymentMethod>('')
@@ -28,6 +36,18 @@ export function useCheckoutForm() {
   const [errors, setErrors] = useState<CheckoutValidationError[]>([])
   const [orderAgreed, setOrderAgreedState] = useState(false)
   const [paymentServiceAgreed, setPaymentServiceAgreedState] = useState(false)
+  useEffect(() => {
+    if (!recovery || restoredKey.current === recovery.request.creationKey) return
+    restoredKey.current = recovery.request.creationKey
+    const parsed = checkoutRecoveryContactSchema.safeParse(recovery.request.originalRequest)
+    if (parsed.success) {
+      contactEdited.current = true
+      const restored = profileContact(parsed.data.contact)
+      setContact(restored)
+      setEmailDomainSelection(emailDomainOptions.includes(restored.emailDomain) ? restored.emailDomain : '')
+    }
+    if (recovery.display) setPaymentState(recovery.display.payment)
+  }, [recovery])
   function clearError(path: string) {
     setErrors(current => current.filter(error => error.path !== path))
   }
@@ -49,12 +69,11 @@ export function useCheckoutForm() {
     if (value) changeContact('emailDomain', value)
     setEmailDomainSelection(value)
   }
-  function fillProfile(profile: { name: string | null; email: string | null; phone: string | null; messengerType: string | null; messengerId: string | null }, force = false) {
+  function fillProfile(profile: Profile, force = false) {
     if (contactEdited.current && !force) return
-    const [emailId = '', emailDomain = ''] = (profile.email ?? '').split('@')
-    const phone = (profile.phone ?? '').replace(/\D/g, '')
-    setContact({ name: profile.name ?? '', emailId, emailDomain, phonePrefix: phone.slice(0, 3) || '010', phoneMiddle: phone.slice(3, -4), phoneLast: phone.slice(-4), messenger: profile.messengerType ?? '', messengerId: profile.messengerId ?? '' })
-    setEmailDomainSelection(emailDomainOptions.includes(emailDomain) ? emailDomain : '')
+    const next = profileContact(profile)
+    setContact(next)
+    setEmailDomainSelection(emailDomainOptions.includes(next.emailDomain) ? next.emailDomain : '')
   }
   function changeReceiptType(next: ReceiptType) {
     setReceiptType(next)

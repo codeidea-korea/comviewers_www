@@ -40,6 +40,7 @@ const purchaseRow = z.object({ sourceType: z.enum(['storage_rental', 'storage_pa
 const quote = z.object({ items: row.array(), purchaseItems: purchaseRow.array(), totalAmount: z.number().int().nonnegative().safe(), eligible: z.boolean(), quoteHash: z.string().regex(/^[a-f0-9]{64}$/), benefits: benefit.nullable(),
   extensionAmount: z.number().int().nonnegative().safe(), purchaseSubtotalAmount: z.number().int().nonnegative().safe(), purchaseSetupFeeAmount: z.number().int().nonnegative().safe() })
 export type ExtensionQuote = z.infer<typeof quote>
+export { quote as extensionQuoteSchema }
 const offer = z.object({ id, rentalId: id, productNo: productNoResponseSchema, title: z.string(),
   serverRoomName: z.string().nullable(), spec: z.string().nullable().default(null), previousEnd: time, targetEnd: time, addedDays: z.number().int().min(1).max(90), quotedAmount: z.number().int().positive().safe(), createdAt: time })
 export type ExtensionOffer = z.infer<typeof offer>

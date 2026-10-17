@@ -47,12 +47,14 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
   const [paymentAvailabilityError, setPaymentAvailabilityError] = useState<string | null>(null)
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null)
   const [attempt, setAttempt] = useState<CheckoutAttempt | null>(null)
+  const recovering = !attempt && Boolean(recovery.record)
+  const recoveredDisplay = recovering && recovery.record?.display?.source === 'cart' ? recovery.record.display : null
   const [cancellationStarted, setCancellationStarted] = useState(false)
   const attemptRef = useRef<CheckoutAttempt | null>(null)
   const submitting = useRef(false)
   const windowAbort = useRef<AbortController | null>(null)
   useEffect(() => () => windowAbort.current?.abort(), [])
-  const result = useCheckoutQuote(ids, !attempt && !recovery.record)
+  const result = useCheckoutQuote(ids, !attempt && !recoveredDisplay)
   const directEasyPayMethods = useQuery({ queryKey: ['checkout', 'direct-easy-pay-methods'],
     queryFn: ({ signal }) => checkout.directEasyPayMethods!(signal), enabled: Boolean(checkout.directEasyPayMethods), retry: false })
   const availableDirectEasyPay = directEasyPayMethods.data
@@ -75,12 +77,12 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
   const benefitReady = !checkout.benefitQuote || Boolean(benefits.data && !benefits.isFetching && !benefits.isError
     && !benefits.isPlaceholderData && benefits.data.pointUsedAmount === Number(points) && benefits.data.userCouponId === couponId)
   const productUnavailable = !attempt && benefits.error instanceof ApiClientError && benefits.error.code === 'OR001'
-  const form = useCheckoutForm()
-  const profile = useMutation({ mutationFn: async (force: boolean) => ({ value: await myAccount.readApi!.profile(), force }), onSuccess: ({ value, force }) => { if (!attemptRef.current) form.fillProfile(value, force) } })
+  const form = useCheckoutForm(recovering ? recovery.record : null)
+  const profile = useMutation({ mutationFn: async (force: boolean) => ({ value: await myAccount.readApi!.profile(), force }), onSuccess: ({ value, force }) => { if (!attemptRef.current && !recovery.record) form.fillProfile(value, force) } })
   const profileLoaded = useRef(false)
   useEffect(() => {
-    if (myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate(false) }
-  }, [myAccount.readApi, profile])
+    if (!recovering && myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate(false) }
+  }, [myAccount.readApi, profile, recovering])
   const showReceipt = form.payment === 'virtual-account'
   async function checkAbandonedPayment(providerOrderId: string, customerCancelled = false) {
     setUnresolvedOrderId(providerOrderId)
@@ -178,7 +180,8 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
       current = { quote: result.data, benefits: benefits.data, input: { cartItemIds: ids, contact: draft.contact, payment,
         cashReceiptType: draft.receiptType, cashReceiptIdentifier: draft.receiptIdentifier, userCouponId: couponId,
         pointAmount: Number(points), expectedFinalAmount: benefits.data.finalAmount, creationKey: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() } }
-      try { recovery.persist({ creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) }) }
+      try { recovery.persist({ creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) },
+        { source: 'cart', quote: current.quote, benefits: current.benefits, payment: draft.payment }) }
       catch (error) { setPaymentAvailabilityError(error instanceof Error ? error.message : '주문서 복구 정보를 보관하지 못했습니다.'); return }
       attemptRef.current = current
       setAttempt(current)
@@ -187,36 +190,30 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
     try { await submit.mutateAsync(current) } catch { /* The mutation error is displayed beside the order button. */ }
     finally { submitting.current = false }
   }
-  const quote = attempt?.quote ?? result.data
-  const shownBenefits = attempt?.benefits ?? benefits.data
-  const refreshing = !attempt && (result.isFetching || !benefitReady)
-  const pageState = quote ? 'filled' : 'empty'
+  const quote = attempt?.quote ?? recoveredDisplay?.quote ?? result.data
+  const shownBenefits = attempt?.benefits ?? recoveredDisplay?.benefits ?? (recovering ? undefined : benefits.data)
+  const refreshing = recovering ? !recoveredDisplay : !attempt && (result.isFetching || !benefitReady)
+  const pageState = quote || recovering ? 'filled' : 'empty'
   const contentStatus = attempt ? null : !result.validSelection ? 'empty' : result.isPending ? 'loading' : result.isError ? 'error' : null
-  if (!attempt && recovery.record) return <AppShell className="commerce-shell checkout-page checkout-page--service" footerVariant="compact">
-    <div className="content-container commerce-page"><PageTitle>{uiText('주문서 작성')}</PageTitle>
-      <p role="status">{uiText('이전에 생성 요청한 주문서가 있습니다. 주문서 작성 취소에서 결제와 구매 목록의 상태를 확인해 주세요.')}</p>
-      <CheckoutCancellation disabled={false} returnTo={recovery.record.returnTo} request={() => recovery.record?.request ?? null} onLock={() => setCancellationStarted(true)} onReturn={recovery.clear}/>
-    </div>
-  </AppShell>
   return <AppShell className={`commerce-shell checkout-page checkout-page--service checkout-page--${pageState}${showReceipt ? ' checkout-page--with-receipt' : ''}`} footerVariant="compact">
     <div className="content-container commerce-page"><PageTitle>{uiText("주문서 작성")}</PageTitle>
       
-      {contentStatus ? <CommerceCartState status={contentStatus} loadingLabel={uiText("선택 상품의 예상 금액을 불러오는 중입니다.")} errorMessage={uiText("선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다.")} onRetry={() => { void result.refetch() }} errorAction={<Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart" variant="secondary">{uiText("장바구니로 이동")}</Button>}><p>{uiText("장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.")}</p><Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart">{uiText("장바구니로 이동")}</Button></CommerceCartState>
-            : quote ? <div className="checkout-layout" aria-busy={refreshing}><div className="checkout-main">
-              <CheckoutProducts items={quote.items} benefits={shownBenefits} refreshing={refreshing} />
-              {productUnavailable ? <div className="checkout-product-error">
+      {contentStatus && !recovering ? <CommerceCartState status={contentStatus} loadingLabel={uiText("선택 상품의 예상 금액을 불러오는 중입니다.")} errorMessage={uiText("선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다.")} onRetry={() => { void result.refetch() }} errorAction={<Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart" variant="secondary">{uiText("장바구니로 이동")}</Button>}><p>{uiText("장바구니에서 주문할 상품을 다시 선택해 주세요. 한 번에 최대 100개 항목을 확인할 수 있습니다.")}</p><Button as={RelativeLink} className="checkout-return-cart-button" size="large" to="/cart">{uiText("장바구니로 이동")}</Button></CommerceCartState>
+            : quote || recovering ? <div className="checkout-layout" aria-busy={recovering ? !quote && result.isFetching : refreshing}><div className="checkout-main">
+              {quote ? <CheckoutProducts items={quote.items} benefits={shownBenefits} refreshing={refreshing} /> : <CommerceCartState status={result.isFetching ? 'loading' : 'error'} loadingLabel={uiText("선택 상품의 예상 금액을 불러오는 중입니다.")} errorMessage={uiText("선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다.")} onRetry={() => { void result.refetch() }} />}
+              {productUnavailable && !recovering ? <div className="checkout-product-error">
                 <p role="alert">{uiText("선택한 상품 중 현재 주문할 수 없는 상품이 있습니다. 장바구니에서 상품 상태를 다시 확인해 주세요.")}</p>
                 <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">{uiText("장바구니로 이동")}</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{uiText(benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인')}</Button></div>
-              </div> : <CheckoutDiscounts quote={shownBenefits} couponId={couponId} points={points} disabled={!checkout.benefitQuote || !!attempt} pending={!attempt && benefits.isFetching} error={attempt ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
-              {profile.isError && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
-              <fieldset className="checkout-input-fields" disabled={!!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
-              {showReceipt && <fieldset className="checkout-input-fields" disabled={cancellationStarted || (!!attempt && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={cancellationStarted || (!!attempt && !paymentRetryReady)} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitDisabled={cancellationStarted || paymentClosed} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
-              cancellation={<CheckoutCancellation disabled={submit.isPending} returnTo={returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
+              </div> : <CheckoutDiscounts quote={shownBenefits} couponId={recovering ? shownBenefits?.userCouponId ?? null : couponId} points={recovering ? String(shownBenefits?.pointUsedAmount ?? 0) : points} disabled={recovering || !checkout.benefitQuote || !!attempt} pending={!recovering && !attempt && benefits.isFetching} error={attempt || recovering ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
+              {profile.isError && !recovering && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
+              <fieldset className="checkout-input-fields" disabled={recovering || !!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
+              {showReceipt && <fieldset className="checkout-input-fields" disabled={recovering || cancellationStarted || (!!attempt && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={recovering || cancellationStarted || (!!attempt && !paymentRetryReady)} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitDisabled={recovering || cancellationStarted || paymentClosed} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
+              cancellation={<CheckoutCancellation disabled={submit.isPending} returnTo={recovery.record?.returnTo ?? returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
                 const current = attemptRef.current
-                return current ? { creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) } : null
+                return recovery.record?.request ?? (current ? { creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) } : null)
               }}/>} /></div> : null}
-      {contentStatus && <CheckoutCancellation disabled={false} returnTo={returnTo} request={() => null} onLock={() => setCancellationStarted(true)}/>}
+      {contentStatus && !recovering && <CheckoutCancellation disabled={false} returnTo={returnTo} request={() => null} onLock={() => setCancellationStarted(true)}/>}
     </div>
   </AppShell>
 }
