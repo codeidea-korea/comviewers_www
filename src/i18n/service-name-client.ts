@@ -126,7 +126,6 @@ function startFrame(url: URL, batch: readonly Entry[]) {
   Object.assign(frame.style, { position: 'fixed', left: '0', top: '0', width: '600px', height: '350px', opacity: '0', pointerEvents: 'none', border: '0' })
   let finished = false
   let started = false
-  let timeout: ReturnType<typeof setTimeout>
   const completed = new Set<Entry>()
   const publish = (values: readonly unknown[]) => batch.forEach((entry, index) => {
     const value = values[index]
@@ -167,7 +166,7 @@ function startFrame(url: URL, batch: readonly Entry[]) {
   cancelActive = () => finish(undefined, true)
   activeEntries = batch
   window.addEventListener('message', receive)
-  timeout = setTimeout(() => finish(), timeoutMs)
+  const timeout = setTimeout(() => finish(), timeoutMs)
   frame.src = url.href
   document.body.append(frame)
 }
