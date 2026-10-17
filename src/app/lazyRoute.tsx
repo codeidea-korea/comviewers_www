@@ -1,4 +1,7 @@
-import { lazy, type ComponentType } from 'react'
+import { lazy, type ComponentProps, type ComponentType } from 'react'
+
+type RouteLoader = Parameters<typeof lazy>[0]
+type RouteProps<Loader extends RouteLoader> = ComponentProps<Awaited<ReturnType<Loader>>['default']>
 
 let failedImports: readonly (() => void)[] = []
 
@@ -14,7 +17,7 @@ export function resetFailedRouteImports() {
 }
 
 // Retry only loading the screen module; rendering and business requests are unchanged.
-export function lazyRoute<Props extends object>(load: () => Promise<{ default: ComponentType<Props> }>): ComponentType<Props> {
+export function lazyRoute<Loader extends RouteLoader>(load: Loader): ComponentType<RouteProps<Loader>> {
   const createRoute = () => lazy(async () => {
     try {
       try {
@@ -34,7 +37,7 @@ export function lazyRoute<Props extends object>(load: () => Promise<{ default: C
   let Route = createRoute()
 
   // Keep successful screens mounted; replace rejected lazy instances only on recovery.
-  return function LazyRoute(props: Props) {
+  return function LazyRoute(props: RouteProps<Loader>) {
     return <Route {...props} />
   }
 }
