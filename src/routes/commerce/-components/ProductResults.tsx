@@ -34,7 +34,8 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
     <tr className="product-list-table__row" role="link" tabIndex={0} onClick={event => { if (!(event.target as HTMLElement).closest('button,a,input,select,textarea')) openProduct() }} onKeyDown={event => { if (event.key === 'Enter' && event.target === event.currentTarget) openProduct() }}>
       <td>{product.productId}</td>
       <td><span className="product-table-copy">{osFilterLabel(product.osFilterValue) ?? product.os ?? t('common.noInformation')}</span></td>
-      <td><span className="product-table-copy">{product.cpu ?? t('common.noInformation')}</span><span className="product-table-copy">{uiText('Core')} {formatCpuCores(product.cpuCores)}</span></td>
+      <td><span className="product-table-copy">{product.cpu ?? t('common.noInformation')}</span></td>
+      <td className="product-table-cores notranslate" translate="no">{formatCpuCores(product.cpuCores)}</td>
       <td><span className="tag tag--blue">{product.ram ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--gray">{product.disk ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--red">{product.gpu ?? t('common.noInformation')}</span></td>
@@ -69,6 +70,7 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
                   <col style={{ width: '52px' }} />
                   <col style={{ width: '108px' }} />
                   <col style={{ width: '132px' }} />
+                  <col style={{ width: '80px' }} />
                   <col style={{ width: '90px' }} />
                   <col style={{ width: '90px' }} />
                   <col style={{ width: '170px' }} />
@@ -79,7 +81,7 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
                   <col style={{ width: '88px' }} />
                   <col style={{ width: '68px' }} />
                 </colgroup>
-                <thead><tr>{[t('product.number'), 'OS', 'CPU', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee'), t(partOnly ? 'money.productAmount' : 'money.monthlyRental'), t('cart.add')].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead>
+                <thead><tr>{[t('product.number'), 'OS', 'CPU', 'Core', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee'), t(partOnly ? 'money.productAmount' : 'money.monthlyRental'), t('cart.add')].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead>
                 <tbody>{products.map((product) => <ProductListRow key={product.id} onAddToCart={onAddToCart} product={product} />)}</tbody>
               </table>
             </div>
