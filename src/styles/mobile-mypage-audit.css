@@ -158,9 +158,8 @@
   .favorites-mobile-sort-control button img { height: 14.263px; object-fit: contain; width: 10px; }
   .favorites-table > article.mobile-scrap-card > .rcpc-list__actions > section { display: block; height: auto; min-height: 41px; min-width: 0; width: 100%; }
   .favorites-table > article.mobile-scrap-card > .rcpc-list__actions > section > button { background: var(--color-black); color: var(--color-white); display: flex; height: 41px; justify-content: center; width: 100%; }
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl > div { align-items: start; height: auto; min-height: 0; padding-bottom: 14px; }
-  .rcpc-popup-layer--single .rcpc-spec-dialog dd { line-height: 22px; min-width: 0; overflow-wrap: anywhere; }
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl > div:last-child { padding-bottom: 0; }
+  .rcpc-popup-layer--single .rcpc-spec-dialog dl > div { align-items: center; height: auto; min-height: 30px; }
+  .rcpc-popup-layer--single .rcpc-spec-dialog :is(dt, dd) { line-height: 22px; min-width: 0; overflow-wrap: anywhere; }
   .favorites-group-management__actions { flex-basis: 50px; gap: 12px; }
   .favorites-group-management__actions button { color: var(--color-black); font-size: 16px; font-weight: 500; height: 50px; padding: 0 16px; }
   .favorites-group-management .favorites-group-editor__row { grid-template-columns: minmax(0, 1fr) 24px 24px 24px; width: 100%; }

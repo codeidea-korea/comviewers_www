@@ -237,7 +237,13 @@
 .rcpc-popup-layer h2 { font-size: 24px; line-height: 29px; }
 .rcpc-popup-layer--single section { left: 50%; top: 50%; transform: translate(-50%, -50%); }
 .rcpc-spec-dialog { height: 436px; left: 435px; padding: 30px; top: 324px; width: 500px; }
-.rcpc-spec-dialog dl { margin-top: 30px; }.rcpc-spec-dialog dl div { display: grid; font-size: 14px; grid-template-columns: 58px 1fr; }.rcpc-spec-dialog dl div:nth-child(-n+4) { height: 31px; }.rcpc-spec-dialog dl div:nth-child(5),.rcpc-spec-dialog dl div:nth-child(6) { height: 39px; }.rcpc-spec-dialog dl div:nth-child(7) { height: 25px; }.rcpc-spec-dialog dt { color: var(--color-gray-500); }.rcpc-spec-dialog dl div:nth-child(n+5) dt { padding-top: 4px; }.rcpc-spec-dialog mark { background: var(--color-blue-100); border-radius: 4px; color: var(--color-blue-500); display: inline-block; padding: 4px 6px; }.rcpc-spec-dialog dl div:nth-child(6) mark { background: var(--color-gray-50); color: var(--color-gray-600); }.rcpc-spec-dialog dl div:last-child mark { background: var(--color-primary-200); color: var(--color-primary-500); }
+.rcpc-spec-dialog dl { display: grid; gap: 6px; margin-top: 30px; }
+.rcpc-spec-dialog dl > div { align-items: center; display: grid; font-size: 14px; grid-template-columns: 58px minmax(0, 1fr); min-height: 25px; }
+.rcpc-spec-dialog dt { color: var(--color-gray-500); line-height: 17px; }
+.rcpc-spec-dialog mark { border-radius: 4px; display: inline-block; max-width: 100%; padding: 4px 6px; vertical-align: middle; }
+.rcpc-spec-dialog__ram mark { background: var(--color-blue-100); color: var(--color-blue-500); }
+.rcpc-spec-dialog__disk mark { background: var(--color-gray-50); color: var(--color-gray-600); }
+.rcpc-spec-dialog__gpu mark { background: var(--color-primary-200); color: var(--color-primary-500); }
 .rcpc-spec-dialog > button { background: var(--color-black); border: 0; bottom: 30px; color: white; height: 50px; left: 30px; position: absolute; width: 440px; }
 .rcpc-alias-dialog { height: 315px; left: 986px; padding: 30px; top: 324px; width: 500px; }.rcpc-alias-dialog > strong { display: block; line-height: 24px; margin-top: 30px; }.rcpc-alias-dialog > input { border: 0; border-bottom: 1px solid var(--color-black); font-size: 18px; height: 49px; margin-top: 4px; outline: 0; width: 100%; }.rcpc-alias-dialog > input::placeholder { color: var(--color-gray-400); }.rcpc-alias-dialog > small { color: var(--color-gray-500); display: block; font-size: 12px; margin-top: 8px; }.rcpc-alias-dialog__error { color: var(--color-system-error); font-size: 13px; line-height: 20px; margin: 4px 0 0; }.rcpc-alias-dialog footer { bottom: 30px; display: grid; gap: 12px; grid-template-columns: 1fr 1fr; left: 30px; position: absolute; right: 30px; }.rcpc-alias-dialog footer button { background: white; border: 1px solid var(--color-gray-200); height: 50px; }.rcpc-alias-dialog footer button:last-child { background: var(--color-black); color: white; }
 .rcpc-extension-dialog { height: 845px; left: 358px; outline: none; padding: 30px; top: 118px; width: 1204px; }.rcpc-extension-dialog__scroll { border: 1px solid var(--color-gray-200); border-radius: 8px; height: 646px; margin-top: 31px; overflow-y: auto; padding: 20px; }.rcpc-extension-dialog__scroll h3 { font-size: 16px; font-weight: 500; margin-bottom: 10px; }.rcpc-extension-dialog__scroll article { background: var(--color-gray-50); border-bottom: 1px solid var(--color-gray-200); min-height: 102px; padding: 18px 12px; }.rcpc-extension-dialog__scroll article p { color: var(--color-gray-500); font-size: 13px; line-height: 18px; margin-top: 10px; }.rcpc-extension-dialog__scroll h3:nth-of-type(2) { margin-top: 29px; }.rcpc-extension-dialog__help { background: var(--color-gray-50); color: var(--color-gray-500); font-size: 12px; line-height: 18px; padding: 12px; }.rcpc-extension-dialog__scroll > label { align-items: center; border: 1px solid var(--color-gray-200); display: flex; min-height: 88px; padding: 18px; }.rcpc-extension-dialog__scroll > label input { height: 20px; margin-right: 12px; width: 20px; }.rcpc-extension-dialog__scroll > label span { display: flex; flex-direction: column; }.rcpc-extension-dialog__scroll > label small { color: var(--color-gray-500); font-size: 12px; margin-top: 7px; }.rcpc-extension-dialog > footer { bottom: 30px; display: grid; gap: 12px; grid-template-columns: 1fr 1fr; left: 30px; position: absolute; right: 30px; }.rcpc-extension-dialog > footer button { background: white; border: 1px solid var(--color-gray-200); height: 50px; }.rcpc-extension-dialog > footer button:last-child { background: var(--color-black); color: white; }
@@ -1266,7 +1272,7 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .inquiry-chat-products__list > article > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .inquiry-chat-products__list button { background: transparent; border: 0; color: var(--color-gray-500); font-size: 12px; padding: 0; text-align: left; }
 .inquiry-chat-products__list strong { font-size: 14px; overflow-wrap: anywhere; }
-.inquiry-chat-products__list span { align-self: flex-start; background: var(--color-gray-100); border-radius: 3px; color: var(--color-gray-700); font-size: 14px; padding: 4px 6px; }
+.inquiry-chat-products__list header > span { align-self: flex-start; background: var(--color-gray-100); border-radius: 3px; color: var(--color-gray-700); font-size: 14px; padding: 4px 6px; }
 /* Figma desktop navigation: symbol 534:17214. */
 .mypage-sidebar h2:only-child { font-size: 14px; line-height: 17px; }
 
@@ -1333,14 +1339,9 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
   .mypage-home .mypage-home-rcpc__connection .rcpc-remote-provider__actions { flex-shrink: 0; }
 }
 
-/* RCPC specification rows retain the original 14px gap when values wrap. */
+/* Uniform rows accommodate plain text and padded values without positional rules. */
 .rcpc-spec-dialog { display: flex; flex-direction: column; height: auto; max-height: calc(100dvh - 48px); overflow-y: auto; }
-.rcpc-spec-dialog dl div,
-.rcpc-spec-dialog dl div:nth-child(-n+4),
-.rcpc-spec-dialog dl div:nth-child(5),
-.rcpc-spec-dialog dl div:nth-child(6) { grid-template-columns: 58px minmax(0,1fr); height: auto; min-height: 31px; padding-bottom: 14px; }
-.rcpc-spec-dialog dl div:last-child { height: auto; min-height: 25px; padding-bottom: 0; }
-.rcpc-spec-dialog dd { font-weight: 500; letter-spacing: -.02em; line-height: 17px; min-width: 0; overflow-wrap: anywhere; }
+.rcpc-spec-dialog dd { align-items: center; display: flex; font-weight: 500; letter-spacing: -.02em; line-height: 17px; min-width: 0; overflow-wrap: anywhere; }
 .rcpc-spec-dialog > button { bottom: auto; flex-shrink: 0; left: auto; margin-top: 40px; position: static; width: 100%; }
 
 @media (min-width: 768px) {

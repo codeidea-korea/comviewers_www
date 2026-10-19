@@ -575,14 +575,10 @@
     margin: 24px 0 0;
     width: 100%;
   }
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl div,
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl div:nth-child(-n+4),
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl div:nth-child(5),
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl div:nth-child(6),
-  .rcpc-popup-layer--single .rcpc-spec-dialog dl div:nth-child(7) {
+  .rcpc-popup-layer--single .rcpc-spec-dialog dl > div {
     grid-template-columns: 58px minmax(0, 1fr);
     height: auto;
-    min-height: 31px;
+    min-height: 30px;
   }
   .rcpc-popup-layer--single .rcpc-spec-dialog dd {
     min-width: 0;

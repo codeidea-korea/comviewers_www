@@ -488,6 +488,7 @@
 .review-detail-modal__product > span strong { letter-spacing: -.36px; }
 .review-detail-modal__product > span small { font-weight: 500; letter-spacing: -.28px; }
 .review-detail-modal__product > p { letter-spacing: -.42px; }
+.review-detail-modal__product:has(.pc-spec-summary) { height: auto; min-height: 118px; }
 .review-detail-modal__rating > strong,.review-detail-modal__copy > strong { letter-spacing: -.36px; }
 .review-detail-modal__rating .review-star { height: 40px; width: 40px; }
 .review-detail-modal__scroll { letter-spacing: -.32px; }

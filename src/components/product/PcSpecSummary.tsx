@@ -3,8 +3,8 @@ import { Fragment } from 'react'
 
 const coreLinePattern = /^(?:CORE|Core|코어 수): (?:([1-9]\d*) Cores?|-)$/u
 
-/** Render explicit specification lines without splitting historic summaries or authored descriptions. */
-export function PcSpecSummary({ text, fallback = '-', showMissingCores = false, layout = 'lines' }: {
+/** Join PC summary groups for display without rewriting stored specifications. */
+export function PcSpecSummary({ text, fallback = '-', showMissingCores = false, layout = 'inline' }: {
   text: string | null | undefined
   fallback?: string
   showMissingCores?: boolean

@@ -260,6 +260,8 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
 .complete-page .commerce-page { max-width: 1200px; }.complete-page .commerce-title { margin-bottom: 60px; }.complete-page section { margin-bottom: 64px; }.commerce-info-table { border: 1px solid var(--color-gray-200); border-radius: 4px; overflow: hidden; }.commerce-info-table div { border-bottom: 1px solid var(--color-gray-200); display: grid; grid-template-columns: 180px 1fr; min-height: 58px; }.commerce-info-table div:last-child { border-bottom: 0; }.commerce-info-table dt,.commerce-info-table dd { align-items: center; display: flex; padding: 16px; }.commerce-info-table dt { background: var(--color-gray-50); color: var(--color-gray-600); }.commerce-info-table em { color: var(--color-system-error); font-style: normal; }.complete-page .commerce-info-table + .commerce-info-table { margin-top: 22px; }.order-detail-link { color: var(--color-blue-500); display: inline-block; margin-top: 18px; }.complete-actions { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }.complete-actions button { background: white; border: 1px solid var(--color-gray-200); height: 54px; }.complete-actions button:last-child { background: var(--color-black); color: white; }
 
 .review-create-backdrop { inset: 0; }
+.review-create-spec:has(> .pc-spec-summary) { height: auto; min-height: 51px; }
+.review-create-card:has(.pc-spec-summary) { height: auto; max-height: calc(100dvh - 48px); min-height: min(669px, calc(100dvh - 48px)); overflow-y: auto; }
 
 .cart-page .commerce-page { padding: 60px 0 172.13px; }
 .cart-page .commerce-title { font-size: 26px; font-weight: 400; height: 29px; letter-spacing: -.02em; line-height: 29px; margin-bottom: 60px; }
