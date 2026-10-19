@@ -5,3 +5,16 @@
 .ui-tooltip[data-side='top']::after { bottom: -4px; }
 .ui-tooltip[data-side='bottom']::after { top: -4px; }
 .ui-tooltip__content { max-height: calc(100dvh - 48px); overflow: auto; overflow-wrap: anywhere; white-space: pre-wrap; }
+.ui-ellipsis { display: block; max-width: 100%; min-width: 0; }
+.ui-ellipsis[data-truncated='true'] { cursor: help; }
+.ui-ellipsis__content { display: block; max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-ellipsis__content[data-lines='2'] { display: -webkit-box; overflow-wrap: anywhere; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+/* Match the existing purchase-confirmation "포인트 받기" bubble. */
+.ui-tooltip--ellipsis { background: transparent; border: 0; border-radius: 4px; box-shadow: none; font-size: 14px; font-weight: 700; isolation: isolate; line-height: 24px; padding: 5px 8px; }
+.ui-tooltip--ellipsis .ui-tooltip__content { white-space: normal; }
+.ui-tooltip--ellipsis::after { content: none; }
+/* Composite the overlapping body and arrow before applying opacity to avoid a seam. */
+.ui-tooltip--ellipsis .ui-tooltip__surface { background: var(--color-gray-800); border-radius: inherit; inset: 0; opacity: .85; pointer-events: none; position: absolute; z-index: -1; }
+.ui-tooltip--ellipsis .ui-tooltip__surface::after { background: var(--color-gray-800); content: ''; height: 10px; left: var(--tooltip-arrow); position: absolute; transform: translateX(-50%) rotate(45deg); width: 10px; }
+.ui-tooltip--ellipsis[data-side='top'] .ui-tooltip__surface::after { bottom: -4px; }
+.ui-tooltip--ellipsis[data-side='bottom'] .ui-tooltip__surface::after { top: -4px; }

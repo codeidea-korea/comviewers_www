@@ -175,16 +175,16 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 0 0 330px;
-    height: 330px;
-    min-height: 0;
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 330px;
     width: 100%;
   }
   .product-card--large .product-card__spec,
   .product-card--large .product-card__spec:nth-child(n) {
     align-items: flex-start;
     display: grid;
-    grid-template-columns: var(--product-card-spec-label-width, 50px) minmax(0, 1fr);
+    grid-template-columns: 50px minmax(0, 1fr);
     height: auto;
     left: auto;
     min-height: 0;
@@ -194,57 +194,40 @@
   }
   .product-card--large .product-card__spec dt,
   .product-card--large .product-card__spec dd { font-size: 14px; min-width: 0; }
-  .product-card--large .product-card__spec.product-card__spec--peripherals { grid-template-columns: minmax(var(--product-card-spec-label-width, 50px), max-content) minmax(0, 1fr); }
   .product-card--large .product-card__spec--os dd,
   .product-card--large .product-card__spec--cpu dd {
-    display: -webkit-box;
-    height: 34px;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    display: block;
+    height: auto;
+    min-height: 34px;
+    overflow: visible;
   }
-  .product-card--large .product-card__spec:nth-child(1) { height: 27px; }
+  .product-card--large .product-card__spec:nth-child(1) { min-height: 27px; }
   .product-card--large .product-card__spec:nth-child(2),
-  .product-card--large .product-card__spec:nth-child(3) { height: 34px; }
-  .product-card--large .product-card__spec--cores { height: 20px; }
-  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) { height: 25px; }
+  .product-card--large .product-card__spec:nth-child(3) { min-height: 34px; }
+  .product-card--large .product-card__spec--cores { min-height: 25px; }
+  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) { min-height: 25px; }
   .product-card--large .product-card__spec--peripherals,
-  .product-card--large .product-card__spec:last-child { height: 24px; }
-  .product-card--large .product-card__spec--ip { height: 38px; }
+  .product-card--large .product-card__spec:last-child { min-height: 24px; }
+  .product-card--large .product-card__spec--ip { min-height: 38px; }
   .product-card--large .product-card__spec .tag {
     max-width: 100%;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    white-space: normal;
   }
   .product-card--large .product-card__spec--ip dd {
     align-items: flex-start;
     display: grid;
     gap: 4px;
-    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
+  .product-card--large .product-card__spec--ip dd:has(> .flag) { grid-template-columns: 20px minmax(0, 1fr); }
   .product-card--large .product-card__spec--ip dd small {
     grid-column: 1 / -1;
   }
-  .product-card--large .product-card__purchase { flex: 0 0 123px; gap: 14px; height: 123px; margin-top: 0; }
-  .product-card--large .product-card__price { flex: 0 0 59px; height: 59px; padding-top: 15px; }
+  .product-card--large .product-card__purchase { flex: 0 0 auto; gap: 14px; height: auto; min-height: 123px; margin-top: 0; }
+  .product-card--large .product-card__price { flex: 0 0 auto; height: auto; min-height: 59px; padding-top: 15px; }
   .product-card--large .product-card__price-value b { font-size: 18px; }
-  .product-card--large:lang(en) .product-card__spec {
-    grid-template-columns: minmax(50px, max-content) minmax(0, 1fr);
-  }
-  .product-card--large:lang(en) .product-card__spec--number:first-child { display: grid; grid-template-columns: 50px minmax(0, 1fr); height: auto; min-height: 27px; }
-  .product-card--large:lang(en) .product-card__specs { flex: 1 0 auto; height: auto; min-height: 304px; }
-  .product-card--large:lang(en) .product-card__purchase,
-  .product-card--large:lang(en) .product-card__price { flex-basis: auto; height: auto; }
-  .product-card--large:lang(en) .product-card__price > span {
-    flex-wrap: wrap;
-    gap: 4px 8px;
-    height: auto;
-    min-height: 18px;
-  }
-  .product-card--large:lang(en) .product-card__price > span > .notranslate { flex: 0 0 auto; white-space: nowrap; }
-  .product-card--large:lang(en) .product-card__price-value { margin-left: auto; }
   .product-card--large .product-card__cart { flex-basis: 50px; height: 50px; }
   .products-content > .pagination { margin-top: 0; }
 

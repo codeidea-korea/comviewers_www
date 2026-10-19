@@ -1,5 +1,5 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import { cloneElement, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import type { CSSProperties, HTMLAttributes, ReactElement, ReactNode, Ref } from 'react'
 import { createPortal } from 'react-dom'
 import './tooltip.css'
 
@@ -10,20 +10,38 @@ export function TooltipText({ text, tooltipText = text, className = '', enabled 
   return enabled ? <ActiveTooltipText text={text} tooltipText={tooltipText} className={className}/> : <span className={className || undefined}>{text}</span>
 }
 
-function ActiveTooltipText({ text, tooltipText, className }: { text: string; tooltipText: string; className: string }) {
+/** Clamp the displayed text and disclose its current, translated text only when clipped. */
+export function EllipsisText({ children, lines = 2, className = '', asChild = false }: { children: ReactNode; lines?: 1 | 2; className?: string; asChild?: boolean }) {
+  return <ActiveTooltipText className={className} lines={lines} asChild={asChild}>{children}</ActiveTooltipText>
+}
+
+type TriggerElement = ReactElement<HTMLAttributes<HTMLSpanElement> & { ref?: Ref<HTMLSpanElement> }>
+
+function ActiveTooltipText({ text, tooltipText, className, children, lines, asChild = false }: { text?: string; tooltipText?: string; className: string; children?: ReactNode; lines?: 1 | 2; asChild?: boolean }) {
   const id = useId()
   const trigger = useRef<HTMLSpanElement>(null)
   const bubble = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const focused = useRef(false)
+  const content = useRef<HTMLSpanElement>(null)
   const [open, setOpen] = useState(false)
   const [placement, setPlacement] = useState<Placement | null>(null)
+  const [truncated, setTruncated] = useState(false)
+  const [disclosedText, setDisclosedText] = useState('')
+  const isEllipsis = lines !== undefined
+  const child = asChild && isValidElement(children) ? children as TriggerElement : null
 
   const cancelClose = () => {
     if (closeTimer.current !== null) clearTimeout(closeTimer.current)
     closeTimer.current = null
   }
-  const show = () => { cancelClose(); setOpen(true) }
+  const show = () => {
+    cancelClose()
+    const node = content.current
+    if (isEllipsis && (!node || (node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight))) return
+    setDisclosedText(tooltipText ?? trigger.current?.textContent?.trim() ?? '')
+    setOpen(true)
+  }
   const close = () => { cancelClose(); setOpen(false); setPlacement(null) }
   const leave = () => {
     cancelClose()
@@ -35,6 +53,26 @@ function ActiveTooltipText({ text, tooltipText, className }: { text: string; too
   }, [])
 
   useLayoutEffect(() => {
+    const node = content.current
+    if (!isEllipsis || !node) return
+    let active = true
+    const measure = () => {
+      if (!active) return
+      const clipped = node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight
+      setTruncated(clipped)
+      setOpen(false)
+      setPlacement(null)
+    }
+    measure()
+    const resize = new ResizeObserver(measure)
+    resize.observe(node)
+    const mutations = new MutationObserver(measure)
+    mutations.observe(node, { childList: true, characterData: true, subtree: true })
+    void document.fonts.ready.then(measure)
+    return () => { active = false; resize.disconnect(); mutations.disconnect() }
+  }, [isEllipsis, lines])
+
+  useLayoutEffect(() => {
     if (!open || !trigger.current || !bubble.current) return
     const anchor = trigger.current.getBoundingClientRect()
     const box = bubble.current.getBoundingClientRect()
@@ -43,7 +81,7 @@ function ActiveTooltipText({ text, tooltipText, className }: { text: string; too
     const side = anchor.top >= box.height + margin + 8 ? 'top' : 'bottom'
     const top = side === 'top' ? anchor.top - box.height - 8 : Math.min(anchor.bottom + 8, window.innerHeight - box.height - margin)
     setPlacement({ left, top: Math.max(margin, top), side, arrow: Math.max(12, Math.min(anchor.left + anchor.width / 2 - left, box.width - 12)) })
-  }, [open, text, tooltipText])
+  }, [open, text, tooltipText, disclosedText])
 
   useEffect(() => {
     if (!open) return
@@ -71,12 +109,25 @@ function ActiveTooltipText({ text, tooltipText, className }: { text: string; too
     '--tooltip-arrow': `${placement?.arrow ?? 12}px`,
   } as CSSProperties
 
+  const triggerProps = {
+    ref: trigger,
+    className: `${isEllipsis ? 'ui-ellipsis' : 'ui-tooltip-text'} ${className} ${child?.props.className ?? ''}`.trim(),
+    tabIndex: isEllipsis ? (truncated ? 0 : -1) : 0,
+    'aria-describedby': open ? id : undefined,
+    'data-truncated': truncated ? 'true' : 'false',
+    onMouseEnter: show,
+    onMouseLeave: leave,
+    onFocus: () => { focused.current = true; show() },
+    onBlur: () => { focused.current = false; close() },
+  }
+  const visibleContent = isEllipsis ? <span ref={content} className="ui-ellipsis__content" data-lines={lines}>{child ? child.props.children : children}</span> : text
+
   return <>
-    <span ref={trigger} className={`ui-tooltip-text ${className}`.trim()} tabIndex={0} aria-describedby={open ? id : undefined}
-      onMouseEnter={show} onMouseLeave={leave}
-      onFocus={() => { focused.current = true; show() }}
-      onBlur={() => { focused.current = false; close() }}>{text}</span>
-    {open && createPortal(<div ref={bubble} id={id} role="tooltip" className="ui-tooltip" data-side={placement?.side ?? 'top'} style={style}
-      onMouseEnter={cancelClose} onMouseLeave={leave}><div className="ui-tooltip__content">{tooltipText}</div></div>, document.body)}
+    {child ? cloneElement(child, triggerProps, visibleContent) : <span {...triggerProps}>{visibleContent}</span>}
+    {open && createPortal(<div ref={bubble} id={id} role="tooltip" className={`ui-tooltip${isEllipsis ? ' ui-tooltip--ellipsis notranslate' : ''}`} translate={isEllipsis ? 'no' : undefined} data-side={placement?.side ?? 'top'} style={style}
+      onMouseEnter={cancelClose} onMouseLeave={leave}>
+      {isEllipsis ? <div aria-hidden="true" className="ui-tooltip__surface" /> : null}
+      <div className="ui-tooltip__content">{tooltipText ?? disclosedText}</div>
+    </div>, document.body)}
   </>
 }

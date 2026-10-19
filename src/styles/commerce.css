@@ -184,13 +184,22 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
 .product-list-table .tag { display: inline-block; font-weight: 500; letter-spacing: -.28px; max-width: 100%; overflow-wrap: anywhere; vertical-align: middle; white-space: normal; }
 .product-list-table td:nth-child(n+4) { text-align: center; }
 .product-table-cores { white-space: nowrap; }
+.product-list-table .cpu-core-badge { display: inline-flex; white-space: nowrap; }
 .product-list-table td button { align-items: center; background: white; border: 1px solid var(--color-gray-200); border-radius: 4px; display: inline-flex; height: 50px; justify-content: center; padding: 0; width: 50px; }.product-list-table td button img { height: 20px; width: 20px; }.product-table-peripherals { align-items: center; display: inline-flex; gap: 2px; }.product-table-peripherals i { align-items: center; background: var(--color-gray-100); border-radius: 4px; display: inline-flex; height: 24px; justify-content: center; width: 24px; }.product-table-peripherals i.is-mouse img { height: 16.667px; width: 11.667px; }.product-table-peripherals i.is-keyboard img { height: 11.667px; width: 16.667px; }.product-table-country { align-items: center; display: inline-flex; flex-direction: column; white-space: nowrap; }.product-table-country__name { align-items: center; display: flex; font-size: 14px; font-weight: 500; gap: 4px; letter-spacing: -.42px; }.product-table-country img { height: 20px; object-fit: cover; width: 20px; }.product-table-country small { color: var(--color-gray-600); font-size: 12px; letter-spacing: -.36px; }.product-table-status { align-items: center; background: var(--color-surface-error-soft); border-radius: 50%; display: inline-flex; height: 24px; justify-content: center; width: 24px; }.product-table-status.is-online { background: var(--color-surface-success-soft); }.product-table-status:not(.is-online) img { height: 16.5px; width: 17.167px; }.product-table-status.is-online img { height: 8.333px; width: 16.667px; }.product-table-price { letter-spacing: -.48px; white-space: nowrap; }.product-table-price strong { font-size: 16px; font-weight: 500; }.product-table-price span { font-size: 14px; font-weight: 500; letter-spacing: -.42px; }
 .product-table-peripherals i { flex-shrink: 0; font-style: normal; }
 .product-table-peripherals i.is-unknown { font-size: 12px; padding: 0 4px; white-space: nowrap; width: auto; }
 .product-table-wrap { margin-bottom: 60px; max-width: 100%; overflow-x: auto; }
 .product-table-wrap--translated { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
-.product-table-wrap--translated .product-list-table { table-layout: auto; }
-.product-table-wrap--translated .product-list-table th { padding-inline: 12px; white-space: nowrap; }
+.product-list-table--clamped th > .ui-ellipsis { margin-inline: 8px; max-width: calc(100% - 16px); }
+.product-list-table--clamped .product-table-copy { display: block; min-height: 0; }
+.product-list-table--clamped .tag { box-sizing: border-box; min-width: 0; white-space: normal; }
+.product-list-table--clamped .cpu-core-badge { max-width: 100%; min-width: 0; }
+.product-list-table--clamped .product-table-country { max-width: 100%; min-width: 0; white-space: normal; }
+.product-list-table--clamped .product-table-country__name { max-width: 100%; min-width: 0; }
+.product-list-table--clamped .product-table-country img { flex: 0 0 20px; }
+.product-list-table--clamped .product-table-country small { max-width: 100%; min-width: 0; }
+.product-list-table--clamped .product-table-price { white-space: normal; }
+.product-list-table--clamped .product-table-price :is(.ui-ellipsis, .ui-ellipsis__content) { font-size: inherit; letter-spacing: inherit; }
 .product-detail-content #guide > p { overflow-wrap: anywhere; white-space: pre-wrap; }
 .product-detail-content #guide .product-guide-fields > p { margin: 0; overflow-wrap: anywhere; padding: 0 8px; }
 
@@ -206,6 +215,7 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
 .product-detail-specs { border-bottom: 1px solid var(--color-gray-200); display: grid; font-size: 14px; gap: 12px; height: auto; line-height: 17px; min-height: 200px; padding-bottom: 30px; }
 .product-detail-specs div { display: grid; grid-template-columns: 80px minmax(0, 1fr); min-width: 0; }.product-detail-specs dt { color: var(--color-gray-500); white-space: nowrap; }.product-detail-specs dd { letter-spacing: -.28px; min-width: 0; overflow-wrap: anywhere; }
 .product-detail-specs div:last-child { line-height: 24px; }
+.product-detail-specs .product-detail-specs__cores { align-items: center; }
 .product-detail-prices { border: 0; display: flex; flex-direction: column; gap: 12px; height: 87px; margin-top: 29px; padding: 0; }.product-detail-prices p { align-items: center; display: flex; height: 21px; justify-content: space-between; line-height: 21px; }.product-detail-prices p > span { align-items: baseline; display: flex; gap: 8px; }.product-detail-prices p b { font-size: 16px; font-weight: 500; letter-spacing: -.03em; }.product-detail-prices p small { color: var(--color-gray-600); font-size: 14px; letter-spacing: -.03em; }.product-detail-prices p > strong { font-size: 18px; font-weight: 700; letter-spacing: -.02em; }.product-detail-prices p:last-child > strong { color: var(--color-black); }.product-detail-prices p:last-child > strong span { font-size: 16px; font-weight: 400; }
 .product-detail-notice { background: var(--color-gray-50); font-size: 14px; height: 62px; line-height: 19px; margin: 30px 0 12px; padding: 12px; }
 @media (min-width: 768px) {
@@ -624,12 +634,7 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
   .product-filter-drawer-layer .product-filter--drawer::before { display: none; }
   .products-content .product-selector-field > button,
   .products-content .server-room-select-panel { border-radius: 0; }
-  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) dd { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) dd > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .product-card--large .product-card__peripherals > span:not(.sr-only) { background: var(--color-gray-100); border-radius: 4px; box-sizing: border-box; padding: 0; }
   .product-card--large .product-card__peripherals .product-card__mouse img { height: 16.667px; width: 11.667px; }
   .product-card--large .product-card__peripherals .product-card__keyboard img { height: 11.667px; width: 16.667px; }
 }
-
-.product-list-table .cpu-core-badge { display: inline-flex; white-space: nowrap; }
-.product-detail-specs .product-detail-specs__cores { align-items: center; }
