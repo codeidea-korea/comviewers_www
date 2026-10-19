@@ -13,6 +13,7 @@ import { ProductChoiceContent } from './modals/InquiryProductChoice'
 import { bulkInquiryServerRoomNotice, hasSameInquiryServerRoom } from './inquiryServerRoomScope'
 import { useMobileInquiryViewport } from './inquiries/inquiryViewport'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
+import { invalidateInquiryQueries } from '@/lib/inquiryQueryCache'
 
 export function InquiryTargetAddition(props: { api: InquiryReadServices; requestId: number; existingIds: readonly number[]; total: number; closed: boolean; pickerOpen?: boolean; onClosePicker?: () => void; showTrigger?: boolean; embedded?: boolean; closeRequestRef?: RefObject<(() => void) | null>; onOutcome?: (message: string, values: Readonly<Record<string, string | number>>) => void }) {
   const { myAccount } = useServices()
@@ -25,7 +26,6 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
 }) {
   const { uiText, t } = useUiTranslation()
   const client = useQueryClient()
-  const chatKey = ['operation-requests', api.organizationId, 'chat', requestId] as const
   const [localOpen, setLocalOpen] = useState(false)
   const open = pickerOpen ?? localOpen
   const setOpen = (value: boolean) => { setLocalOpen(value); if (!value) onClosePicker?.() }
@@ -41,7 +41,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   const available = (options.data ?? []).filter((item) => !existingIds.includes(item.pcAssetId)
     && item.rentalStatus === 'active')
   const products = useMemo(() => sortInquiryChoices(available), [available])
-  const save = useMutation({ mutationFn: async () => {
+  const save = useMutation({ mutationKey: ['operation-requests', api.organizationId, 'add-targets', requestId], mutationFn: async () => {
     if (!attempt.current) throw new Error("추가할 상품을 선택해 주세요.")
     return api.addTargets(requestId, attempt.current.ids, attempt.current.key)
   }, onSuccess: async (result) => {
@@ -50,10 +50,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
     const values = { value0: result.addedPcAssetIds.length, value1: result.totalTargetCount }
     if (onOutcome) onOutcome(message, values)
     else { setOutcomeValues(values); setOutcome(message) }
-    await Promise.all([
-      client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] }),
-      client.invalidateQueries({ queryKey: chatKey, exact: true }),
-    ])
+    await invalidateInquiryQueries(client, api.organizationId)
   }, onError: (error) => {
     if (error instanceof ApiClientError && error.status !== undefined && [400, 403, 404, 409, 422].includes(error.status)) {
       attempt.current = null

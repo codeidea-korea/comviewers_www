@@ -1,5 +1,6 @@
 export const inquiryTypes = { as_request: 'AS·점검 요청', setup_change: '변경·교체·추가 요청', refund_cancel: '해지신청', inquiry: '기타 문의' } as const
 export const inquiryTypeLabel = (value: string) => inquiryTypes[value as keyof typeof inquiryTypes] ?? value
+export const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
 
 /** Only generated type titles are interface copy; customer-written titles stay unchanged. */
 export function translateInquiryTitle(requestType: string, title: string, translateLabel: (label: string) => string): string {

@@ -288,7 +288,7 @@
   .mypage-home .mobile-rcpc-card__facts dd { padding-inline: 4px; }
   .mypage-home .mobile-rcpc-card > footer { height: auto; }
   .mypage-home-section--rcpc > .mobile-rcpc-list { align-items: stretch; }
-  .mypage-home-section--rcpc > .mobile-rcpc-list > .mobile-rcpc-card { display: flex; flex-direction: column; min-height: 395px; }
+  .mypage-home-section--rcpc > .mobile-rcpc-list > .mobile-rcpc-card { display: flex; flex-direction: column; min-height: 435px; }
   .mypage-home .mobile-rcpc-card > header { flex: 0 0 auto; }
   .mypage-home .mobile-rcpc-card__facts { display: flex; flex: 1 0 auto; flex-direction: column; }
   .mypage-home .mobile-rcpc-card__facts > div { flex: 0 0 auto; }

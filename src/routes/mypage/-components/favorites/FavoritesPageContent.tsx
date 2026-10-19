@@ -22,6 +22,7 @@ import { Checkbox } from '@/components/ui/CheckboxControl'
 import { FavoritesSettingsDialog, NewFavoritesGroupDialog, type FavoriteGroupOption } from '../modals/FavoritesGroupDialogs'
 import { endedRental, extensionBlocked, extensionTarget } from '../rcpcPresentation'
 import { RcpcListTable } from '../RcpcListSurface'
+import { useRcpcInquiryItems } from '../rcpc/useRcpcInquiryItems'
 import { useSession } from '@/app/session/SessionProvider'
 import { useServices } from '@/app/ServiceProvider'
 import { canManageFavorites, FavoritesManageOnly } from '../favoritesAccess'
@@ -118,6 +119,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
     ? { items: [], page: 0, size: filters.size ?? 20, totalElements: 0, totalPages: 0 }
     : rows.data
   const locations = accessDenied ? [] : available.data?.regions ?? []
+  const inquiryItems = useRcpcInquiryItems(api.organizationId, rowsData?.items, rows.dataUpdatedAt)
   const rooms = accessDenied ? [] : (available.data?.serverRooms ?? []).filter(item => !filters.region || item.region === filters.region)
   const updateFilters = (next: MyRcpcQuery) => {
     if (accessDenied) return
@@ -224,7 +226,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedRentals(new Set()) }} returnFocusRef={refundTriggerRef}/> : null}
       {canManage ? <FavoritesSettingsDialog error={assignment.error instanceof FavoriteAssignmentPartialError ? t("mypageRcpc.ui154", { v0: assignment.error.movedCount, v1: assignment.error.failedCount }) : assignment.error?.message} groups={visualGroups} isOpen={assigning} onClose={closeAssignment} onNewGroup={openNewGroup} onSave={(id) => assignment.mutate(id === 'unclassified' ? null : Number(id))} pending={assignment.isPending} /> : null}
       {rowsData ? <>
-      <RcpcListTable api={api} canEditAlias={owner} canExtend={canExtend} items={rowsData.items} pending={rows.isPlaceholderData} sortConfig={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage={uiText("즐겨찾기로 등록된 RCPC가 없습니다.")} mutations={canManage ? mutations : undefined} selection={{
+      <RcpcListTable api={api} canEditAlias={owner} canExtend={canExtend} items={inquiryItems ?? []} pending={rows.isPlaceholderData} sortConfig={{ key: filters.sort ?? 'serverStatus', direction: filters.sortDirection ?? 'asc' }} onSort={sort => updateFilters({ sort: sort.key, sortDirection: sort.direction })} emptyMessage={uiText("즐겨찾기로 등록된 RCPC가 없습니다.")} mutations={canManage ? mutations : undefined} selection={{
         header: <Checkbox aria-label={uiText("현재 페이지 RCPC 전체 선택")} checked={allSelected} disabled={rows.isPlaceholderData || selectableItems.length === 0} onChange={event => setSelectedRentals(new Set(event.target.checked ? selectableItems.map(item => item.rentalId) : []))}/>,
         isSelected: item => visibleSelection.has(item.rentalId),
         isDisabled: extensionBlocked,

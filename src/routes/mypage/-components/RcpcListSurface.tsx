@@ -23,6 +23,7 @@ import { InquiryRefundApplicationDialog } from './InquiryRefundApplication'
 import { nextSortConfig, SortButton, type SortConfig } from '@/components/ui/SortButtonControl'
 import sortIcon from '@/assets/figma/icon-unfold-less.svg'
 import { RcpcSelectionMenu } from './RcpcSelectionMenu'
+import { RcpcLatestInquiry } from './rcpc/RcpcLatestInquiry'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 type SortKey = NonNullable<MyRcpcQuery['sort']>
@@ -34,6 +35,7 @@ const columns: ReadonlyArray<{ label: string; sort?: SortKey }> = [
   { label: '이용 기간', sort: 'servicePeriod' },
   { label: '접속 정보' },
   { label: '트래픽 사용량', sort: 'traffic' },
+  { label: '최근 문의' },
   { label: '빠른 실행' },
 ]
 
@@ -153,6 +155,7 @@ function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelected
     <div className="rcpc-list__period" role="cell"><RcpcTablePeriod item={item}/></div>
     <div className="rcpc-list__connect" role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>
     <div role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
+    <div className="rcpc-latest-inquiry" role="cell"><RcpcLatestInquiry item={item}/></div>
     <RcpcActions api={api} canExtend={canExtend} item={item}/>
   </article>
 }
@@ -180,7 +183,7 @@ function RcpcState({ item }: { item: MyRcpcItem }) {
 
 function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
   return <div className="rcpc-list__actions" role="cell">
-    <span><RcpcReboot api={api} item={item}/><InquirySearchAction productNo={item.productNo}/></span>
+    <span><RcpcReboot api={api} item={item}/><InquirySearchAction disabled={!item.latestInquiry} productNo={item.productNo}/></span>
     <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
   </div>
 }
@@ -212,9 +215,10 @@ export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, 
       <div className="mobile-rcpc-card__period"><dt>{uiText("이용 기간")}</dt><dd><RcpcPeriodLabel item={item}/></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>{uiText("접속 정보")}</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
       <div><dt>{uiText("트래픽 사용량")}</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
+      <div><dt>{uiText("최근 문의")}</dt><dd className="rcpc-latest-inquiry"><RcpcLatestInquiry item={item}/></dd></div>
     </dl>
     <footer>
-      <span><RcpcReboot api={api} item={item}/><InquirySearchAction productNo={item.productNo}/></span>
+      <span><RcpcReboot api={api} item={item}/><InquirySearchAction disabled={!item.latestInquiry} productNo={item.productNo}/></span>
       <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
     </footer>
   </article>

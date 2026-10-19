@@ -11,7 +11,7 @@ import { InquiryChatMenu, InquiryChatHeader } from '@/components/mypage/InquiryC
 import { InquiryChatProductCard } from '@/components/mypage/InquiryChatProductCard'
 import { AccountQueryState } from '../AccountQueryState'
 import { InquiryProductConversations } from '../InquiryProductConversations'
-import { inquiryTypeLabel } from '../InquiryPresentation'
+import { customerStatusLabel, inquiryTypeLabel } from '../InquiryPresentation'
 import { InquiryTargetAddition } from '../InquiryTargetAddition'
 import { InquiryAttachments, InquiryAttachmentDownload, type InquiryDraftAttachment } from '../InquiryAttachments'
 import { RefundDetail } from '../InquiryRefundRequests'
@@ -20,8 +20,8 @@ import { InquiryChatProducts } from './InquiryChatProducts'
 import { useServices } from '@/app/ServiceProvider'
 import { loadAuthorizedRcpcs } from '../rcpcPresentation'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
-
-const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
+import { clearDeniedInquirySummaries, invalidateInquiryQueries } from '@/lib/inquiryQueryCache'
+import { ApiClientError } from '@/api/httpClient'
 
 type Chat = Awaited<ReturnType<InquiryReadServices['chat']>>
 type ChatTarget = Chat['operationRequest']['targets'][number]
@@ -51,6 +51,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const [message, setMessage] = useState('')
   const [messageId, setMessageId] = useState(() => `customer-web:${crypto.randomUUID()}`)
   const [readError, setReadError] = useState(false)
+  const [accessError, setAccessError] = useState<Error | null>(null)
   const [files, setFiles] = useState<readonly InquiryDraftAttachment[]>([])
   const [attachmentBusy, setAttachmentBusy] = useState(false)
   const [olderMessages, setOlderMessages] = useState<Awaited<ReturnType<InquiryReadServices['chat']>>['messages']>([])
@@ -74,14 +75,17 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   // silently drop long-lived SSE connections without exposing chat content in the stream itself.
   const chat = useQuery({ queryKey: chatKey, queryFn: ({ signal }) => api.chat(id, 100, signal), refetchInterval: 60_000, refetchIntervalInBackground: false })
   const requestInfo = useQuery({ queryKey: ['operation-requests', api.organizationId, 'info', id], queryFn: ({ signal }) => api.list({ requestId: id, size: 1 }, signal) })
-  const refundLink = useQuery({ queryKey: ['my-refund-requests', api.organizationId, 'operation-request', id], queryFn: ({ signal }) => api.refundsForOperationRequest(id, signal), enabled: !isManager && requestInfo.data?.items[0]?.requestType === 'refund_cancel' })
+  const accessDenied = [chat.error, requestInfo.error, accessError].some(error => error instanceof ApiClientError && [401, 403].includes(error.status ?? 0))
+  const chatData = accessDenied ? undefined : chat.data
+  const requestInfoData = accessDenied ? undefined : requestInfo.data
+  const refundLink = useQuery({ queryKey: ['my-refund-requests', api.organizationId, 'operation-request', id], queryFn: ({ signal }) => api.refundsForOperationRequest(id, signal), enabled: !isManager && requestInfoData?.items[0]?.requestType === 'refund_cancel' })
   const refund = refundLink.data?.items.find((item) => item.operationRequestId === id)
-  const closed = chat.data?.operationRequest.customerVisibleStatus === '처리 완료' || ['completed', 'cancelled'].includes(chat.data?.operationRequest.status ?? '')
-  const messages = [...new Map([...olderMessages, ...(chat.data?.messages ?? [])].map((item) => [item.id, item])).values()]
+  const closed = chatData?.operationRequest.customerVisibleStatus === '처리 완료' || ['completed', 'cancelled'].includes(chatData?.operationRequest.status ?? '')
+  const messages = [...new Map([...olderMessages, ...(chatData?.messages ?? [])].map((item) => [item.id, item])).values()]
     .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt) || left.id - right.id)
-  const hasEarlierMessages = !historyEnd && (olderMessages.length > 0 || (chat.data?.messages.length ?? 0) >= 100)
+  const hasEarlierMessages = !historyEnd && (olderMessages.length > 0 || (chatData?.messages.length ?? 0) >= 100)
   const timeline: TimelineEntry[] = messages.map(message => ({ kind: 'message', time: Date.parse(message.createdAt), message }))
-  chat.data?.operationRequest.targets.forEach((target, index) => {
+  chatData?.operationRequest.targets.forEach((target, index) => {
     if (!target.addedAt) return
     const time = Date.parse(/(?:Z|[+-]\d{2}:\d{2})$/i.test(target.addedAt) ? target.addedAt : `${target.addedAt}+09:00`)
     if (hasEarlierMessages && messages.length && time < Date.parse(messages[0]!.createdAt)) return
@@ -91,31 +95,44 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
     || (left.kind === 'message' && right.kind === 'message' ? left.message.id - right.message.id
       : left.kind === 'product' && right.kind === 'product' ? left.index - right.index
         : left.kind === 'message' ? -1 : 1))
-  const targetCount = chat.data?.operationRequest.targets.length ?? 0
-  const earlier = useMutation({ mutationFn: () => api.chat(id, 100, undefined, messages[0]?.id), onSuccess: (response) => {
-    setOlderMessages((previous) => [...new Map([...response.messages, ...previous, ...(chat.data?.messages ?? [])].map((item) => [item.id, item])).values()])
+  const targetCount = chatData?.operationRequest.targets.length ?? 0
+  const earlier = useMutation({ mutationKey: ['operation-requests', api.organizationId, 'history', id], mutationFn: () => api.chat(id, 100, undefined, messages[0]?.id), onError: error => {
+    if (error instanceof ApiClientError && [401, 403].includes(error.status ?? 0)) setAccessError(error)
+  }, onSuccess: (response) => {
+    setOlderMessages((previous) => [...new Map([...response.messages, ...previous, ...(chatData?.messages ?? [])].map((item) => [item.id, item])).values()])
     setHistoryEnd(response.messages.length < 100)
   } })
-  const lastId = Math.max(0, ...(chat.data?.messages.map((item) => item.id) ?? []))
-  const conversationReady = Boolean(chat.data && requestInfo.data)
+  const lastId = Math.max(0, ...(chatData?.messages.map((item) => item.id) ?? []))
+  const conversationReady = Boolean(chatData && requestInfoData)
   useLayoutEffect(() => {
     if (!conversationReady || !scrollRef.current) return
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [conversationReady, lastId, targetCount])
   useEffect(() => api.subscribeChatEvents(id, () => {
-    void client.invalidateQueries({ queryKey: chatKey })
-    void client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
+    void invalidateInquiryQueries(client, api.organizationId)
+  }, error => {
+    setAccessError(error)
+    clearDeniedInquirySummaries(client, error, chatKey, api.organizationId)
   }), [api, api.organizationId, chatKey, client, id])
   useEffect(() => {
     if (!lastId || lastId <= lastRead.current) return
     const controller = new AbortController()
-    void api.markRead(id, lastId, controller.signal).then(() => { lastRead.current = lastId; setReadError(false) }).catch(() => { if (!controller.signal.aborted) setReadError(true) })
+    void api.markRead(id, lastId, controller.signal).then(() => { lastRead.current = lastId; setReadError(false) }).catch(error => {
+      if (controller.signal.aborted) return
+      setReadError(true)
+      if (error instanceof ApiClientError && [401, 403].includes(error.status ?? 0)) {
+        setAccessError(error)
+        clearDeniedInquirySummaries(client, error, chatKey, api.organizationId)
+      }
+    })
     return () => controller.abort()
-  }, [api, id, lastId])
-  const send = useMutation({ mutationFn: () => api.sendMessage(id, message, messageId, files.map((file) => file.attachmentId)), onSuccess: async (response) => {
-    setMessage(''); setFiles([]); setMessageId(`customer-web:${crypto.randomUUID()}`)
+  }, [api, chatKey, client, id, lastId])
+  const send = useMutation({ mutationKey: ['operation-requests', api.organizationId, 'send', id], mutationFn: () => api.sendMessage(id, message, messageId, files.map((file) => file.attachmentId)), onError: error => {
+    if (error instanceof ApiClientError && [401, 403].includes(error.status ?? 0)) setAccessError(error)
+  }, onSuccess: async (response) => {
+    setAccessError(null); setMessage(''); setFiles([]); setMessageId(`customer-web:${crypto.randomUUID()}`)
     client.setQueryData(chatKey, response)
-    await client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
+    await invalidateInquiryQueries(client, api.organizationId)
   } })
   useLayoutEffect(() => {
     if (!restoreComposerFocus.current || send.isPending || (!send.isSuccess && !send.isError)) return
@@ -123,14 +140,14 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
     if (!closed && !productConversation && !refundOpen) composerRef.current?.focus({ preventScroll: true })
   }, [send.isPending, send.isSuccess, send.isError, closed, productConversation, refundOpen])
   const submit = () => {
-    if ((message.trim() || files.length) && !closed && !send.isPending && !attachmentBusy) {
+    if ((message.trim() || files.length) && !accessDenied && !closed && !send.isPending && !attachmentBusy) {
       restoreComposerFocus.current = true
       composerRef.current?.focus({ preventScroll: true })
       send.mutate()
     }
   }
   const close = onClose
-  const type = requestInfo.data?.items[0] ? inquiryTypeLabel(requestInfo.data.items[0].requestType) : uiText("문의")
+  const type = requestInfoData?.items[0] ? inquiryTypeLabel(requestInfoData.items[0].requestType) : uiText("문의")
   const selectProductMenu = (action: 'products' | 'add') => {
     setProductMenuOpen(false)
     if (action === 'add' && (closed || targetCount >= 20 || !myAccount.rcpcApi)) return
@@ -138,14 +155,22 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
     setAddingProducts(action === 'add')
   }
   const conversation = <section aria-label={standalone ? uiText("문의 상세") : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <InquiryChatHeader title={`[${chat.data ? uiText(customerStatusLabel(chat.data.operationRequest.customerVisibleStatus)) : uiText("조회 중")}] ${uiText(type)}`} standalone={standalone} disabled={!chat.data} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
-      <InquiryChatMenu open={productMenuOpen && Boolean(chat.data)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
+      <InquiryChatHeader title={`[${chatData ? uiText(customerStatusLabel(chatData.operationRequest.customerVisibleStatus)) : uiText("조회 중")}] ${uiText(type)}`} standalone={standalone} disabled={!chatData} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
+      <InquiryChatMenu open={productMenuOpen && Boolean(chatData)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
       <div className="inquiry-chat__scroll" ref={scrollRef}>
-        <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error} retry={() => Promise.all([chat.refetch(), requestInfo.refetch()])}/>
-        {chat.data && requestInfo.data ? <>
-          {requestInfo.data?.items[0] ? <time>{new Date(requestInfo.data.items[0].createdAt).toLocaleDateString(locale, { timeZone: 'Asia/Seoul' })}</time> : null}
-          {chat.data.operationRequest.targets.filter(target => !target.addedAt).map((target, index) => <InquiryChatProduct key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} target={target} onSelect={setProductConversation} />)}
-          {!isManager && requestInfo.data?.items[0]?.requestType === 'refund_cancel' ? <><AccountQueryState pending={refundLink.isPending} error={refundLink.error} retry={refundLink.refetch}/>{refund ? <button className="inquiry-chat__refund-action" onClick={() => setRefundOpen(true)} type="button">{refund.status === 'requested' ? uiText("해지 신청 상세 / 철회") : uiText("해지 신청 상세")}</button> : refundLink.data ? <p className="inquiry-chat__system">{uiText("연결된 해지 신청 내역이 없습니다.")}</p> : null}</> : null}
+        <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error ?? accessError} retry={async () => {
+          const deniedBeforeRetry = accessError
+          const [chatResult, infoResult] = await Promise.all([chat.refetch(), requestInfo.refetch()])
+          if (chatResult.isSuccess && infoResult.isSuccess) {
+            setOlderMessages([])
+            setHistoryEnd(false)
+            setAccessError(current => current === deniedBeforeRetry ? null : current)
+          }
+        }}/>
+        {chatData && requestInfoData ? <>
+          {requestInfoData?.items[0] ? <time>{new Date(requestInfoData.items[0].createdAt).toLocaleDateString(locale, { timeZone: 'Asia/Seoul' })}</time> : null}
+          {chatData.operationRequest.targets.filter(target => !target.addedAt).map((target, index) => <InquiryChatProduct key={`${target.targetType ?? 'target'}:${target.pcAssetId ?? target.productId ?? index}`} target={target} onSelect={setProductConversation} />)}
+          {!isManager && requestInfoData?.items[0]?.requestType === 'refund_cancel' ? <><AccountQueryState pending={refundLink.isPending} error={refundLink.error} retry={refundLink.refetch}/>{refund ? <button className="inquiry-chat__refund-action" onClick={() => setRefundOpen(true)} type="button">{refund.status === 'requested' ? uiText("해지 신청 상세 / 철회") : uiText("해지 신청 상세")}</button> : refundLink.data ? <p className="inquiry-chat__system">{uiText("연결된 해지 신청 내역이 없습니다.")}</p> : null}</> : null}
           {hasEarlierMessages ? <button className="inquiry-chat__earlier" type="button" disabled={earlier.isPending} onClick={() => earlier.mutate()}>{earlier.isPending ? uiText("불러오는 중…") : uiText("이전 대화 더보기")}</button> : null}
           {earlier.isError ? <p role="alert">{uiText(earlier.error.message)}</p> : null}
           {timeline.map(entry => {
@@ -169,16 +194,16 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
           {readError ? <p role="alert">{uiText("읽음 상태를 반영하지 못했습니다.")} <button type="button" onClick={() => { void api.markRead(id, lastId).then(() => { lastRead.current = lastId; setReadError(false) }).catch(() => setReadError(true)) }}>{uiText("다시 시도")}</button></p> : null}
         </> : null}
       </div>
-      {productConversation && <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/>}
-      {refundOpen && refund ? <RefundDetail key={refund.id} api={api} requestId={refund.id} onClose={() => setRefundOpen(false)}/> : null}
-      {chat.data && requestInfo.data ? (closed ? <footer className="inquiry-chat__closed" role="status">{uiText("처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.")}</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
+      {!accessDenied && productConversation && <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/>}
+      {!accessDenied && refundOpen && refund ? <RefundDetail key={refund.id} api={api} requestId={refund.id} onClose={() => setRefundOpen(false)}/> : null}
+      {chatData && requestInfoData ? (closed ? <footer className="inquiry-chat__closed" role="status">{uiText("처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.")}</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
         <div className="inquiry-chat__attachments"><InquiryAttachments api={api} requestId={id} files={files} disabled={send.isPending} onBusy={setAttachmentBusy} onChange={(next) => { setFiles(next); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }}/></div>
         <label><span className="sr-only">{uiText("새 메시지")}</span><textarea aria-label={uiText("새 메시지")} ref={composerRef} readOnly={send.isPending || attachmentBusy} maxLength={4000} placeholder={uiText("메시지를 입력해 주세요.")} value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
         <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? uiText("전송 중…") : send.isError ? uiText("재전송") : uiText("전송")}</Button>
         {send.isError ? <p role="alert">{uiText(send.error.message)}</p> : null}
       </form>) : null}
     </section>
-  const content = addingProducts && !closed && chat.data ? <InquiryTargetAddition api={api} requestId={id} existingIds={chat.data.operationRequest.targets.flatMap(target => target.pcAssetId === null ? [] : [target.pcAssetId])} total={targetCount} closed={closed} embedded pickerOpen closeRequestRef={additionCloseRef} onOutcome={(message, values) => { setOutcomeValues(values); setOutcome(message) }} onClosePicker={() => setAddingProducts(false)} showTrigger={false}/> : productsOpen && chat.data ? <InquiryChatProducts targets={chat.data.operationRequest.targets} status={customerStatusLabel(chat.data.operationRequest.customerVisibleStatus)} rcpcItems={rcpcDetails.data} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
+  const content = addingProducts && !closed && chatData ? <InquiryTargetAddition api={api} requestId={id} existingIds={chatData.operationRequest.targets.flatMap(target => target.pcAssetId === null ? [] : [target.pcAssetId])} total={targetCount} closed={closed} embedded pickerOpen closeRequestRef={additionCloseRef} onOutcome={(message, values) => { setOutcomeValues(values); setOutcome(message) }} onClosePicker={() => setAddingProducts(false)} showTrigger={false}/> : productsOpen && chatData ? <InquiryChatProducts targets={chatData.operationRequest.targets} status={customerStatusLabel(chatData.operationRequest.customerVisibleStatus)} rcpcItems={rcpcDetails.data} standalone={standalone} onBack={() => setProductsOpen(false)} onClose={close} onSelect={setProductConversation}>
     <AccountQueryState pending={rcpcDetails.isPending && rcpcDetails.fetchStatus !== 'idle'} error={rcpcDetails.error} retry={rcpcDetails.refetch}/>
     {productConversation ? <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/> : null}
   </InquiryChatProducts> : conversation

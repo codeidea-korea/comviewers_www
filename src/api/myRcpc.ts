@@ -4,6 +4,7 @@ import type { ApiClient } from './httpClient'
 import { createExtensionCheckoutApi } from './extensionCheckout'
 import { rentalOperationalStatusSchema } from './rentalOperationalStatus'
 import { createInFlightRead } from './inFlightRead'
+import { latestInquirySchema } from './operationRequests'
 
 const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
@@ -34,6 +35,7 @@ export const myRcpcItemSchema = z.object({
   trafficDownloadTotalBytes: count.nullable(), trafficUploadTotalBytes: count.nullable(), trafficObservedAt: instant, preference,
   pcSpec,
   remoteSupport,
+  latestInquiry: latestInquirySchema.nullable().optional(),
   wanIpConfigured: z.boolean().optional(),
 })
 export const myRcpcPageSchema = z.object({ items: z.array(myRcpcItemSchema), page: count, size: z.number().int().min(1).max(100), totalElements: count, totalPages: count })

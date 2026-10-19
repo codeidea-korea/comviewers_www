@@ -6,6 +6,7 @@ import { InquiryCreateDialog } from '../InquiryCreateDialog'
 import { InquiryConversationDialog } from './InquiryConversationDialog'
 import { managerScopedPath } from '../managerPortalPath'
 import { useMobileInquiryViewport } from './inquiryViewport'
+import { invalidateInquiryQueries } from '@/lib/inquiryQueryCache'
 
 export function InquiryDialog({ api, rcpcApi, initialIds = [], initialProductNo = '', fixedTarget = false, onClose, onCreated }: {
   api: InquiryReadServices
@@ -31,6 +32,6 @@ export function InquiryDialog({ api, rcpcApi, initialIds = [], initialProductNo 
   return <InquiryCreateDialog api={api} rcpcApi={rcpcApi} initialIds={initialIds} initialProductNo={initialProductNo} fixedTarget={fixedTarget} onClose={onClose} onCreated={async id => {
     onCreated?.()
     setCreatedId(id)
-    await client.invalidateQueries({ queryKey: ['operation-requests', api.organizationId] })
+    await invalidateInquiryQueries(client, api.organizationId)
   }} />
 }

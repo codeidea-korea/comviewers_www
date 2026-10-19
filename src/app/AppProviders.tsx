@@ -1,11 +1,12 @@
 import { AuthProvider, type AuthAdapter } from './session/AuthProvider'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ServiceProvider, type Services } from './ServiceProvider'
 import { createSessionStore, type SessionState, type SessionStore } from './session/sessionStore'
 import { SessionProvider, useSession, useSessionStore } from './session/SessionProvider'
 import { PublicCatalogQueryProvider } from './PublicCatalogQueryProvider'
 import { createServiceScope } from './session/serviceScope'
+import { clearDeniedInquirySummaries } from '@/lib/inquiryQueryCache'
 
 export interface ServiceScope {
   readonly session: SessionState
@@ -27,9 +28,14 @@ function ScopedProviders({ children, createServices, snapshot, store }: {
   const customerSession = snapshot.status === 'authenticated' ? snapshot.customerSession : null
   // Read a new service snapshot only when authority changes, not when credentials rotate.
   const scope = useMemo(() => {
-    const client = new QueryClient({ defaultOptions: {
-      queries: { retry: false, staleTime: 30_000, refetchOnWindowFocus: false }, mutations: { retry: false },
-    } })
+    const organizationId = snapshot.status === 'authenticated' ? snapshot.organizationId : null
+    const client: QueryClient = new QueryClient({
+      queryCache: new QueryCache({ onError: (error, query) => clearDeniedInquirySummaries(client, error, query.queryKey, organizationId) }),
+      mutationCache: new MutationCache({ onError: (error, _variables, _context, mutation) => clearDeniedInquirySummaries(client, error, mutation.options.mutationKey ?? [], organizationId) }),
+      defaultOptions: {
+        queries: { retry: false, staleTime: 30_000, refetchOnWindowFocus: false }, mutations: { retry: false },
+      },
+    })
     const services = createServices(createServiceScope(store, store.getSnapshot()))
     return { client, services }
     // Authority changes intentionally invalidate this snapshot; credential revision does not.

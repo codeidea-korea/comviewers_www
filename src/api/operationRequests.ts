@@ -7,6 +7,9 @@ const count = z.number().int().nonnegative().safe()
 const instant = z.iso.datetime({ offset: true })
 const status = z.enum(['접수', '확인 중', '비용처리', '처리 중', '처리 완료'])
 const requestType = z.enum(['inquiry', 'as_request', 'setup_change', 'refund_cancel'])
+export const latestInquirySchema = z.object({
+  operationRequestId: id, requestType: z.string(), customerVisibleStatus: status, lastActivityAt: instant.nullable(),
+})
 export const operationRequestItemSchema = z.object({
   operationRequestId: id, requestNo: z.string(), requestType: z.string(),
   customerVisibleStatus: status, title: z.string(), lastMessage: z.string().nullable(), targetCount: count, targetProductNos: z.string().nullable(),
@@ -77,12 +80,16 @@ function shouldReconnectChatStream(error?: ApiClientError): boolean {
 export function createOperationRequestsApi(client: ApiClient, organizationId: string) {
   const customerOrganizationId = z.string().regex(/^[1-9]\d{0,18}$/).refine((value) => BigInt(value) <= 9223372036854775807n).parse(organizationId)
   const context = { authenticated: true, customerOrganizationId } as const
-  const chatSubscriptions = new Map<number, { listeners: Set<(event: OperationRequestChatEvent) => void>; stop: () => void }>()
-  const subscribeChatEvents = (operationRequestId: number, listener: (event: OperationRequestChatEvent) => void): (() => void) => {
+  const chatSubscriptions = new Map<number, { listeners: Set<(event: OperationRequestChatEvent) => void>; deniedListeners: Set<(error: ApiClientError) => void>; stop: () => void }>()
+  const subscribeChatEvents = (operationRequestId: number, listener: (event: OperationRequestChatEvent) => void, onAccessDenied?: (error: ApiClientError) => void): (() => void) => {
     const parsedRequestId = id.parse(operationRequestId)
     let subscription = chatSubscriptions.get(parsedRequestId)
     if (!subscription) {
       const listeners = new Set<(event: OperationRequestChatEvent) => void>()
+      const deniedListeners = new Set<(error: ApiClientError) => void>()
+      const notifyAccessDenied = (error: unknown) => {
+        if (error instanceof ApiClientError && [401, 403].includes(error.status ?? 0)) deniedListeners.forEach(registered => registered(error))
+      }
       let stopped = false
       let attempt = 0
       let closeStream: (() => void) | undefined
@@ -119,11 +126,12 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
               void client.request(`/api/v1/operation-requests/${parsedRequestId}/chat`, operationRequestChatSchema,
                 { ...context, query: { limit: 1 } }).then(scheduleReconnect, (failure: unknown) => {
                 if (failure instanceof ApiClientError && shouldReconnectChatStream(failure)) scheduleReconnect()
-                else drop()
+                else { notifyAccessDenied(failure); drop() }
               })
               return
             }
             if (!shouldReconnectChatStream(error)) {
+              notifyAccessDenied(error)
               drop()
               return
             }
@@ -131,13 +139,15 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
           },
         })
       }
-      subscription = { listeners, stop }
+      subscription = { listeners, deniedListeners, stop }
       chatSubscriptions.set(parsedRequestId, subscription)
       connect()
     }
     subscription.listeners.add(listener)
+    if (onAccessDenied) subscription.deniedListeners.add(onAccessDenied)
     return () => {
       subscription?.listeners.delete(listener)
+      if (onAccessDenied) subscription?.deniedListeners.delete(onAccessDenied)
       if (subscription && subscription.listeners.size === 0) {
         subscription.stop()
         if (chatSubscriptions.get(parsedRequestId) === subscription) chatSubscriptions.delete(parsedRequestId)

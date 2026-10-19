@@ -1,5 +1,6 @@
 // Fixed My Page interface text; account and device data stay unchanged.
 export const mypageRcpcTranslations = [
+  {"key": "mypageRcpc.latestInquiry", "source": "mypageRcpc", "ko": "최근 문의", "en": "Latest inquiry", "vi": "Yêu cầu gần nhất", "ja": "最近の問い合わせ", "zh-CN": "最近咨询", "zh-TW": "最近諮詢"},
   {"key": "mypageRcpc.ui001", "source": "mypageRcpc", "ko": "즐겨찾기", "vi": "Yêu thích", "ja": "お気に入り", "en": "Favorites", "zh-CN": "收藏", "zh-TW": "收藏"},
   {"key": "mypageRcpc.ui002", "source": "mypageRcpc", "ko": "즐겨찾기 정보를 불러오지 못했습니다.", "vi": "Không thể tải mục yêu thích.", "ja": "お気に入り情報を読み込めませんでした。", "en": "Could not load favorites.", "zh-CN": "无法加载收藏信息。", "zh-TW": "無法載入收藏資訊。"},
   {"key": "mypageRcpc.ui003", "source": "mypageRcpc", "ko": "바텀시트 닫기", "vi": "Đóng bảng dưới", "ja": "ボトムシートを閉じる", "en": "Close bottom sheet", "zh-CN": "关闭底部面板", "zh-TW": "關閉底部面板"},

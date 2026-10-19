@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import { InquiryCreateDialog } from './-components/InquiryCreateDialog'
 import { managerScopedPath } from './-components/managerPortalPath'
+import { invalidateInquiryQueries } from '@/lib/inquiryQueryCache'
 
 const inquiryCreateState = z.object({ initialIds: z.array(z.number().int().positive().safe()).max(20).default([]), initialProductNo: z.string().max(16).default(''), fixedTarget: z.boolean().default(false) })
 
@@ -21,7 +22,7 @@ export function InquiryCreatePage() {
   if (!services) return <MyPageLayout title={uiText("문의 작성")}><p role="alert">{uiText("문의 기능을 불러오지 못했습니다.")}</p></MyPageLayout>
   return <InquiryCreateDialog {...services} {...initial} standalone onClose={() => navigate(managerScopedPath('/mypage/inquiries', location.pathname))} onCreated={async id => {
     navigate(managerScopedPath(`/mypage/inquiries/${id}`, location.pathname), { replace: true })
-    await client.invalidateQueries({ queryKey: ['operation-requests', services.api.organizationId] })
+    await invalidateInquiryQueries(client, services.api.organizationId)
   }}/>
 }
 

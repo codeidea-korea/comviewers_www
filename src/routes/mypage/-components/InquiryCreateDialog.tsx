@@ -71,6 +71,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
     return ''
   }
   const create = useMutation({
+    mutationKey: ['operation-requests', api.organizationId, 'create'],
     mutationFn: () => {
       if (!selectedCode || selectedCode === 'refund_cancel' || !message.trim()) throw new Error("문의 유형과 내용을 확인해 주세요.")
       const targetNotice = validateTargets()

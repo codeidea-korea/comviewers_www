@@ -1,5 +1,15 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-19 FB-28 RCPC별 최근 문의
+
+후속 승인 [DB 없는 검증](../docs/handoff/comviewers-figma-feedback-2026-10-16.md#fb-28-후속-승인-db-없는-테스트빌드): 실제 QueryObserver/hook/표·버튼 집중14/14·기존 보조3/3 통과, 격리 Vite build15.62초 성공. placeholder401/403 가림/새 조회 복구와 상세 문의 활성·정확검색·PC/모바일 경로를 확인했다. 제품소스·정규테스트·기존 dist는 보존했다. 기존 상세 schema 테스트1개는 listen 차단으로 미완료이고 동일 계약은 집중 검수에서 통과했다. 실제 DB/브라우저·서비스·배포·별도 typecheck/lint는 없으며 아래 정적 전용 기록은 이전 이력이다. [상세 증거/한계](../tmp/fb28-verify-20261019/verification.md)를 따른다.
+
+후속 정적 리뷰의 placeholder 잔존·상세 문의 비활성 2건을 수정했다. 이용 RCPC·즐겨찾기·홈/상세 표는 조직별 권한 거부 시각을 구독해 거부 이전 데이터와 observer placeholder의 요약을 숨기고 새 성공 조회 뒤 복구한다. 상세 응답도 같은 API 권한 검사를 거친 요약을 반환한다. [추가 파일·정적 확인](../docs/handoff/comviewers-figma-feedback-2026-10-16.md#후속-정적-리뷰-2건-수정)을 따르며 테스트/빌드·DB·서비스/배포는 하지 않았다.
+
+이용 RCPC·즐겨찾기와 마이페이지 홈의 별도 즐겨찾기표에 `latestInquiry`의 기존 유형·고객 상태 표시를 추가했다. 최근 문의는 `InquiryAction(requestId)`로 PC 채팅 팝업/모바일 상세를 열고, 이력이 없으면 `-`와 비활성 행별 문의를 표시한다. 행별 문의는 기존 C매니저 경로를 유지하며 `exactProductNo=true`로 해당 품번의 전체 문의를 조회한다. 수동 검색/초기화는 부분 검색으로 돌아가고 기존 링크는 유지한다. 상단 신규 문의의 `fixedTarget`·선택/사업자 범위/최대 20개 흐름은 유지한다.
+
+작성·메시지 전송·대상 추가·기존 SSE에서 조직 RCPC와 별도 홈 즐겨찾기 캐시를 함께 갱신한다. 사용자/조직/권한 scope의 QueryClient 교체·정리는 유지하며 문의 또는 RCPC 권한 오류 뒤 보관된 요약을 제거한다. [세부 파일·권한·정렬 한계](../docs/handoff/comviewers-figma-feedback-2026-10-16.md#2026-10-19-fb-28-rcpc별-최근-문의--소스-반영)를 따른다. L2/L3/L0 정적 diff·계약·참조 검토만 수행했고 테스트 파일/실행·컴파일/빌드/lint/typecheck·DB·서비스/배포·커밋/push는 수행하지 않았다.
+
 ## 2026-10-19 FB-27 최종 결제금액 0원 주문
 
 후속 승인으로 [DB 없는 집중 검사와 격리 빌드](../docs/handoff/comviewers-figma-feedback-2026-10-16.md#후속-승인-검증--db-없는-테스트와-격리-빌드)를 수행했다. 실제 schema/repository/recovery 38건·React hook/summary8건·기존 오프라인8건이 통과했고 Vite 빌드는 QA `tmp/fb27-verify-20261019/frontend/dist`에 성공했다. 0원↔유료·미확정·영수증/필수동의·같은 키 재시도·미선택 복구를 합성 transport/storage로 확인했다. `src/tests/dist` SHA-256을 보존했고 실제 API/DB·주문/포인트/결제·서비스/배포는 실행하지 않았다. 아래 테스트/빌드 미실행 문구는 최초 소스 준비 당시 이력이며 이번 검증에 타입체크/lint·실제 브라우저·전체 suite는 포함하지 않는다.

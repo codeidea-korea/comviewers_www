@@ -17,6 +17,7 @@ import { AccountReadDeniedDialog } from '../modals/AccountReadDeniedDialog'
 import { RcpcMobileSort } from '../RcpcMobileSort'
 import { RcpcListSurface } from '../RcpcListSurface'
 import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
+import { useRcpcInquiryItems } from './useRcpcInquiryItems'
 
 type RcpcMutations = ReturnType<typeof createCustomerRcpcMutations>
 export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; mutations?: RcpcMutations }) {
@@ -83,6 +84,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
   // A forbidden response must also hide data retained from an earlier successful query.
   const filterOptions = accessDenied ? undefined : available.data
   const page = accessDenied ? undefined : rows.data
+  const inquiryItems = useRcpcInquiryItems(api.organizationId, page?.items, rows.dataUpdatedAt)
   const regions = filterOptions?.regions ?? []
   const rooms = (filterOptions?.serverRooms ?? [])
     .filter(room => !query.region || room.region === query.region)
@@ -131,7 +133,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       {!accessDenied && available.error ? <p role="alert">{uiText("서버실 목록을 불러오지 못했습니다.")} <button onClick={() => void available.refetch()} type="button">{uiText("다시 시도")}</button></p> : null}
       {!accessDenied ? <AccountQueryState error={rows.error} pending={rows.isPending} retry={rows.refetch}/> : null}
       {accessDenied || page ? <>
-        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={page?.items ?? []} key={`${api.organizationId}:${accessDenied}:${JSON.stringify(query)}`} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} pending={rows.isPlaceholderData} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
+        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={inquiryItems ?? []} key={`${api.organizationId}:${accessDenied}:${JSON.stringify(query)}`} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} pending={rows.isPlaceholderData} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
         {page && page.totalPages > 1 ? <Pagination currentPage={(rows.isPlaceholderData ? query.page ?? 0 : page.page) + 1} onPageChange={nextPage => setQuery(previous => ({ ...previous, page: nextPage - 1 }))} totalPages={page.totalPages}/> : null}
       </> : null}
     </div>

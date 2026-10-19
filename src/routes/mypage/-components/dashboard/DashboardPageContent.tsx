@@ -15,6 +15,7 @@ import { MyPageLayout } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import type { MyRcpcQuery } from '@/api/myRcpc'
 import { RcpcDashboardTable } from '../rcpc/RcpcDashboardTable'
+import { useRcpcInquiryItems } from '../rcpc/useRcpcInquiryItems'
 import { OrderItemActions } from '../orders/OrderItemActions'
 import { accountKstDate } from '@/lib/accountFormat'
 import { ProfileAvatar } from './ProfileAvatar'
@@ -86,7 +87,9 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
     queryFn: () => storefront.listPostPage({ page: 1, size: 5, mineOnly: true, sort: 'latest' }), retry: false })
   const counts = summary.data?.usageCounts
   const favoriteHeading = detailMode ? uiText("RCPC 상세") : owner ? uiText("즐겨찾기 그룹") : uiText("즐겨찾기 내역")
-  const favoriteItems = detailMode ? detail.data ? [detail.data] : undefined : favorites.data?.items
+  const favoriteItems = useRcpcInquiryItems(rcpcs.organizationId,
+    detailMode ? detail.data ? [detail.data] : undefined : favorites.data?.items,
+    detailMode ? detail.dataUpdatedAt : favorites.dataUpdatedAt)
   const favoritePending = detailMode ? detail.isPending : favorites.isPending
   const favoriteError = detailMode ? detail.error : favorites.error
   const refetchFavorites = detailMode ? detail.refetch : favorites.refetch
