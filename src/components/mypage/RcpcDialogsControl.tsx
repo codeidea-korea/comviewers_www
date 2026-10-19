@@ -1,5 +1,4 @@
 import { PcSpecSummary } from '@/components/product/PcSpecSummary'
-import { CpuCoreBadge } from '@/components/product/CpuCoreBadge'
 import { formatCpuCores } from '@/domain/products/cpuCores'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
@@ -117,7 +116,7 @@ export function RcpcExtensionSurface({ action, busy = false, dateValue = '', err
 
 export function RcpcSpecSurface({ onClose, rcpc, returnFocusRef }: RcpcSurfaceProps) {
   const { uiText } = useUiTranslation()
-  return <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--single" dialogClassName="rcpc-spec-dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} title={uiText("PC 사양 보기")}><dl><div><dt>{uiText("서버실")}</dt><dd><LocalizedServiceName kind="serverRoom" name={rcpc.location} fallback={uiText("정보 없음")} /></dd></div><div><dt>{uiText("품번")}</dt><dd>{rcpc.rcpcId}</dd></div><div><dt>OS</dt><dd>{rcpc.os || uiText("정보 없음")}</dd></div><div><dt>CPU</dt><dd>{rcpc.cpu || uiText("정보 없음")}</dd></div><div><dt className="cpu-core-label notranslate" translate="no">CORE</dt><dd><CpuCoreBadge value={rcpc.cpuCores} /></dd></div><div><dt>RAM</dt><dd><mark>{rcpc.ram || uiText("정보 없음")}</mark></dd></div><div><dt>DISK</dt><dd><mark>{rcpc.disk || uiText("정보 없음")}</mark></dd></div><div><dt>GPU</dt><dd><mark>{rcpc.gpu || uiText("정보 없음")}</mark></dd></div></dl><button onClick={onClose} type="button">{uiText("닫기")}</button></PopupLayer>
+  return <PopupLayer className="rcpc-popup-layer rcpc-popup-layer--single" dialogClassName="rcpc-spec-dialog" isOpen onClose={onClose} returnFocusRef={returnFocusRef} title={uiText("PC 사양 보기")}><dl><div><dt>{uiText("서버실")}</dt><dd><LocalizedServiceName kind="serverRoom" name={rcpc.location} fallback={uiText("정보 없음")} /></dd></div><div><dt>{uiText("품번")}</dt><dd>{rcpc.rcpcId}</dd></div><div><dt>OS</dt><dd>{rcpc.os || uiText("정보 없음")}</dd></div><div><dt>CPU</dt><dd>{rcpc.cpu || uiText("정보 없음")}</dd></div><div><dt>{uiText("Core")}</dt><dd>{formatCpuCores(rcpc.cpuCores)}</dd></div><div><dt>RAM</dt><dd><mark>{rcpc.ram || uiText("정보 없음")}</mark></dd></div><div><dt>DISK</dt><dd><mark>{rcpc.disk || uiText("정보 없음")}</mark></dd></div><div><dt>GPU</dt><dd><mark>{rcpc.gpu || uiText("정보 없음")}</mark></dd></div></dl><button onClick={onClose} type="button">{uiText("닫기")}</button></PopupLayer>
 }
 
 export function RcpcAliasSurface({ alias, confirmDisabled = false, error, onAliasChange, onClose, onConfirm, rcpc, returnFocusRef }: RcpcAliasSurfaceProps) {

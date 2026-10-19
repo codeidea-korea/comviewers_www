@@ -1,4 +1,4 @@
-import { CpuCoreBadge } from './CpuCoreBadge'
+import { useUiTranslation } from '@/i18n/uiTranslation'
 
 const coreLinePattern = /^(?:CORE|Core|코어 수): (?:([1-9]\d*) Cores?|-)$/u
 
@@ -8,13 +8,13 @@ export function PcSpecSummary({ text, fallback = '-', showMissingCores = false }
   fallback?: string
   showMissingCores?: boolean
 }) {
+  const { uiText } = useUiTranslation()
   const lines = (text || fallback).split('\n')
   const hasCores = lines.some(line => coreLinePattern.test(line))
   const shown = showMissingCores && !hasCores ? [...lines, 'Core: -'] : lines
-  return <span className="pc-spec-summary">{shown.map((line, index) => {
-    const cores = coreLinePattern.exec(line)
-    return <span className={`pc-spec-summary__line${cores ? ' pc-spec-summary__line--cores notranslate' : ''}`} key={index} translate={cores ? 'no' : undefined}>
-      {cores ? <>CORE <CpuCoreBadge value={cores[1] ? Number(cores[1]) : null} /></> : line}
-    </span>
-  })}</span>
+  return <span className="pc-spec-summary">{shown.map((line, index) => <span className="pc-spec-summary__line" key={index}>
+    {coreLinePattern.test(line)
+      ? <>{uiText('Core')}: <span className="notranslate" translate="no">{line.slice(line.indexOf(': ') + 2)}</span></>
+      : line}
+  </span>)}</span>
 }
