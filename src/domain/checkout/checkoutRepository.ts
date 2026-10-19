@@ -19,7 +19,7 @@ export const checkoutQuoteSchema = z.object({
   benefits: z.enum(['unconnected', 'available']),
 })
 export type CheckoutQuote = z.infer<typeof checkoutQuoteSchema>
-export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; creationKey: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
+export interface CheckoutSubmission { cartItemIds: readonly string[]; contact: { name: string; email: string; phone: string; messengerType: string; messengerId: string }; payment: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay' | null; cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'; cashReceiptIdentifier: string; creationKey: string; idempotencyKey: string; userCouponId: number | null; pointAmount: number; expectedFinalAmount: number }
 export type CheckoutStartResult = import('@/api/ordersPayments').PreparedPayment
 export type CheckoutPaymentPreparation = Pick<CheckoutSubmission, 'payment' | 'cashReceiptType' | 'cashReceiptIdentifier' | 'idempotencyKey'> & { orderNo: string; finalAmount: number }
 export interface CheckoutRepository {

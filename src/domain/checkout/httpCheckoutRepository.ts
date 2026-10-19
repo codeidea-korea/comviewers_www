@@ -2,7 +2,7 @@ import type { createCartApi } from '@/api/cart'
 import type { CartRepository } from '@/domain/cart/cartRepository'
 import { apiCartItemIdSchema } from '@/domain/cart/httpCartRepository'
 import { cartSchema } from '@/domain/cart/schemas'
-import { checkoutQuoteSchema, checkoutSelectionSchema, type CheckoutRepository, type CheckoutSubmission } from './checkoutRepository'
+import { checkoutQuoteSchema, checkoutSelectionSchema, type CheckoutPaymentPreparation, type CheckoutRepository, type CheckoutSubmission } from './checkoutRepository'
 import type { ApiClient } from '@/api/httpClient'
 import { createOrdersPaymentsApi } from '@/api/ordersPayments'
 
@@ -13,6 +13,15 @@ export function checkoutCreationBody(input: CheckoutSubmission) {
 
 export function createHttpCheckoutRepository(api: ReturnType<typeof createCartApi>, cart: CartRepository, client: ApiClient, organizationId: string): CheckoutRepository {
   const orders = createOrdersPaymentsApi(client, organizationId)
+  async function preparePayment(input: CheckoutPaymentPreparation) {
+    if (input.finalAmount === 0) return orders.settleInternal(input.orderNo, input.idempotencyKey)
+    if (!Number.isSafeInteger(input.finalAmount) || input.finalAmount <= 0 || !input.payment) {
+      throw new Error('결제금액과 결제수단을 확인해 주세요.')
+    }
+    return orders.prepare({ orderNo: input.orderNo, paymentMethod: input.payment,
+      cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',
+      cashReceiptIdentifier: input.payment === 'virtual_account' && input.cashReceiptType !== 'not_requested' ? input.cashReceiptIdentifier : null }, input.idempotencyKey)
+  }
   return {
     async quote(input, signal, knownCartItems) {
       const ids = checkoutSelectionSchema.parse(input)
@@ -63,18 +72,11 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
     },
     async start(input) {
       const created = await orders.order(checkoutCreationBody(input), input.creationKey)
-      if (created.finalAmount === 0) return orders.settleInternal(created.orderNo, input.idempotencyKey)
-      const payment = await orders.prepare({ orderNo: created.orderNo, paymentMethod: input.payment,
-        cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',
-        cashReceiptIdentifier: input.payment === 'virtual_account' && input.cashReceiptType !== 'not_requested' ? input.cashReceiptIdentifier : null }, input.idempotencyKey)
-      return payment
+      return preparePayment({ ...input, orderNo: created.orderNo, finalAmount: created.finalAmount })
     },
     payment: orders.payment,
     cancelCheckout: orders.cancelCheckout,
-    preparePayment: input => input.finalAmount === 0 ? orders.settleInternal(input.orderNo, input.idempotencyKey)
-      : orders.prepare({ orderNo: input.orderNo, paymentMethod: input.payment,
-        cashReceiptType: input.payment === 'virtual_account' ? input.cashReceiptType : 'not_requested',
-        cashReceiptIdentifier: input.payment === 'virtual_account' && input.cashReceiptType !== 'not_requested' ? input.cashReceiptIdentifier : null }, input.idempotencyKey),
+    preparePayment,
     resume: orders.resume,
     abandon: orders.abandon,
     refresh: orders.refresh,

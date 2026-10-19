@@ -27,6 +27,7 @@ import { CheckoutCancellation } from './-components/checkout/CheckoutCancellatio
 import { checkoutCreationBody } from '@/domain/checkout/httpCheckoutRepository'
 import { checkoutReturnTo } from '@/domain/checkout/checkoutReturnTo'
 import { useCheckoutRecovery } from './-components/checkout/hooks/useCheckoutRecovery'
+import { checkoutPaymentInput } from '@/domain/checkout/checkoutDraft'
 
 type CheckoutAttempt = { input: CheckoutSubmission; quote: CheckoutQuote; benefits: OrderBenefitQuote;
   created?: { orderNo: string; finalAmount: number } }
@@ -77,7 +78,13 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
   const benefitReady = !checkout.benefitQuote || Boolean(benefits.data && !benefits.isFetching && !benefits.isError
     && !benefits.isPlaceholderData && benefits.data.pointUsedAmount === Number(points) && benefits.data.userCouponId === couponId)
   const productUnavailable = !attempt && benefits.error instanceof ApiClientError && benefits.error.code === 'OR001'
-  const form = useCheckoutForm(recovering ? recovery.record : null)
+  // Only the current, fully resolved server quote can make payment selection optional.
+  const finalAmount = attempt?.created?.finalAmount ?? attempt?.benefits.finalAmount
+    ?? (!recovering && result.isSuccess && !result.isFetching && result.data.checkoutEligible && benefitReady ? benefits.data?.finalAmount ?? null : null)
+  const form = useCheckoutForm(finalAmount, recovering ? recovery.record : null)
+  useEffect(() => {
+    if (finalAmount === 0) setPaymentAvailabilityError(null)
+  }, [finalAmount])
   const profile = useMutation({ mutationFn: async (force: boolean) => ({ value: await myAccount.readApi!.profile(), force }), onSuccess: ({ value, force }) => { if (!attemptRef.current && !recovery.record) form.fillProfile(value, force) } })
   const profileLoaded = useRef(false)
   useEffect(() => {
@@ -156,29 +163,26 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
     if (current && paymentRetryReady) {
       const draft = form.validate()
       if (!draft || !current.created) return
-      if ((draft.payment === 'naver-pay' && !availableDirectEasyPay?.naverPay)
-        || (draft.payment === 'kakao-pay' && !availableDirectEasyPay?.kakaoPay)) {
+      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !availableDirectEasyPay?.naverPay)
+        || (draft.payment === 'kakao-pay' && !availableDirectEasyPay?.kakaoPay))) {
         setPaymentAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
         return
       }
-      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
-      current = { ...current, input: { ...current.input, payment, cashReceiptType: draft.receiptType,
-        cashReceiptIdentifier: draft.receiptIdentifier, idempotencyKey: crypto.randomUUID() } }
+      current = { ...current, input: { ...current.input, ...checkoutPaymentInput(draft), idempotencyKey: crypto.randomUUID() } }
       attemptRef.current = current
       setAttempt(current)
       setPaymentRetryReady(false)
     }
     if (!current) {
+      if (!result.isSuccess || !result.data.checkoutEligible || !benefits.data || !benefitReady || result.isFetching) return
       const draft = form.validate()
-      if (!draft || !result.data?.checkoutEligible || !benefits.data || !benefitReady || result.isFetching) return
-      if ((draft.payment === 'naver-pay' && !availableDirectEasyPay?.naverPay)
-        || (draft.payment === 'kakao-pay' && !availableDirectEasyPay?.kakaoPay)) {
+      if (!draft) return
+      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !availableDirectEasyPay?.naverPay)
+        || (draft.payment === 'kakao-pay' && !availableDirectEasyPay?.kakaoPay))) {
         setPaymentAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
         return
       }
-      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
-      current = { quote: result.data, benefits: benefits.data, input: { cartItemIds: ids, contact: draft.contact, payment,
-        cashReceiptType: draft.receiptType, cashReceiptIdentifier: draft.receiptIdentifier, userCouponId: couponId,
+      current = { quote: result.data, benefits: benefits.data, input: { cartItemIds: ids, contact: draft.contact, ...checkoutPaymentInput(draft), userCouponId: couponId,
         pointAmount: Number(points), expectedFinalAmount: benefits.data.finalAmount, creationKey: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() } }
       try { recovery.persist({ creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) },
         { source: 'cart', quote: current.quote, benefits: current.benefits, payment: draft.payment }) }

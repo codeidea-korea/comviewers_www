@@ -4,13 +4,14 @@ import { checkoutReturnTo } from './checkoutReturnTo'
 import { checkoutQuoteSchema } from './checkoutRepository'
 import { orderBenefitQuoteSchema } from '@/api/ordersPayments'
 import { extensionQuoteSchema } from '@/api/extensionCheckout'
+import { checkoutPaymentMethodSchema } from './checkoutDraft'
 
 const prefix = 'comviewers.checkout.recovery.v1:'
 // Tab session only. Keep the creation payload briefly; never persist receipt identifiers or PG credentials.
 const lifetime = 2 * 60 * 60 * 1000
 const requestLimit = 65536
 const recordLimit = 512 * 1024
-const payment = z.enum(['virtual-account', 'card', 'payco', 'naver-pay', 'kakao-pay', 'global-card'])
+const payment = checkoutPaymentMethodSchema
 const displaySchema = z.discriminatedUnion('source', [
   z.object({ source: z.literal('cart'), quote: checkoutQuoteSchema, benefits: orderBenefitQuoteSchema, payment }),
   z.object({ source: z.literal('extension'), quote: extensionQuoteSchema, payment }),

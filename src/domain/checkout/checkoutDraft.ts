@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+export const checkoutPaymentMethodSchema = z.enum(['', 'virtual-account', 'card', 'payco', 'naver-pay', 'kakao-pay', 'global-card'])
+
 // Order content confirmation is local to this form; PG consent belongs to the payment widget.
 export const checkoutDraftSchema = z.object({
   contact: z.object({
@@ -8,16 +10,28 @@ export const checkoutDraftSchema = z.object({
     phone: z.string().trim().max(30).regex(/^(?:01[016789]-\d{4}-\d{4})?$/, '핸드폰 번호의 가운데와 끝자리를 각각 4자리로 입력해 주세요.'),
     messengerType: z.string().max(50), messengerId: z.string().max(100),
   }),
-  payment: z.enum(['virtual-account', 'card', 'payco', 'naver-pay', 'kakao-pay', 'global-card'], { error: '결제수단을 선택해 주세요.' }),
+  finalAmount: z.number({ error: '최종 결제금액을 확인해 주세요.' }).int().nonnegative().safe(),
+  payment: checkoutPaymentMethodSchema,
   receiptType: z.enum(['not_requested', 'income_deduction', 'business_expense']),
   receiptIdentifier: z.string(),
   orderAgreed: z.literal(true, { error: '필수 항목에 동의해 주세요.' }),
   paymentServiceAgreed: z.literal(true, { error: '필수 항목에 동의해 주세요.' }),
 }).superRefine((draft, context) => {
+  if (draft.finalAmount > 0 && !draft.payment) {
+    context.addIssue({ code: 'custom', path: ['payment'], message: '결제수단을 선택해 주세요.' })
+  }
   if (Boolean(draft.contact.messengerType.trim()) !== Boolean(draft.contact.messengerId.trim())) {
     context.addIssue({ code: 'custom', path: ['contact', 'messengerId'], message: '메신저 종류와 아이디를 함께 입력해 주세요.' })
   }
-  if (draft.payment !== 'virtual-account' || draft.receiptType === 'not_requested') return
+  if (draft.finalAmount === 0 || draft.payment !== 'virtual-account' || draft.receiptType === 'not_requested') return
   const valid = draft.receiptType === 'business_expense' ? /^\d{10}$/.test(draft.receiptIdentifier) : /^\d{10,11}$/.test(draft.receiptIdentifier)
   if (!valid) context.addIssue({ code: 'custom', path: ['receiptIdentifier'], message: '현금영수증 식별정보를 확인해 주세요.' })
 })
+
+// A zero-amount order has no PG method or cash-receipt request, even if one was previously selected.
+export function checkoutPaymentInput(draft: z.infer<typeof checkoutDraftSchema>) {
+  const methods = { '': null, 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const
+  const payment = draft.finalAmount === 0 ? null : methods[draft.payment]
+  return { payment, cashReceiptType: payment === 'virtual_account' ? draft.receiptType : 'not_requested' as const,
+    cashReceiptIdentifier: payment === 'virtual_account' ? draft.receiptIdentifier : '' }
+}

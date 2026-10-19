@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
-import { checkoutDraftSchema } from '@/domain/checkout/checkoutDraft'
+import { checkoutDraftSchema, checkoutPaymentMethodSchema } from '@/domain/checkout/checkoutDraft'
 import { emailDomainOptions } from '@/lib/formOptions'
 import { checkoutRecoveryContactSchema, type CheckoutRecovery } from '@/domain/checkout/checkoutRecovery'
 
-export type PaymentMethod = '' | 'virtual-account' | 'card' | 'payco' | 'naver-pay' | 'kakao-pay' | 'global-card'
+export type PaymentMethod = z.infer<typeof checkoutPaymentMethodSchema>
 export type ReceiptType = 'not_requested' | 'income_deduction' | 'business_expense'
 export type CheckoutValidatedDraft = z.infer<typeof checkoutDraftSchema>
 export interface CheckoutContact {
@@ -24,7 +24,7 @@ function profileContact(profile: Profile): CheckoutContact {
   const phone = (profile.phone ?? '').replace(/\D/g, '')
   return { name: profile.name ?? '', emailId, emailDomain, phonePrefix: phone.slice(0, 3) || '010', phoneMiddle: phone.slice(3, -4), phoneLast: phone.slice(-4), messenger: profile.messengerType ?? '', messengerId: profile.messengerId ?? '' }
 }
-export function useCheckoutForm(recovery?: CheckoutRecovery | null) {
+export function useCheckoutForm(finalAmount: number | null, recovery?: CheckoutRecovery | null) {
   const contactEdited = useRef(false)
   const restoredKey = useRef<string | null>(null)
   const [contact, setContact] = useState<CheckoutContact>({ name: '', emailId: '', emailDomain: '', phonePrefix: '010', phoneMiddle: '', phoneLast: '', messenger: '', messengerId: '' })
@@ -52,6 +52,7 @@ export function useCheckoutForm(recovery?: CheckoutRecovery | null) {
     setErrors(current => current.filter(error => error.path !== path))
   }
   function fieldError(path: string) {
+    if (finalAmount === 0 && (path === 'payment' || path === 'receiptIdentifier')) return undefined
     return errors.find(error => error.path === path)?.message
   }
   function changeContact(field: keyof CheckoutContact, value: string) {
@@ -89,12 +90,12 @@ export function useCheckoutForm(recovery?: CheckoutRecovery | null) {
   function validate(): CheckoutValidatedDraft | null {
     const result = checkoutDraftSchema.safeParse({
       contact: { name: contact.name, email: `${contact.emailId}@${contact.emailDomain}`, phone: contact.phoneMiddle || contact.phoneLast ? `${contact.phonePrefix}-${contact.phoneMiddle}-${contact.phoneLast}` : '', messengerType: contact.messenger, messengerId: contact.messengerId },
-      payment, receiptType, receiptIdentifier: receiptType === 'business_expense' ? receiptNumber : `${receiptPhone.prefix}${receiptPhone.middle}${receiptPhone.last}`,
+      finalAmount, payment, receiptType, receiptIdentifier: receiptType === 'business_expense' ? receiptNumber : `${receiptPhone.prefix}${receiptPhone.middle}${receiptPhone.last}`,
       orderAgreed, paymentServiceAgreed,
     })
     setErrors(result.success ? [] : result.error.issues.map(issue => ({ path: issue.path.join('.'), message: issue.message })))
     return result.success ? result.data : null
   }
-  return { contact, changeContact, emailDomainSelection, selectEmailDomain, fillProfile, payment, setPayment, receiptType, changeReceiptType, receiptNumber, setReceiptNumber, receiptPhone, setReceiptPhone, orderAgreed, setOrderAgreed, paymentServiceAgreed, setPaymentServiceAgreed, errors, fieldError, validate }
+  return { finalAmount, contact, changeContact, emailDomainSelection, selectEmailDomain, fillProfile, payment, setPayment, receiptType, changeReceiptType, receiptNumber, setReceiptNumber, receiptPhone, setReceiptPhone, orderAgreed, setOrderAgreed, paymentServiceAgreed, setPaymentServiceAgreed, errors, fieldError, validate }
 }
 export type CheckoutFormModel = ReturnType<typeof useCheckoutForm>

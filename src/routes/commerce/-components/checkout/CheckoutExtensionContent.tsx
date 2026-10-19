@@ -25,6 +25,7 @@ import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } f
 import { CheckoutCancellation } from './CheckoutCancellation'
 import { checkoutReturnTo } from '@/domain/checkout/checkoutReturnTo'
 import { useCheckoutRecovery } from './hooks/useCheckoutRecovery'
+import { checkoutPaymentInput } from '@/domain/checkout/checkoutDraft'
 
 type CreatedOrder = { orderNo: string; finalAmount: number }
 type Attempt = {
@@ -59,7 +60,6 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
   const recovery = useCheckoutRecovery(`extension:${JSON.stringify(state.selection)}`, returnTo)
   const recovering = !attempt && Boolean(recovery.record)
   const recoveredDisplay = recovering && recovery.record?.display?.source === 'extension' ? recovery.record.display : null
-  const form = useCheckoutForm(recovering ? recovery.record : null)
   const selection = { ...state.selection, rentalIds: [...state.selection.rentalIds],
     cartItemIds: state.selection.cartItemIds ? [...state.selection.cartItemIds] : undefined,
     userCouponId: couponId, pointAmount: Number(points) }
@@ -69,18 +69,24 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
   const methods = useQuery({ queryKey: ['checkout', 'direct-easy-pay-methods'],
     queryFn: ({ signal }) => checkout.directEasyPayMethods!(signal), enabled: Boolean(checkout.directEasyPayMethods), retry: false })
-  const profile = useMutation({ mutationFn: () => myAccount.readApi!.profile(),
-    onSuccess: value => { if (!attemptRef.current && !recovery.record) form.fillProfile(value) } })
-  const profileLoaded = useRef(false)
-  useEffect(() => {
-    if (!recovering && myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate() }
-  }, [myAccount.readApi, profile, recovering])
   const benefitsMatch = Boolean(quote.data?.benefits
     && quote.data.benefits.userCouponId === couponId && quote.data.benefits.pointUsedAmount === Number(points)
     && quote.data.benefits.subtotalAmount === quote.data.extensionAmount + quote.data.purchaseSubtotalAmount
     && quote.data.benefits.setupFeeAmount === quote.data.purchaseSetupFeeAmount
     && quote.data.benefits.finalAmount === quote.data.totalAmount - quote.data.benefits.couponDiscountAmount - quote.data.benefits.pointUsedAmount)
   const quoteReady = quote.isSuccess && !quote.isFetching && !quote.isPlaceholderData && benefitsMatch
+  const finalAmount = attempt?.created?.finalAmount ?? attempt?.benefits.finalAmount
+    ?? (!recovering && quoteReady && quote.data?.eligible ? quote.data.benefits?.finalAmount ?? null : null)
+  const form = useCheckoutForm(finalAmount, recovering ? recovery.record : null)
+  useEffect(() => {
+    if (finalAmount === 0) setAvailabilityError(null)
+  }, [finalAmount])
+  const profile = useMutation({ mutationFn: () => myAccount.readApi!.profile(),
+    onSuccess: value => { if (!attemptRef.current && !recovery.record) form.fillProfile(value) } })
+  const profileLoaded = useRef(false)
+  useEffect(() => {
+    if (!recovering && myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate() }
+  }, [myAccount.readApi, profile, recovering])
   function retryQuotes() {
     void quote.refetch()
   }
@@ -171,30 +177,27 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     if (current && paymentRetryReady) {
       const draft = form.validate()
       if (!draft || !current.created) return
-      if ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay)) {
+      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay))) {
         setAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
         return
       }
-      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
-      current = { ...current, preparation: { payment, cashReceiptType: draft.receiptType,
-        cashReceiptIdentifier: draft.receiptIdentifier, idempotencyKey: crypto.randomUUID() } }
+      current = { ...current, preparation: { ...checkoutPaymentInput(draft), idempotencyKey: crypto.randomUUID() } }
       attemptRef.current = current
       setAttempt(current)
       setPaymentRetryReady(false)
     }
     if (!current) {
+      if (!quoteReady || !quote.data?.eligible || !quote.data.benefits) return
       const draft = form.validate()
-      if (!draft || !quoteReady || !quote.data?.eligible || !quote.data.benefits) return
-      if ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay)) {
+      if (!draft) return
+      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay))) {
         setAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
         return
       }
-      const payment = ({ 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const)[draft.payment]
       current = { body: { selection, offerIds: state.offerIds ? [...state.offerIds] : undefined, quoteHash: quote.data.quoteHash,
         contact: { ...draft.contact, messengerType: draft.contact.messengerType || null, messengerId: draft.contact.messengerId || null } },
       quote: quote.data, benefits: quote.data.benefits, creationKey: crypto.randomUUID(),
-      preparation: { payment, cashReceiptType: draft.receiptType,
-        cashReceiptIdentifier: draft.receiptIdentifier, idempotencyKey: crypto.randomUUID() } }
+      preparation: { ...checkoutPaymentInput(draft), idempotencyKey: crypto.randomUUID() } }
       try { recovery.persist({ creationKey: current.creationKey, source: 'extension', originalRequest: current.body },
         { source: 'extension', quote: current.quote, payment: draft.payment }) }
       catch (error) { setAvailabilityError(error instanceof Error ? error.message : '주문서 복구 정보를 보관하지 못했습니다.'); return }

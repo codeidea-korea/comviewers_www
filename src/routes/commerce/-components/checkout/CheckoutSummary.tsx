@@ -62,7 +62,7 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
     {paymentAvailabilityError && <p className="checkout-submit-error" role="alert">{uiText(paymentAvailabilityError)}</p>}
     {paymentNotice && <p className="checkout-payment-notice" role="status">{uiText(paymentNotice)}</p>}
     {submitError ? <p className="checkout-submit-error" role="alert">{uiText(submitError)} <RelativeLink to="/mypage/orders"><TranslatedText id="checkout.viewOrders" /></RelativeLink></p> : null}
-    <Button className="commerce-primary-button" disabled={unavailable || submitting || submitDisabled || !quote?.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" />: checkingPayment ? uiText('결제 상태 다시 확인') : <TranslatedText id="checkout.order" />}</Button>
+    <Button className="commerce-primary-button" disabled={unavailable || form.finalAmount === null || submitting || submitDisabled || !quote?.checkoutEligible} fullWidth onClick={onSubmit} size="large">{submitting ? <TranslatedText id="checkout.processing" />: checkingPayment ? uiText('결제 상태 다시 확인') : <TranslatedText id="checkout.order" />}</Button>
     {cancellation}
   </aside>
 }
