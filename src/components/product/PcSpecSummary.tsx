@@ -12,9 +12,9 @@ export function PcSpecSummary({ text, fallback = '-', showMissingCores = false }
   const lines = (text || fallback).split('\n')
   const hasCores = lines.some(line => coreLinePattern.test(line))
   const shown = showMissingCores && !hasCores ? [...lines, 'Core: -'] : lines
-  return <>{shown.map((line, index) => <span key={index} style={{ display: 'block' }}>
+  return <span className="pc-spec-summary">{shown.map((line, index) => <span className="pc-spec-summary__line" key={index}>
     {coreLinePattern.test(line)
       ? <>{uiText('Core')}: <span className="notranslate" translate="no">{line.slice(line.indexOf(': ') + 2)}</span></>
       : line}
-  </span>)}</>
+  </span>)}</span>
 }

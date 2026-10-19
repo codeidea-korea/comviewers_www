@@ -950,6 +950,7 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .order-full-detail dl > div { height: auto; min-height: 0; padding-block: 20px; }
 .order-full-detail dl > div:last-child { border-bottom: 0; }
 .order-full-detail dt,.order-full-detail dd { line-height: 24px; min-width: 0; overflow-wrap: anywhere; }
+.orders-catalog-list .order-catalog-item__spec.order-catalog-item__spec--pc { height: auto; overflow: visible; white-space: normal; }
 .order-full-detail .order-full-section { margin-top: 60px; }
 .order-full-detail .order-full-section--refund dl + dl { margin-top: 24px; }
 
