@@ -52,7 +52,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
       busy={quote.isFetching} dateValue={date} error={uiText(quote.error?.message)} extensionMode={mode === 'days' ? 'period' : 'date'}
       itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
       onModeChange={value => setMode(value === 'date' ? 'date' : 'days')} onPeriodChange={setDays} periodValue={days}
-      rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? current?.items.map(item => ({ rcpcId: item.productNo ?? item.rentalId, location: item.serverRoomName ?? undefined, currentEnd: dateTime(item.previousEnd), cpu: item.spec ?? undefined })) ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
+      rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? current?.items.map(item => ({ rcpcId: item.productNo ?? item.rentalId, location: item.serverRoomName ?? undefined, currentEnd: dateTime(item.previousEnd), specSummary: item.spec ?? undefined })) ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
       rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', location: item.serverRoomName, period: item.addedDays == null ? '-' : uiText('{count}일', { count: item.addedDays }),
         currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : uiText('{amount}원', { amount: item.monthlyFee.toLocaleString('ko-KR') }),
         payment: extensionResultText(item), warning: !item.eligible }))}

@@ -1,3 +1,4 @@
+import { PcSpecSummary } from '@/components/product/PcSpecSummary'
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -39,7 +40,7 @@ export function StorageExtensionItems({ api }: { api: MyRcpcReadServices }) {
     {offers.isError && <p role="alert">{uiText("보관 상품을 불러오지 못했습니다.")} <button type="button" onClick={() => void offers.refetch()}>{uiText("다시 시도")}</button></p>}
     {rows.map(row => <StorageProductRow key={row.id} productNo={row.productNo} title={row.title} serverRoom={row.serverRoomName}
       selected={selectedIds.includes(row.id)} disabled={!canPurchase || shared?.locked} onSelect={checked => setSelected(checked ? [...selectedIds, row.id] : selectedIds.filter(id => id !== row.id))}
-      description={<>{row.spec ?? uiText('등록된 PC 사양 정보가 없습니다.')}<br />{uiText("현재 종료")} {dateTime(row.previousEnd)}<br />{uiText("예상 연장 종료")} {dateTime(row.targetEnd)}</>}
+      description={<><PcSpecSummary text={row.spec} fallback={uiText('등록된 PC 사양 정보가 없습니다.')} showMissingCores /><br />{uiText("현재 종료")} {dateTime(row.previousEnd)}<br />{uiText("예상 연장 종료")} {dateTime(row.targetEnd)}</>}
       fees={[{ label: uiText('세팅비'), amount: 0 }, { label: uiText('렌탈금액'), amount: row.quotedAmount }]} quantity={uiText('{days}일 연장', { days: row.addedDays })}
       amount={row.quotedAmount} points={Math.floor(row.quotedAmount / 100)} />)}
   </>

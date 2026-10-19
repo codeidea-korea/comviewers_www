@@ -1,3 +1,4 @@
+import { formatCpuCores } from '@/domain/products/cpuCores'
 import { z } from 'zod'
 import type { createCatalogApi, CatalogDetail } from '@/api/catalog'
 import { ApiClientError } from '@/api/httpClient'
@@ -56,7 +57,11 @@ async function itemFor(selection: Selection, catalog: CatalogApi, signal?: Abort
   const amount = product ? (product.pricing.setupFee + product.pricing.unitPrice * (durationUnits ?? 1)) * quantity : null
   const amountSafe = amount !== null && Number.isSafeInteger(amount)
   const spec = product?.spec
-  const specText = spec ? [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter(Boolean).join(' / ') : null
+  const specText = spec ? [
+    [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel].filter(Boolean).join(' / '),
+    `Core: ${formatCpuCores(spec.cpuCores)}`,
+    [spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter(Boolean).join(' / '),
+  ].filter(Boolean).join('\n') : null
   return {
     id: `guest:${selection.productNo}`, productId: selection.productNo, source: 'guest',
     type: billingUnit === 'unit' ? 'part' : 'rental', rowKind: billingUnit === 'unit' ? 'partner' : 'normal',

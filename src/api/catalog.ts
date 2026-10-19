@@ -57,7 +57,7 @@ export const catalogPricingSchema = z.object({
 })
 export const catalogSpecSchema = z.object({
   osName: nullableText, cpuModel: nullableText, cpuClockGhz: z.number().finite().nullable(),
-  cpuCores: int.nullable(), cpuThreads: int.nullable(), ramGb: int.nullable(), ramType: nullableText,
+  cpuCores: int.nullable().default(null).transform(value => value !== null && value > 0 ? value : null), cpuThreads: int.nullable(), ramGb: int.nullable(), ramType: nullableText,
   ssdGb: int.nullable(), hddGb: int.nullable(), gpuModel: nullableText,
   gpuVramGb: int.nullable(), maskedIp: nullableText,
 })

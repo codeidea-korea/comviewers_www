@@ -1,3 +1,4 @@
+import { formatCpuCores } from '@/domain/products/cpuCores'
 import { useState } from 'react'
 import type { Product } from '../../../domain/products/types'
 import { Button } from '../../../components/ui/ButtonControl'
@@ -27,7 +28,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const setupFee = product.setupFee
   const totalAmount = rentalUnitPrice === null || quantity === null ? null : part ? (setupFee + rentalUnitPrice) * quantity : setupFee + rentalUnitPrice * quantity
   const safeTotalAmount = totalAmount !== null && Number.isSafeInteger(totalAmount) ? totalAmount : null
-  const specs = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
+  const specs = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['Core', formatCpuCores(product.cpuCores)], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
         <div className="product-detail-visual"><img alt={product.image ? `${product.title ?? product.productId} 상품 이미지` : visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{!product.image ? <ProductOsOverlay label={visual.label} /> : null}</div>
@@ -36,7 +37,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
           {part && <h2>{product.title ?? product.productId}</h2>}
           {part ? <p>{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : '수량형 일회성 상품입니다.'}</p> : <p className="product-detail-availability"><ProductServerState state={product.serverState} />{product.saleAvailability === 'SOLD_OUT' ? '품절 상품입니다.' : product.available === null ? '즉시 이용 가능 여부가 제공되지 않았습니다.' : product.available ? '구매 즉시 접속 가능합니다.' : '대기 중인 서버로, 주문 완료 시 1~24시간 이내로 관리자가 확인 후 접속 가능합니다.'}</p>}
           {part ? <p style={{ whiteSpace: 'pre-wrap' }}>{product.description || '등록된 상품 설명이 없습니다.'}</p> : <dl className="product-detail-specs">
-            {specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? "정보 없음"}</dd></div>)}
+            {specs.map(([label, value]) => <div key={label}><dt>{uiText(label)}</dt><dd>{value ?? "정보 없음"}</dd></div>)}
             <div>
               <dt>주변기기</dt>
               <dd><ProductPeripherals mouseIncluded={product.mouseIncluded} keyboardIncluded={product.keyboardIncluded} /></dd>

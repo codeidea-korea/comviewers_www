@@ -1,3 +1,5 @@
+import { PcSpecSummary } from '@/components/product/PcSpecSummary'
+import { formatCpuCores } from '@/domain/products/cpuCores'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
@@ -88,7 +90,7 @@ export function RentalReviewListPage() {
       <RentalReviewListContent />
       {review ? <Modal className="modal--review modal--rental-review-layer notranslate" confirmLabel={uiText("상품 보러가기")} isOpen={Boolean(reviewId)} onClose={close} onConfirm={openProduct} title={uiText("렌탈 후기")}>
         <div className="review-detail-modal">
-          <div className="review-detail-modal__product"><span><strong>{uiText("품번")} {review.productId}</strong><small>{review.center}</small></span><p>{product.data ? [product.data.os, product.data.cpu, product.data.ram, product.data.disk, product.data.gpu].join(" / ") : review.productName}</p></div>
+          <div className="review-detail-modal__product"><span><strong>{uiText("품번")} {review.productId}</strong><small>{review.center}</small></span><p>{product.data ? product.data.pricingType === 'one_time' ? [product.data.os, product.data.cpu, product.data.ram, product.data.disk, product.data.gpu].join(' / ') : <PcSpecSummary text={[[product.data.os, product.data.cpu].filter(Boolean).join(' / '), `Core: ${formatCpuCores(product.data.cpuCores)}`, [product.data.ram, product.data.disk, product.data.gpu].filter(Boolean).join(' / ')].join('\n')} /> : review.productName}</p></div>
           <section className="review-detail-modal__rating"><strong>{uiText("상품 만족도")}</strong><Stars tone="mono" value={review.rating} /></section>
           <section className="review-detail-modal__copy">
             <strong>{uiText("후기 내용")}</strong>

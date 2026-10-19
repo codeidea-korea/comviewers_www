@@ -1,3 +1,4 @@
+import { PcSpecSummary } from '@/components/product/PcSpecSummary'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { ReactNode } from 'react'
 import { TranslatedText, type TranslationKey } from '@/i18n/translation'
@@ -42,7 +43,7 @@ function CompleteProductTable({ product }: { product: CheckoutCompleteProduct })
   const { uiText } = useUiTranslation()
   return <dl className="commerce-info-table complete-product-table">
     <div className="complete-product-table__heading"><dt><span>{uiText("품번")}</span><strong className="complete-product-table__title">{product.productNo}</strong></dt><dd className="complete-product-table__server-room" title={product.serverRoom}><span className="sr-only">{uiText("관리 서버실")}</span>{product.serverRoom}</dd></div>
-    <div><dt>{uiText(product.specLabel)}</dt><dd>{product.spec}</dd></div>
+    <div><dt>{uiText(product.specLabel)}</dt><dd>{product.specLabel === 'PC사양' ? <PcSpecSummary text={product.spec} showMissingCores /> : product.spec}</dd></div>
     {product.monthlyRentalFee ? <div><dt>{uiText("월 렌탈료")}</dt><dd>{product.monthlyRentalFee}</dd></div> : null}
     <div><dt>{uiText("이용기간")}</dt><dd>{product.usagePeriod}</dd></div>
   </dl>

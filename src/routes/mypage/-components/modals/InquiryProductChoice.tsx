@@ -1,3 +1,4 @@
+import { PcSpecSummary } from '@/components/product/PcSpecSummary'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { LocalizedServerRoomOption } from '@/components/mypage/LocalizedServerRoomOption'
 import { useLocalizedServiceName } from '@/components/common/LocalizedServiceName'
@@ -21,7 +22,7 @@ export function ProductChoiceRow({ checked = false, disabled = false, onCheckedC
     <label className="inquiry-product-choice__row">
       <Checkbox checked={checked} disabled={disabled} onChange={(event) => onCheckedChange(event.target.checked)} />
       <span><b title={title}>{title}</b><small title={location}>{location}</small><em className="inquiry-product-choice__state" data-status={product.statusRank === 3 ? 'on' : 'off'}><ProductServerState state={product.statusRank === 3 ? 'online' : 'offline'}/>{uiText(product.state)}</em></span>
-      <p>{product.spec === "PC 사양 정보 없음" ? uiText(product.spec) : product.spec}</p>
+      <p>{product.spec === "PC 사양 정보 없음" ? uiText(product.spec) : <PcSpecSummary text={product.spec} />}</p>
       <small><span>{uiText("주문일")} <b>{formatDate(product.orderDate)}</b></span><i/><span>{uiText("이용기간")} <b>{formatDate(product.period)}</b></span></small>
     </label>
   )

@@ -18,7 +18,7 @@ export function mapCatalogProduct(dto: CatalogListItem | CatalogDetail): Product
     title: dto.title, description: 'description' in dto ? dto.description : null,
     detailRichContent: 'detailRichContent' in dto ? dto.detailRichContent ?? null : null,
     detailInformation: 'detailInformation' in dto ? dto.detailInformation ?? null : null,
-    os: spec?.osName ?? null, osFilterValue: dto.osFilterValue ?? null, cpu: spec?.cpuModel ?? null,
+    os: spec?.osName ?? null, osFilterValue: dto.osFilterValue ?? null, cpu: spec?.cpuModel ?? null, cpuCores: spec?.cpuCores != null && spec.cpuCores > 0 ? spec.cpuCores : null,
     ram: spec?.ramGb == null ? spec?.ramType ?? null : [spec.ramType, `${spec.ramGb}GB`].filter(Boolean).join('/'),
     disk: disks.length ? disks.join(', ') : null, gpu: spec?.gpuModel ?? null,
     country: null, ip: spec?.maskedIp ?? null, serverRoom: dto.serverRoom.name, serverRoomProvider: dto.serverRoom.providerName,

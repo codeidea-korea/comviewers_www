@@ -175,8 +175,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 0 0 304px;
-    height: 304px;
+    flex: 0 0 330px;
+    height: 330px;
     min-height: 0;
     width: 100%;
   }
@@ -206,12 +206,11 @@
   .product-card--large .product-card__spec:nth-child(1) { height: 27px; }
   .product-card--large .product-card__spec:nth-child(2),
   .product-card--large .product-card__spec:nth-child(3) { height: 34px; }
-  .product-card--large .product-card__spec:nth-child(4),
-  .product-card--large .product-card__spec:nth-child(5),
-  .product-card--large .product-card__spec:nth-child(6) { height: 25px; }
-  .product-card--large .product-card__spec:nth-child(7),
-  .product-card--large .product-card__spec:nth-child(9) { height: 24px; }
-  .product-card--large .product-card__spec:nth-child(8) { height: 38px; }
+  .product-card--large .product-card__spec--cores { height: 20px; }
+  .product-card--large :is(.product-card__spec--ram, .product-card__spec--disk, .product-card__spec--gpu) { height: 25px; }
+  .product-card--large .product-card__spec--peripherals,
+  .product-card--large .product-card__spec:last-child { height: 24px; }
+  .product-card--large .product-card__spec--ip { height: 38px; }
   .product-card--large .product-card__spec .tag {
     max-width: 100%;
     min-width: 0;

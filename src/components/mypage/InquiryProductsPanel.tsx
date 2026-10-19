@@ -1,3 +1,4 @@
+import { PcSpecSummary } from '@/components/product/PcSpecSummary'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import type { ReactNode } from 'react'
@@ -37,7 +38,7 @@ export function InquiryProductsPanel({ products, status, standalone, onBack, onC
         const title = `${product.alias ? `${product.alias} · ` : ''}${product.productNo ?? uiText("상품 정보 없음")}`
         return <article key={product.key}><div>
           <header><em>[{uiText(status)}]</em>{onSelect ? <button disabled={!product.productNo} onClick={() => product.productNo && onSelect(product.productNo)} type="button">{title}</button> : <strong>{title}</strong>}<span><LocalizedServiceName kind="serverRoom" name={product.location === '서버실 정보 없음' ? null : product.location} fallback={uiText("서버실 정보 없음")} /></span></header>
-          <p>{product.spec === "PC 사양 정보 없음" ? uiText(product.spec) : product.spec ?? uiText("상품 사양을 확인할 수 없습니다.")}</p><small>{uiText("주문일")} {product.orderDate ?? '-'}　{uiText("이용기간")} {product.period ?? '-'}</small>
+          <p>{product.spec === "PC 사양 정보 없음" ? uiText(product.spec) : <PcSpecSummary text={product.spec} fallback={uiText("상품 사양을 확인할 수 없습니다.")} />}</p><small>{uiText("주문일")} {product.orderDate ?? '-'}　{uiText("이용기간")} {product.period ?? '-'}</small>
         </div></article>
       })}
     </div>

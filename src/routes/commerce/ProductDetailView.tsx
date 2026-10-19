@@ -1,3 +1,4 @@
+import { formatCpuCores } from '@/domain/products/cpuCores'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { ProductRefundSection } from './-components/ProductRefundSection'
 import { ProductDetailHero } from './-components/ProductDetailHero'
@@ -30,6 +31,7 @@ function specRows(product: Product) {
   return [
     ['OS', osFilterLabel(product.osFilterValue) ?? product.os],
     ['CPU', product.cpu],
+    ['Core', formatCpuCores(product.cpuCores)],
     ['RAM', product.ram],
     ['DISK', product.disk],
     ['GPU', product.gpu],
@@ -136,7 +138,7 @@ function ProductDetailContent() {
             <p>품번 : {product.productId}</p>
             <p>품명 : {product.title ?? product.productId}</p>
             <p>내용 : <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{product.description?.trim() || '등록된 상품 설명이 없습니다.'}</span></p>
-            {product.pricingType !== 'one_time' ? <><p>추천용도에 따른 제품 사양</p>{specRows(product).map(([label, value]) => <p key={label}>{label} : {value ?? '정보 없음'}</p>)}</> : null}
+            {product.pricingType !== 'one_time' ? <><p>추천용도에 따른 제품 사양</p>{specRows(product).map(([label, value]) => <p key={label}>{uiText(label)} : {value ?? '정보 없음'}</p>)}</> : null}
             <p>유지보수 (AS안내) : 서버실 담당자 문의 기준에 따릅니다.</p>
             {product.pricingType !== 'one_time' ? <p>소유권 이전 : 렌탈 상품은 이용기간 동안 접속 권한을 제공하며 소유권 이전은 별도 계약이 없는 한 제공하지 않습니다.</p> : null}
             <p>상품의 고장,분실,훼손시 소비자책임 : 상품 이용 중 고객 귀책으로 발생한 고장·분실·훼손은 발행 약관과 서버실 정책에 따릅니다.</p>

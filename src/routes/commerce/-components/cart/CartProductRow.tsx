@@ -1,3 +1,4 @@
+import { PcSpecSummary } from '@/components/product/PcSpecSummary'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import closeIcon from '@/assets/figma/product-list-close.svg'
@@ -51,7 +52,7 @@ export function CartProductRow({ item, selected, disabled, quantityUpdating, onT
     <div className="purchase-row__body cart-item__body">
       <div className="purchase-row__image cart-item__image"><img alt={visual.label ? t('cart.productImage', { name: visual.label }) : t('cart.defaultImage')} src={visual.image} />{!item.image ? <ProductOsOverlay label={visual.label} /> : null}</div>
       <div className="purchase-row__details cart-item__details">
-        {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{item.instantAvailable !== null && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span className="notranslate" translate="no">{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
+        {!partner ? <div className="cart-item__intro"><div className={`purchase-row__status cart-item__status cart-item__status--${waiting ? 'waiting' : 'online'}`}>{item.instantAvailable !== null && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}<span className="notranslate" translate="no">{statusCopy}</span></div><p className="purchase-row__spec cart-item__spec"><PcSpecSummary text={item.spec} showMissingCores /></p></div> : <p className="purchase-row__spec cart-item__spec">{item.spec ?? '-'}</p>}
         {!partner && <div className="purchase-row__fees cart-item__fees"><p><TranslatedText id="money.setupFee" /><span><CartMoney value={item.setupFee} /></span></p><p><span className="notranslate" translate="no">{cartPriceLabel(item)}</span><span><CartMoney value={item.rentalFee} /></span></p></div>}
         {!hasStockNotice && <>
           {item.priceChanged && <p className="cart-item__notice" role="status"><TranslatedText id="cart.priceChanged" /></p>}

@@ -21,7 +21,7 @@ const remoteSupport = z.object({
 }).nullable()
 const pcSpec = z.object({
   osFamily: text, osName: text, osVersion: text, osArchitecture: text, cpuBrand: text, cpuModel: text,
-  cpuClockGhz: z.number().nonnegative().nullable(), cpuCores: count.nullable(), cpuThreads: count.nullable(),
+  cpuClockGhz: z.number().nonnegative().nullable(), cpuCores: count.nullable().default(null).transform(value => value === 0 ? null : value), cpuThreads: count.nullable(),
   ramGb: count.nullable(), ramType: text, ssdGb: count.nullable(), hddGb: count.nullable(),
   gpuBrand: text, gpuModel: text, gpuVramGb: count.nullable(), collectedAt: instant,
 }).nullable()

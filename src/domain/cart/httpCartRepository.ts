@@ -1,3 +1,4 @@
+import { formatCpuCores } from '@/domain/products/cpuCores'
 import { z } from 'zod'
 import type { createCartApi, CartDto } from '@/api/cart'
 import type { createCatalogApi, CatalogDetail } from '@/api/catalog'
@@ -35,7 +36,11 @@ function mapItem(row: CartDto['items'][number], product: CatalogDetail | null) {
     ...(!product && !reserved ? ['UNAVAILABLE'] : []),
   ]
   const spec = product?.spec
-  const specText = spec ? [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel, spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter((value) => value !== null).join(' / ') : null
+  const specText = spec ? [
+    [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel].filter(Boolean).join(' / '),
+    `Core: ${formatCpuCores(spec.cpuCores)}`,
+    [spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter(Boolean).join(' / '),
+  ].filter(Boolean).join('\n') : null
   return {
     id: String(row.id), productId: row.productNo, source: 'api',
     type: unit === 'unit' ? 'part' : 'rental', rowKind: unit === 'unit' ? 'partner' : 'normal',

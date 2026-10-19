@@ -1,3 +1,4 @@
+import { formatCpuCores } from '@/domain/products/cpuCores'
 import { useTranslation } from '@/i18n/translation'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { Product } from '../../../domain/products/types'
@@ -33,7 +34,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
     <tr className="product-list-table__row" role="link" tabIndex={0} onClick={event => { if (!(event.target as HTMLElement).closest('button,a,input,select,textarea')) openProduct() }} onKeyDown={event => { if (event.key === 'Enter' && event.target === event.currentTarget) openProduct() }}>
       <td>{product.productId}</td>
       <td><span className="product-table-copy">{osFilterLabel(product.osFilterValue) ?? product.os ?? t('common.noInformation')}</span></td>
-      <td><span className="product-table-copy">{product.cpu ?? t('common.noInformation')}</span></td>
+      <td><span className="product-table-copy">{product.cpu ?? t('common.noInformation')}</span><span className="product-table-copy">{uiText('Core')} {formatCpuCores(product.cpuCores)}</span></td>
       <td><span className="tag tag--blue">{product.ram ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--gray">{product.disk ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--red">{product.gpu ?? t('common.noInformation')}</span></td>
