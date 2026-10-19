@@ -335,3 +335,8 @@
 .modal-list__meta span + span::before { background: var(--color-gray-300); content: ''; height: 8px; margin-right: 4px; width: 1px; }
 .modal-list__meta small { font-size: inherit; font-weight: 400; letter-spacing: -.26px; }
 .modal-list__meta strong { font-weight: 600; }
+
+.pc-spec-summary .pc-spec-summary__line--cores { color: var(--color-gray-600); display: block; }
+.cpu-core-label.notranslate { color: var(--color-gray-600); }
+.tag--orange { background: var(--color-orange-100); color: var(--color-orange-500) !important; }
+.cpu-core-badge.tag { display: inline-flex; align-items: center; font-size: inherit; font-weight: 500; vertical-align: middle; white-space: nowrap; }

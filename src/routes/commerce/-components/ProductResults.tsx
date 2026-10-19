@@ -1,4 +1,4 @@
-import { formatCpuCores } from '@/domain/products/cpuCores'
+import { CpuCoreBadge } from '@/components/product/CpuCoreBadge'
 import { useTranslation } from '@/i18n/translation'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import type { Product } from '../../../domain/products/types'
@@ -35,7 +35,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       <td>{product.productId}</td>
       <td><span className="product-table-copy">{osFilterLabel(product.osFilterValue) ?? product.os ?? t('common.noInformation')}</span></td>
       <td><span className="product-table-copy">{product.cpu ?? t('common.noInformation')}</span></td>
-      <td className="product-table-cores notranslate" translate="no">{formatCpuCores(product.cpuCores)}</td>
+      <td className="product-table-cores notranslate" translate="no"><CpuCoreBadge value={product.cpuCores} /></td>
       <td><span className="tag tag--blue">{product.ram ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--gray">{product.disk ?? t('common.noInformation')}</span></td>
       <td><span className="tag tag--red">{product.gpu ?? t('common.noInformation')}</span></td>
@@ -81,7 +81,7 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
                   <col style={{ width: '88px' }} />
                   <col style={{ width: '68px' }} />
                 </colgroup>
-                <thead><tr>{[t('product.number'), 'OS', 'CPU', 'Core', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee'), t(partOnly ? 'money.productAmount' : 'money.monthlyRental'), t('cart.add')].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead>
+                <thead><tr>{[t('product.number'), 'OS', 'CPU', 'CORE', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee'), t(partOnly ? 'money.productAmount' : 'money.monthlyRental'), t('cart.add')].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead>
                 <tbody>{products.map((product) => <ProductListRow key={product.id} onAddToCart={onAddToCart} product={product} />)}</tbody>
               </table>
             </div>

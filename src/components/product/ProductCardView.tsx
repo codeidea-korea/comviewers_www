@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { formatCpuCores } from '@/domain/products/cpuCores'
+import { CpuCoreBadge } from './CpuCoreBadge'
 import { TranslatedText, useTranslation } from '../../i18n/translation'
 import type { Product } from '../../domain/products/types'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
@@ -49,7 +49,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
           <ProductSpec className="product-card__spec--number" label={<TranslatedText id="product.number" />} value={<span className="notranslate" translate="no">{product.productId}</span>} />
           <ProductSpec className="product-card__spec--os" label="OS" value={visual.label || product.os ? <span className="notranslate" translate="no">{visual.label ?? product.os}</span> : <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--cpu" label="CPU" value={product.cpu ? <span className="notranslate" translate="no">{product.cpu}</span> : <TranslatedText id="common.noInformation" />} />
-          <ProductSpec className="product-card__spec--cores" label={<TranslatedText id="catalogUi.cpuCores" />} value={<span className="notranslate" translate="no">{formatCpuCores(product.cpuCores)}</span>} />
+          <ProductSpec className="product-card__spec--cores" label="CORE" value={<CpuCoreBadge value={product.cpuCores} />} />
           <ProductSpec className="product-card__spec--ram" label="RAM" tone="blue" value={product.ram ?? <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--disk" label="DISK" tone="gray" value={product.disk ?? <TranslatedText id="common.noInformation" />} />
           <ProductSpec className="product-card__spec--gpu" label="GPU" tone="red" value={product.gpu ? <span className="notranslate" translate="no">{product.gpu}</span> : <TranslatedText id="common.noInformation" />} />

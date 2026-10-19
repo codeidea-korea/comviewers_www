@@ -630,3 +630,6 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
   .product-card--large .product-card__peripherals .product-card__mouse img { height: 16.667px; width: 11.667px; }
   .product-card--large .product-card__peripherals .product-card__keyboard img { height: 11.667px; width: 16.667px; }
 }
+
+.product-list-table .cpu-core-badge { display: inline-flex; white-space: nowrap; }
+.product-detail-specs .product-detail-specs__cores { align-items: center; }

@@ -1,6 +1,6 @@
 /** Protected catalog/accessibility copy; product specifications stay unchanged. */
 export const catalogUiTranslations = [
-  ['catalogUi.cpuCores', 'Core', 'Core', 'Core', 'Core', 'Core', 'Core'],
+  ['catalogUi.cpuCores', 'CORE', 'CORE', 'CORE', 'CORE', 'CORE', 'CORE'],
   ['catalogUi.usageGuide', '이용안내', 'Hướng dẫn sử dụng', 'ご利用案内', 'User guide', '使用指南', '使用指南'],
   ['catalogUi.homeHeroTitle', 'RCPC 렌탈 마켓 플랫폼 전문기업', 'Nền tảng cho thuê RCPC chuyên nghiệp', 'RCPCレンタル専門企業', 'RCPC Rental Specialists', '专业 RCPC 租赁交易平台', '專業 RCPC 租賃交易平台'],
   ['catalogUi.homeHeroDevices', '고사양 워크스테이션, 데스크탑 PC부터 PC방 컴퓨터, 젠서버 디바이스까지', 'Từ máy trạm hiệu năng cao, PC để bàn đến máy tính phòng game và thiết bị XenServer', '高性能ワークステーション、デスクトップPCから、ネットカフェのPC、XenServerデバイスまで', 'From high-performance workstations and desktop PCs to gaming café computers and XenServer devices', '从高性能工作站、台式电脑到网吧电脑及 XenServer 设备', '從高效能工作站、桌上型電腦到網咖電腦及 XenServer 裝置'],

@@ -1,4 +1,4 @@
-import { formatCpuCores } from '@/domain/products/cpuCores'
+import { CpuCoreBadge } from '@/components/product/CpuCoreBadge'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { ProductRefundSection } from './-components/ProductRefundSection'
 import { ProductDetailHero } from './-components/ProductDetailHero'
@@ -31,7 +31,7 @@ function specRows(product: Product) {
   return [
     ['OS', osFilterLabel(product.osFilterValue) ?? product.os],
     ['CPU', product.cpu],
-    ['Core', formatCpuCores(product.cpuCores)],
+    ['CORE', <CpuCoreBadge value={product.cpuCores} />],
     ['RAM', product.ram],
     ['DISK', product.disk],
     ['GPU', product.gpu],
