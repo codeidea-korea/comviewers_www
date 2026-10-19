@@ -61,7 +61,7 @@ function ProductDetailContent() {
   const orderItemIdText = new URLSearchParams(location.search).get('orderItemId')
   const orderItemId = orderItemIdText && /^[1-9]\d{0,18}$/.test(orderItemIdText) && BigInt(orderItemIdText) <= 9223372036854775807n ? orderItemIdText : undefined
   const organizationId = session.status === 'authenticated' ? session.organizationId : null
-  const reviewMode = Boolean(reviewId && organizationId && products.getReviewed)
+  const reviewMode = Boolean(reviewId)
   const purchaseMode = Boolean(orderItemId && organizationId && products.getPurchased)
   const { data: product, isPending, isError, refetch } = useProductDetail(productId, reviewMode ? reviewId : undefined, organizationId, purchaseMode ? orderItemId : undefined)
   const [message, setMessage] = useState('')

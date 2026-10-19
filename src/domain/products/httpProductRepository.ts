@@ -38,6 +38,15 @@ export function createHttpProductRepository(client: ApiClient, organizationId?: 
         throw error
       }
     },
+    async getReviewLinked(productNo, reviewId, signal) {
+      try {
+        const product = await api.getReviewLinked(productNo, reviewId, signal)
+        return mapCatalogProduct({ ...product, availability: 'SOLD_OUT', instantAvailable: false })
+      } catch (error) {
+        if (error instanceof ApiClientError && error.code === 'PD001') return null
+        throw error
+      }
+    },
     async getReviewed(productNo, reviewId, organizationId, signal) {
       try {
         const product = await api.getReviewed(productNo, reviewId, organizationId, signal)

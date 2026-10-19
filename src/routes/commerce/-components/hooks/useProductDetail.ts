@@ -10,9 +10,10 @@ export function useProductDetail(productNo: string | undefined, reviewId?: strin
   const publicCatalogClient = usePublicCatalogQueryClient()
   return useQuery({
     ...serverPresenceQueryOptions,
-    queryKey: [...productQueryKeys.detail(productNo), reviewId, organizationId, orderItemId],
-    queryFn: async () => productSchema.nullable().parse(reviewId && organizationId && products.getReviewed
-      ? await products.getReviewed(productNo ?? '', reviewId, organizationId)
+    queryKey: reviewId ? productQueryKeys.reviewLink(productNo, reviewId)
+      : [...productQueryKeys.detail(productNo), organizationId, orderItemId],
+    queryFn: async () => productSchema.nullable().parse(reviewId
+      ? products.getReviewLinked ? await products.getReviewLinked(productNo ?? '', reviewId) : null
       : orderItemId && organizationId && products.getPurchased
         ? await products.getPurchased(productNo ?? '', orderItemId, organizationId)
         : await products.get(productNo ?? '')),

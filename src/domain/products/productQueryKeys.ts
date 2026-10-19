@@ -6,4 +6,5 @@ export const productQueryKeys = {
   lists: ['products', 'list'] as const,
   list: (query: ProductListQuery) => ['products', 'list', query] as const,
   detail: (productNo: string | undefined) => ['products', 'detail', productNo] as const,
+  reviewLink: (productNo: string | undefined, reviewId: string) => ['products', 'review-link', productNo, reviewId] as const,
 }

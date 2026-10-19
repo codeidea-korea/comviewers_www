@@ -4,11 +4,17 @@ import { useServices } from '@/app/ServiceProvider'
 import { articleSchema, commentSchema, postSchema, reviewSchema, type PostDraft, type StorefrontPageInput } from '@/domain/storefront/services'
 import { productSchema } from '@/domain/products/schemas'
 import { usePublicCatalogQueryClient } from '@/app/PublicCatalogQueryProvider'
+import { productQueryKeys } from '@/domain/products/productQueryKeys'
 
-export function useReviewProduct(productId: string | undefined) {
+export function useReviewProduct(productId: string | undefined, reviewId: string | undefined) {
   const { products } = useServices()
   const publicCatalogClient = usePublicCatalogQueryClient()
-  return useQuery({ queryKey: ['products', 'detail', productId], queryFn: async () => productSchema.nullable().parse(await products.get(productId ?? '')), enabled: productId !== undefined }, publicCatalogClient)
+  return useQuery({
+    queryKey: productQueryKeys.reviewLink(productId, reviewId ?? ''),
+    queryFn: async () => productSchema.nullable().parse(reviewId && products.getReviewLinked
+      ? await products.getReviewLinked(productId ?? '', reviewId) : null),
+    enabled: productId !== undefined && reviewId !== undefined,
+  }, publicCatalogClient)
 }
 
 export function usePostPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }, client?: QueryClient) {

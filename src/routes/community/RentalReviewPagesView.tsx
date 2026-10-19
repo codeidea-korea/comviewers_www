@@ -72,7 +72,7 @@ export function RentalReviewListPage() {
     void navigate(`${location.pathname}?${params}`, { replace: true, state: null })
   }, [location.pathname, location.search, location.state, navigate])
   const review = result.data
-  const product = useReviewProduct(review?.productId)
+  const product = useReviewProduct(review?.productId, review?.reviewId)
   const close = () => {
     const params = new URLSearchParams(location.search)
     params.delete('review')
@@ -81,7 +81,7 @@ export function RentalReviewListPage() {
   }
   const openProduct = () => {
     if (!review) return
-    const path = `/products/${encodeURIComponent(review.productId)}`
+    const path = `/products/${encodeURIComponent(review.productId)}?reviewId=${encodeURIComponent(review.reviewId)}`
     if (document.documentElement.classList.contains('translated-ltr')) window.location.assign(path)
     else void navigate(path)
   }

@@ -129,6 +129,12 @@ export function createCatalogApi(client: ApiClient) {
       const parsed = catalogProductNoSchema.parse(productNo)
       return client.request(`/api/v1/products/${encodeURIComponent(parsed)}`, catalogDetailSchema, { signal, authenticated: false })
     },
+    getReviewLinked(productNo: string, reviewId: string, signal?: AbortSignal): Promise<CatalogDetail> {
+      const parsed = catalogProductNoSchema.parse(productNo)
+      const id = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(reviewId)
+      return client.request(`/api/v1/products/${encodeURIComponent(parsed)}/review-links/${id}`, catalogDetailSchema,
+        { signal, authenticated: false })
+    },
     getReviewed(productNo: string, reviewId: string, organizationId: string, signal?: AbortSignal): Promise<CatalogDetail> {
       const parsed = catalogProductNoSchema.parse(productNo)
       const id = z.string().regex(/^[1-9]\d{0,18}$/).refine(value => BigInt(value) <= 9223372036854775807n).parse(reviewId)
