@@ -12,7 +12,6 @@ const options: readonly { key: SortKey; label: string }[] = [
   { key: 'serverRoom', label: '서버 위치' },
   { key: 'serverStatus', label: '서버 상태' },
   { key: 'servicePeriod', label: '이용 기간' },
-  { key: 'traffic', label: '트래픽 사용량' },
 ]
 
 export function RcpcMobileSort({ sort, onChange, disabled = false, favorites = false }: {

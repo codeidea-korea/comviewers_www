@@ -14,7 +14,7 @@ import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton, RcpcTablePeriod } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, extensionTarget, rentalActionsEnded, totalTraffic } from './rcpcPresentation'
+import { extensionBlocked, extensionTarget, rentalActionsEnded } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
 import { RcpcExtensionCheckout } from './RcpcExtensionCheckout'
@@ -34,7 +34,6 @@ const columns: ReadonlyArray<{ label: string; sort?: SortKey }> = [
   { label: '서버 상태', sort: 'serverStatus' },
   { label: '이용 기간', sort: 'servicePeriod' },
   { label: '접속 정보' },
-  { label: '트래픽 사용량', sort: 'traffic' },
   { label: '최근 문의' },
   { label: '빠른 실행' },
 ]
@@ -117,7 +116,7 @@ export function RcpcListTable({ api, canEditAlias, canExtend, emptyMessage, item
     return () => media.removeEventListener('change', update)
   }, [])
   const header = (column: { label: string; sort?: SortKey }) => column.sort
-    ? <SortButton icon={sortIcon} label={uiText(column.label)} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{column.label === '트래픽 사용량' && locale !== 'ja' ? <span className="table-sort-button__multiline-label">{uiText("트래픽")}<br/>{uiText("사용량")}</span> : uiText(column.label)}</SortButton>
+    ? <SortButton icon={sortIcon} label={uiText(column.label)} onSort={key => onSort(nextSortConfig(sortConfig, key))} sortConfig={sortConfig} sortKey={column.sort}>{uiText(column.label)}</SortButton>
     : uiText(column.label)
   return <>
     {!mobile ? <div aria-busy={pending} aria-label={uiText("RCPC 목록")} className={`rcpc-list rcpc-list--table${locale === 'ja' ? ' rcpc-list--japanese' : ''}`} role="table">
@@ -154,7 +153,6 @@ function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelected
     <RcpcState item={item}/>
     <div className="rcpc-list__period" role="cell"><RcpcTablePeriod item={item}/></div>
     <div className="rcpc-list__connect" role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>
-    <div role="cell">{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</div>
     <div className="rcpc-latest-inquiry" role="cell"><RcpcLatestInquiry item={item}/></div>
     <RcpcActions api={api} canExtend={canExtend} item={item}/>
   </article>
@@ -214,7 +212,6 @@ export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, 
       <div><dt>{uiText("서버 상태")}</dt><dd className="mobile-rcpc-card__state"><RcpcStatusContents item={item}/></dd></div>
       <div className="mobile-rcpc-card__period"><dt>{uiText("이용 기간")}</dt><dd><RcpcPeriodLabel item={item}/></dd></div>
       <div className="mobile-rcpc-card__connection"><dt>{uiText("접속 정보")}</dt><dd><div className="rcpc-list__connect"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></dd></div>
-      <div><dt>{uiText("트래픽 사용량")}</dt><dd>{totalTraffic(item.trafficDownloadTotalBytes, item.trafficUploadTotalBytes)}</dd></div>
       <div><dt>{uiText("최근 문의")}</dt><dd className="rcpc-latest-inquiry"><RcpcLatestInquiry item={item}/></dd></div>
     </dl>
     <footer>
