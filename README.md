@@ -1,5 +1,9 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-20 운영 배포 origin과 승인 commit 입력
+
+배포 스크립트는 `COMVIEWERS_DEPLOY_PUBLIC_URL`(미지정 시 기존 개발 origin), `COMVIEWERS_USER_DEPLOY_COMMIT`(선택 승인40자리SHA)을 받아 해당 origin의 자산을 검증한다. 준비/활성화 사이 origin·승인 SHA가 다르면 중단한다. 운영 진입점과 최초 설치는 [운영 키트](../comviewers-api/deploy/production/README.md)를 따른다. 선택 이름 번역의 build 입력은 `COMVIEWERS_NAME_TRANSLATION_FRAME_URL`이며 미설정 시 원문 fallback을 사용한다. 같은 등록도메인의 형제 호스트는 기존 격리 정책에서 거부된다. L3 준비/L2 배포 입력/L0 기록으로 diff·참조만 확인했고 실제 서버·npm 설치·테스트/빌드·배포·commit/push는 없다.
+
 ## 2026-10-20 첨부파일 백신 의존성 제거 안내 반영
 
 프로필 이미지·가입 이미지·서버실 증빙·커뮤니티 첨부 오류 안내를 파일 형식/크기 검증과 저장 실패·재시도 기준으로 맞췄다. 백신 서비스 준비를 요구하는 안내를 정리하고 API 오류 원문과 6개 언어 번역을 연결했다. 기존 파일 검증·요청 제어·권한·화면 동작은 유지한다. [현재 첨부 정책](../docs/handoff/comviewers-production-server-setup.md#2026-10-20-첨부파일-백신-의존성-제거)을 따른다. L2/L0 정적 diff·번역 연결 확인이며 테스트 파일·테스트/컴파일/빌드/lint/typecheck·브라우저·서버/DB·배포는 미수행이다.

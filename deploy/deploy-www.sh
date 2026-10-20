@@ -7,6 +7,8 @@ readonly APP_REPO="/home/comviewers_www/$APP_NAME"
 readonly DEPLOY_ROOT="/var/lib/comviewers-deploy"
 readonly WORK_ROOT="/home/comviewers-deploy-work"
 readonly LOCK_FILE="/run/lock/comviewers-deploy.lock"
+readonly PUBLIC_URL="${COMVIEWERS_DEPLOY_PUBLIC_URL:-https://comviewers.codeidea.io}"
+readonly EXPECTED_COMMIT="${COMVIEWERS_USER_DEPLOY_COMMIT:-}"
 readonly BASE_PATH="/"
 MODE=deploy RELEASE_DIR="" WORK_DIR="" OWNED=false ACTIVATION_STARTED=false
 log() {
@@ -51,6 +53,15 @@ fi
 for command in git npm curl flock timeout tar python3 realpath readlink install mkdir touch date df awk find chown chmod rm rmdir; do
   command -v "$command" >/dev/null || fail "필수 명령을 찾을 수 없습니다: $command"
 done
+python3 - "$PUBLIC_URL" <<'PYURL'
+import sys
+from urllib.parse import urlsplit
+u = urlsplit(sys.argv[1])
+if (u.scheme != 'https' or not u.hostname or u.username or u.password
+        or u.path or u.query or u.fragment or u.port is not None):
+    raise SystemExit('배포 주소는 경로 없는 HTTPS origin이어야 합니다.')
+PYURL
+[[ -z "$EXPECTED_COMMIT" || "$EXPECTED_COMMIT" =~ ^[0-9a-f]{40}$ ]] || fail "승인 웹 commit은 40자리 소문자 SHA여야 합니다."
 if [[ "${COMVIEWERS_DEPLOY_LOCK_HELD:-}" == 1 ]]; then
   [[ "$(readlink -f /proc/$$/fd/9)" == "$LOCK_FILE" ]] || fail "상속된 배포 잠금이 올바르지 않습니다."
   flock -n 9 || fail "배포 잠금을 사용할 수 없습니다."
@@ -86,12 +97,13 @@ cleanup() {
 trap cleanup EXIT
 
 artifact_check() {
-  timeout --kill-after=5 120 python3 - "$1" "$2" "$RELEASE_DIR/hashes.json" "$BASE_PATH" <<'PY'
+  timeout --kill-after=5 120 python3 - "$1" "$2" "$RELEASE_DIR/hashes.json" "$BASE_PATH" "$PUBLIC_URL" <<'PY'
 import hashlib, json, subprocess, sys
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
-mode, directory, metadata, base = sys.argv[1:]
+mode, directory, metadata, base, origin = sys.argv[1:]
+host = urlsplit(origin).netloc
 root = Path(directory)
 class Assets(HTMLParser):
     refs = []
@@ -105,8 +117,8 @@ if mode == 'record':
     if not parser.refs: raise RuntimeError('빌드한 HTML에 주요 자산이 없습니다')
     records = [{'file': 'index.html', 'url': base}]
     for ref in parser.refs:
-        u = urlsplit(urljoin('https://comviewers.codeidea.io' + base, ref))
-        if u.scheme != 'https' or u.netloc != 'comviewers.codeidea.io' or not u.path.startswith(base): raise RuntimeError('예상하지 않은 자산 출처입니다')
+        u = urlsplit(urljoin(origin + base, ref))
+        if u.scheme != 'https' or u.netloc != host or not u.path.startswith(base): raise RuntimeError('예상하지 않은 자산 출처입니다')
         records.append({'file': unquote(u.path[len(base):]), 'url': u.path + ('?' + u.query if u.query else '')})
     for row in records:
         p = root / row['file']
@@ -120,8 +132,8 @@ else:
         if mode != 'verify': continue
         for local in [True, False]:
             args = ['curl', '--silent', '--show-error', '--noproxy', '*', '--connect-timeout', '5', '--max-time', '15']
-            if local: args += ['--resolve', 'comviewers.codeidea.io:443:127.0.0.1']
-            data = subprocess.check_output(args + ['--write-out', '\n%{http_code}', 'https://comviewers.codeidea.io' + row['url']], timeout=20)
+            if local: args += ['--resolve', host + ':443:127.0.0.1']
+            data = subprocess.check_output(args + ['--write-out', '\n%{http_code}', origin + row['url']], timeout=20)
             body, _, code = data.rpartition(b'\n')
             if code != b'200' or hashlib.sha256(body).hexdigest() != row['sha256']: raise RuntimeError('서비스 중인 주요 자산이 이번 배포와 다릅니다')
 PY
@@ -164,6 +176,7 @@ prepare_release() {
   [[ -n "$branch" && "$branch" != -* ]] || fail "브랜치가 선택된 상태여야 합니다."
   quiet_command timeout --kill-after=5 120 git -C "$APP_REPO" fetch --no-tags origin "+refs/heads/$branch:refs/remotes/origin/$branch"
   commit="$(timeout --kill-after=5 120 git -C "$APP_REPO" rev-parse --verify "refs/remotes/origin/$branch^{commit}")"
+  [[ -z "$EXPECTED_COMMIT" || "$commit" == "$EXPECTED_COMMIT" ]] || fail "원격 웹 commit이 승인한 commit과 다릅니다."
   timeout --kill-after=5 120 git -C "$APP_REPO" merge-base --is-ancestor HEAD "$commit" || fail "로컬 HEAD가 원격보다 앞서 있거나 이력이 갈라져 있습니다."
   for directory in /home /var/lib; do
     free="$(df -PB1 "$directory" | awk 'NR==2 {print $4}')"
@@ -174,11 +187,12 @@ prepare_release() {
   OWNED=true
   mkdir "$WORK_DIR" "$WORK_DIR/source"
   printf '%s\n' "$commit" > "$RELEASE_DIR/commit.txt"
+  printf '%s\n' "$PUBLIC_URL" > "$RELEASE_DIR/public-url.txt"
   timeout --kill-after=5 120 git -C "$APP_REPO" archive --format=tar "$commit" | timeout --kill-after=5 120 tar -xf - -C "$WORK_DIR/source"
   log build "설치/빌드"
   (cd "$WORK_DIR/source"
    quiet_command timeout --kill-after=10 600 npm ci
-   VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false quiet_command timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
+   VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false VITE_NAME_TRANSLATION_FRAME_URL="${COMVIEWERS_NAME_TRANSLATION_FRAME_URL:-}" quiet_command timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
   artifact_check record "$WORK_DIR/dist"
   exchange_candidate check
   log success "준비 완료: $commit (후보: $WORK_DIR/dist, 기록: $RELEASE_DIR)"
@@ -188,6 +202,8 @@ activate_release() {
   log activate "반영"
   ACTIVATION_STARTED=true
   [[ -f "$RELEASE_DIR/commit.txt" && -f "$RELEASE_DIR/hashes.json" && ! -e "$RELEASE_DIR/activated" ]] || fail "준비한 배포 후보가 없거나 이미 반영되었습니다."
+  [[ -f "$RELEASE_DIR/public-url.txt" && "$(cat "$RELEASE_DIR/public-url.txt")" == "$PUBLIC_URL" ]] || fail "준비 때의 배포 origin과 다릅니다."
+  [[ -z "$EXPECTED_COMMIT" || "$(cat "$RELEASE_DIR/commit.txt")" == "$EXPECTED_COMMIT" ]] || fail "준비한 웹이 승인 commit과 다릅니다."
   artifact_check check "$WORK_DIR/dist"
   exchange_candidate check
   chown -R root:www-data "$WORK_DIR/dist"
