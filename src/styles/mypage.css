@@ -83,12 +83,12 @@
 .mypage-home-heading > a { align-items: center; color: var(--color-gray-500); display: flex; font-size: 16px; gap: 2px; }
 .mypage-home-heading > a img { height: 16px; width: 16px; }
 .mypage-home-rcpc { height: 540px; margin-top: 20px; }
-.mypage-home-rcpc__head { background: var(--color-gray-50); display: grid; font-size: 14px; grid-template-columns: 150px 100px 100px 100px 223px 130px 223px; height: 40px; letter-spacing: -.42px; text-align: center; }
+.mypage-home-rcpc__head { background: var(--color-gray-50); display: grid; font-size: 14px; grid-template-columns: 150px 100px 100px 100px minmax(0, 1fr) 100px 170px; height: 40px; letter-spacing: -.42px; text-align: center; }
 .mypage-home-rcpc__head span { align-items: center; display: flex; gap: 4px; justify-content: center; }
 .mypage-home-sort { height: 14px; position: relative; width: 10px; }.mypage-home-sort::before,.mypage-home-sort::after { border-left: 4px solid transparent; border-right: 4px solid transparent; content: ''; left: 1px; position: absolute; }.mypage-home-sort::before { border-bottom: 5px solid var(--color-gray-500); top: 1px; }.mypage-home-sort::after { border-top: 5px solid var(--color-gray-500); bottom: 1px; }
-.mypage-home-rcpc > article { align-items: stretch; border-bottom: 1px solid var(--color-gray-200); display: grid; font-size: 14px; grid-template-columns: 150px 100px 100px 100px 223px 130px 223px; height: 100px; letter-spacing: -.42px; }
-.mypage-home-rcpc.is-selectable > article { grid-template-columns: 30px 150px 100px 100px 100px 208px 130px 208px; }
-.mypage-home-rcpc.is-selectable .mypage-home-rcpc__head { grid-template-columns: 30px 150px 100px 100px 100px 208px 130px 208px; }
+.mypage-home-rcpc > article { align-items: stretch; border-bottom: 1px solid var(--color-gray-200); display: grid; font-size: 14px; grid-template-columns: 150px 100px 100px 100px minmax(0, 1fr) 100px 170px; height: 100px; letter-spacing: -.42px; }
+.mypage-home-rcpc.is-selectable > article { grid-template-columns: 30px 150px 100px 100px 100px minmax(0, 1fr) 100px 170px; }
+.mypage-home-rcpc.is-selectable .mypage-home-rcpc__head { grid-template-columns: 30px 150px 100px 100px 100px minmax(0, 1fr) 100px 170px; }
 .mypage-home-rcpc > .mypage-table__empty,
 .favorites-table--mobile > .mypage-table__empty { align-items: center; color: var(--color-gray-500); display: flex; justify-content: center; min-height: 150px; text-align: center; }
 .mypage-home-rcpc > article > div { align-content: center; display: flex; flex-direction: column; justify-content: center; padding: 8px; text-align: center; }
@@ -171,7 +171,7 @@
 .rcpc-list--table { height: auto; }
 .rcpc-list--table > .mypage-table__empty,
 .mobile-rcpc-list > .mypage-table__empty { align-items: center; border-bottom: 1px solid var(--color-gray-200); color: var(--color-gray-500); display: flex; justify-content: center; margin: 0; min-height: 150px; padding: 24px; text-align: center; }
-.rcpc-list__header,.rcpc-list--table > article { display: grid; grid-template-columns: 30px 120px 100px 100px 100px 223px 130px 223px; }
+.rcpc-list__header,.rcpc-list--table > article { display: grid; grid-template-columns: 30px 150px 100px 100px 100px minmax(0, 1fr) 100px 170px; }
 .rcpc-list__bulk-actions { align-items: center; display: flex; height: 56px; justify-content: space-between; margin: 0; }
 .rcpc-list__bulk-select { align-items: center; display: inline-flex; font-size: 16px; font-weight: 700; gap: 8px; }
 .rcpc-list__bulk-select .checkbox__input { height: 18px; margin: 0; width: 18px; }
@@ -309,7 +309,7 @@
 .favorites-page { height: 1215px; padding-top: 60px; }.favorites-page > h1 { font-size: 30px; font-weight: 500; height: 31px; line-height: 31px; }.favorites-page .favorites-layout { height: 964px; margin-top: 40px; }.favorites-page .favorites-groups { border: 0; height: 461px; padding: 0; }.favorites-page .favorites-groups > div:first-child { height: 33px; padding: 0; }.favorites-page .favorites-groups > div:first-child span { display: flex; gap: 4px; }.favorites-page .favorites-groups > div:first-child button,.favorites-page .favorites-groups > div:first-child a { align-items: center; display: inline-flex; height: 33px; justify-content: center; padding: 0; text-decoration: none; width: 48px; }
 .favorites-groups__tree { border: 1px solid var(--color-gray-200); height: 320px; margin-top: 8px; overflow: hidden; padding: 0 12px; }.favorites-groups__tree section { min-height: 40px; padding-top: 8px; }.favorites-groups__tree section > strong { display: flex; font-size: 13px; height: 24px; justify-content: space-between; }.favorites-groups__tree section > button { align-items: center; background: transparent; border: 0; display: flex; height: 32px; padding: 0; text-align: left; width: 100%; }.favorites-groups__tree section > button.is-active { background: #f1f1f1; }.favorites-groups__tree small { margin-left: auto; }.favorites-page .favorites-groups > p { background: var(--color-gray-50); color: var(--color-gray-500); font-size: 11px; line-height: 16px; margin-top: 8px; min-height: 80px; padding: 12px; }
 .favorites-results { grid-column: 2; min-width: 0; }.favorites-results__toolbar { align-items: flex-start; display: flex; height: 40px; justify-content: space-between; }.favorites-results__toolbar label { align-items: center; display: flex; font-weight: 700; gap: 8px; height: 24px; }.favorites-results__toolbar .rcpc-list-bulk-actions { display: flex; gap: 0; }.favorites-results__toolbar .rcpc-list-bulk-actions > section { display: flex; height: 24px; }.favorites-results__toolbar .rcpc-list-bulk-actions > button,.favorites-results__toolbar .rcpc-list-bulk-actions > section > button { background: transparent; border: 0; border-radius: 0; color: var(--color-black); font-size: 12px; height: 24px; min-width: 0; padding: 3px 12px; }.favorites-results__toolbar .rcpc-list-bulk-actions > :not(:first-child) { border-left: 1px solid var(--color-gray-200); }.favorites-results__toolbar .rcpc-list-bulk-actions button:disabled { background: transparent; color: var(--color-gray-400); }
-.favorites-table { height: 840px; }.mypage-home-rcpc.favorites-table.is-selectable .mypage-home-rcpc__head,.mypage-home-rcpc.favorites-table.is-selectable > article { grid-template-columns: 30px 92px 72px 72px 80px minmax(150px,1.2fr) 72px 130px minmax(130px,1fr); }.favorites-table .rcpc-list__product { padding-left: 4px; padding-right: 4px; }.favorites-results .favorites-table + .pagination { height: 24px; margin-top: 60px; }.favorites-shell main { min-height: 0; }
+.favorites-table { height: 840px; }.favorites-table .rcpc-list__product { padding-left: 4px; padding-right: 4px; }.favorites-results .favorites-table + .pagination { height: 24px; margin-top: 60px; }.favorites-shell main { min-height: 0; }
 .mypage-home-rcpc__head .table-sort-button__multiline-label,
 .rcpc-list__header .table-sort-button__multiline-label { display: inline-block; line-height: 16px; }
 .favorites-table__alias-action { align-items: center; background: transparent; border: 0; color: var(--color-gray-500); cursor: pointer; display: inline-flex; font: inherit; font-size: 14px; font-weight: 400; gap: 4px; padding: 0; white-space: nowrap; }.favorites-table__alias-action i { border-bottom: 1px solid currentColor; border-right: 1px solid currentColor; height: 6px; transform: rotate(-45deg); width: 6px; }
@@ -1151,21 +1151,8 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 @media (min-width: 768px) {
   .mypage-home-rcpc,
   .rcpc-list--table { max-width: 100%; overflow-x: auto; }
-  .mypage-home-rcpc > :is(.mypage-home-rcpc__head, article),
-  .rcpc-list--table > :is(.rcpc-list__header, article) { min-width: 1026px; }
-  .mypage-home-rcpc.favorites-table.is-selectable > :is(.mypage-home-rcpc__head, article) { min-width: 928px; }
-}
-
-/* Fit dashboard columns while allowing all preview rows to grow with the page. */
-@media (min-width: 1200px) {
-  .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc__head,
-  .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc > article {
-    grid-template-columns: 150px 100px 100px 100px minmax(208px, 1fr) 130px 223px;
-  }
-  .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc.is-selectable .mypage-home-rcpc__head,
-  .mypage-home .mypage-home-section--rcpc .mypage-home-rcpc.is-selectable > article {
-    grid-template-columns: 30px 150px 100px 100px 100px minmax(208px, 1fr) 130px 208px;
-  }
+  .mypage-home-rcpc > :is(.mypage-home-rcpc__head, article) { min-width: 976px; }
+  .rcpc-list--table > :is(.rcpc-list__header, article) { min-width: 976px; }
 }
 
 .mypage-home-rcpc > article > div { min-width: 0; }
@@ -1528,29 +1515,4 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
   width: 24px;
 }
 
-/* Preserve the Korean table while giving English and Japanese headings their content width. */
-@media (min-width: 768px) {
-  .mypage-home-rcpc.mypage-home-rcpc--translated { max-width: 100%; overflow-x: auto; }
-  :is(.mypage-home .mypage-home-section--rcpc, .favorites-results) .mypage-home-rcpc.mypage-home-rcpc--translated > :is(.mypage-home-rcpc__head, article),
-  .mypage-home-rcpc.mypage-home-rcpc--translated > :is(.mypage-home-rcpc__head, article) {
-    grid-template-columns: 150px 140px 140px 150px minmax(208px, 1fr) 160px 223px;
-    min-width: 1171px;
-  }
-  :is(.mypage-home .mypage-home-section--rcpc, .favorites-results) .mypage-home-rcpc.mypage-home-rcpc--translated.is-selectable > :is(.mypage-home-rcpc__head, article),
-  .mypage-home-rcpc.mypage-home-rcpc--translated.is-selectable > :is(.mypage-home-rcpc__head, article) {
-    grid-template-columns: 30px 150px 140px 140px 150px minmax(208px, 1fr) 160px 223px;
-    min-width: 1201px;
-  }
-  .mypage-home-rcpc--translated .mypage-home-rcpc__head > span { min-width: 0; padding-inline: 8px; white-space: nowrap; }
-}
 
-/* Favorites and RCPC lists share this grid; keep Japanese headings and rows aligned. */
-@media (min-width: 768px) {
-  .rcpc-list--table.rcpc-list--japanese { max-width: 100%; overflow-x: auto; }
-  .rcpc-list--japanese > :is(.rcpc-list__header, article) {
-    grid-template-columns: 30px 120px 140px 140px 100px 223px 160px 223px;
-    min-width: 1136px;
-  }
-  .rcpc-list--japanese .rcpc-list__header > span { box-sizing: border-box; padding-inline: 8px; white-space: nowrap; }
-  .rcpc-list--japanese .rcpc-list__header .table-sort-button { flex-shrink: 0; white-space: nowrap; }
-}
