@@ -28,7 +28,7 @@ export function createCustomerProfileMutations(client: ApiClient) {
         return await client.request('/api/v1/my/profile/image', z.object({ attachmentId: z.number().int().positive() }), {
           authenticated: true, method: 'POST', body,
         })
-      } catch { throw new Error('프로필 이미지 저장 또는 보안 검사를 완료하지 못했습니다. JPG·PNG 5MB 제한과 이미지 저장소·검사 서비스 준비 상태를 확인해 주세요.') }
+      } catch { throw new Error('프로필 이미지를 저장하지 못했습니다. JPG·PNG 5MB 제한을 확인하고 잠시 후 다시 시도해 주세요.') }
     },
     downloadImage(signal?: AbortSignal) {
       return client.download('/api/v1/my/profile/image', { authenticated: true, signal })

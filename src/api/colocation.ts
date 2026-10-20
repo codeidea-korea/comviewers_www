@@ -33,7 +33,7 @@ export function createServerRoomApplicationApi(client: ApiClient, authenticated:
       try { return await client.request('/api/v1/server-room-applications', id, { method: 'POST', authenticated, body }) }
       catch (error) {
         if (error instanceof ApiClientError) {
-          if (error.code === 'SR002') throw new Error('증빙 저장 또는 악성코드 검사를 완료하지 못했습니다. 잠시 후 다시 신청해 주세요.')
+          if (error.code === 'SR002') throw new Error('증빙 파일 검증 또는 저장을 완료하지 못했습니다. 파일 형식과 크기를 확인하고 잠시 후 다시 신청해 주세요.')
           if (error.code === 'SR003') throw new Error('입점 약관이 변경되었습니다. 새로고침 후 최신 약관에 동의해 주세요.')
           if (error.status === 429 || error.code === 'A007') throw new Error('신청 요청이 많습니다. 잠시 후 다시 시도해 주세요.')
         }

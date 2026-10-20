@@ -43,13 +43,13 @@ export function createPublicAccountApi(baseUrl: string) {
       const body = new FormData(); body.set('file', file)
       try {
         return await client.request('/api/auth/signup/profile-image/preflight', z.object({ ready: z.literal(true) }), { method: 'POST', body })
-      } catch { throw new Error('프로필 이미지 업로드 준비를 완료하지 못했습니다. JPG·PNG 5MB 제한과 이미지 저장소·보안 검사 서비스 상태를 확인해 주세요.') }
+      } catch { throw new Error('프로필 이미지 업로드 준비를 완료하지 못했습니다. JPG·PNG 5MB 제한을 확인하고 잠시 후 다시 시도해 주세요.') }
     },
     async stageProfileImage(file: File, verificationProof: string) {
       const body = new FormData(); body.set('file', file); body.set('verificationProof', verificationProof)
       try {
         return await client.request('/api/auth/signup/profile-image', z.object({ uploadKey: z.string().uuid() }), { method: 'POST', body })
-      } catch { throw new Error('프로필 이미지 업로드를 완료하지 못했습니다. 이메일 인증 유효시간, JPG·PNG 5MB 제한과 저장소·보안 검사 서비스 상태를 확인해 주세요.') }
+      } catch { throw new Error('프로필 이미지 업로드를 완료하지 못했습니다. 이메일 인증 유효시간과 JPG·PNG 5MB 제한을 확인하고 잠시 후 다시 시도해 주세요.') }
     },
     usernameAvailability(username: string) {
       return client.request('/api/auth/signup/username-availability', z.object({ available: z.boolean() }), {

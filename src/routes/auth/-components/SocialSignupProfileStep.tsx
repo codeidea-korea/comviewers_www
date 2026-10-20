@@ -73,7 +73,7 @@ export function SocialSignupProfileStep() {
     if (busy) return
     setBusy(true); setError('')
     try { await saveImage(); navigate('/mypage', { replace: true }) }
-    catch { setError('가입은 완료되었습니다. 프로필 이미지를 저장하지 못했습니다. 보안 검사·저장소 상태를 확인한 뒤 다시 시도하거나 내 정보에서 변경해 주세요.') }
+    catch { setError('가입은 완료되었습니다. 프로필 이미지를 저장하지 못했습니다. JPG·PNG 5MB 제한을 확인한 뒤 다시 시도하거나 내 정보에서 변경해 주세요.') }
     finally { setBusy(false) }
   }
 
