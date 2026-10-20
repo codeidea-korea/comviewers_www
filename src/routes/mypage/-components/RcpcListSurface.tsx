@@ -152,7 +152,7 @@ function RcpcListRow({ api, canEditAlias, canExtend, item, mutations, onSelected
     <div role="cell"><LocalizedServiceName kind="serverRoomRegion" name={item.serverRoomRegion} /><br/><LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></div>
     <RcpcState item={item}/>
     <div className="rcpc-list__period" role="cell"><RcpcTablePeriod item={item}/></div>
-    <div className="rcpc-list__connect" role="cell"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div>
+    <div className="rcpc-list__connect" role="cell"><div className="rcpc-connection-content"><RcpcWanIp api={api} item={item} compact/><RcpcRemoteAccess api={api} item={item} compact/></div></div>
     <div className="rcpc-latest-inquiry" role="cell"><RcpcLatestInquiry item={item}/></div>
     <RcpcActions api={api} canExtend={canExtend} item={item}/>
   </article>

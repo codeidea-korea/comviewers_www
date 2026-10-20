@@ -42,3 +42,42 @@
 .mypage-shell :is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider__actions { flex-shrink: 0; gap: 4px; }
 .mypage-shell :is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider--compact button { flex-shrink: 0; height: 16px; padding: 0; width: 16px; }
 .mypage-shell :is(.rcpc-list__connect, .mypage-home-rcpc__connection) .rcpc-remote-access--compact .rcpc-remote-provider--compact button img { height: 16px; object-fit: contain; width: 16px; }
+
+/* The column fills the table; its content hugs the values and is centered as one group. */
+@media (min-width: 768px) {
+  .mypage-shell .mypage-home-rcpc > article {
+    min-height: 100px;
+  }
+  .mypage-shell .rcpc-list--table > article > .rcpc-list__connect,
+  .mypage-shell .mypage-home-rcpc > article > .mypage-home-rcpc__connection {
+    align-items: center;
+    justify-content: center;
+  }
+  .rcpc-connection-content {
+    display: grid;
+    gap: 4px;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 100%;
+    min-width: 0;
+    width: max-content;
+  }
+  .mypage-shell .rcpc-connection-content div.rcpc-wan-ip.rcpc-wan-ip--compact,
+  .mypage-shell .rcpc-connection-content .rcpc-remote-access.rcpc-remote-access--compact article.rcpc-remote-provider--compact {
+    column-gap: 8px;
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+  .mypage-shell .rcpc-connection-content .rcpc-remote-access--compact,
+  .mypage-shell .rcpc-connection-content .rcpc-remote-provider__credentials {
+    gap: 4px;
+  }
+  .mypage-shell .rcpc-connection-content .rcpc-remote-access--compact .rcpc-remote-provider__line {
+    justify-content: flex-start;
+  }
+  .mypage-shell .rcpc-connection-content .rcpc-remote-access--compact .rcpc-remote-provider__line > span:first-child {
+    flex: 0 1 auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .rcpc-connection-content { display: contents; }
+}

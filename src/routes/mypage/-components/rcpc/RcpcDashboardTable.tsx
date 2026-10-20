@@ -83,7 +83,7 @@ function RcpcDashboardRow({ api, canEditAlias, canExtend, item, mutations, onAli
     <div className="mypage-home-rcpc__server" role="cell"><span><LocalizedServiceName kind="serverRoomRegion" name={item.serverRoomRegion} /><br /><LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></span></div>
     <div className="mypage-home-rcpc__state" role="cell"><RcpcStatusContents item={item}/></div>
     <div className="mypage-home-rcpc__period" role="cell"><span><RcpcTablePeriod item={item}/></span></div>
-    <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><RcpcWanIp api={api} item={item} compact autoReveal={!showAccessValuesByDefault || connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div>
+    <div className="mypage-home-rcpc__connection" ref={connectionRef} role="cell"><div className="rcpc-connection-content"><RcpcWanIp api={api} item={item} compact autoReveal={!showAccessValuesByDefault || connectionVisible}/><RcpcRemoteAccess api={api} item={item} compact autoRevealId={connectionVisible}/></div></div>
     <div className="rcpc-latest-inquiry" role="cell"><RcpcLatestInquiry item={item}/></div>
     <div className="mypage-home-rcpc__actions" role="cell"><span><RcpcReboot api={api} item={item}/><InquirySearchAction disabled={!item.latestInquiry} productNo={item.productNo}/></span><RcpcExtensionAction api={api} canExtend={canExtend} item={item}/></div>
   </article>
