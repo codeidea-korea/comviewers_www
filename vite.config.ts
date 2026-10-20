@@ -8,7 +8,7 @@ export default defineConfig({
   esbuild: { jsx: 'automatic' },
   server: {
     strictPort: true,
-    allowedHosts: ['sam-rebecca-austin-greg.trycloudflare.com'],
+    allowedHosts: ['fitting-centers-leather-route.trycloudflare.com'],
     proxy: {
       '/api/': {
         target: 'http://127.0.0.1:8080',
