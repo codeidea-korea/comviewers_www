@@ -1,9 +1,10 @@
 import type { CustomerSessionRequest } from '@/api/customerSession'
 import { ApiClientError } from '@/api/httpClient'
 import { loginCredentialsSchema } from '@/domain/auth/loginCredentials'
+import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import type { SessionOrganization } from './sessionStore'
 import { z } from 'zod'
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useSession, useSessionStore } from './SessionProvider'
 
 export type SocialAuthProvider = 'google' | 'naver' | 'kakao'
@@ -50,6 +51,7 @@ const changedPasswordIdentitySchema = z.object({
   userId: z.union([z.string(), z.number().int().positive().safe()]).transform(String),
   role: z.literal('USER'), status: z.literal('ACTIVE'), passwordChangeRequired: z.literal(false),
 })
+const attendanceRewardSchema = changedPasswordIdentitySchema.extend({ attendancePoints: z.literal(10) })
 const AUTHENTICATION_ERROR_CODES = new Set(['A001', 'A002', 'A003'])
 function isAuthenticationFailure(error: unknown): boolean {
   return error instanceof ApiClientError
@@ -58,6 +60,15 @@ function isAuthenticationFailure(error: unknown): boolean {
 export function AuthProvider({ children, adapter }: { children: ReactNode; adapter?: AuthAdapter }) {
   const store = useSessionStore()
   const session = useSession()
+  const { message: attendanceMessage, toastKey: attendanceToastKey, setMessage: setAttendanceMessage } = useToastMessage()
+  const notifyAttendancePoints = useCallback((response: unknown, expectedRevision: number) => {
+    const reward = attendanceRewardSchema.safeParse(response)
+    const established = store.getSnapshot()
+    if (reward.success && established.status === 'authenticated' && established.role === 'USER'
+      && established.userId === reward.data.userId && established.revision === expectedRevision + 1) {
+      setAttendanceMessage('출석 포인트 10P가 지급되었습니다.')
+    }
+  }, [store, setAttendanceMessage])
   const [logoutNotice, setLogoutNotice] = useState('')
   const [requiredPasswordChange, setRequiredPasswordChange] = useState<{ username: string } | null>(null)
   const requiredPasswordCredentials = useRef<{ userId: string; username: string; currentPassword: string } | null>(null)
@@ -70,11 +81,12 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
     void adapter.restore().then(result => {
       if (!active || store.getSnapshot().revision !== expectedRevision) return
       store.establishFromVerifiedResponse(result.response, { expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
+      notifyAttendancePoints(result.response, expectedRevision)
     }).catch(() => {
       // An absent, expired or unavailable refresh session leaves anonymous state unchanged.
     }).finally(() => { if (active) setRestoring(false) })
     return () => { active = false }
-  }, [adapter, store])
+  }, [adapter, store, notifyAttendancePoints])
   useEffect(() => {
     const restore = adapter?.restore
     if (session.status !== 'authenticated' || !restore || finalRefreshExpiry.current === session.expiresAt) return
@@ -135,6 +147,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       try { result = await adapter.login(credentials.data) }
       catch { throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.') }
       store.establishFromVerifiedResponse(result.response, { expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
+      notifyAttendancePoints(result.response, expectedRevision)
       const session = store.getSnapshot()
       if (session.status === 'anonymous') throw new Error('로그인하지 못했습니다.')
       if (session.status === 'password-change-required') {
@@ -161,6 +174,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
         throw new Error('로그인 상태를 확인할 수 없습니다. 새 비밀번호로 다시 로그인해 주세요.')
       }
       store.establishFromVerifiedResponse(result.response, { expectedRevision: current.revision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
+      notifyAttendancePoints(result.response, current.revision)
       requiredPasswordCredentials.current = null
       setRequiredPasswordChange(null)
     },
@@ -194,6 +208,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       store.establishFromVerifiedResponse(result.response, {
         expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations,
       })
+      notifyAttendancePoints(result.response, expectedRevision)
       if (store.getSnapshot().status !== 'authenticated') throw new Error('소셜 회원가입 후 로그인하지 못했습니다.')
     },
     async linkedSocialProviders() {
@@ -204,6 +219,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
     async logout() {
       const accessToken = store.getAccessToken()
       store.logout()
+      setAttendanceMessage('')
       requiredPasswordCredentials.current = null
       setRequiredPasswordChange(null)
       const loggedOutRevision = store.getSnapshot().revision
@@ -213,8 +229,11 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
         catch { if (store.getSnapshot().revision === loggedOutRevision) setLogoutNotice('이 기기에서는 로그아웃했습니다. 서버 로그아웃을 완료하지 못했습니다.') }
       }
     },
-  }), [adapter, store, logoutNotice, restoring, requiredPasswordChange])
-  return <AuthContext.Provider value={controller}>{children}</AuthContext.Provider>
+  }), [adapter, store, logoutNotice, restoring, requiredPasswordChange, notifyAttendancePoints, setAttendanceMessage])
+  return <AuthContext.Provider value={controller}>
+    {children}
+    <Toast message={attendanceMessage} toastKey={attendanceToastKey} />
+  </AuthContext.Provider>
 }
 export function useAuthentication(): AuthController {
   const value = useContext(AuthContext)

@@ -319,4 +319,5 @@ export const mypageAccountTranslations = [
   {"key":"mypageAccount.pointOrderRelease","source":"mypageAccount","ko":"미결제 주문 포인트 반환","vi":"Hoàn điểm cho đơn hàng chưa thanh toán","ja":"未払い注文のポイント返還","en":"Points returned for unpaid order","zh-CN":"未付款订单积分退还","zh-TW":"未付款訂單點數退還"},
   {"key":"mypageAccount.pointExpired","source":"mypageAccount","ko":"유효기간 만료로 포인트 소멸","vi":"Điểm hết hạn sử dụng","ja":"有効期限切れによるポイント失効","en":"Points expired","zh-CN":"积分因有效期届满而失效","zh-TW":"點數因有效期限屆滿而失效"},
   {"key":"mypageAccount.pointRefundPayout","source":"mypageAccount","ko":"승인된 환불 포인트 지급","vi":"Cấp điểm hoàn tiền đã được phê duyệt","ja":"承認済み返金ポイント付与","en":"Approved refund points issued","zh-CN":"发放已批准的退款积分","zh-TW":"發放已核准的退款點數"},
+  {"key":"mypageAccount.pointAttendance","source":"mypageAccount","ko":"출석 포인트","vi":"Điểm điểm danh","ja":"出席ポイント","en":"Attendance points","zh-CN":"签到积分","zh-TW":"簽到點數"},
 ] as const

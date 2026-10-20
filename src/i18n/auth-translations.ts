@@ -205,5 +205,6 @@ export const authTranslations = [
   {"key":"auth.messengerKakaoTalk","source":"auth","ko":"KakaoTalk 카카오톡","vi":"KakaoTalk","ja":"KakaoTalk","en":"KakaoTalk","zh-CN":"KakaoTalk","zh-TW":"KakaoTalk"},
   {"key":"auth.messengerkik","source":"auth","ko":"kik 킥","vi":"kik","ja":"kik","en":"kik","zh-CN":"kik","zh-TW":"kik"},
   {"key":"auth.messengerTelegram","source":"auth","ko":"Telegram 텔레그램","vi":"Telegram","ja":"Telegram","en":"Telegram","zh-CN":"Telegram","zh-TW":"Telegram"},
-  {"key":"auth.messengerHike","source":"auth","ko":"Hike 하이크","vi":"Hike","ja":"Hike","en":"Hike","zh-CN":"Hike","zh-TW":"Hike"}
+  {"key":"auth.messengerHike","source":"auth","ko":"Hike 하이크","vi":"Hike","ja":"Hike","en":"Hike","zh-CN":"Hike","zh-TW":"Hike"},
+  {"key":"auth.attendancePointsGranted","source":"auth","ko":"출석 포인트 10P가 지급되었습니다.","vi":"Bạn đã được cộng 10P điểm điểm danh.","ja":"出席ポイント10Pが付与されました。","en":"10P attendance points have been credited.","zh-CN":"已发放10P签到积分。","zh-TW":"已發放10P簽到點數。"}
 ] as const

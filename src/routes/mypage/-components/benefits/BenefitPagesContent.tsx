@@ -43,10 +43,12 @@ const pointReasonLabels: Readonly<Record<string, string>> = {
   refund_restore: '환불 포인트 복원',
   expiration: '포인트 소멸',
   signup: '가입 축하 포인트',
+  attendance: '출석 포인트',
   admin_adjustment: '포인트 조정',
 }
 
-function pointReasonLabel(reason: string | null, amount: number) {
+function pointReasonLabel(reason: string | null, sourceType: string, amount: number) {
+  if (sourceType === 'attendance') return uiText('출석 포인트')
   if (!reason) return amount >= 0 ? uiText('포인트 적립') : uiText('포인트 사용')
   if (pointReasonLabels[reason]) return uiText(pointReasonLabels[reason])
   return /^[a-z0-9_]+$/i.test(reason) ? (amount >= 0 ? uiText('포인트 적립') : uiText('포인트 사용')) : uiText(reason)
@@ -191,7 +193,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                 mobileVariant="rcpc"
                 columns={[
                   { key: 'occurredAt', label: uiText('일시'), sortValue: item => Date.parse(item.occurredAt), renderCell: item => accountDate(item.occurredAt).slice(0, 19) },
-                  { key: 'reason', label: uiText('내용'), sortValue: item => pointReasonLabel(item.reason, item.amount), renderCell: item => pointReasonLabel(item.reason, item.amount) },
+                  { key: 'reason', label: uiText('내용'), sortValue: item => pointReasonLabel(item.reason, item.sourceType, item.amount), renderCell: item => pointReasonLabel(item.reason, item.sourceType, item.amount) },
                   { key: 'type', label: uiText('구분'), sortValue: item => item.amount >= 0 ? uiText('적립') : uiText('사용'), renderCell: item => item.amount >= 0 ? uiText('적립') : uiText('사용') },
                   { key: 'pointType', label: uiText('유형'), sortValue: item => pointTypeLabel(item.pointType), renderCell: item => pointTypeLabel(item.pointType) },
                   { key: 'amount', label: uiText('포인트'), sortValue: item => item.amount, renderCell: item => `${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString('ko-KR')}P` },

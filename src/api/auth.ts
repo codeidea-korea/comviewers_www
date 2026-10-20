@@ -17,6 +17,7 @@ const requiredPasswordChangeSchema = z.object({
 const loginResponseSchema = z.object({
   userId: idSchema, role: z.enum(['USER', 'C_MANAGER']), status: z.literal('ACTIVE'), passwordChangeRequired: z.boolean(),
   accessToken: tokenSchema.nullish(), tokenType: z.literal('Bearer').nullish(), expiresInMs: z.number().int().nonnegative().safe(),
+  attendancePoints: z.union([z.literal(0), z.literal(10)]).default(0),
 }).refine((value) => value.passwordChangeRequired || Boolean(value.accessToken && value.tokenType === 'Bearer' && value.expiresInMs > 0))
 const organizationsSchema = z.array(z.object({ id: stringIdSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']), organizationNo: z.string().optional() }))
   .refine((values) => new Set(values.map((value) => value.id)).size === values.length)

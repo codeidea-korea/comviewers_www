@@ -1,5 +1,11 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-20 로그인 출석 포인트 토스트와 내역
+
+인증 API의 `attendancePoints=10`을 받은 USER 세션이 정상 확립되면 `AuthProvider`에서 공통 Toast로 `출석 포인트 10P가 지급되었습니다.`를 표시한다. 일반 로그인·필수 비밀번호 변경 완료·소셜 callback의 초기 세션 복원을 지원하고, 응답 사용자 ID와 session revision을 확인해 오래된 응답을 표시하지 않는다. 화면 이동에도 AuthProvider가 유지되어 토스트가 사라지지 않으며 배경 refresh·담당자 로그인은 알림을 호출하지 않는다. 구버전 API의 필드 누락은 0으로 처리한다.
+
+마이페이지 혜택관리 포인트는 `attendance` 사유를 `출석 포인트`로 표시하고 기존 무료·적립·+10P·5년 후 만료일시 조회를 재사용한다. 토스트/사유의 기존 5개 언어 번역도 연결했다. [지급 정책·서버 구현·미검증 경계](../docs/decisions/0036-point-types-and-coupon-operational-status.md#2026-10-20-로그인-출석-포인트)를 따른다. L2/L0 diff·API schema/세션/토스트·번역 참조 정적 확인이며 테스트 파일·테스트/빌드/lint/typecheck·브라우저·DB·배포·커밋/push는 실행하지 않았다.
+
 ## 2026-10-20 운영 배포 origin과 승인 commit 입력
 
 배포 스크립트는 `COMVIEWERS_DEPLOY_PUBLIC_URL`(미지정 시 기존 개발 origin), `COMVIEWERS_USER_DEPLOY_COMMIT`(선택 승인40자리SHA)을 받아 해당 origin의 자산을 검증한다. 준비/활성화 사이 origin·승인 SHA가 다르면 중단한다. 운영 진입점과 최초 설치는 [운영 키트](../comviewers-api/deploy/production/README.md)를 따른다. 선택 이름 번역의 build 입력은 `COMVIEWERS_NAME_TRANSLATION_FRAME_URL`이며 미설정 시 원문 fallback을 사용한다. 같은 등록도메인의 형제 호스트는 기존 격리 정책에서 거부된다. L3 준비/L2 배포 입력/L0 기록으로 diff·참조만 확인했고 실제 서버·npm 설치·테스트/빌드·배포·commit/push는 없다.
