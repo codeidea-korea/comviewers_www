@@ -15,6 +15,7 @@ export interface SocialSignupInput {
   phone: string
   messengerType: string
   messengerId: string
+  marketingEmailAgreed?: boolean
   termsAgreements: readonly { termsPolicyVersionId: number; agreed: boolean }[]
 }
 export interface AuthResult { response: unknown; receivedAt: number; organizationIds?: readonly string[]; organizations?: readonly SessionOrganization[] }
@@ -71,7 +72,7 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
   }, [store, setAttendanceMessage])
   const [logoutNotice, setLogoutNotice] = useState('')
   const [requiredPasswordChange, setRequiredPasswordChange] = useState<{ username: string } | null>(null)
-  const requiredPasswordCredentials = useRef<{ userId: string; username: string; currentPassword: string } | null>(null)
+  const requiredPasswordCredentials = useRef<{ userId: string; username: string; currentPassword: string; managerOrganizationCode?: string } | null>(null)
   const [restoring, setRestoring] = useState(() => Boolean(adapter?.restore && store.getSnapshot().status === 'anonymous'))
   const finalRefreshExpiry = useRef<number | null>(null)
   useEffect(() => {
@@ -173,6 +174,18 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
         await adapter.logout?.({ accessToken: null })
         throw new Error('로그인 상태를 확인할 수 없습니다. 새 비밀번호로 다시 로그인해 주세요.')
       }
+      if (credentials.managerOrganizationCode) {
+        // Password change returns a personal USER session. Never treat it as manager access.
+        let logoutFailed = false
+        try { await adapter.logout?.({ accessToken: null }) }
+        catch { logoutFailed = true }
+        if (store.getSnapshot().revision !== current.revision) throw new Error('이전 로그인 요청입니다. 새 비밀번호로 다시 로그인해 주세요.')
+        store.logout()
+        requiredPasswordCredentials.current = null
+        setRequiredPasswordChange(null)
+        if (logoutFailed) setLogoutNotice('비밀번호는 변경되었습니다. 서버 로그아웃을 완료하지 못했습니다. 새 비밀번호로 담당자 로그인해 주세요.')
+        return
+      }
       store.establishFromVerifiedResponse(result.response, { expectedRevision: current.revision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
       notifyAttendancePoints(result.response, current.revision)
       requiredPasswordCredentials.current = null
@@ -182,12 +195,20 @@ export function AuthProvider({ children, adapter }: { children: ReactNode; adapt
       if (restoring) throw new Error('로그인 상태를 확인하고 있습니다. 잠시 후 다시 시도해 주세요.')
       const credentials = loginCredentialsSchema.safeParse({ username, password, autoLogin: false })
       if (!credentials.success || !adapter?.managerLogin) throw new Error('아이디 또는 비밀번호를 확인해 주세요.')
+      setLogoutNotice('')
+      requiredPasswordCredentials.current = null
+      setRequiredPasswordChange(null)
       const expectedRevision = store.getSnapshot().revision
       let result: AuthResult
       try { result = await adapter.managerLogin(organizationCode, credentials.data) }
       catch { throw new Error('아이디 또는 비밀번호를 확인해 주세요.') }
       store.establishFromVerifiedResponse(result.response, { expectedRevision, receivedAt: result.receivedAt, organizationIds: result.organizationIds, organizations: result.organizations })
       const established = store.getSnapshot()
+      if (established.status === 'password-change-required' && established.role === 'USER') {
+        requiredPasswordCredentials.current = { userId: established.userId, username: credentials.data.username, currentPassword: credentials.data.password, managerOrganizationCode: organizationCode }
+        setRequiredPasswordChange({ username: credentials.data.username })
+        return
+      }
       if (established.status !== 'authenticated' || established.role !== 'C_MANAGER') {
         store.logout()
         throw new Error('담당자 계정을 확인할 수 없습니다.')

@@ -11,7 +11,7 @@ import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { NativeSelect } from '@/components/ui/SelectControl'
 import { messengerOptionLabel, messengerOptions, phonePrefixOptions } from '@/lib/formOptions'
 import { AuthHeading, AuthPage, AuthPanel } from '../AuthComponentsView'
-import { clearSignupAgreements, loadSignupAgreements } from './signupDraft'
+import { clearSignupAgreements, loadSignupAgreements, loadSignupMarketingEmailConsent } from './signupDraft'
 import { ProfileImagePicker } from '@/components/ui/ProfileImagePickerControl'
 import userProfileIcon from '@/assets/figma/user-profile.svg'
 import { useSessionStore } from '@/app/session/SessionProvider'
@@ -115,6 +115,7 @@ export function SocialSignupProfileStep() {
         messengerType: parsed.data.messengerType,
         messengerId: parsed.data.messengerId,
         termsAgreements,
+        marketingEmailAgreed: loadSignupMarketingEmailConsent(),
       })
       setSignedUp(true)
       clearSignupAgreements()

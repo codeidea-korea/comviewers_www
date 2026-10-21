@@ -19,6 +19,9 @@ const loginResponseSchema = z.object({
   accessToken: tokenSchema.nullish(), tokenType: z.literal('Bearer').nullish(), expiresInMs: z.number().int().nonnegative().safe(),
   attendancePoints: z.union([z.literal(0), z.literal(10)]).default(0),
 }).refine((value) => value.passwordChangeRequired || Boolean(value.accessToken && value.tokenType === 'Bearer' && value.expiresInMs > 0))
+const managerPasswordChangeResponseSchema = loginResponseSchema.refine((value) => value.role === 'USER'
+  && value.passwordChangeRequired && value.accessToken == null && value.tokenType == null
+  && value.expiresInMs === 0 && value.attendancePoints === 0)
 const organizationsSchema = z.array(z.object({ id: stringIdSchema, name: z.string().min(1), role: z.enum(['owner', 'c_manager']), organizationNo: z.string().optional() }))
   .refine((values) => new Set(values.map((value) => value.id)).size === values.length)
 const socialSignupContextSchema = z.object({ provider: z.enum(['google', 'naver', 'kakao']), email: z.email().max(100) })
@@ -27,6 +30,7 @@ const socialSignupInputSchema = z.object({
   name: z.string().trim().min(1).max(18),
   nickname: z.string().trim().regex(/^[가-힣A-Za-z0-9]{1,18}$/).or(z.literal('')),
   phone: z.string().regex(/^[0-9-]{0,30}$/), messengerType: z.string().max(50), messengerId: z.string().max(100),
+  marketingEmailAgreed: z.boolean().default(false),
   termsAgreements: z.array(z.object({ termsPolicyVersionId: z.number().int().positive().safe(), agreed: z.boolean() })).min(1).max(20),
 })
 const envelopeSchema = z.object({
@@ -98,7 +102,10 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
       const parsed = loginCredentialsSchema.safeParse({ ...input, autoLogin: false })
       if (!parsed.success || !/^ORG_[A-Za-z0-9_]{1,46}$/i.test(organizationCode)) throw new ApiClientError('request')
       if (restoreInFlight) await restoreInFlight.catch(() => undefined)
-      const result = await establishResult(await post(`/api/auth/manager/${encodeURIComponent(organizationCode)}/login`, { username: parsed.data.username, password: parsed.data.password }), false, 'C_MANAGER')
+      const response = await post(`/api/auth/manager/${encodeURIComponent(organizationCode)}/login`, { username: parsed.data.username, password: parsed.data.password })
+      // Only a tokenless personal USER response may open the migration password change flow.
+      if (managerPasswordChangeResponseSchema.safeParse(response.data).success) return establishResult(response, true, 'USER')
+      const result = await establishResult(response, false, 'C_MANAGER')
       if (!result.organizations?.some(organization => organization.role === 'c_manager' && organization.organizationNo?.toLowerCase() === organizationCode.toLowerCase())) {
         try { await post('/api/auth/logout') } catch { throw new ApiClientError('network') }
         throw new ApiClientError('contract')

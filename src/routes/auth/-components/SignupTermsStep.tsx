@@ -12,7 +12,6 @@ import { SignupTermsCopy } from './SignupTermsCopy'
 const signupTermLabels: Readonly<Record<string, string>> = {
   service_terms: '서비스 이용약관 동의',
   privacy_policy: '개인정보 수집 및 이용 동의',
-  marketing_email_consent: '광고성 정보 수신 동의(이메일)',
 }
 
 function signupTermLabel(policyKey: string, fallback: string) {
@@ -31,17 +30,20 @@ export function SignupTermsStep() {
     enabled: Boolean(api),
   })
   const [ageAccepted, setAgeAccepted] = useState(false)
+  const [marketingEmailAgreed, setMarketingEmailAgreed] = useState(false)
   const [accepted, setAccepted] = useState<Record<number, boolean>>({})
   const [showRequiredErrors, setShowRequiredErrors] = useState(false)
   const section = useRef<HTMLElement>(null)
-  const availableTerms = terms.data ?? []
+  const availableTerms = (terms.data ?? []).filter(term => term.policyKey !== 'marketing_email_consent')
   const requiredAccepted = ageAccepted && availableTerms.length > 0
     && availableTerms.filter((term) => term.required).every((term) => accepted[term.termsPolicyVersionId])
-  const allAccepted = requiredAccepted && availableTerms.every((term) => accepted[term.termsPolicyVersionId])
+  const allAccepted = requiredAccepted && marketingEmailAgreed
+    && availableTerms.every((term) => accepted[term.termsPolicyVersionId])
 
   function toggleAll(event: ChangeEvent<HTMLInputElement>) {
     const checked = event.target.checked
     setAgeAccepted(checked)
+    setMarketingEmailAgreed(checked)
     setAccepted(Object.fromEntries(availableTerms.map((term) => [term.termsPolicyVersionId, checked])))
   }
 
@@ -54,10 +56,16 @@ export function SignupTermsStep() {
       return
     }
     setShowRequiredErrors(false)
-    saveSignupAgreements(availableTerms.map((term) => ({
+    const agreements = availableTerms.map((term) => ({
       termsPolicyVersionId: term.termsPolicyVersionId,
       agreed: Boolean(accepted[term.termsPolicyVersionId]),
-    })))
+    }))
+    // Preserve old API signup compatibility while the consent becomes a separate field.
+    const legacyMarketingTerm = terms.data?.find(term => term.policyKey === 'marketing_email_consent')
+    saveSignupAgreements(legacyMarketingTerm ? [...agreements, {
+      termsPolicyVersionId: legacyMarketingTerm.termsPolicyVersionId,
+      agreed: marketingEmailAgreed,
+    }] : agreements, marketingEmailAgreed)
     const nextPath = socialSignup ? '/signup/profile?mode=social' : '/signup/profile'
     // Remove Google's document-wide translator before any profile inputs mount.
     if (document.getElementById('comviewers-google-translate')?.dataset.active === 'true') {
@@ -93,6 +101,12 @@ export function SignupTermsStep() {
               ? <p className="terms-required-error notranslate" translate="no" role="alert">{t('auth.termConsent', { label: authText(signupTermLabel(term.policyKey, term.name)) })}</p> : null}
             {term.required ? <SignupTermsCopy content={term.content} label={t('auth.termContent', { label: authText(signupTermLabel(term.policyKey, term.name)) })} /> : null}
           </div>)}
+          <div className="terms-item">
+            <Checkbox checked={marketingEmailAgreed} name="marketing-email-consent"
+              onChange={event => setMarketingEmailAgreed(event.target.checked)}>
+              {t('auth.termLabel', { required: authText('선택'), label: authText('광고성 정보 수신 동의(이메일)') })}
+            </Checkbox>
+          </div>
         </div>
         <Button className="notranslate" translate="no" disabled={!api || !availableTerms.length || terms.isPending || terms.isError} onClick={goToProfile} size="large">{authText("다음")}</Button>
       </section>

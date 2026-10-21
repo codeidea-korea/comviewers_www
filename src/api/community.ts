@@ -20,7 +20,7 @@ const comment = z.object({ id, parentCommentId: id.nullable(), author: z.string(
 const post = z.object({ id, boardCode: z.string(), boardName: z.string(), author: z.string(), mine: z.boolean(), title: z.string(), content: z.string(),
   authorProfileImageUrl: z.string().nullable().optional(),
   contentFormat: z.string().optional(), richContent: z.unknown().optional().nullable(),
-  notice: z.boolean(), pinned: z.boolean(), viewCount: count, status: z.string(), createdAt: time, updatedAt: time, commentCount: count, attachmentCount: count })
+  notice: z.boolean(), pinned: z.boolean(), viewCount: count, status: z.string(), createdAt: time, updatedAt: time.nullable(), commentCount: count, attachmentCount: count })
 const detail = post.omit({ commentCount: true, attachmentCount: true }).extend({ moderationReason: z.string().nullable(), comments: comment.array(), attachments: attachment.array() })
 const nullableDetail = detail.nullish().transform((value) => value ?? null)
 const page = z.object({ items: post.array(), page: count, size: count.min(1).max(100), totalCount: count, totalPages: count })

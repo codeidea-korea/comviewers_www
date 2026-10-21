@@ -37,7 +37,7 @@ export function RequiredPasswordChangeModal({ onClose, onComplete }: Props) {
       onComplete()
     } catch (failure) {
       if (failure instanceof ApiClientError && failure.code === 'A006') {
-        setError('임시 비밀번호와 다른 비밀번호를 입력해 주세요. 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해야 합니다.')
+        setError('기존 비밀번호와 다른 비밀번호를 입력해 주세요. 8~16자로 영문, 숫자, 특수문자(!, @, #, $, %)를 각각 1개 이상 포함해야 합니다.')
       } else if (failure instanceof ApiClientError && (failure.status === 401 || failure.code === 'A001')) {
         setError('로그인 정보를 다시 확인해야 합니다. 팝업을 닫고 다시 로그인해 주세요.')
       } else if (failure instanceof ApiClientError && ['network', 'contract'].includes(failure.kind)) {
@@ -49,7 +49,7 @@ export function RequiredPasswordChangeModal({ onClose, onComplete }: Props) {
   return <Modal className="modal--wide modal--password-reset modal--required-password-change" isOpen title={authText("비밀번호 재설정")}
     closeLabel={authText("취소")} onClose={() => { if (!locked.current) { setPassword(''); setConfirmation(''); onClose() } }}
     confirmLabel={busy ? authText("변경 중…") : authText("변경 후 로그인")} confirmDisabled={busy} onConfirm={() => { void submit() }}>
-    <p>{authText("관리자가 생성한 계정입니다. 최초 로그인 시 사용할 비밀번호를 새로 설정해 주세요.")}</p>
+    <p>{authText("서비스 이용을 위해 비밀번호를 새로 설정해 주세요.")}</p>
     <form className="popup-form popup-form--stacked" noValidate onSubmit={event => { event.preventDefault(); void submit() }}
       onKeyDown={event => { if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault() }}>
       <PasswordField autoComplete="new-password" label={authText("새 비밀번호")} maxLength={16} required disabled={busy}

@@ -5,7 +5,7 @@ import { focusSignupField } from '../focusSignupField'
 import userProfileIcon from '@/assets/figma/user-profile.svg'
 import { getPublicAccountApi, NicknameUnavailableError } from '@/api/publicAccount'
 import { signupRegistrationErrorMessage } from '@/domain/auth/signupRegistrationError'
-import { loadSignupAgreements } from '../signupDraft'
+import { loadSignupAgreements, loadSignupMarketingEmailConsent } from '../signupDraft'
 import { useSignupCoordinator } from '../SignupCoordinator'
 
 const emptyProfile = { loginId: '', password: '', passwordConfirm: '', name: '', nickname: '', emailId: '', emailDomain: '', phone1: '010', phone2: '', phone3: '', messenger: '', messengerId: '' }
@@ -181,6 +181,7 @@ export function useProfileForm() {
           messengerType: profile.messenger,
           messengerId: profile.messengerId,
           termsAgreements: agreements,
+          marketingEmailAgreed: loadSignupMarketingEmailConsent(),
         },
       })
     } catch (cause) {

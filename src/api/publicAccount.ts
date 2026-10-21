@@ -33,6 +33,7 @@ export interface RegistrationInput {
   email: string
   emailVerificationProof: string
   profileImageUploadKey?: string
+  marketingEmailAgreed?: boolean
   termsAgreements: readonly { termsPolicyVersionId: number; agreed: boolean }[]
 }
 
