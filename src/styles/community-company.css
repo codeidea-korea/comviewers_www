@@ -86,7 +86,6 @@
 .company-catalog-hero__art { inset: 0; overflow: hidden; position: absolute; }
 .company-catalog-hero__art img { max-width: none; position: absolute; }
 .company-catalog-hero__art img:nth-child(1) { height: 113.17%; left: -.16%; top: -1.71%; width: 100.42%; }
-.company-catalog-hero__art img:nth-child(2) { height: 156.38%; left: 0; top: -21.31%; width: 100%; }
 .company-catalog-hero::after { background: linear-gradient(180deg,transparent 29%,rgb(0 0 0 / 90%) 86%); content: ""; inset: 0; position: absolute; }
 .company-catalog-hero > .content-container { align-items: center; height: 691px; justify-content: center; padding-top: 70px; position: relative; text-align: center; z-index: 1; }
 .company-catalog-hero small { color: rgb(255 255 255 / 50%); font-size: 30px; font-weight: 700; letter-spacing: -.03em; }
