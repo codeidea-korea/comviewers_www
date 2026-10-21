@@ -28,7 +28,7 @@ export function ProductDetailHero({ product, message, onCart, onBuy, cartPending
   const setupFee = product.setupFee
   const totalAmount = rentalUnitPrice === null || quantity === null ? null : part ? (setupFee + rentalUnitPrice) * quantity : setupFee + rentalUnitPrice * quantity
   const safeTotalAmount = totalAmount !== null && Number.isSafeInteger(totalAmount) ? totalAmount : null
-  const specs = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['Core', formatCpuCores(product.cpuCores)], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
+  const specs: ReadonlyArray<readonly [string, string | null | undefined]> = [['OS', visual.label ?? product.os], ['CPU', product.cpu], ['Core', formatCpuCores(product.cpuCores)], ['RAM', product.ram], ['DISK', product.disk], ['GPU', product.gpu]]
   return (
       <section className="content-container product-detail-hero">
         <div className="product-detail-visual"><img alt={product.image ? `${product.title ?? product.productId} 상품 이미지` : visual.label ? `${visual.label} 상품 이미지` : '상품 기본 이미지'} src={visual.image} />{!product.image ? <ProductOsOverlay label={visual.label} /> : null}</div>

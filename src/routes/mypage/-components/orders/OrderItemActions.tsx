@@ -52,9 +52,9 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
     && item.rentalStatus === 'active'
     && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const now = Date.now()
-  const canConfirm = (!cManager || Boolean(item.rentalId)) && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
+  const canConfirm = !item.purchaseConfirmationHidden && (!cManager || Boolean(item.rentalId)) && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
-  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={uiText(confirmation.error?.message)} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
+  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open && !item.purchaseConfirmationHidden} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={uiText(confirmation.error?.message)} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
   if (variant === 'dashboard') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>{uiText("포인트 받기")}</span> : null}</Button> : null}
     {confirmDialog}
@@ -62,14 +62,14 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   </>
   if (variant === 'purchase-summary') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</Button> : null}
-    {item.expectedPoints !== null ? <b><img alt="" src={tollIcon}/>{uiText('포인트 {points}P 받기', { points: item.expectedPoints.toLocaleString('ko-KR') })}</b> : null}
+    {!item.purchaseConfirmationHidden && item.expectedPoints !== null ? <b><img alt="" src={tollIcon}/>{uiText('포인트 {points}P 받기', { points: item.expectedPoints.toLocaleString('ko-KR') })}</b> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (item.billingUnit === 'unit' && item.durationUnits === null && item.pcAssetId === null && !item.rentalId)
     return !cManager && paid ? <PartPurchaseActions api={api} item={item}/> : null
   return <>
-    {!item.refundPending && <button
+    {!item.purchaseConfirmationHidden && !item.refundPending && <button
       className={`order-catalog-item__confirm notranslate${canConfirm ? ' is-active' : ''}`}
       translate="no"
       disabled={!canConfirm || confirmation.isPending}

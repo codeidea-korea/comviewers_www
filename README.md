@@ -1,5 +1,27 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-22 이관 구매확정 20일 초과 표시 숨김
+
+원주문 시각+20일을 초과한 실제 이관 구매 건은 주문내역/상세의 비활성 구매확정 문구와 대시보드/포인트의 구매확정 후보·포인트 받기 표시를 숨긴다. API의 `purchaseConfirmationHidden`을 optional boolean으로 받아 `OrderItemActions`, `PartPurchaseActions`, `pendingOrders`에 적용한다. 일반 주문·20일 이내 이관 주문은 기존 조건을 유지한다. [출처 판정·API 계약·변경 파일·검증 경계](../docs/handoff/legacy-order-read-audit-2026-10-21.md#2026-10-22-이관-구매확정-20일-초과-표시-숨김)를 따른다. L2/L0 diff·인접 문맥 정적 확인이며 테스트파일/테스트·컴파일/빌드/lint/typecheck·수정 후 브라우저 검수·DB·재시작/배포는 없다. 실제 적용에는 API와 고객 웹 공동 반영이 필요하다.
+
+## 2026-10-22 검색엔진 제출용 사이트맵
+
+[public/sitemap.xml](public/sitemap.xml)에 `https://comviewers.com`의 고정 공개 URL 14개를 추가했다. 현재 `src/AppView.tsx`, `src/navigation/menuItems.ts`, `src/routes/legal/LegalPage.tsx`를 기준으로 메인·상품 목록/카테고리·커뮤니티/렌탈 후기 목록·회사소개·입점신청·고객센터·현행 약관 3종·개인정보처리방침을 포함한다. [public/robots.txt](public/robots.txt)는 사이트맵 주소를 안내한다.
+
+로그인/가입/계정 복구·개인 마이페이지·담당자 포털·장바구니·주문/결제·관리자·글 작성/수정·검색/정렬/페이지/약관 개정이력 URL은 포함하지 않는다. 상품·게시글·공지 상세는 공개/삭제/노출 상태가 바뀌므로 고정 목록에 넣지 않았으며, 상세까지 확장하려면 공개 데이터 기준 자동 갱신이 별도로 필요하다. 사이트맵 제외는 검색 차단을 뜻하지 않는다. 실제 콘텐츠 수정 시각을 확인하지 않았으므로 `lastmod`를 추정하지 않았고 `priority`/`changefreq`도 생략했다. 형식과 URL 선정은 [Google 사이트맵 안내](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)를 따른다.
+
+제출 주소는 `https://comviewers.com/sitemap.xml`이며 Google Search Console 및 네이버 서치어드바이저에 이 주소를 제출한다. **2026-10-22 00:05 KST 사용자 승인으로 운영 업로드를 완료했으며 검색엔진 제출은 하지 않았다.** 개발 환경에 같은 정적 파일이 배포돼도 파일 안 URL은 운영 도메인으로 고정되므로 개발 도메인용 사이트맵으로 제출하지 않는다. 최초 생성은 L1 정적 파일/L0 기록으로 diff·공개 라우트·도메인·참조만 확인했으며 테스트/컴파일/빌드/lint/typecheck는 실행하지 않았다.
+
+### 운영 업로드와 확인
+
+실제 운영 `158.247.200.150`의 `/etc/nginx/conf.d/comviewers-domain.conf`에서 고객 웹 루트 `/home/comviewers_www/user/dist`를 확인하고 그 안에 두 파일만 추가했다. 기존 두 파일은 없었다. 공통 배포 잠금과 사전 지문 비교 뒤 `root:www-data`, `0640`으로 원자 교체했으며 변경 전 상태와 결과는 서버 root 전용 `/var/lib/comviewers-deploy/sitemap-20261021T150559Z-f388d775/`에 기록했다. 되돌리려면 이번 추가본의 해시를 확인한 뒤 이 두 파일만 제거한다. 운영 소스 checkout은 수정하지 않았으므로 **다음 전체 웹 배포 전에 로컬 `public/`의 두 파일을 승인된 소스에 포함해야 한다.** 그렇지 않으면 dist 교체 때 파일이 사라질 수 있다.
+
+- 외부 PC의 일반 DNS는 `158.247.200.150`으로 확인됐다. TLS 검증을 유지한 `https://comviewers.com/sitemap.xml`은 `200 / text/xml`, `https://comviewers.com/robots.txt`는 `200 / text/plain`이며 두 응답의 SHA-256은 로컬 원본/서버 파일과 같다. XML의 중복 없는 URL 14개도 확인했다.
+- 포함 URL 14개는 외부 HTTP 200이며 SPA HTML 도달성 확인이다. 페이지별 JavaScript 렌더링·API 데이터·검색엔진 수집/색인 완료를 의미하지 않는다.
+- 기존 고객 웹 297파일·관리자 웹 93파일의 경로/내용 지문과 Nginx 설정 전체 지문·Nginx/API PID가 전후 같다. 메인·관리자·공개 가입약관 API의 200 응답과 본문 지문도 보존했다. 작업 전부터 메인 점검 표식은 없었고 메인은 200이었으며 이번 작업에서 점검 상태를 변경하지 않았다.
+
+근거: [사전 확인](../tmp/sitemap-prod-20261022/inspect.json), [적용/보존](../tmp/sitemap-prod-20261022/apply.json), [외부 HTTP 확인](../tmp/sitemap-prod-20261022/public-verification.json). L3 승인 정적 파일 업로드/HTTP 확인·L0 기록이며 전체 웹 빌드/재배포·서비스 재시작/reload·Nginx 설정·DB·Git 작업·검색엔진 제출은 하지 않았다.
+
 ## 2026-10-21 점검 화면을 유지하는 배포 검증
 
 [배포 스크립트](deploy/deploy-www.sh)의 사용자 웹 루트 검증을 보완했다. `/`가200이면 기존처럼 새 index.html의 SHA-256과 비교한다.503일 때는 `/etc/comviewers/main-maintenance.enabled` 파일 존재와 응답 본문의 SHA-256이 `/var/lib/comviewers-main-maintenance/index.html`과 일치하는지 먼저 확인한 뒤, `/?preview=main`의200/새 index.html SHA-256을 검증한다. 서버 loopback의 `--resolve`와 외부 DNS 경로 모두 같은 조건을 적용한다. 임의503·미리보기 실패·HTML/JS/CSS 불일치·인증서 오류는 계속 실패하며 관리자 웹/API 검증과 점검 표식·Nginx 설정은 변경하지 않는다.
