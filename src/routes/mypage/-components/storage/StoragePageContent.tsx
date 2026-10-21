@@ -13,7 +13,7 @@ import { MyPageLayout } from '../../MypageComponentsView'
 export function StoragePageContent({ api, rcpcApi }: { api: MyAccountReadServices; rcpcApi?: MyRcpcReadServices }) {
   useUiTranslation()
   const [page, setPage] = useState(0)
-  const result = useAccountRead(['storage', 'stored', page], (signal) => api.storage({ page, size: 20, status: 'stored' }, signal))
+  const result = useAccountRead(['storage', 'stored', page], (signal) => api.storage({ page, size: 20, status: 'stored' }, signal), { refreshOnReturn: true })
   return <MyPageLayout backTo="/mypage" title={uiText("보관함")}><div className="storage-catalog purchase-selection-page">
     <AccountQueryState pending={false} error={result.error} retry={result.refetch}/>
     <MixedStorageCheckout hasExtensionSource={Boolean(rcpcApi)} rentalsState={result.isPending ? 'pending' : result.isError ? 'error' : 'ready'}>

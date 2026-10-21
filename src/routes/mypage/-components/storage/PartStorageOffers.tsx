@@ -14,7 +14,8 @@ export function PartStorageOffers({ api }: { api: MyAccountReadServices }) {
   useUiTranslation()
   const shared=useMixedStorageSelection()
   const [page,setPage]=useState(0)
-  const offers = useQuery({ queryKey: ['my-account','read','part-storage',page], queryFn: () => api.partStorageOffers(page) })
+  const offers = useQuery({ queryKey: ['my-account','read','part-storage',page], queryFn: () => api.partStorageOffers(page),
+    staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
   const [selected, setSelected] = useState<number[] | null>(null)
   const [quantities, setQuantities] = useState<Record<number,number>>({})
   const navigate = useNavigate()

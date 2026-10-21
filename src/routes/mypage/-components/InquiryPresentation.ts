@@ -1,10 +1,12 @@
 export const inquiryTypes = { as_request: 'AS·점검 요청', setup_change: '변경·교체·추가 요청', refund_cancel: '해지신청', inquiry: '기타 문의' } as const
-export const inquiryTypeLabel = (value: string) => inquiryTypes[value as keyof typeof inquiryTypes] ?? value
+// ComBar codes share labels with web types, but are not separate create/filter options.
+const inquiryTypeLabels = { ...inquiryTypes, other_inquiry: inquiryTypes.inquiry, change_request: inquiryTypes.setup_change } as const
+export const inquiryTypeLabel = (value: string) => inquiryTypeLabels[value as keyof typeof inquiryTypeLabels] ?? value
 export const customerStatusLabel = (value: string) => value === '처리 완료' ? '처리완료' : value
 
 /** Only generated type titles are interface copy; customer-written titles stay unchanged. */
 export function translateInquiryTitle(requestType: string, title: string, translateLabel: (label: string) => string): string {
-  const label = inquiryTypes[requestType as keyof typeof inquiryTypes]
+  const label = inquiryTypeLabels[requestType as keyof typeof inquiryTypeLabels]
   const generatedTitle = label && (title === label || requestType === 'as_request'
     && ['AS 점검요청', 'AS 점검 요청', 'AS·점검요청'].includes(title))
   if (!generatedTitle) return title

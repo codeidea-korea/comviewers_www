@@ -18,7 +18,8 @@ export function StorageExtensionItems({ api }: { api: MyRcpcReadServices }) {
   const canPurchase = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
     && session.customerSession.commerceAvailable
   const offers = useQuery({ queryKey: ['my-rcpcs', api.organizationId, 'extension-offers'],
-    queryFn: () => api.extensionCheckout.offers(), retry: false })
+    queryFn: () => api.extensionCheckout.offers(), retry: false,
+    staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
   const rows = offers.data ?? emptyOffers
   const [selected, setSelected] = useState<readonly number[] | null>(null)
   const selectedIds = useMemo(() => selected ?? (canPurchase ? rows.map(row => row.id) : []), [selected, rows, canPurchase])
