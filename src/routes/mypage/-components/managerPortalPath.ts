@@ -1,8 +1,10 @@
-// Existing organizations can also carry the migration-era ORG_LEGACY_... code.
-const managerPagePattern = /^\/manager\/(ORG_[A-Za-z0-9_]{1,46})\/mypage(?:\/|$)/i
+import { isManagerOrganizationCode } from '@/domain/auth/managerOrganizationCode'
+
+const managerPagePattern = /^\/manager\/([^/]+)\/mypage(?:\/|$)/i
 
 export function managerOrganizationCode(pathname: string): string | null {
-  return managerPagePattern.exec(pathname)?.[1] ?? null
+  const code = managerPagePattern.exec(pathname)?.[1]
+  return code && isManagerOrganizationCode(code) ? code : null
 }
 
 export function managerScopedPath(to: string, currentPathname: string): string {

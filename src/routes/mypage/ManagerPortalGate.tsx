@@ -3,14 +3,13 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Outlet, useNavigate, useParams } from 'react-router'
 import { useAuthentication } from '@/app/session/AuthProvider'
 import { useSession, useSessionStore } from '@/app/session/SessionProvider'
+import { isManagerOrganizationCode } from '@/domain/auth/managerOrganizationCode'
 import { PopupLayer } from '@/components/ui/PopupLayerControl'
 import { ManagerField } from './-components/modals/ManagerForms'
 import { RequiredPasswordChangeModal } from '@/routes/auth/-components/modals/RequiredPasswordChangeModal'
 import eyeIcon from '@/assets/figma/eye.svg'
 import eyeOffIcon from '@/assets/figma/eye-off.svg'
 import './managerPortal.css'
-
-const codePattern = /^ORG_[A-Za-z0-9_]{1,46}$/i
 
 export function ManagerPortalGate() {
   const { uiText } = useUiTranslation()
@@ -51,7 +50,7 @@ export function ManagerPortalGate() {
     }
   }
 
-  if (!codePattern.test(organizationCode)) return <main className="manager-portal-notice"><p>{uiText("담당자 접속 링크를 확인해 주세요.")}</p></main>
+  if (!isManagerOrganizationCode(organizationCode)) return <main className="manager-portal-notice"><p>{uiText("담당자 접속 링크를 확인해 주세요.")}</p></main>
   if (auth.restoring) return <main className="manager-portal-notice"><p role="status">{uiText("로그인 상태를 확인하고 있습니다.")}</p></main>
   if (session.status === 'password-change-required' && session.role === 'USER' && auth.requiredPasswordChange) {
     return <RequiredPasswordChangeModal onClose={() => { void auth.logout() }}

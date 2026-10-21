@@ -1,5 +1,11 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-22 이관 담당자 LEGACY 링크 허용
+
+이관 조직의 `LEGACY-`+24자리16진수 코드를 담당자 링크 진입·로그인 요청·로그인 후 내부 이동에서 허용한다. 세 경로는 `src/domain/auth/managerOrganizationCode.ts`의 공통 검증을 사용하며 기존 `ORG_...`와 `ORG_LEGACY_...`도 유지한다. 기존에는 링크 복사가 이관 조직 코드를 그대로 사용하지만 화면·로그인 요청·경로 인식이 `ORG_...`만 허용해 로그인창 전에 차단됐다. API의 비밀번호·활성 계정/조직/c_manager membership·이관 출처·선택 조직 검사는 유지한다. DB 코드나 복사 URL을 변환하지 않는다.
+
+변경 소스는 위 공통 검증과 `src/api/auth.ts`, `src/routes/mypage/ManagerPortalGate.tsx`, `src/routes/mypage/-components/managerPortalPath.ts`다. [접속 정책](../docs/decisions/0008-customer-organization-and-cmanager-access.md#2026-10-22-이관-조직-legacy-링크-호환)을 따른다. L3 인증 진입 소스/L0 기록이며 diff·검증 함수 참조·라우팅/조직 인가를 정적으로 확인했다. 테스트 파일·테스트/컴파일/빌드/lint/typecheck·수정 후 브라우저/실제 로그인·DB·재시작/배포·커밋/push는 수행하지 않았다. **운영 반영에는 고객 웹 빌드·배포가 필요하다.**
+
 ## 2026-10-22 보관함 복귀 재조회 운영 배포 완료
 
 사용자 승인으로 보관함 렌탈·파트·연장 제안의 재조회3파일을 운영에 반영했다. 운영 HEAD 원본 출력299개 전체 해시를 재현한 뒤 세 파일만 변경해 빌드했으며 같은 lock의 기존 의존성을 격리 복사했다. API 자동 복구와 함께 활성화하고02:27KST 주요SPA3경로·공개JS/CSS137개200/해시와 출력299개 일치를 확인했다. [운영 기록·환경/관리자 보존·검수 한계](../docs/handoff/comviewers-production-server-setup.md#2026-10-22-보관함-자동-복구-운영-배포-완료)를 따른다. L3 승인 빌드/배포·L0 기록이며 테스트suite·실제로그인/결제실패·만료 재현·패키지설치·커밋/push는 없다. 아래 미배포 설명은 최초 준비 이력이다.

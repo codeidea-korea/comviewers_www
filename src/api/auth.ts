@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { AuthAdapter, AuthResult, SocialSignupInput } from '@/app/session/AuthProvider'
 import { loginCredentialsSchema } from '@/domain/auth/loginCredentials'
+import { isManagerOrganizationCode } from '@/domain/auth/managerOrganizationCode'
 import { ApiClientError, createApiClient } from './httpClient'
 import { createCustomerSessionLoader } from './customerSession'
 
@@ -100,7 +101,7 @@ export function createAuthAdapter(baseUrl: string): AuthAdapter {
     },
     async managerLogin(organizationCode, input) {
       const parsed = loginCredentialsSchema.safeParse({ ...input, autoLogin: false })
-      if (!parsed.success || !/^ORG_[A-Za-z0-9_]{1,46}$/i.test(organizationCode)) throw new ApiClientError('request')
+      if (!parsed.success || !isManagerOrganizationCode(organizationCode)) throw new ApiClientError('request')
       if (restoreInFlight) await restoreInFlight.catch(() => undefined)
       const response = await post(`/api/auth/manager/${encodeURIComponent(organizationCode)}/login`, { username: parsed.data.username, password: parsed.data.password })
       // Only a tokenless personal USER response may open the migration password change flow.
