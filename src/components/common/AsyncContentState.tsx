@@ -51,7 +51,7 @@ export function ErrorState({
 }) {
   const { uiText } = useUiTranslation()
   return (
-    <div className={mergeClasses('data-state', 'data-state--error', className)} role="alert">
+    <div className={mergeClasses('data-state', 'data-state--error', 'notranslate', className)} role="alert" translate="no">
       <p className="data-state__message">{typeof message === 'string' ? uiText(message) : message}</p>
       {onRetry ? <Button onClick={onRetry} size="small" variant="secondary">{uiText(retryLabel)}</Button> : null}
     </div>
