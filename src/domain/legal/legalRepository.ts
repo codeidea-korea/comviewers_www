@@ -8,5 +8,5 @@ export const legalDocumentSchema = z.object({
   richContent: z.unknown().optional().nullable(),
 })
 export type LegalDocument = z.infer<typeof legalDocumentSchema>
-/** Publicly readable published versions only; exclude drafts from this projection. */
-export interface LegalRepository { list(kind: LegalKind, signal?: AbortSignal): Promise<LegalDocument[]> }
+/** Public documents only; history includes previously published revisions, never drafts. */
+export interface LegalRepository { list(kind: LegalKind, signal?: AbortSignal, includeHistory?: boolean): Promise<LegalDocument[]> }

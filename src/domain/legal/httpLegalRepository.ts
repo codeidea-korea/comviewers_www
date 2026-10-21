@@ -27,9 +27,9 @@ const paragraphs = (value: string) => htmlToText(value).split(/\r?\n/).filter((l
 
 export function createHttpLegalRepository(client: ApiClient): LegalRepository {
   return {
-    async list(kind: LegalKind, signal?: AbortSignal) {
+    async list(kind: LegalKind, signal?: AbortSignal, includeHistory = false) {
       const rows = await client.request('/api/v1/policies/public-documents', publicPolicyDocumentSchema.array(), {
-        query: { kind }, signal,
+        query: { kind, includeHistory }, signal,
       })
       return rows.map(row => legalDocumentSchema.parse({
         id: String(row.id), kind: row.kind, title: row.title, version: row.version,

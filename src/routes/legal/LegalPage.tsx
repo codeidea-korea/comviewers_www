@@ -1,17 +1,24 @@
 import { useServices } from '@/app/ServiceProvider'
 import { Link, useSearchParams } from 'react-router'
 import { AppShell } from '@/components/layout/AppShellView'
-import type { LegalKind } from '@/domain/legal/legalRepository'
+import type { LegalDocument, LegalKind } from '@/domain/legal/legalRepository'
 import { usePublicLegalDocuments } from '@/domain/legal/usePublicLegalDocuments'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 
+function revisionLabel(document: LegalDocument, documents: LegalDocument[]) {
+  const [year, month, day] = document.effectiveDate.split('-')
+  const date = `${year}년 ${Number(month)}월 ${Number(day)}일`
+  const sameDateRevision = documents.some(item => item.id !== document.id && item.effectiveDate === document.effectiveDate)
+  return sameDateRevision ? `${date} (${document.version})` : date
+}
+
 function DocumentBody({ kind }: { kind: LegalKind }) {
   const { uiText } = useUiTranslation()
   const { products } = useServices()
   const [params, setParams] = useSearchParams()
-  const query = usePublicLegalDocuments(kind)
+  const query = usePublicLegalDocuments(kind, true)
   if (query.isPending) return <LoadingState label="문서를 불러오는 중입니다." />
   if (query.isError) return <p role="alert">{uiText('문서를 불러오지 못했습니다.')} <button onClick={() => void query.refetch()}>{uiText('다시 시도')}</button></p>
   const selectedId = params.get('version')
@@ -20,9 +27,9 @@ function DocumentBody({ kind }: { kind: LegalKind }) {
     {!document ? <p role="status">{uiText(selectedId ? '선택한 문서 버전을 찾을 수 없습니다.' : '등록된 문서가 없습니다.')}</p> : <article className="legal-page__document">
       <RichContentRenderer loadImage={products.loadEditorImage} document={document.richContent} fallback={document.paragraphs} />
     </article>}
-    {query.data.length > 0 && <label className="legal-page__version">문서 버전 <select value={document?.id ?? ''} onChange={event => setParams(current => {
+    {query.data.length > 0 && <div className="legal-page__version"><select aria-label={uiText('약관 개정이력 선택')} title={document ? revisionLabel(document, query.data) : undefined} value={document?.id ?? ''} onChange={event => setParams(current => {
       const next = new URLSearchParams(current); next.set('version', event.target.value); return next
-    })}>{!document && <option value="">버전을 선택해 주세요.</option>}{query.data.map(item => <option key={item.id} value={item.id}>{item.version} · {item.effectiveDate}</option>)}</select></label>}
+    })}>{!document && <option value="">{uiText('버전을 선택해 주세요.')}</option>}{query.data.map(item => <option key={item.id} value={item.id}>{revisionLabel(item, query.data)}</option>)}</select></div>}
   </>
 }
 export function LegalPage({ privacy = false }: { privacy?: boolean }) {
