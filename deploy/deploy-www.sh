@@ -33,6 +33,55 @@ log() {
   fi
 }
 fail() { log error "[오류] $*" >&2; exit 1; }
+progress_command() {
+  local label="$1" step="$2" logfile status started=$SECONDS
+  local release="${RELEASE_DIR#"$DEPLOY_ROOT"/}" component="${RELEASE_DIR##*/}"
+  shift 2
+  release="${release%/*}"
+  mkdir -p -m 750 "$DEPLOY_ROOT/logs"
+  logfile="$(umask 077; mktemp "$DEPLOY_ROOT/logs/$release-$component-$step.XXXXXX.log")"
+  log build "$label 시작 (로그: $logfile)"
+  if python3 - "${APP_LABEL:-API}" "$label" "$logfile" "$@" <<'PYPROGRESS'
+import signal, subprocess, sys, time
+prefix, label, logfile = sys.argv[1:4]
+started = time.monotonic()
+with open(logfile, 'ab', buffering=0) as output:
+    try:
+        process = subprocess.Popen(sys.argv[4:], stdin=subprocess.DEVNULL,
+                                   stdout=output, stderr=subprocess.STDOUT, pass_fds=(9,))
+    except OSError as error:
+        output.write((str(error) + '\n').encode())
+        sys.exit(127)
+    def forward_signal(signum, _frame):
+        try:
+            process.send_signal(signum)
+        except ProcessLookupError:
+            pass
+    for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGTERM):
+        signal.signal(signum, forward_signal)
+    try:
+        while True:
+            try:
+                status = process.wait(timeout=10)
+                break
+            except subprocess.TimeoutExpired:
+                elapsed = int(time.monotonic() - started)
+                print(f'[{prefix}] {label} 진행 중 · 경과 {elapsed}초', flush=True)
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.wait()
+sys.exit(status if status >= 0 else 128 - status)
+PYPROGRESS
+  then
+    log success "$label 완료 (경과 $((SECONDS-started))초, 로그: $logfile)"
+  else
+    status=$?
+    log error "$label 실패 (종료 코드: $status, 경과 $((SECONDS-started))초, 로그: $logfile)" >&2
+    tail -n 60 -- "$logfile" >&2 || true
+    return "$status"
+  fi
+}
 quiet_command() {
   local output status
   if output="$("$@" 2>&1)"; then
@@ -50,7 +99,7 @@ elif [[ $# -ne 0 ]]; then
   fail "사용법: $0 [--prepare|--activate|--discard RELEASE_DIR]"
 fi
 [[ $EUID -eq 0 ]] || fail "root 권한으로 실행하세요."
-for command in git npm curl flock timeout tar python3 realpath readlink install mkdir touch date df awk find chown chmod rm rmdir; do
+for command in git npm curl flock timeout tar python3 realpath readlink install mkdir touch date df awk find chown chmod rm rmdir mktemp tail; do
   command -v "$command" >/dev/null || fail "필수 명령을 찾을 수 없습니다: $command"
 done
 python3 - "$PUBLIC_URL" <<'PYURL'
@@ -191,8 +240,8 @@ prepare_release() {
   timeout --kill-after=5 120 git -C "$APP_REPO" archive --format=tar "$commit" | timeout --kill-after=5 120 tar -xf - -C "$WORK_DIR/source"
   log build "설치/빌드"
   (cd "$WORK_DIR/source"
-   quiet_command timeout --kill-after=10 600 npm ci
-   VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false VITE_NAME_TRANSLATION_FRAME_URL="${COMVIEWERS_NAME_TRANSLATION_FRAME_URL:-}" quiet_command timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
+   progress_command "의존성 설치" install timeout --kill-after=10 600 npm ci
+   VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false VITE_NAME_TRANSLATION_FRAME_URL="${COMVIEWERS_NAME_TRANSLATION_FRAME_URL:-}" progress_command "웹 후보 빌드" build timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
   artifact_check record "$WORK_DIR/dist"
   exchange_candidate check
   log success "준비 완료: $commit (후보: $WORK_DIR/dist, 기록: $RELEASE_DIR)"

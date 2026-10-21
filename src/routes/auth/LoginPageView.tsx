@@ -75,7 +75,7 @@ export function LoginPage({ redirectAuthenticated = true }: { redirectAuthentica
           <TextField
             autoComplete="username"
             disabled={pending}
-            helperText={authText("기존 계정의 아이디를 입력해 주세요.")}
+            helperText={authText("3~20자의 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.")}
             label={authText("아이디")}
             maxLength={LOGIN_USERNAME_MAX_LENGTH}
             onChange={(event) => setLoginId(event.target.value)}
@@ -86,7 +86,7 @@ export function LoginPage({ redirectAuthenticated = true }: { redirectAuthentica
           <PasswordField
             autoComplete="current-password"
             disabled={pending}
-            helperText={authText("현재 사용 중인 비밀번호를 입력해 주세요.")}
+            helperText={authText("8~16자의 영문, 숫자, 특수문자(!, @, #, $, %, )만 사용할 수 있습니다.")}
             label={authText("비밀번호")}
             displayAsText={false}
             maxLength={100}
