@@ -1,5 +1,11 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-21 점검 화면을 유지하는 배포 검증
+
+[배포 스크립트](deploy/deploy-www.sh)의 사용자 웹 루트 검증을 보완했다. `/`가200이면 기존처럼 새 index.html의 SHA-256과 비교한다.503일 때는 `/etc/comviewers/main-maintenance.enabled` 파일 존재와 응답 본문의 SHA-256이 `/var/lib/comviewers-main-maintenance/index.html`과 일치하는지 먼저 확인한 뒤, `/?preview=main`의200/새 index.html SHA-256을 검증한다. 서버 loopback의 `--resolve`와 외부 DNS 경로 모두 같은 조건을 적용한다. 임의503·미리보기 실패·HTML/JS/CSS 불일치·인증서 오류는 계속 실패하며 관리자 웹/API 검증과 점검 표식·Nginx 설정은 변경하지 않는다.
+
+배포 주소는 [개발·운영 전용 진입점](../comviewers-api/README.md#2026-10-21-개발운영-배포-진입점-분리)이 고정한다. 개발은 `deploy-dev.sh`, 현재 운영은 `deploy-prod.sh`를 각 서버의 API deploy 폴더에서 실행하며 별도 export는 필요 없다. 사용자 웹 스크립트의 미지정 개발 주소 기본값도 제거했다. 기존 후보 기록 형식은 유지한다. L3 소스/L0 기록이며 diff·분기·주소 전달·Nginx 표식/본문/미리보기 경로를 정적으로 확인했다. 테스트파일·테스트/컴파일/빌드/lint/typecheck·서버 적용/재배포·DB·커밋/push는 수행하지 않았다. 서버에서 사용하려면 수정된 스크립트를 별도로 반영해야 한다.
+
 ## 2026-10-21 배포 빌드 경과 시간 출력
 
 [배포 스크립트](deploy/deploy-www.sh)에 의존성 설치/웹 빌드 시작·10초 간격 경과·완료와 실패 종료 코드/로그 경로/마지막 60줄을 추가했다. [공통 동작·개발서버 반영·미검증 경계](../comviewers-api/README.md#2026-10-21-배포-빌드-경과-시간과-실패-로그)를 따른다. L3 스크립트 반영/L0 기록이며 정적 리뷰·서버 파일 해시 대조만 수행했고 웹 빌드·실제 앱 배포는 실행하지 않았다.
