@@ -2,18 +2,17 @@ import { useUiTranslation } from '@/i18n/uiTranslation'
 import { Fragment } from 'react'
 
 const coreLinePattern = /^(?:CORE|Core|코어 수): (?:([1-9]\d*) Cores?|-)$/u
+const missingCoreLinePattern = /^(?:CORE|Core|코어 수):\s*-$/u
 
 /** Join PC summary groups for display without rewriting stored specifications. */
-export function PcSpecSummary({ text, fallback = '-', showMissingCores = false, layout = 'inline' }: {
+export function PcSpecSummary({ text, fallback = '-', layout = 'inline' }: {
   text: string | null | undefined
   fallback?: string
-  showMissingCores?: boolean
   layout?: 'lines' | 'inline'
 }) {
   const { uiText } = useUiTranslation()
-  const lines = (text || fallback).split('\n')
-  const hasCores = lines.some(line => coreLinePattern.test(line))
-  const shown = showMissingCores && !hasCores ? [...lines, 'Core: -'] : lines
+  const lines = (text ?? '').split('\n').filter(line => !missingCoreLinePattern.test(line.trim()))
+  const shown = lines.some(line => line.trim() && line.trim() !== '-') ? lines : [fallback]
   const inline = layout === 'inline'
   const displayed = inline ? shown.filter(line => line.trim()) : shown
   return <span className={`pc-spec-summary${inline ? ' pc-spec-summary--inline' : ''}`}>{displayed.map((line, index) => <Fragment key={index}>

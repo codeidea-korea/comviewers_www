@@ -1,5 +1,5 @@
 import { PcSpecSummary } from '@/components/product/PcSpecSummary'
-import { formatCpuCores } from '@/domain/products/cpuCores'
+import { formatCpuCoreLine } from '@/domain/products/cpuCores'
 import { useUiTranslation, translateUiText } from '@/i18n/uiTranslation'
 import type { RefObject } from 'react'
 import type { EligibleRental, ReviewDraft, ProductReview } from '@/domain/reviews/reviewRepository'
@@ -39,7 +39,7 @@ export function ProductReviewCard({ filled = false, onCancel, onSubmit, section 
     <>
       <h2>{uiText(initial ? '후기 수정' : '후기 작성')}</h2>
       <p className="review-create-product"><span>{uiText('품번 {id}', { id: product?.productId ?? '89023' })}</span><small>{product?.serverRoom ?? 'IRC코리아/메가서버실'}</small></p>
-      <p className="review-create-spec">{product?.pricingType === 'one_time' ? [product.title,product.description].filter(Boolean).join(' · ') : product ? <PcSpecSummary text={[[product.os, product.cpu].filter(Boolean).join(' / '), product.cpuCores !== undefined ? `Core: ${formatCpuCores(product.cpuCores)}` : null, [product.ram, product.disk, product.gpu].filter(Boolean).join(' / ')].filter(Boolean).join('\n')} showMissingCores /> : ''}</p>
+      <p className="review-create-spec">{product?.pricingType === 'one_time' ? [product.title,product.description].filter(Boolean).join(' · ') : product ? <PcSpecSummary text={[[product.os, product.cpu].filter(Boolean).join(' / '), formatCpuCoreLine(product.cpuCores), [product.ram, product.disk, product.gpu].filter(Boolean).join(' / ')].filter(Boolean).join('\n')} /> : ''}</p>
       {!initial && eligibleRentals.length > 1 ? <label>{uiText('구매확정 상품')}<select disabled={pending} onChange={(event) => setRentalId(event.target.value)} value={rentalId}>{eligibleRentals.map((rental) => <option key={rental.id} value={rental.id}>{reviewPurchaseLabel(rental.label)}</option>)}</select></label> : null}
       {!initial && eligibilityPending ? <LoadingState className="route-loading--compact" label={uiText('후기 작성 가능 여부를 확인하고 있습니다.')} /> : !initial && !eligibleRentals.length && product ? <p role="status">{uiText('후기를 작성할 수 있는 구매확정 상품이 없습니다.')}</p> : null}
       <div className="review-create-rating"><span>{uiText('상품 만족도')}</span><div>{[1,2,3,4,5].map((star) => <button disabled={pending} aria-label={uiText('{rating}점', { rating: star })} aria-pressed={rating >= star} key={star} onClick={() => setRating(star)} type="button"><img alt="" src={rating >= star ? reviewStarFilled : reviewStarEmpty} /></button>)}</div></div>

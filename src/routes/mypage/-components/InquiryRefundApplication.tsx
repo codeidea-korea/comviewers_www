@@ -44,7 +44,7 @@ function CandidateSummary({ item }: { item: RefundCandidate }) {
   return <span className="refund-application__candidate-copy">
     <strong>{item.alias ? `${item.alias}·` : ''}{item.productNo}</strong>
     <span>{item.title} · <LocalizedServiceName kind="serverRoom" name={item.serverRoomName} /></span>
-    <small>{<PcSpecSummary text={item.spec} showMissingCores />}</small>
+    <small>{<PcSpecSummary text={item.spec} />}</small>
     <small>{uiText("주문일")} {displayDate(item.orderedAt)}　{uiText("이용기간")} {displayDate(item.serviceStartedAt)}~{displayDate(item.serviceEndsAt)}</small>
   </span>
 }

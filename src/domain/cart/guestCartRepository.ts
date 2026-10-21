@@ -1,4 +1,4 @@
-import { formatCpuCores } from '@/domain/products/cpuCores'
+import { formatCpuCoreLine } from '@/domain/products/cpuCores'
 import { z } from 'zod'
 import type { createCatalogApi, CatalogDetail } from '@/api/catalog'
 import { ApiClientError } from '@/api/httpClient'
@@ -59,7 +59,7 @@ async function itemFor(selection: Selection, catalog: CatalogApi, signal?: Abort
   const spec = product?.spec
   const specText = spec ? [
     [osFilterLabel(product?.osFilterValue) ?? spec.osName, spec.cpuModel].filter(Boolean).join(' / '),
-    `Core: ${formatCpuCores(spec.cpuCores)}`,
+    formatCpuCoreLine(spec.cpuCores),
     [spec.ramGb === null ? null : `${spec.ramGb}GB RAM`, spec.ssdGb === null ? null : `${spec.ssdGb}GB SSD`, spec.gpuModel].filter(Boolean).join(' / '),
   ].filter(Boolean).join('\n') : null
   return {

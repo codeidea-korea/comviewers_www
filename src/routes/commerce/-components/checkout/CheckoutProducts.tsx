@@ -35,7 +35,7 @@ export function CheckoutProducts({ items, benefits, refreshing }: { items: reado
         <CheckoutProductImage item={item} />
         <div className="commerce-product-row__body">
           <p className={`commerce-product-row__status${waiting ? ' commerce-product-row__status--waiting' : ''}`}>{(partner || item.instantAvailable !== null) && <i><img alt="" src={waiting ? serverOffIcon : serverOnIcon} /></i>}{status}</p>
-          <p className="commerce-product-row__spec">{partner ? item.spec ?? '-' : <PcSpecSummary text={item.spec} showMissingCores layout="inline" />}</p>
+          <p className="commerce-product-row__spec">{partner ? item.spec ?? '-' : <PcSpecSummary text={item.spec} layout="inline" />}</p>
         </div>
       </div>
       {item.priceChanged && <p role="status"><TranslatedText id="cart.priceChanged" /></p>}{item.issues.map((issue) => <p className="notranslate" translate="no" key={issue} role="status">{uiText(cartIssueMessage(issue))}</p>)}

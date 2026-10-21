@@ -18,7 +18,7 @@ export function CheckoutExtensionProducts({ quote, mixed = false }: { quote: Ext
         <img className="checkout-product-image" src={defaultProductImage} alt={item.title ?? item.productNo ?? uiText('렌탈 상품')} />
         <img className="checkout-product-logo" src={windowsLogo} alt="" />
       </div><div className="commerce-product-row__body">
-        <p className="commerce-product-row__spec">{<PcSpecSummary text={item.spec} fallback={item.title ?? '-'} showMissingCores layout="inline" />}</p>
+        <p className="commerce-product-row__spec">{<PcSpecSummary text={item.spec} fallback={item.title ?? '-'} layout="inline" />}</p>
         <p>{uiText("현재 이용 종료일 ")}{dateTime(item.previousEnd)}</p>
         <p>{uiText("연장 후 이용 종료일 ")}{dateTime(item.targetEnd)}</p>
         {!item.eligible && <p role="alert">{extensionResultText(item)}</p>}

@@ -1,4 +1,4 @@
-import { formatCpuCores } from '@/domain/products/cpuCores'
+import { formatCpuCoreLine } from '@/domain/products/cpuCores'
 import type { InquiryTarget } from '../../../components/mypage/inquiryFlowTypes'
 import type { MyRcpcItem } from '@/api/myRcpc'
 import { connectionLabels } from './rcpcPresentation'
@@ -28,7 +28,7 @@ function formatSpec(item: MyRcpcItem): string {
   return [
     [spec.osName, spec.osArchitecture].filter(Boolean).join(' '),
     [spec.cpuBrand, spec.cpuModel].filter(Boolean).join(' '),
-    `Core: ${formatCpuCores(spec.cpuCores)}`,
+    formatCpuCoreLine(spec.cpuCores),
     spec.ramGb === null ? '' : `RAM ${spec.ramGb}GB${spec.ramType ? ` ${spec.ramType}` : ''}`,
     storage,
     [spec.gpuBrand, spec.gpuModel].filter(Boolean).join(' '),
