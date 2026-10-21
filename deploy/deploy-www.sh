@@ -7,7 +7,7 @@ readonly APP_REPO="/home/comviewers_www/$APP_NAME"
 readonly DEPLOY_ROOT="/var/lib/comviewers-deploy"
 readonly WORK_ROOT="/home/comviewers-deploy-work"
 readonly LOCK_FILE="/run/lock/comviewers-deploy.lock"
-readonly PUBLIC_URL="${COMVIEWERS_DEPLOY_PUBLIC_URL:-https://comviewers.codeidea.io}"
+readonly PUBLIC_URL="${COMVIEWERS_DEPLOY_PUBLIC_URL:?배포 주소가 없습니다. API deploy 폴더의 개발용 deploy-dev.sh 또는 운영용 deploy-prod.sh로 실행하세요.}"
 readonly EXPECTED_COMMIT="${COMVIEWERS_USER_DEPLOY_COMMIT:-}"
 readonly BASE_PATH="/"
 MODE=deploy RELEASE_DIR="" WORK_DIR="" OWNED=false ACTIVATION_STARTED=false
@@ -154,6 +154,13 @@ from urllib.parse import unquote, urljoin, urlsplit
 mode, directory, metadata, base, origin = sys.argv[1:]
 host = urlsplit(origin).netloc
 root = Path(directory)
+def fetch(url, local):
+    args = ['curl', '--silent', '--show-error', '--noproxy', '*', '--connect-timeout', '5', '--max-time', '15']
+    if local: args += ['--resolve', host + ':443:127.0.0.1']
+    data = subprocess.check_output(args + ['--write-out', '\n%{http_code}', origin + url], timeout=20)
+    body, _, code = data.rpartition(b'\n')
+    return body, code
+
 class Assets(HTMLParser):
     refs = []
     def handle_starttag(self, tag, attrs):
@@ -180,10 +187,15 @@ else:
         if not p.is_file() or p.resolve() != p or root not in p.parents or hashlib.sha256(p.read_bytes()).hexdigest() != row['sha256']: raise RuntimeError('준비한 자산이 변경되었습니다')
         if mode != 'verify': continue
         for local in [True, False]:
-            args = ['curl', '--silent', '--show-error', '--noproxy', '*', '--connect-timeout', '5', '--max-time', '15']
-            if local: args += ['--resolve', host + ':443:127.0.0.1']
-            data = subprocess.check_output(args + ['--write-out', '\n%{http_code}', origin + row['url']], timeout=20)
-            body, _, code = data.rpartition(b'\n')
+            body, code = fetch(row['url'], local)
+            if code == b'503' and base == '/' and row['file'] == 'index.html' and row['url'] == '/':
+                marker = Path('/etc/comviewers/main-maintenance.enabled')
+                notice = Path('/var/lib/comviewers-main-maintenance/index.html')
+                if (not marker.is_file() or not notice.is_file()
+                        or hashlib.sha256(body).hexdigest() != hashlib.sha256(notice.read_bytes()).hexdigest()):
+                    raise RuntimeError('메인 503 응답이 승인된 점검 화면과 다릅니다')
+                print('[사용자 웹] 점검 화면 확인: /?preview=main에서 새 메인 HTML을 검증합니다.', flush=True)
+                body, code = fetch('/?preview=main', local)
             if code != b'200' or hashlib.sha256(body).hexdigest() != row['sha256']: raise RuntimeError('서비스 중인 주요 자산이 이번 배포와 다릅니다')
 PY
 }
