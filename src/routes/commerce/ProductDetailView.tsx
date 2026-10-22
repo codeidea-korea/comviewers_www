@@ -35,7 +35,7 @@ function specRows(product: Product) {
     ['RAM', product.ram],
     ['DISK', product.disk],
     ['GPU', product.gpu],
-    ['IP', product.ip],
+    ['IP', [product.country, product.ip].filter(Boolean).join(' / ') || null],
     ['서버실', product.serverRoom],
     ['마우스', product.mouseIncluded === null ? null : product.mouseIncluded ? '제공' : '미제공'],
     ['키보드', product.keyboardIncluded === null ? null : product.keyboardIncluded ? '제공' : '미제공'],

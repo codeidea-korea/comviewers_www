@@ -71,7 +71,10 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
                 to={productHref} structured
                 className="product-card__spec--ip"
                 label="IP"
-                value={product.country && product.ip ? <>{product.country === "Korea" ? <img alt={t('catalogUi.korea')} className="flag" src={flagKorea} /> : null}<ProductText to={productHref} lines={1}>{product.country}</ProductText><small><ProductText to={productHref} lines={1}>{product.ip}</ProductText></small></> : <img alt={t('catalogUi.countryUnknown')} className="flag" height={20} src={countryEmptyIcon} width={20} />}
+                value={product.country || product.ip ? <>
+                  {product.country ? <>{product.country === 'Korea' ? <img alt={t('catalogUi.korea')} className="flag" src={flagKorea} /> : null}<ProductText to={productHref} lines={1}>{product.country}</ProductText></> : null}
+                  {product.ip ? <small><ProductText to={productHref} lines={1}>{product.ip}</ProductText></small> : null}
+                </> : <img alt={t('catalogUi.countryUnknown')} className="flag" height={20} src={countryEmptyIcon} width={20} />}
               />
               <ProductSpec
                 to={productHref} structured

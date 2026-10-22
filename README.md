@@ -1,5 +1,15 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-22 쇼핑몰 원천 국가와 마스킹 IP
+
+카탈로그 API의 nullable·optional `spec.country`를 상품 모델에 연결하고 `spec.maskedIp`는 `123.45*.7**.***` 완성 마스크 형식만 표시한다. 카드·목록은 국가와 IP를 독립 표시하고 모두 없을 때 기존 빈 아이콘을 사용한다. 상세 하단 기존 IP행은 `국가 / 마스킹 IP`로 표시하며 상세 상단·홈 medium 카드 배치는 유지한다. 원본 주소나 프론트 IP 마스킹·국가 추정은 추가하지 않았다.
+
+[원천 데이터·API 출처 검증·미배포 경계](../docs/handoff/comviewers-shopping-wireframe.md#2026-10-22-쇼핑몰-원천-국가와-마스킹-ip)를 따른다. L2 소스/L0 diff·schema/mapper·표시 분기 정적 확인이며 테스트 파일/테스트·타입체크/lint·빌드·수정 후 브라우저 검수·배포는 없다. API와 공동 반영이 필요하고 **운영 재시작 금지** 지시를 유지한다.
+
+## 2026-10-22 마이페이지 전체 이관 원격정보 공통 조회
+
+마이페이지 홈·RCPC·즐겨찾기·상세·모바일은 동일한 RCPC list/detail과 identifier/reveal/copy를 사용한다. 사용자 승인으로 [API의 고객 전용 archive 조회](../comviewers-api/README.md#2026-10-22-마이페이지-전체-이관-원격정보-공통-조회)를 보완했으며 기존 metadata DTO·`RcpcRemoteAccess`·마스킹·메모리 보관·보기/복사 감사 선행·no-store는 유지한다. 이번 프론트 기능 코드/화면 추가는 없다. [소스·검증 경계](../docs/handoff/customer-rcpc-remote-information-audit-2026-10-22.md#2026-10-22-사용자-승인한-첫-번째-방법의-소스-반영)를 따른다. L3 API 소스/L0 정적 기록으로 테스트/빌드·운영 접속·재시작/배포는 하지 않았으며 실제 화면에는 아직 반영하지 않았다.
+
 ## 2026-10-22 이관 담당자 LEGACY 링크 허용
 
 이관 조직의 `LEGACY-`+24자리16진수 코드를 담당자 링크 진입·로그인 요청·로그인 후 내부 이동에서 허용한다. 세 경로는 `src/domain/auth/managerOrganizationCode.ts`의 공통 검증을 사용하며 기존 `ORG_...`와 `ORG_LEGACY_...`도 유지한다. 기존에는 링크 복사가 이관 조직 코드를 그대로 사용하지만 화면·로그인 요청·경로 인식이 `ORG_...`만 허용해 로그인창 전에 차단됐다. API의 비밀번호·활성 계정/조직/c_manager membership·이관 출처·선택 조직 검사는 유지한다. DB 코드나 복사 URL을 변환하지 않는다.

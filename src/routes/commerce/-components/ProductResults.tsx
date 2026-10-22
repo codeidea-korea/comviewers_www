@@ -48,7 +48,10 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       </td>
       <td>
         <span className="product-table-country">
-          {product.country && product.ip ? <><span className="product-table-country__name">{product.country === "Korea" ? <img alt={uiText('대한민국')} src={flagKorea} /> : null}<EllipsisText lines={1}>{product.country}</EllipsisText></span><small><EllipsisText lines={1}>{product.ip}</EllipsisText></small></> : <img alt={uiText('국가/IP 정보 없음')} height={20} src={countryEmptyIcon} width={20} />}
+          {product.country || product.ip ? <>
+            {product.country ? <span className="product-table-country__name">{product.country === 'Korea' ? <img alt={uiText('대한민국')} src={flagKorea} /> : null}<EllipsisText lines={1}>{product.country}</EllipsisText></span> : null}
+            {product.ip ? <small><EllipsisText lines={1}>{product.ip}</EllipsisText></small> : null}
+          </> : <img alt={uiText('국가/IP 정보 없음')} height={20} src={countryEmptyIcon} width={20} />}
         </span>
       </td>
       <td><ProductServerState state={product.serverState} /></td>
