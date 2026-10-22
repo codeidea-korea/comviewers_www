@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/CheckboxControl'
 import { Button } from '@/components/ui/ButtonControl'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import type { CheckoutQuote } from '@/domain/checkout/checkoutRepository'
-import type { DirectEasyPayMethods, OrderBenefitQuote } from '@/api/ordersPayments'
+import type { DirectEasyPayMethods, ForeignPaymentQuote, OrderBenefitQuote } from '@/api/ordersPayments'
 import radioOffIcon from '@/assets/figma/select-radio-off.svg'
 import radioOnIcon from '@/assets/figma/select-radio-on.svg'
 import mastercardIcon from '@/assets/figma/payment-mastercard.svg'
@@ -26,10 +26,11 @@ const paymentOptions: readonly { value: PaymentMethod; label?: string; translati
   { value: 'kakao-pay', label: '카카오페이', directEasyPay: 'kakaoPay', icon: kakaoPayIcon },
   { value: 'global-card', label: '', cardLogos: true },
 ]
-export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitDisabled, submitError, onSubmit, cancellation, variant = 'cart', extensionAmount }: { quote?: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitDisabled?: boolean; submitError?: string; onSubmit: () => void; cancellation?: ReactNode; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
+export function CheckoutSummary({ quote, benefits, form, foreignQuote, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitDisabled, submitError, onSubmit, cancellation, variant = 'cart', extensionAmount }: { quote?: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; foreignQuote?: ForeignPaymentQuote; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitDisabled?: boolean; submitError?: string; onSubmit: () => void; cancellation?: ReactNode; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
   const { uiText, locale, t } = useUiTranslation()
   const amount = quote?.estimate
   const unavailable = refreshing || !amount
+  const showForeign = form.payment === 'global-card' && (form.finalAmount ?? 0) > 0
   return <aside className="order-summary">
     <div className="order-summary__box">
       <h2><TranslatedText id="checkout.paymentAmount" /></h2>
@@ -44,7 +45,7 @@ export function CheckoutSummary({ quote, benefits, form, directEasyPayMethods, p
       <div aria-hidden="true" className="order-summary__rule" />
       <section className="order-summary__benefits"><h3><TranslatedText id="checkout.benefitsAmount" /></h3><dl><div><dt><TranslatedText id="checkout.couponDiscount" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : benefits?.couponDiscountAmount ?? 0)}</dd></div><div><dt><TranslatedText id="checkout.pointsUsed" /></dt><dd className="notranslate" translate="no">{money(unavailable ? null : benefits?.pointUsedAmount ?? 0)}</dd></div></dl></section>
       <div aria-hidden="true" className="order-summary__rule" />
-      <section className="order-summary__final"><dl><div className="order-summary__total"><dt><TranslatedText id="checkout.finalTotal" /></dt><dd className="notranslate" translate="no">{locale === 'ko' ? <><strong>{unavailable ? '-' : (benefits?.finalAmount ?? amount.expectedTotal).toLocaleString('ko-KR')}</strong><span>{uiText("원")}</span></> : <strong>{money(unavailable ? null : benefits?.finalAmount ?? amount.expectedTotal)}</strong>}</dd></div></dl><div className="order-summary__coupon"><TranslatedText id="checkout.expectedPoints" /><strong className="notranslate" translate="no">{unavailable || (benefits?.expectedPoints ?? amount.pointTotal) === null ? '-' : t('money.pointAmount', { points: (benefits?.expectedPoints ?? amount.pointTotal ?? 0).toLocaleString('ko-KR') })}</strong></div></section>
+      <section className="order-summary__final"><dl><div className="order-summary__total"><dt><TranslatedText id="checkout.finalTotal" /></dt><dd className="notranslate" translate="no" style={showForeign ? { flexWrap: 'wrap', justifyContent: 'flex-end' } : undefined}>{locale === 'ko' ? <><strong>{unavailable ? '-' : (benefits?.finalAmount ?? amount.expectedTotal).toLocaleString('ko-KR')}</strong><span>{uiText("원")}</span></> : <strong>{money(unavailable ? null : benefits?.finalAmount ?? amount.expectedTotal)}</strong>}{showForeign && <small style={{ flexBasis: '100%', textAlign: 'right', fontSize: 12, lineHeight: '16px' }}>{foreignQuote ? <>USD {foreignQuote.usdAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br /><small>1 USD = {foreignQuote.exchangeRate?.toLocaleString('ko-KR')} KRW ({foreignQuote.rateBaseDate})</small></> : 'USD —'}</small>}</dd></div></dl><div className="order-summary__coupon"><TranslatedText id="checkout.expectedPoints" /><strong className="notranslate" translate="no">{unavailable || (benefits?.expectedPoints ?? amount.pointTotal) === null ? '-' : t('money.pointAmount', { points: (benefits?.expectedPoints ?? amount.pointTotal ?? 0).toLocaleString('ko-KR') })}</strong></div></section>
       <div aria-hidden="true" className="order-summary__rule" />
       <fieldset className="payment-methods" disabled={locked}><legend><TranslatedText id="checkout.paymentMethod" /></legend><div className="payment-methods__options">{paymentOptions.filter(option => !option.directEasyPay || directEasyPayMethods?.[option.directEasyPay] || form.payment === option.value).map(({ value, label, translationKey, cardLogos, directEasyPay, icon }) => {
         const unavailable = Boolean(directEasyPay && !directEasyPayMethods?.[directEasyPay])

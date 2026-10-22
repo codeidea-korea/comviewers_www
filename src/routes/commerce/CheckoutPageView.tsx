@@ -8,6 +8,7 @@ import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import { Button } from '@/components/ui/ButtonControl'
 import { useCheckoutQuote } from './-components/checkout/hooks/useCheckoutQuote'
 import { useCheckoutForm } from './-components/checkout/hooks/useCheckoutForm'
+import { useForeignPaymentQuote } from './-components/checkout/hooks/useForeignPaymentQuote'
 import { CheckoutProducts } from './-components/checkout/CheckoutProducts'
 import { CheckoutDiscounts } from './-components/checkout/CheckoutDiscounts'
 import { CheckoutCustomer } from './-components/checkout/CheckoutCustomer'
@@ -82,6 +83,7 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
   const finalAmount = attempt?.created?.finalAmount ?? attempt?.benefits.finalAmount
     ?? (!recovering && result.isSuccess && !result.isFetching && result.data.checkoutEligible && benefitReady ? benefits.data?.finalAmount ?? null : null)
   const form = useCheckoutForm(finalAmount, recovering ? recovery.record : null)
+  const foreign = useForeignPaymentQuote(form.payment === 'global-card', finalAmount)
   useEffect(() => {
     if (finalAmount === 0) setPaymentAvailabilityError(null)
   }, [finalAmount])
@@ -144,7 +146,10 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
       if (!controller.signal.aborted) navigate(`/checkout/complete?paymentId=${payment.paymentId}`)
       return
     }
-    try { await openTossPaymentWindow(payment, controller.signal) }
+    try {
+      foreign.bindPrepared(payment, current.input.payment === 'foreign_card')
+      await openTossPaymentWindow(payment, controller.signal)
+    }
     catch (error) {
       // Navigation/unmount is not evidence of a cancelled payment.
       if (controller.signal.aborted) return
@@ -160,6 +165,17 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
     setPaymentAvailabilityError(null)
     setPaymentNotice(null)
     let current = attemptRef.current
+    if (!unresolvedOrderId) {
+      const controller = new AbortController()
+      windowAbort.current = controller
+      submitting.current = true
+      try {
+        await foreign.verify(current && !paymentRetryReady ? current.input.payment === 'foreign_card' : form.payment === 'global-card', finalAmount ?? 0, controller.signal)
+        controller.signal.throwIfAborted()
+      }
+      catch (error) { if (!controller.signal.aborted) setPaymentAvailabilityError(error instanceof Error ? error.message : 'USD 결제금액을 확인하지 못했습니다.'); return }
+      finally { submitting.current = false }
+    }
     if (current && paymentRetryReady) {
       const draft = form.validate()
       if (!draft || !current.created) return
@@ -208,12 +224,12 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
               {productUnavailable && !recovering ? <div className="checkout-product-error">
                 <p role="alert">{uiText("선택한 상품 중 현재 주문할 수 없는 상품이 있습니다. 장바구니에서 상품 상태를 다시 확인해 주세요.")}</p>
                 <div><Button as={RelativeLink} size="small" variant="secondary" to="/cart">{uiText("장바구니로 이동")}</Button><Button size="small" variant="secondary" disabled={benefits.isFetching} onClick={() => void benefits.refetch()}>{uiText(benefits.isFetching ? '확인 중…' : '상품 상태 다시 확인')}</Button></div>
-              </div> : <CheckoutDiscounts quote={shownBenefits} couponId={recovering ? shownBenefits?.userCouponId ?? null : couponId} points={recovering ? String(shownBenefits?.pointUsedAmount ?? 0) : points} disabled={recovering || !checkout.benefitQuote || !!attempt} pending={!recovering && !attempt && benefits.isFetching} error={attempt || recovering ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
+              </div> : <CheckoutDiscounts quote={shownBenefits} couponId={recovering ? shownBenefits?.userCouponId ?? null : couponId} points={recovering ? String(shownBenefits?.pointUsedAmount ?? 0) : points} disabled={recovering || foreign.verifying || !checkout.benefitQuote || !!attempt} pending={!recovering && !attempt && benefits.isFetching} error={attempt || recovering ? null : benefits.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={retryBenefitQuote} onReset={() => { setCouponId(null); setPoints('0') }} />}
               {profile.isError && !recovering && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
-              <fieldset className="checkout-input-fields" disabled={recovering || !!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
-              {showReceipt && <fieldset className="checkout-input-fields" disabled={recovering || cancellationStarted || (!!attempt && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
-            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError} paymentNotice={paymentNotice} onPaymentChange={() => { setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={recovering || cancellationStarted || (!!attempt && !paymentRetryReady)} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending} submitDisabled={recovering || cancellationStarted || paymentClosed} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
-              cancellation={<CheckoutCancellation disabled={submit.isPending} returnTo={recovery.record?.returnTo ?? returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
+              <fieldset className="checkout-input-fields" disabled={recovering || foreign.verifying || !!attempt}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
+              {showReceipt && <fieldset className="checkout-input-fields" disabled={recovering || foreign.verifying || cancellationStarted || (!!attempt && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
+            </div><CheckoutSummary quote={quote} benefits={shownBenefits} form={form} foreignQuote={foreign.quote} directEasyPayMethods={availableDirectEasyPay} paymentAvailabilityError={paymentAvailabilityError ?? foreign.error} paymentNotice={paymentNotice} onPaymentChange={() => { foreign.clearPrepared(); setPaymentAvailabilityError(null); setPaymentNotice(null) }} refreshing={refreshing} locked={recovering || cancellationStarted || foreign.verifying || (!!attempt && !paymentRetryReady)} checkingPayment={!!unresolvedOrderId} submitting={submit.isPending || foreign.verifying} submitDisabled={recovering || cancellationStarted || paymentClosed || (foreign.blocked && !unresolvedOrderId)} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
+              cancellation={<CheckoutCancellation disabled={submit.isPending || foreign.verifying} returnTo={recovery.record?.returnTo ?? returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
                 const current = attemptRef.current
                 return recovery.record?.request ?? (current ? { creationKey: current.input.creationKey, source: 'cart', originalRequest: checkoutCreationBody(current.input) } : null)
               }}/>} /></div> : null}

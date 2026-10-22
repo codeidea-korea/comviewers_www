@@ -16,6 +16,7 @@ import { confirmAttemptKey } from './-components/checkout/confirmAttemptKey'
 import { useInvalidateProductCatalog } from './-components/hooks/useInvalidateProductCatalog'
 import { useSession } from '@/app/session/SessionProvider'
 import { clearCheckoutRecoveryForOrder } from '@/domain/checkout/checkoutRecovery'
+import { tossConfirmationAmountSchema } from '@/api/ordersPayments'
 
 export function CheckoutCompletePage() {
   return <CheckoutPaymentResult />
@@ -29,7 +30,7 @@ function CheckoutPaymentResult() {
   const client = useQueryClient()
   const invalidateCatalog = useInvalidateProductCatalog()
   // Keep paymentKey in memory only; the retry helper stores only the opaque orderId and UUID.
-  const [returned] = useState(() => ({ paymentKey: params.get('paymentKey') ?? '', orderId: params.get('orderId') ?? '', amount: Number(params.get('amount')), failed: params.has('code'),
+  const [returned] = useState(() => ({ paymentKey: params.get('paymentKey') ?? '', orderId: params.get('orderId') ?? '', amount: params.get('amount') ?? '', failed: params.has('code'),
     customerCancelled: ['PAY_PROCESS_CANCELED', 'USER_CANCEL', 'PAYMENT_REQUEST_ABORTED'].includes(params.get('code') ?? '') }))
   const [key] = useState(() => confirmAttemptKey(returned.orderId))
   const started = useRef(false)
@@ -60,7 +61,7 @@ function CheckoutPaymentResult() {
     confirmPayment(undefined, { onSettled: () => { confirmInFlight.current = false } })
   }, [confirmPayment])
   const callbackValid = Boolean(checkout.confirm) && !returned.failed && returned.paymentKey.length > 0 && returned.paymentKey.length <= 200
-    && /^[A-Za-z0-9_-]{6,64}$/.test(returned.orderId) && Number.isSafeInteger(returned.amount) && returned.amount > 0
+    && /^[A-Za-z0-9_-]{6,64}$/.test(returned.orderId) && tossConfirmationAmountSchema.safeParse(returned.amount).success
   useEffect(() => {
     if (callbackValid && !started.current) { started.current = true; requestConfirmation() }
   }, [callbackValid, requestConfirmation])

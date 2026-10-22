@@ -30,7 +30,7 @@ export const checkoutDraftSchema = z.object({
 
 // A zero-amount order has no PG method or cash-receipt request, even if one was previously selected.
 export function checkoutPaymentInput(draft: z.infer<typeof checkoutDraftSchema>) {
-  const methods = { '': null, 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'card' } as const
+  const methods = { '': null, 'virtual-account': 'virtual_account', card: 'card', payco: 'payco', 'naver-pay': 'naver_pay', 'kakao-pay': 'kakao_pay', 'global-card': 'foreign_card' } as const
   const payment = draft.finalAmount === 0 ? null : methods[draft.payment]
   return { payment, cashReceiptType: payment === 'virtual_account' ? draft.receiptType : 'not_requested' as const,
     cashReceiptIdentifier: payment === 'virtual_account' ? draft.receiptIdentifier : '' }

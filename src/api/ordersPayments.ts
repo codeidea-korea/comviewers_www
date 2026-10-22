@@ -22,17 +22,29 @@ const benefitQuote = z.object({ subtotalAmount: count, setupFeeAmount: count, co
   coupons: z.array(z.object({ userCouponId: id, name: z.string(), serverRoomId: id.nullable(), expiresAt: time, discountAmount: count })) })
 export type OrderBenefitQuote = z.infer<typeof benefitQuote>
 export { benefitQuote as orderBenefitQuoteSchema }
-const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: z.number().int().positive().safe() })
+const decimalAmount = z.string().regex(/^(?:0|[1-9]\d{0,15})(?:\.\d{1,2})?$/).refine(value => {
+  if (!/^(?:0|[1-9]\d{0,15})(?:\.\d{1,2})?$/.test(value)) return false
+  const [whole, fraction = ''] = value.split('.')
+  const cents = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0'))
+  return cents > 0n && (fraction ? cents : BigInt(whole)) <= BigInt(Number.MAX_SAFE_INTEGER)
+}, '결제금액을 확인해 주세요.')
+export const tossConfirmationAmountSchema = z.union([z.number().int().positive().safe(), decimalAmount])
+const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: tossConfirmationAmountSchema })
 const confirmation = z.object({ paymentId: id, orderId: z.string(), providerPaymentId: z.string(), status: z.string(), approved: z.boolean(), replayed: z.boolean(), virtualAccount: z.object({ bankCode: z.string(), accountNumber: z.string(), customerName: z.string().nullable(), dueDate: z.string() }).nullable() })
 const abandonment = z.object({ status: z.enum(['cancelled', 'failed', 'pending', 'approved', 'retryable']) })
 const directEasyPayMethods = z.object({ naverPay: z.boolean(), kakaoPay: z.boolean() })
+const foreignPaymentQuote = z.object({ available: z.boolean(), krwAmount: count,
+  usdAmount: z.number().finite().positive().nullable(),
+  exchangeRate: z.number().finite().positive().nullable(),
+  rateBaseDate: z.string().nullable() })
+export type ForeignPaymentQuote = z.infer<typeof foreignPaymentQuote>
 export type DirectEasyPayMethods = z.infer<typeof directEasyPayMethods>
 export type PaymentAbandonment = z.infer<typeof abandonment>
 export type PaymentConfirmation = z.infer<typeof confirmation>
 export type PaymentConfirmationRequest = z.infer<typeof confirmationRequest>
 export interface PaymentPreparationRequest {
   orderNo: string
-  paymentMethod: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay'
+  paymentMethod: 'virtual_account' | 'card' | 'payco' | 'naver_pay' | 'kakao_pay' | 'foreign_card'
   cashReceiptType: 'not_requested' | 'income_deduction' | 'business_expense'
   cashReceiptIdentifier: string | null
 }
@@ -51,6 +63,8 @@ export function createOrdersPaymentsApi(client: ApiClient, organizationId: strin
     cancelCheckout: (body: CheckoutCancellationRequest) => client.request('/api/v1/orders/checkout-cancellation', checkoutCancellation,
       { ...scoped, method: 'POST', body: { ...body, creationKey: z.uuidv4().parse(body.creationKey) } }),
     directEasyPayMethods: (signal?: AbortSignal) => client.request('/api/v1/payments/direct-easy-pay-methods', directEasyPayMethods, { ...scoped, signal }),
+    foreignQuote: (amountKrw: number, signal?: AbortSignal) => client.request('/api/v1/payments/foreign/quote', foreignPaymentQuote,
+      { ...scoped, query: { amountKrw: z.number().int().positive().safe().parse(amountKrw) }, signal }),
     resume: (orderNo: string, key: string) => client.request('/api/v1/payments/resume', prepared, { ...scoped, method: 'POST', body: { orderNo, paymentMethod: 'card', cashReceiptType: 'not_requested', cashReceiptIdentifier: null }, idempotencyKey: z.uuidv4().parse(key) }),
     benefitQuote: (body: { cartItemIds: number[]; userCouponId: number | null; pointAmount: number }, signal?: AbortSignal) => client.request('/api/v1/orders/quote', benefitQuote, { ...scoped, method: 'POST', body, signal }),
     order: (body: unknown, key: string) => client.request('/api/v1/orders', order, { ...scoped, method: 'POST', body, idempotencyKey: `order:${z.uuid().parse(key)}` }),

@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import type { PreparedPayment } from '@/api/ordersPayments'
+import type { ForeignPaymentQuote, PreparedPayment } from '@/api/ordersPayments'
+import { foreignPayloadSchema, openForeignPaymentWindow, tossPaymentRequestSchema, type ForeignTossClient } from './tossForeignPaymentWindow'
 
 const sdkUrl = 'https://js.tosspayments.com/v2/standard'
 const payloadSchema = z.object({
@@ -8,8 +9,7 @@ const payloadSchema = z.object({
   cashReceiptType: z.enum(['not_requested', 'income_deduction', 'business_expense']),
   requestedPaymentMethod: z.enum(['card', 'virtual_account', 'payco', 'naver_pay', 'kakao_pay']),
   amount: z.object({ value: z.number().int().positive().safe(), currency: z.literal('KRW') }),
-  paymentRequest: z.object({ orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), orderName: z.string().min(1).max(100),
-    customerEmail: z.string().nullable(), customerName: z.string().nullable(), customerMobilePhone: z.string().nullable(), successUrl: z.url(), failUrl: z.url() }),
+  paymentRequest: tossPaymentRequestSchema,
 })
 type Request = z.infer<typeof payloadSchema>['paymentRequest']
 type PaymentOptions =
@@ -21,7 +21,7 @@ type PaymentWindow = {
   }): Promise<void>
   destroy(): Promise<void>
 }
-type TossFactory = (key: string) => { payment(options: { customerKey: string }): PaymentWindow }
+type TossFactory = (key: string) => ForeignTossClient & { payment(options: { customerKey: string }): PaymentWindow }
 let sdkLoad: Promise<TossFactory> | undefined
 let windowOpening = false
 
@@ -64,15 +64,23 @@ function loadSdk(): Promise<TossFactory> {
 
 function validatedPayload(payment: PreparedPayment) {
   if (payment.provider !== 'toss_payments' || payment.providerPreparationStatus !== 'ready'
-    || payment.checkoutAction.type !== 'sdk' || payment.checkoutAction.operation !== 'payment.requestPayment'
+    || payment.checkoutAction.type !== 'sdk' || !['payment.requestPayment', 'widgets.renderPaymentWindow'].includes(payment.checkoutAction.operation ?? '')
     || payment.checkoutAction.sdkUrl !== sdkUrl) {
     throw new Error('현재 결제창을 준비할 수 없습니다. 잠시 후 다시 시도하거나 주문내역을 확인해 주세요.')
   }
-  const parsed = payloadSchema.safeParse(JSON.parse(payment.checkoutAction.clientPayload ?? 'null'))
+  let raw: unknown
+  try { raw = JSON.parse(payment.checkoutAction.clientPayload ?? 'null') }
+  catch { throw new Error('결제 정보를 확인할 수 없습니다. 주문내역을 확인해 주세요.') }
+  const parsed = z.union([payloadSchema, foreignPayloadSchema]).safeParse(raw)
   if (!parsed.success) throw new Error('결제 정보를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
   const payload = parsed.data
-  if (payload.amount.value !== payment.amount || payload.amount.currency !== payment.currency
-    || payload.paymentRequest.orderId !== payment.providerOrderId || payload.requestedPaymentMethod !== payment.paymentMethod) {
+  const foreign = payload.requestedPaymentMethod === 'foreign_card'
+  const matches = foreign
+    ? payload.originalAmount.value === payment.amount && payment.currency === 'KRW' && payment.paymentMethod === 'card'
+      && payment.checkoutAction.operation === 'widgets.renderPaymentWindow'
+    : payload.amount.value === payment.amount && payload.amount.currency === payment.currency
+      && payload.requestedPaymentMethod === payment.paymentMethod && payment.checkoutAction.operation === 'payment.requestPayment'
+  if (!matches || payload.paymentRequest.orderId !== payment.providerOrderId) {
     throw new Error('결제 정보가 일치하지 않습니다. 주문내역을 확인해 주세요.')
   }
   for (const url of [payload.paymentRequest.successUrl, payload.paymentRequest.failUrl]) {
@@ -81,6 +89,14 @@ function validatedPayload(payment: PreparedPayment) {
     }
   }
   return payload
+}
+
+export function preparedForeignQuote(payment: PreparedPayment): ForeignPaymentQuote | undefined {
+  if (payment.checkoutAction.operation !== 'widgets.renderPaymentWindow') return undefined
+  const payload = validatedPayload(payment)
+  if (payload.requestedPaymentMethod !== 'foreign_card') return undefined
+  return { available: true, krwAmount: payload.originalAmount.value, usdAmount: payload.amount.value,
+    exchangeRate: payload.exchangeRate, rateBaseDate: payload.rateBaseDate }
 }
 
 function paymentOptions(payload: z.infer<typeof payloadSchema>): PaymentOptions {
@@ -114,6 +130,14 @@ export async function openTossPaymentWindow(payment: PreparedPayment, signal: Ab
   let unlockBackground: (() => void) | undefined
   try {
     const payload = validatedPayload(payment)
+    if (payload.requestedPaymentMethod === 'foreign_card') {
+      const factory = await loadSdk()
+      signal.throwIfAborted()
+      unlockBackground = lockPaymentBackground(signal)
+      await openForeignPaymentWindow(factory(payload.clientKey), payload, signal,
+        () => new PaymentWindowCancelledError('결제를 취소했습니다. 다시 시도할 수 있습니다.'))
+      return
+    }
     if (!/^(test|live)_ck_/.test(payload.clientKey)) {
       throw new Error('현재 결제창 설정이 올바르지 않습니다. 관리자에게 문의해 주세요.')
     }

@@ -82,6 +82,7 @@ export function createHttpCheckoutRepository(api: ReturnType<typeof createCartAp
     refresh: orders.refresh,
     benefitQuote: (ids, userCouponId, pointAmount, signal) => orders.benefitQuote({ cartItemIds: ids.map(value => Number(apiCartItemIdSchema.parse(value))), userCouponId, pointAmount }, signal),
     directEasyPayMethods: orders.directEasyPayMethods,
+    foreignQuote: orders.foreignQuote,
     confirm: orders.confirm,
   }
 }
