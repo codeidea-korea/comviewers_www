@@ -1,5 +1,34 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-23 개발 USD OFF 반영
+
+[개발 반영·실제 검수 결과](../tmp/usd-env-off-development-20261023/REPORT.md): 집중46건·typecheck·lint·build 성공 후 고객 웹 반영, 297개 전파일과 HTTPS index가 후보와 일치한다. API USD false와 국내 테스트키·기존 양식·로고/same-origin API 유지. 새로고침 상태 보존/중복 제출 차단/취소 가능과 보관함 복귀를 확인했다. 미연결 복제 탭의 30,000원 창2회·X 닫기·취소 복귀는 사용자 확인과 서버 같은 주문 재시도 기록을 대조했다. 도구 연결 탭의 빈 프레임 한계는 남아 있다. 운영·실제 승인/청구·migration 없음.
+
+## 2026-10-23 USD OFF의 기존 KRW 경로 유지
+
+서버 `foreignUsdEnabled`로 기존 하단 카드 로고만 OFF=`card/KRW`, ON=`foreign_card/USD`로 분기하며 주문서 양식·로고·문구는 유지한다. 일반 KRW 결제는 USD 설정 조회 장애와 독립적으로 진행한다. 새 글로벌 선택은 설정을 확인하고, 생성된 주문의 경로는 복구·재시도에 보존한다. 제출 직전 표시 통화와 새 설정이 달라지면 해당 제출을 중단하고 최신 표시를 확인한 뒤 재시도한다. [집중 시험·타입 확인·로컬 실제 UI 검증](../tmp/usd-env-off-20261023/REPORT.md)을 따른다. 실제 PG·DB·개발/운영 배포와 전체 빌드는 없다.
+
+## 2026-10-22 USD 가시성 보호와 실제 창 재검수
+
+[최종 검수 결과](../tmp/usd-window-recovery-fix-20261022/REPORT.md): USD 위젯은 숨겨진 문서 초기화를 가시성 복구까지 기다리고 기존 양식·로고·국내 SDK를 유지한다. 집중 시험24건과 typecheck/lint/build 통과 후 개발 dist 반영. 사용자에게 직접 입력 가능한 주문서를 준비하고 도구 미연결 복제 탭에서 실제 USD22.63 카드창 표시와 X 닫기 후 같은 주문 재등장을 확인받았다. 서버 로컬 retry 근거도 대조했다. 제어 연결 탭의 visible/focused 상태에서도 빈 iframe이 재현되므로 가시성 보호가 그 현상을 해결했다는 주장은 하지 않는다. L3 승인 수정·실행 검증·개발 반영/L0 기록. 운영·실제 결제 없음.
+
+## 2026-10-22 개발 고객 웹 USD 실제 위젯 검수
+
+[최신 개발 배포·브라우저 결과](../tmp/usd-development-activation-20261022/REPORT.md): 검증 dist를 개발 웹에 반영했다. 기존 결제수단 양식/로고와 KRW 선택을 유지하고 USD22.63/당일환율1325.5 표시는 정상 확인했다. 실제 토스 renderPaymentWindow는 두 세션에서 빈 프레임/초기화 시간 초과라 카드 선택창·기본 약관 표시 성공은 미확인이다. 테스트 주문2건 미승인 pending, 운영·실제 결제 없음. L3 승인 개발 반영/UI 검수·L0 기록.
+
+## 2026-10-22 USD MID·약관 테스트와 빌드
+
+사용자 승인으로 실제 수정 TS를 직접 import한 집중 모의 테스트17건과 typecheck/lint/Vite build가 통과했다. 기본 약관4가지 입력의 SDK override 생략과 커스텀 키 전달2가지, 모드/MID 교차 거부·shape/union을 확인했다. 테스트1개 추가, 새 UI/안내/요소와 제품 코드 수정은 없다. [결과·격리 산출물·기존 경고](../tmp/usd-mid-agreement-verification-20261022/REPORT.md)를 따른다. L3 승인 실행/L0 기록이며 실제 SDK·DB·배포·결제는 없고 기존 dist를 보존했다. 아래 미실행 문구보다 최신이다.
+
+## 2026-10-22 USD 테스트 MID 호환과 기본 약관
+
+외화 payload는 `test_gck+tcomvie6ys2`, `live_gck+comvie6ys2`만 허용한다. 약관키가 빈 값/누락/null이면 SDK `variantKey.agreement`를 생략해 기본 필수 약관을 사용한다. 기존 화면·안내·요소·양식은 그대로다. API의 키 모드/선택 약관 계약과 함께 반영해야 한다. [준비 결과](../tmp/usd-mid-agreement-preparation-20261022/REPORT.md)를 따른다. L3 소스/L0 diff·Zod4 shape/union·호출 분기 정적 확인이며 이번 변경 후 테스트/타입체크/lint/빌드·실제 SDK 검수·DB·배포·결제는 없다.
+
+## 2026-10-22 USD 개발 환경 테스트와 빌드
+
+사용자 승인 후 로컬/개발서버 격리 타입검사·lint·빌드와 실제 TS/TSX mock USD16건이 통과했다. 기존 단위시험 실패는 HEAD 격리본에서 재현했으며 전체 통과로 보고하지 않는다. [검증 결과](../tmp/usd-verification-20261022/REPORT.md)를 따른다. 제품 소스/테스트 변경·DB·실결제·배포는 없다.
+
+
 ## 2026-10-22 기존 양식의 USD 해외카드 연결
 
 [ADR 0043](../docs/decisions/0043-foreign-usd-payment-routing.md)에 따라 마지막 `global-card` 항목의 로고·문구·위치를 그대로 두고 내부 요청을 `foreign_card`로 바꿨다. 기존 국내 SDK 경로는 유지하고 USD만 외화 카드전용 위젯을 사용한다. 주문 생성 전 USD 환율 사용 가능 여부를 다시 확인하고, 준비 응답의 동결 USD 금액·환율은 기존 결제금액 영역에 보조 표시한다. 일반/연장/혼합 주문에 공통 적용한다.

@@ -26,11 +26,11 @@ const paymentOptions: readonly { value: PaymentMethod; label?: string; translati
   { value: 'kakao-pay', label: '카카오페이', directEasyPay: 'kakaoPay', icon: kakaoPayIcon },
   { value: 'global-card', label: '', cardLogos: true },
 ]
-export function CheckoutSummary({ quote, benefits, form, foreignQuote, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitDisabled, submitError, onSubmit, cancellation, variant = 'cart', extensionAmount }: { quote?: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; foreignQuote?: ForeignPaymentQuote; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitDisabled?: boolean; submitError?: string; onSubmit: () => void; cancellation?: ReactNode; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
+export function CheckoutSummary({ quote, benefits, form, foreignQuote, foreignUsdSelected = false, directEasyPayMethods, paymentAvailabilityError, paymentNotice, onPaymentChange, refreshing, locked, checkingPayment, submitting, submitDisabled, submitError, onSubmit, cancellation, variant = 'cart', extensionAmount }: { quote?: CheckoutQuote; benefits?: OrderBenefitQuote; form: CheckoutFormModel; foreignQuote?: ForeignPaymentQuote; foreignUsdSelected?: boolean; directEasyPayMethods?: DirectEasyPayMethods; paymentAvailabilityError?: string | null; paymentNotice?: string | null; onPaymentChange?: () => void; refreshing: boolean; locked: boolean; checkingPayment?: boolean; submitting: boolean; submitDisabled?: boolean; submitError?: string; onSubmit: () => void; cancellation?: ReactNode; variant?: 'cart' | 'extension'; extensionAmount?: number }) {
   const { uiText, locale, t } = useUiTranslation()
   const amount = quote?.estimate
   const unavailable = refreshing || !amount
-  const showForeign = form.payment === 'global-card' && (form.finalAmount ?? 0) > 0
+  const showForeign = foreignUsdSelected && form.payment === 'global-card' && (form.finalAmount ?? 0) > 0
   return <aside className="order-summary">
     <div className="order-summary__box">
       <h2><TranslatedText id="checkout.paymentAmount" /></h2>

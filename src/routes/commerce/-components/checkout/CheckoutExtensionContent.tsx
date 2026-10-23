@@ -21,17 +21,19 @@ import { CheckoutSummary } from './CheckoutSummary'
 import { CheckoutExtensionProducts, type ExtensionQuote } from './CheckoutExtensionProducts'
 import { useCheckoutForm } from './hooks/useCheckoutForm'
 import { useForeignPaymentQuote } from './hooks/useForeignPaymentQuote'
+import { useCheckoutPaymentModes } from './hooks/useCheckoutPaymentModes'
 import { directCheckoutSummary, validateDirectCheckoutQuote } from '@/domain/checkout/directCheckoutQuote'
 import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } from './tossPaymentWindow'
 import { CheckoutCancellation } from './CheckoutCancellation'
 import { checkoutReturnTo } from '@/domain/checkout/checkoutReturnTo'
 import { useCheckoutRecovery } from './hooks/useCheckoutRecovery'
-import { checkoutPaymentInput } from '@/domain/checkout/checkoutDraft'
+import { checkoutPaymentInput, checkoutPaymentMethodsUnavailable, verifyCheckoutPaymentMode, type GlobalCardPayment } from '@/domain/checkout/checkoutDraft'
 
 type CreatedOrder = { orderNo: string; finalAmount: number }
 type Attempt = {
   body: ExtensionCheckoutInput; quote: ExtensionQuote; benefits: OrderBenefitQuote; creationKey: string
-  preparation: Omit<CheckoutPaymentPreparation, 'orderNo' | 'finalAmount'>; created?: CreatedOrder
+  preparation: Omit<CheckoutPaymentPreparation, 'orderNo' | 'finalAmount'>; globalCardPayment: GlobalCardPayment;
+  paymentPrepared?: boolean; created?: CreatedOrder
 }
 
 export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutState }) {
@@ -68,8 +70,6 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     queryFn: async () => { if (!api) throw new Error('현재 주문을 진행할 수 없습니다.'); return validateDirectCheckoutQuote(await api.quote(selection), selection) },
     enabled: Boolean(api && !attempt && !recoveredDisplay), placeholderData: previous => previous, retry: false,
     staleTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: true })
-  const methods = useQuery({ queryKey: ['checkout', 'direct-easy-pay-methods'],
-    queryFn: ({ signal }) => checkout.directEasyPayMethods!(signal), enabled: Boolean(checkout.directEasyPayMethods), retry: false })
   const benefitsMatch = Boolean(quote.data?.benefits
     && quote.data.benefits.userCouponId === couponId && quote.data.benefits.pointUsedAmount === Number(points)
     && quote.data.benefits.subtotalAmount === quote.data.extensionAmount + quote.data.purchaseSubtotalAmount
@@ -79,7 +79,11 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
   const finalAmount = attempt?.created?.finalAmount ?? attempt?.benefits.finalAmount
     ?? (!recovering && quoteReady && quote.data?.eligible ? quote.data.benefits?.finalAmount ?? null : null)
   const form = useCheckoutForm(finalAmount, recovering ? recovery.record : null)
-  const foreign = useForeignPaymentQuote(form.payment === 'global-card', finalAmount)
+  const paymentModes = useCheckoutPaymentModes(attempt?.globalCardPayment, recovering,
+    form.payment === 'global-card' && finalAmount !== 0)
+  const foreignUsdSelected = !recovering && form.payment === 'global-card' && paymentModes.globalCardPayment === 'foreign_card'
+  const foreign = useForeignPaymentQuote(foreignUsdSelected, finalAmount)
+  const verifying = paymentModes.verifying || foreign.verifying
   useEffect(() => {
     if (finalAmount === 0) setAvailabilityError(null)
   }, [finalAmount])
@@ -109,6 +113,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
     if (windowAbort.current?.signal.aborted) return
     if (status === 'retryable') {
+      foreign.clearPrepared()
       setUnresolvedOrderId(null)
       customerCancelled.current = false
       setPaymentRetryReady(true)
@@ -166,6 +171,9 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     }
     try {
       foreign.bindPrepared(payment, current.preparation.payment === 'foreign_card')
+      const prepared = { ...current, paymentPrepared: true }
+      attemptRef.current = prepared
+      setAttempt(prepared)
       await openTossPaymentWindow(payment, controller.signal)
     }
     catch (error) {
@@ -179,12 +187,17 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     setAvailabilityError(null)
     setPaymentNotice(null)
     let current = attemptRef.current
+    let globalCardPayment = current?.globalCardPayment
     if (!unresolvedOrderId) {
       const controller = new AbortController()
       windowAbort.current = controller
       submitting.current = true
       try {
-        await foreign.verify(current && !paymentRetryReady ? current.preparation.payment === 'foreign_card' : form.payment === 'global-card', finalAmount ?? 0, controller.signal)
+        globalCardPayment = await verifyCheckoutPaymentMode({ amountKrw: finalAmount ?? 0,
+          globalCardSelected: form.payment === 'global-card', retrying: paymentRetryReady,
+          frozenGlobalCardPayment: current?.globalCardPayment, frozenPaymentMethod: current?.preparation.payment,
+          paymentPrepared: current?.paymentPrepared }, paymentModes.verify,
+          (amount, signal) => foreign.verify(true, amount, signal), controller.signal)
         controller.signal.throwIfAborted()
       }
       catch (error) { if (!controller.signal.aborted) setAvailabilityError(error instanceof Error ? error.message : 'USD 결제금액을 확인하지 못했습니다.'); return }
@@ -193,29 +206,31 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     if (current && paymentRetryReady) {
       const draft = form.validate()
       if (!draft || !current.created) return
-      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay))) {
+      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !paymentModes.methods?.naverPay) || (draft.payment === 'kakao-pay' && !paymentModes.methods?.kakaoPay))) {
         setAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
         return
       }
-      current = { ...current, preparation: { ...checkoutPaymentInput(draft), idempotencyKey: crypto.randomUUID() } }
+      current = { ...current, paymentPrepared: false,
+        preparation: { ...checkoutPaymentInput(draft, false, current.globalCardPayment), idempotencyKey: crypto.randomUUID() } }
       attemptRef.current = current
       setAttempt(current)
       setPaymentRetryReady(false)
     }
     if (!current) {
+      if (!globalCardPayment) { setAvailabilityError(checkoutPaymentMethodsUnavailable); return }
       if (!quoteReady || !quote.data?.eligible || !quote.data.benefits) return
       const draft = form.validate()
       if (!draft) return
-      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !methods.data?.naverPay) || (draft.payment === 'kakao-pay' && !methods.data?.kakaoPay))) {
+      if (draft.finalAmount > 0 && ((draft.payment === 'naver-pay' && !paymentModes.methods?.naverPay) || (draft.payment === 'kakao-pay' && !paymentModes.methods?.kakaoPay))) {
         setAvailabilityError('선택한 간편결제 수단을 현재 이용할 수 없습니다. 다른 결제수단을 선택해 주세요.')
         return
       }
       current = { body: { selection, offerIds: state.offerIds ? [...state.offerIds] : undefined, quoteHash: quote.data.quoteHash,
         contact: { ...draft.contact, messengerType: draft.contact.messengerType || null, messengerId: draft.contact.messengerId || null } },
-      quote: quote.data, benefits: quote.data.benefits, creationKey: crypto.randomUUID(),
-      preparation: { ...checkoutPaymentInput(draft), idempotencyKey: crypto.randomUUID() } }
+      quote: quote.data, benefits: quote.data.benefits, creationKey: crypto.randomUUID(), globalCardPayment,
+      preparation: { ...checkoutPaymentInput(draft, false, globalCardPayment), idempotencyKey: crypto.randomUUID() } }
       try { recovery.persist({ creationKey: current.creationKey, source: 'extension', originalRequest: current.body },
-        { source: 'extension', quote: current.quote, payment: draft.payment }) }
+        { source: 'extension', quote: current.quote, payment: draft.payment, globalCardPayment }) }
       catch (error) { setAvailabilityError(error instanceof Error ? error.message : '주문서 복구 정보를 보관하지 못했습니다.'); return }
       attemptRef.current = current
       setAttempt(current)
@@ -242,15 +257,15 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
           <p role="alert">{uiText("선택한 상품의 상태 또는 금액이 변경되었습니다. 다시 확인해 주세요.")}</p>
           <Button size="small" variant="secondary" disabled={quote.isFetching} onClick={retryQuotes}>{uiText("상품 상태 다시 확인")}</Button>
         </div>}
-        <CheckoutDiscounts quote={recovering && !recoveredDisplay ? undefined : shownBenefits} couponId={recovering ? shownBenefits?.userCouponId ?? null : couponId} points={recovering ? String(shownBenefits?.pointUsedAmount ?? 0) : points} disabled={recovering || foreign.verifying || Boolean(attempt)} pending={!recovering && !attempt && quote.isFetching}
+        <CheckoutDiscounts quote={recovering && !recoveredDisplay ? undefined : shownBenefits} couponId={recovering ? shownBenefits?.userCouponId ?? null : couponId} points={recovering ? String(shownBenefits?.pointUsedAmount ?? 0) : points} disabled={recovering || verifying || Boolean(attempt)} pending={!recovering && !attempt && quote.isFetching}
           error={attempt || recovering ? null : quote.error} onCoupon={value => { setCouponId(value); setPoints('0') }} onPoints={setPoints} onRetry={resetDiscounts} onReset={resetDiscounts} />
         {profile.isError && !recovering && <p role="alert">{uiText("회원 정보를 불러오지 못했습니다. 직접 입력해 주세요.")}</p>}
-        <fieldset className="checkout-input-fields" disabled={recovering || foreign.verifying || Boolean(attempt)}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
-        {showReceipt && <fieldset className="checkout-input-fields" disabled={recovering || foreign.verifying || cancellationStarted || (Boolean(attempt) && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
-      </div><CheckoutSummary variant={hasPurchase ? 'cart' : 'extension'} extensionAmount={hasPurchase && current?.items.length ? current.extensionAmount : undefined} quote={currentSummary} benefits={shownBenefits} form={form} foreignQuote={foreign.quote} directEasyPayMethods={methods.data}
-        paymentAvailabilityError={availabilityError ?? foreign.error} paymentNotice={paymentNotice} onPaymentChange={() => { foreign.clearPrepared(); setAvailabilityError(null); setPaymentNotice(null) }}
-        refreshing={refreshing} locked={recovering || cancellationStarted || foreign.verifying || (Boolean(attempt) && !paymentRetryReady)} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending || foreign.verifying} submitDisabled={recovering || cancellationStarted || paymentClosed || (foreign.blocked && !unresolvedOrderId)} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
-        cancellation={<CheckoutCancellation disabled={submit.isPending || foreign.verifying} returnTo={recovery.record?.returnTo ?? returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
+        <fieldset className="checkout-input-fields" disabled={recovering || verifying || Boolean(attempt)}><CheckoutCustomer form={form} pending={profile.isPending} /></fieldset>
+        {showReceipt && <fieldset className="checkout-input-fields" disabled={recovering || verifying || cancellationStarted || (Boolean(attempt) && !paymentRetryReady)}><CheckoutReceipt form={form} /></fieldset>}
+      </div><CheckoutSummary variant={hasPurchase ? 'cart' : 'extension'} extensionAmount={hasPurchase && current?.items.length ? current.extensionAmount : undefined} quote={currentSummary} benefits={shownBenefits} form={form} foreignQuote={foreign.quote} foreignUsdSelected={foreignUsdSelected} directEasyPayMethods={paymentModes.methods}
+        paymentAvailabilityError={availabilityError ?? paymentModes.error ?? foreign.error} paymentNotice={paymentNotice} onPaymentChange={() => { foreign.clearPrepared(); setAvailabilityError(null); setPaymentNotice(null) }}
+        refreshing={refreshing} locked={recovering || cancellationStarted || verifying || (Boolean(attempt) && !paymentRetryReady)} checkingPayment={Boolean(unresolvedOrderId)} submitting={submit.isPending || verifying} submitDisabled={recovering || cancellationStarted || paymentClosed || (foreign.blocked && !unresolvedOrderId) || (!attempt && finalAmount !== 0 && paymentModes.pending)} submitError={submit.error?.message} onSubmit={() => void submitOrder()}
+        cancellation={<CheckoutCancellation disabled={submit.isPending || verifying} returnTo={recovery.record?.returnTo ?? returnTo} onReturn={recovery.clear} onLock={() => setCancellationStarted(true)} request={() => {
           const current = attemptRef.current
           return recovery.record?.request ?? (current ? { creationKey: current.creationKey, source: 'extension', originalRequest: current.body } : null)
         }}/>} /></div> : null}

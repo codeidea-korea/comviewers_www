@@ -32,7 +32,7 @@ export const tossConfirmationAmountSchema = z.union([z.number().int().positive()
 const confirmationRequest = z.object({ paymentKey: z.string().min(1).max(200), orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/), amount: tossConfirmationAmountSchema })
 const confirmation = z.object({ paymentId: id, orderId: z.string(), providerPaymentId: z.string(), status: z.string(), approved: z.boolean(), replayed: z.boolean(), virtualAccount: z.object({ bankCode: z.string(), accountNumber: z.string(), customerName: z.string().nullable(), dueDate: z.string() }).nullable() })
 const abandonment = z.object({ status: z.enum(['cancelled', 'failed', 'pending', 'approved', 'retryable']) })
-const directEasyPayMethods = z.object({ naverPay: z.boolean(), kakaoPay: z.boolean() })
+const directEasyPayMethods = z.object({ naverPay: z.boolean(), kakaoPay: z.boolean(), foreignUsdEnabled: z.boolean().default(false) })
 const foreignPaymentQuote = z.object({ available: z.boolean(), krwAmount: count,
   usdAmount: z.number().finite().positive().nullable(),
   exchangeRate: z.number().finite().positive().nullable(),

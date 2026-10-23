@@ -12,9 +12,10 @@ const lifetime = 2 * 60 * 60 * 1000
 const requestLimit = 65536
 const recordLimit = 512 * 1024
 const payment = checkoutPaymentMethodSchema
+const globalCardPayment = z.enum(['card', 'foreign_card']).optional()
 const displaySchema = z.discriminatedUnion('source', [
-  z.object({ source: z.literal('cart'), quote: checkoutQuoteSchema, benefits: orderBenefitQuoteSchema, payment }),
-  z.object({ source: z.literal('extension'), quote: extensionQuoteSchema, payment }),
+  z.object({ source: z.literal('cart'), quote: checkoutQuoteSchema, benefits: orderBenefitQuoteSchema, payment, globalCardPayment }),
+  z.object({ source: z.literal('extension'), quote: extensionQuoteSchema, payment, globalCardPayment }),
 ])
 export type CheckoutRecoveryDisplay = z.infer<typeof displaySchema>
 export const checkoutRecoveryContactSchema = z.object({ contact: z.object({ name: z.string().max(100), email: z.string().max(255),

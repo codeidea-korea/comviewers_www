@@ -9,7 +9,7 @@ export const tossPaymentRequestSchema = z.object({
 export const foreignPayloadSchema = z.object({
   sdkUrl: z.literal('https://js.tosspayments.com/v2/standard'),
   clientKey: z.string().regex(/^(test|live)_gck_/), customerKey: z.string().min(1),
-  merchantId: z.literal('comvie6ys2'),
+  merchantId: z.enum(['comvie6ys2', 'tcomvie6ys2']),
   requestedPaymentMethod: z.literal('foreign_card'),
   amount: z.object({ value: z.number().positive().finite().refine(value => {
     const cents = Math.round(value * 100)
@@ -17,9 +17,11 @@ export const foreignPayloadSchema = z.object({
   }), currency: z.literal('USD') }),
   originalAmount: z.object({ value: z.number().int().positive().safe(), currency: z.literal('KRW') }),
   exchangeRate: z.number().positive().finite(), rateBaseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  variantKey: z.string().min(1), agreementVariantKey: z.string().min(1),
+  variantKey: z.string().min(1), agreementVariantKey: z.string().trim().max(100).nullish(),
   paymentRequest: tossPaymentRequestSchema,
-})
+}).refine(payload => payload.clientKey.startsWith('test_gck_')
+  ? payload.merchantId === 'tcomvie6ys2'
+  : payload.merchantId === 'comvie6ys2', { path: ['merchantId'] })
 
 type ForeignPayload = z.infer<typeof foreignPayloadSchema>
 type PaymentRequest = z.infer<typeof tossPaymentRequestSchema>
@@ -30,24 +32,49 @@ type WidgetWindow = {
 }
 type Widgets = {
   setAmount(amount: ForeignPayload['amount']): Promise<void>
-  renderPaymentWindow(options: { orderName: string; variantKey: { paymentMethod: string; agreement: string } }): Promise<WidgetWindow>
+  renderPaymentWindow(options: { orderName: string; variantKey: { paymentMethod: string; agreement?: string } }): Promise<WidgetWindow>
   requestPayment(request: Omit<PaymentRequest, 'customerEmail' | 'customerName' | 'customerMobilePhone'> & {
     customerEmail?: string; customerName?: string; customerMobilePhone?: string
   }): Promise<void>
 }
 export type ForeignTossClient = { widgets(options: { customerKey: string }): Widgets }
 
+async function waitForVisibleDocument(signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted()
+  if (typeof document === 'undefined' || document.visibilityState !== 'hidden') return
+  const ownerDocument = document
+  await new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      ownerDocument.removeEventListener('visibilitychange', visible)
+      signal.removeEventListener('abort', aborted)
+    }
+    const visible = () => {
+      if (ownerDocument.visibilityState === 'hidden') return
+      cleanup()
+      resolve()
+    }
+    const aborted = () => { cleanup(); reject(signal.reason) }
+    ownerDocument.addEventListener('visibilitychange', visible)
+    signal.addEventListener('abort', aborted, { once: true })
+    if (signal.aborted) aborted(); else visible()
+  })
+  signal.throwIfAborted()
+}
+
 // The USD-only merchant/variant must be enabled on the server after the provider contract is verified.
 export async function openForeignPaymentWindow(client: ForeignTossClient, payload: ForeignPayload, signal: AbortSignal,
   cancelled: () => Error): Promise<void> {
+  // A background document can defer the provider iframe's handshake beyond its SDK deadline.
+  await waitForVisibleDocument(signal)
   const widgets = client.widgets({ customerKey: payload.customerKey })
   await widgets.setAmount(payload.amount)
-  signal.throwIfAborted()
+  await waitForVisibleDocument(signal)
   let control: WidgetWindow | undefined
   let redirected = false
   try {
     control = await widgets.renderPaymentWindow({ orderName: payload.paymentRequest.orderName,
-      variantKey: { paymentMethod: payload.variantKey, agreement: payload.agreementVariantKey } })
+      variantKey: { paymentMethod: payload.variantKey,
+        ...(payload.agreementVariantKey ? { agreement: payload.agreementVariantKey } : {}) } })
     signal.throwIfAborted()
     const { customerEmail, customerName, customerMobilePhone, ...required } = payload.paymentRequest
     await new Promise<void>((resolve, reject) => {
