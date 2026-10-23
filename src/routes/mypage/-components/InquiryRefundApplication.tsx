@@ -73,6 +73,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const formId = useId()
   const [selected, setSelected] = useState<number[]>([])
   const [method, setMethod] = useState<RefundDirectQuoteRequest['method']>('original')
+  const [pointOnlyReason, setPointOnlyReason] = useState('')
   const [reason, setReason] = useState('')
   const [reasonTouched, setReasonTouched] = useState(false)
   const [phone, setPhone] = useState<string | null>(null)
@@ -107,7 +108,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     method,
     selections: selectedTargets.map(item => ({ orderItemId: item.orderItemId, rentalId: item.rentalId })),
   }
-  const quote = useMutation({ mutationFn: (input: RefundDirectQuoteRequest) => api.refundDirectApplicationQuote(input) })
+  const quote = useMutation({ mutationFn: (input: RefundDirectQuoteRequest) => api.refundDirectApplicationQuote(input), onError: handleQuoteError })
   const quoteCurrent = quote.data && JSON.stringify(quote.variables) === JSON.stringify(quoteInput) && !quote.isPending && !quote.isError
   useEffect(() => {
     if (quoteCurrent && quote.data && quote.variables) setLastQuote({ data: quote.data, input: quote.variables })
@@ -155,8 +156,17 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     quote.mutate({ ...quoteInput, method: nextMethod })
   }
 
+  function handleQuoteError(error: unknown, input: RefundDirectQuoteRequest): void {
+    if (!(error instanceof ApiClientError) || error.code !== 'RF004'
+      || input.method !== 'original' || JSON.stringify(input) !== JSON.stringify(quoteInput)) return
+    setPointOnlyReason(error.message)
+    setMethod('point')
+    setBank({ code: '', name: '', accountNumber: '', holder: '' })
+    requestQuote('point')
+  }
+
   function changeMethod(nextMethod: RefundDirectQuoteRequest['method']) {
-    if (nextMethod === method) return
+    if (nextMethod === method || (nextMethod === 'original' && pointOnlyReason)) return
     setMethod(nextMethod)
     setBank({ code: '', name: '', accountNumber: '', holder: '' })
     requestQuote(nextMethod)
@@ -164,6 +174,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
 
   function toggleCandidate(orderItemId: number) {
     attempt.current = null
+    setPointOnlyReason('')
     setSelected(current => current.includes(orderItemId)
       ? current.filter(value => value !== orderItemId)
       : current.length < 20 ? [...current, orderItemId] : current)
@@ -181,7 +192,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const selectedCount = selectedTargets.length
   const methodChoices = <fieldset className="refund-application__method" disabled={locked}><legend>{uiText("환불 방법 선택")}</legend><div>
     <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>{uiText("포인트 적립")}</strong><small>{uiText("최종 환불금이 포인트로 즉시 적립되며, 상품 구매에 이용하실 수 있습니다.")}</small></span></label>
-    <label><input type="radio" name="refund-method" checked={method === 'original'} onChange={() => changeMethod('original')}/><span><strong>{uiText("결제수단 환불")}</strong><small>{uiText("기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.")}</small></span></label>
+    <label><input type="radio" name="refund-method" checked={method === 'original'} disabled={Boolean(pointOnlyReason)} onChange={() => changeMethod('original')}/><span><strong>{uiText("결제수단 환불")}</strong><small>{uiText(pointOnlyReason || "기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.")}</small></span></label>
   </div></fieldset>
 
   const back = () => { if (locked) return; if (step === 1) close(); else { attempt.current = null; submit.reset(); setAgreed(false); setStep(1) } }
