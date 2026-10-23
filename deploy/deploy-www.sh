@@ -200,17 +200,29 @@ else:
 PY
 }
 
+combar_releases() {
+  local phase="$1" tree="${2:-$APP_REPO/dist}"
+  # Pin the helper to the archived candidate, including split prepare/activate runs.
+  local helper="$WORK_DIR/source/deploy/preserve-combar-releases.py"
+  [[ -f "$helper" && ! -L "$helper" ]] || fail "ComBar 보존 helper가 후보 소스에 없습니다."
+  timeout --kill-after=5 900 python3 "$helper" "$phase" \
+    --live "$tree" --candidate "$WORK_DIR/dist" \
+    --manifest "$RELEASE_DIR/combar-releases.json" --origin "$PUBLIC_URL"
+}
+
 exchange_candidate() {
-  timeout --kill-after=5 120 python3 - "$WORK_DIR/dist" "$APP_REPO/dist" "$1" <<'PY'
-import ctypes, os, shutil, sys
+  timeout --kill-after=5 120 python3 - "$WORK_DIR/dist" "$APP_REPO/dist" "$1" "$WORK_DIR/source/deploy/preserve-combar-releases.py" <<'PY'
+import ctypes, importlib.util, os, shutil, sys
 from pathlib import Path
 candidate, live = map(Path, sys.argv[1:3])
+spec = importlib.util.spec_from_file_location('preserve_combar', sys.argv[4])
+preserved = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(preserved)
 for p in [candidate, live.parent] + ([live] if live.exists() else []):
     if p.is_symlink() or not p.is_dir() or p.resolve() != p: raise RuntimeError('배포 디렉터리가 정규 경로가 아닙니다')
 if live.is_symlink(): raise RuntimeError('서비스 디렉터리가 심볼릭 링크입니다')
 if candidate.stat().st_dev != live.parent.stat().st_dev or (live.exists() and live.stat().st_dev != candidate.stat().st_dev): raise RuntimeError('원자적 교체에는 동일한 파일시스템이 필요합니다')
-for p in [candidate, live] + list(candidate.rglob('*')) + (list(live.rglob('*')) if live.exists() else []):
-    if os.path.ismount(p): raise RuntimeError('마운트된 배포 경로는 지원하지 않습니다')
+for tree in [candidate, live]: preserved.guard_tree_mounts(tree)
 if any(p.is_symlink() for p in candidate.rglob('*')): raise RuntimeError('배포 후보에 심볼릭 링크가 포함되어 있습니다')
 lib = ctypes.CDLL(None, use_errno=True)
 exchange = getattr(lib, 'renameat2', None)
@@ -221,6 +233,7 @@ if sys.argv[3] == 'activate':
     if live.exists():
         if exchange(-100, os.fsencode(candidate), -100, os.fsencode(live), 2) != 0:
             number = ctypes.get_errno(); raise OSError(number, os.strerror(number))
+        preserved.guard_tree_mounts(candidate)
         shutil.rmtree(candidate)  # Immediately remove the obsolete live tree; retain no backup.
     else: os.rename(candidate, live)
 PY
@@ -254,6 +267,7 @@ prepare_release() {
   (cd "$WORK_DIR/source"
    progress_command "의존성 설치" install timeout --kill-after=10 600 npm ci
    VITE_API_BASE_URL=/ VITE_ENABLE_PUBLISHING_PREVIEWS=false VITE_NAME_TRANSLATION_FRAME_URL="${COMVIEWERS_NAME_TRANSLATION_FRAME_URL:-}" progress_command "웹 후보 빌드" build timeout --kill-after=10 600 npm run build -- --outDir "$WORK_DIR/dist" --emptyOutDir)
+  combar_releases prepare
   artifact_check record "$WORK_DIR/dist"
   exchange_candidate check
   log success "준비 완료: $commit (후보: $WORK_DIR/dist, 기록: $RELEASE_DIR)"
@@ -267,13 +281,18 @@ activate_release() {
   [[ -z "$EXPECTED_COMMIT" || "$(cat "$RELEASE_DIR/commit.txt")" == "$EXPECTED_COMMIT" ]] || fail "준비한 웹이 승인 commit과 다릅니다."
   artifact_check check "$WORK_DIR/dist"
   exchange_candidate check
+  # Another ComBar release may have been published between prepare and activate.
+  combar_releases refresh
   chown -R root:www-data "$WORK_DIR/dist"
   find "$WORK_DIR/dist" -type d -exec chmod 750 {} +
   find "$WORK_DIR/dist" -type f -exec chmod 640 {} +
+  combar_releases check "$WORK_DIR/dist"
   exchange_candidate activate
+  combar_releases check "$APP_REPO/dist"
   touch "$RELEASE_DIR/activated"
   log verify "검증"
   artifact_check verify "$APP_REPO/dist"
+  combar_releases verify "$APP_REPO/dist"
   rm -rf -- "$WORK_DIR"
   log success "배포 완료 (백업 없음). 배포 기록: $RELEASE_DIR"
 }
