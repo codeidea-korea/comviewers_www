@@ -1,0 +1,6 @@
+.order-item-period { display: grid; width: 100%; min-width: 0; gap: 8px; }
+.order-item-period__original { color: var(--color-gray-600); text-decoration-thickness: 1px; }
+.order-item-period__current { display: flex; min-width: 0; align-items: center; flex-wrap: wrap; gap: 8px; }
+.order-item-period__current strong { min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.order-item-period__badge { padding: 2px 10px; border-radius: 999px; background: var(--color-gray-100); color: var(--color-gray-600); font-size: 14px; line-height: 22px; white-space: nowrap; }
+.order-item-period__notice { color: var(--color-gray-600); font-size: 14px; line-height: 22px; }
