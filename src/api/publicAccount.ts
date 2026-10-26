@@ -46,11 +46,16 @@ export function createPublicAccountApi(baseUrl: string) {
         return await client.request('/api/auth/signup/profile-image/preflight', z.object({ ready: z.literal(true) }), { method: 'POST', body })
       } catch { throw new Error('프로필 이미지 업로드 준비를 완료하지 못했습니다. JPG·PNG 5MB 제한을 확인하고 잠시 후 다시 시도해 주세요.') }
     },
-    async stageProfileImage(file: File, verificationProof: string) {
+    async stageProfileImage(file: File, verificationProof: string, signal?: AbortSignal) {
       const body = new FormData(); body.set('file', file); body.set('verificationProof', verificationProof)
       try {
-        return await client.request('/api/auth/signup/profile-image', z.object({ uploadKey: z.string().uuid() }), { method: 'POST', body })
-      } catch { throw new Error('프로필 이미지 업로드를 완료하지 못했습니다. 이메일 인증 유효시간과 JPG·PNG 5MB 제한을 확인하고 잠시 후 다시 시도해 주세요.') }
+        return await client.request('/api/auth/signup/profile-image', z.object({ uploadKey: z.string().uuid() }), { method: 'POST', body, signal })
+      } catch (cause) {
+        signal?.throwIfAborted()
+        const message = '프로필 이미지 업로드를 완료하지 못했습니다. 이메일 인증 유효시간과 JPG·PNG 5MB 제한을 확인하고 잠시 후 다시 시도해 주세요.'
+        if (cause instanceof ApiClientError) throw new ApiClientError(cause.kind, cause.status, { code: cause.code, retryAfter: cause.retryAfter, message })
+        throw cause
+      }
     },
     usernameAvailability(username: string) {
       return client.request('/api/auth/signup/username-availability', z.object({ available: z.boolean() }), {
@@ -81,12 +86,14 @@ export function createPublicAccountApi(baseUrl: string) {
     confirmEmailVerification(token: string) {
       return client.request('/api/auth/email-verifications/confirm', verificationConfirmation, { method: 'POST', body: { token } })
     },
-    async register(input: RegistrationInput) {
+    async register(input: RegistrationInput, signal?: AbortSignal) {
       try {
-        return await client.request('/api/auth/register', registration, { method: 'POST', body: input })
+        return await client.request('/api/auth/register', registration, { method: 'POST', body: input, signal })
       } catch (cause) {
         const message = cause instanceof ApiClientError ? signupCompletionErrorMessage(cause.code) : undefined
-        if (message) throw new Error(message)
+        if (cause instanceof ApiClientError && message) {
+          throw new ApiClientError(cause.kind, cause.status, { code: cause.code, retryAfter: cause.retryAfter, message })
+        }
         throw cause
       }
     },

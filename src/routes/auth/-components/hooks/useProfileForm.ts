@@ -209,5 +209,6 @@ export function useProfileForm() {
   return { profile, profilePreview, setProfilePreview, setProfileImage: selectProfileImage,
     error: error || signupCoordinator.error, setError, notice, profileImageError, setProfileImageError, usernameFeedback, fieldErrors, busy: busy || signupCoordinator.busy, complete,
     awaitingVerification: signupCoordinator.awaitingEmail === email, restartSignup: signupCoordinator.cancel, resendVerification,
+    registrationProgress: signupCoordinator.registrationProgress, retryRegistration: signupCoordinator.retryRegistration,
     checkedUsername, checkUsername, setField, setFieldValue, submit }
 }

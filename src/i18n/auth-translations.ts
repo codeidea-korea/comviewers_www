@@ -48,6 +48,8 @@ export const authTranslations = [
   {"key":"auth.cancel","source":"auth","ko":"취소","vi":"Hủy","ja":"キャンセル","en":"Cancel","zh-CN":"取消","zh-TW":"取消"},
   {"key":"auth.confirm","source":"auth","ko":"확인","vi":"Xác nhận","ja":"確認","en":"Confirm","zh-CN":"确认","zh-TW":"確認"},
   {"key":"auth.processing","source":"auth","ko":"처리 중","vi":"Đang xử lý","ja":"処理中","en":"Processing","zh-CN":"处理中","zh-TW":"處理中"},
+  {"key":"auth.signupProcessing","source":"auth","ko":"가입 처리 중…","vi":"Đang hoàn tất đăng ký…","ja":"会員登録を処理中…","en":"Completing sign-up…","zh-CN":"正在完成注册…","zh-TW":"正在完成註冊…"},
+  {"key":"auth.signupScreen","source":"auth","ko":"회원가입 화면으로","vi":"Đến trang đăng ký","ja":"会員登録画面へ","en":"Go to sign-up","zh-CN":"前往注册页面","zh-TW":"前往註冊頁面"},
   {"key":"auth.requesting","source":"auth","ko":"요청 중","vi":"Đang gửi yêu cầu","ja":"リクエスト中","en":"Requesting","zh-CN":"请求中","zh-TW":"請求中"},
   {"key":"auth.changing","source":"auth","ko":"변경 중…","vi":"Đang thay đổi…","ja":"変更中…","en":"Updating…","zh-CN":"更改中…","zh-TW":"變更中…"},
   {"key":"auth.sending","source":"auth","ko":"발송 중…","vi":"Đang gửi…","ja":"送信中…","en":"Sending…","zh-CN":"发送中…","zh-TW":"傳送中…"},

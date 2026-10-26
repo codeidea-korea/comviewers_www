@@ -4,7 +4,13 @@ const channelName = 'comviewers.email-verification'
 const resultSchema = z.object({ requestId: z.string().min(1), verificationProof: z.string().min(1).max(200), expiresAt: z.string() })
 const receivedSchema = z.object({ type: z.literal('received'), requestId: z.string().min(1) })
 const signupCompletedSchema = z.object({ type: z.literal('signup-completed'), requestId: z.string().min(1), signupBonusPoints: z.number().int().nonnegative().optional() })
+const signupStateSchema = z.enum(['processing', 'waiting', 'retry', 'restart', 'check-login'])
+const signupProgressSchema = z.object({ type: z.literal('signup-progress'), requestId: z.string().min(1).max(200), state: signupStateSchema, retryAt: z.number().finite().nonnegative().optional() })
+const signupRetrySchema = z.object({ type: z.literal('signup-retry'), requestId: z.string().min(1).max(200), commandId: z.string().uuid() })
+const signupRetryReceivedSchema = signupRetrySchema.extend({ type: z.literal('signup-retry-received') })
 export type EmailVerificationResult = z.infer<typeof resultSchema>
+export type SignupRegistrationState = z.infer<typeof signupStateSchema>
+export type SignupRegistrationProgress = Omit<z.infer<typeof signupProgressSchema>, 'type'>
 
 export function listenForEmailVerification(requestId: string, receive: (result: EmailVerificationResult) => void) {
   if (!requestId || typeof BroadcastChannel === 'undefined') return () => {}
@@ -48,6 +54,55 @@ export function deliverSignupCompletion(requestId: string, signupBonusPoints?: n
   const channel = new BroadcastChannel(channelName)
   channel.postMessage({ type: 'signup-completed', requestId, signupBonusPoints })
   channel.close()
+}
+
+export function deliverSignupProgress(progress: SignupRegistrationProgress) {
+  if (typeof BroadcastChannel === 'undefined') return
+  const parsed = signupProgressSchema.safeParse({ ...progress, type: 'signup-progress' })
+  if (!parsed.success) return
+  const channel = new BroadcastChannel(channelName)
+  channel.postMessage(parsed.data)
+  channel.close()
+}
+
+export function listenForSignupProgress(requestId: string, receive: (progress: SignupRegistrationProgress) => void) {
+  if (!requestId || typeof BroadcastChannel === 'undefined') return () => {}
+  const channel = new BroadcastChannel(channelName)
+  channel.onmessage = (event: MessageEvent<unknown>) => {
+    const parsed = signupProgressSchema.safeParse(event.data)
+    if (parsed.success && parsed.data.requestId === requestId) {
+      receive({ requestId: parsed.data.requestId, state: parsed.data.state, retryAt: parsed.data.retryAt })
+    }
+  }
+  return () => channel.close()
+}
+
+export function listenForSignupRetry(requestId: string, receive: () => void) {
+  if (!requestId || typeof BroadcastChannel === 'undefined') return () => {}
+  const channel = new BroadcastChannel(channelName)
+  channel.onmessage = (event: MessageEvent<unknown>) => {
+    const parsed = signupRetrySchema.safeParse(event.data)
+    if (parsed.success && parsed.data.requestId === requestId) {
+      channel.postMessage({ ...parsed.data, type: 'signup-retry-received' })
+      receive()
+    }
+  }
+  return () => channel.close()
+}
+
+export function requestSignupRetry(requestId: string): Promise<boolean> {
+  if (!requestId || typeof BroadcastChannel === 'undefined') return Promise.resolve(false)
+  const commandId = crypto.randomUUID()
+  const channel = new BroadcastChannel(channelName)
+  return new Promise(resolve => {
+    const finish = (received: boolean) => { clearTimeout(timeout); channel.close(); resolve(received) }
+    const timeout = setTimeout(() => finish(false), 1500)
+    channel.onmessage = (event: MessageEvent<unknown>) => {
+      const parsed = signupRetryReceivedSchema.safeParse(event.data)
+      if (parsed.success && parsed.data.requestId === requestId && parsed.data.commandId === commandId) finish(true)
+    }
+    channel.postMessage({ type: 'signup-retry', requestId, commandId })
+  })
 }
 
 export function verificationTokenFromLink(input: string) {

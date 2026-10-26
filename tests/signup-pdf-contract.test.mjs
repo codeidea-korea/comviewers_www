@@ -4,6 +4,8 @@ import { test } from 'node:test'
 import { passwordSchema, profileInputSchema } from '../src/routes/auth/-components/profileValidation.ts'
 import { focusSignupField } from '../src/routes/auth/-components/focusSignupField.ts'
 import { signupRegistrationErrorMessage } from '../src/domain/auth/signupRegistrationError.ts'
+import { authTranslations } from '../src/i18n/auth-translations.ts'
+import { shellTranslations } from '../src/i18n/shell-translations.ts'
 
 test('[source contract] signup source keeps the PDF-specified optional consent and validation copy', async () => {
   const [terms, profileImage] = await Promise.all([
@@ -11,8 +13,12 @@ test('[source contract] signup source keeps the PDF-specified optional consent a
     readFile(new URL('../src/components/ui/ProfileImagePickerControl.tsx', import.meta.url), 'utf8'),
   ])
 
-  assert.match(terms, /\[선택\] 광고성 정보 수신 동의\(이메일\)/)
-  assert.match(profileImage, /권장 크기: 500 × 500px/)
+  assert.match(terms, /name="marketing-email-consent"/)
+  assert.match(terms, /required: authText\('선택'\), label: authText\('광고성 정보 수신 동의\(이메일\)'\)/)
+  const termLabel = authTranslations.find(entry => entry.key === 'auth.termLabel').ko
+  assert.equal(termLabel.replace('{required}', '선택').replace('{label}', '광고성 정보 수신 동의(이메일)'), '[선택] 광고성 정보 수신 동의(이메일)')
+  assert.match(profileImage, /t\('shell.profileImageSizeAuth'\)/)
+  assert.match(shellTranslations.find(entry => entry.key === 'shell.profileImageSizeAuth').ko, /권장 크기: 500 × 500px/)
 })
 
 test('signup password validation requires each character class and checks confirmation', () => {
@@ -35,7 +41,7 @@ test('signup focus helper focuses and scrolls the invalid field within the submi
   globalThis.HTMLElement = Element
   try {
     const field = new Element()
-    const form = { elements: { namedItem: name => name === 'loginId' ? field : null }, querySelector: selector => selector.includes('이메일 아이디') ? field : null }
+    const form = { elements: { namedItem: name => ['loginId', 'emailId'].includes(name) ? field : null } }
     focusSignupField(form, 'loginId')
     focusSignupField(form, 'email')
     focusSignupField(form, 'missing')
@@ -45,9 +51,9 @@ test('signup focus helper focuses and scrolls the invalid field within the submi
 test('[source contract] 회원가입 이메일은 퍼블리싱 원본의 아이디·도메인 입력·도메인 선택 구조를 유지한다', async () => {
   const authComponents = await readFile(new URL('../src/routes/auth/AuthComponentsView.tsx', import.meta.url), 'utf8')
 
-  assert.match(authComponents, /<input aria-label="이메일 도메인"/)
-  assert.match(authComponents, /<NativeSelect aria-label="이메일 도메인 선택"/)
-  assert.match(authComponents, /<option value="">이메일 선택<\/option>/)
+  assert.match(authComponents, /<input aria-label=\{authText\("이메일 도메인"\)\} name="emailDomain"/)
+  assert.match(authComponents, /<NativeSelect aria-label=\{authText\("이메일 도메인 선택"\)\}/)
+  assert.match(authComponents, /<option value="">\{authText\("직접입력"\)\}<\/option>/)
   assert.doesNotMatch(authComponents, /isDirectDomain \? <input aria-label="이메일 도메인"/)
 })
 

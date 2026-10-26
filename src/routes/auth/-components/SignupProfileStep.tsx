@@ -10,6 +10,7 @@ import { AuthHeading, AuthPage, AuthPanel, EmailAddressField, PasswordField } fr
 import { messengerOptionLabel, messengerOptions, phonePrefixOptions } from '../../../lib/formOptions'
 import { useSearchParams } from 'react-router'
 import { SocialSignupProfileStep } from './SocialSignupProfileStep'
+import { SignupRegistrationStatus } from './SignupRegistrationStatus'
 
 export function SignupProfileStep() {
   const [searchParams] = useSearchParams()
@@ -21,7 +22,7 @@ function StandardSignupProfileStep() {
   const { authText, t, locale } = useAuthTranslation()
   const { profile, profilePreview, setProfilePreview, setProfileImage,
     error, setError, notice, profileImageError, usernameFeedback, fieldErrors, busy, complete, awaitingVerification, restartSignup, resendVerification,
-    checkedUsername, checkUsername, setField, setFieldValue, submit } = useProfileForm()
+    checkedUsername, checkUsername, setField, setFieldValue, submit, registrationProgress, retryRegistration } = useProfileForm()
 
   if (awaitingVerification) {
     return <AuthPage variant="signup-complete"><AuthPanel result>
@@ -34,8 +35,9 @@ function StandardSignupProfileStep() {
         {notice ? <p aria-live="polite" className="auth-notice">{authText(notice)}</p> : null}
         {error ? <p aria-live="polite" className="form-error">{authText(error)}</p> : null}
       </div>
+      <SignupRegistrationStatus progress={registrationProgress} onRetry={retryRegistration} onRestart={restartSignup} />
       <div className="result-actions signup-request-actions">
-        <Button disabled={busy} onClick={() => { void resendVerification() }} size="large" variant="secondary">{busy ? authText("발송 중…") : authText("인증 메일 재발송")}</Button>
+        {!registrationProgress ? <Button disabled={busy} onClick={() => { void resendVerification() }} size="large" variant="secondary">{busy ? authText("발송 중…") : authText("인증 메일 재발송")}</Button> : null}
         {error ? <Button onClick={restartSignup} size="large" variant="secondary">{authText("다시 입력하기")}</Button> : null}
         <Button as={Link} size="large" to="/">{authText("메인으로")}</Button>
       </div>
