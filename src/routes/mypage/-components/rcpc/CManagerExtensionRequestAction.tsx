@@ -28,13 +28,10 @@ const dateTime = (value: string | null) => value ? value.replace('T', ' ').slice
 export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadServices; item: MyRcpcItem }) {
   const { uiText } = useUiTranslation()
   const [open, setOpen] = useState(false)
-  const [units, setUnits] = useState('1')
-  const parsedUnits = Number(units)
-  const validUnits = Number.isInteger(parsedUnits) && parsedUnits >= 1 && parsedUnits <= 10000
   const quote = useQuery({
-    queryKey: ['c-manager-extension-quote', api.organizationId, item.rentalId, parsedUnits],
-    enabled: open && validUnits,
-    queryFn: () => api.extensionQuote(item.rentalId, parsedUnits),
+    queryKey: ['c-manager-extension-quote', api.organizationId, item.rentalId, '30-days'],
+    enabled: open,
+    queryFn: () => api.extensionQuote(item.rentalId),
     retry: false,
   })
   const history = useQuery({
@@ -55,8 +52,8 @@ export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadS
     >
       <p>{uiText("담당자는 배정된 RCPC의 기간연장 견적과 요청 내역을 조회할 수 있습니다. 연장 신청과 결제는 대표관리자에게 문의해 주세요.")}</p>
       <p>{item.preference.alias ? `${item.preference.alias} · ` : ''}{uiText("품번")} {item.productNo} {uiText("· 현재 만료일")} {item.serviceEndExclusiveDate ?? '-'}</p>
-      <label>{uiText("추가 단위")}
-        <input min={1} max={10000} step={1} type="number" value={units} onChange={event => setUnits(event.target.value)}/>
+      <label>{uiText("연장 기간")}
+        <input readOnly type="text" value={uiText("30일")}/>
       </label>
       {quote.isFetching ? <p role="status">{uiText("연장 견적을 확인하고 있습니다.")}</p> : null}
       {quote.error ? <p role="alert">{uiText(quote.error.message)}</p> : null}

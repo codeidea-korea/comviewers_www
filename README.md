@@ -1,5 +1,13 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-26 FB-57 연장대기와 기존 기간 표시 유지
+
+사용자의 재확인대로 `rentalPeriodText`의 기존 `N일 지남` 표시를 그대로 유지했다. 고객 RCPC의 D+2 자동 포맷대기 fallback·연장 차단을 제거하고 서버 명시 상태와 실제 종료/환불을 따른다. 포맷대기에서 연장대기로 복구되면 연장을 다시 허용한다. 별도 WAN/재부팅의 D+2 접근 조건은 유지하고 앞선 ID/PW 공개 만료 제한 제거도 보존한다.
+
+고객 연장 팝업은 기존1개월 컨트롤로 `addedDays:30`을 보내고 C매니저는 기존 견적조회 권한에서30일 고정 표시·units 생략 요청을 사용한다. 서버가 미만료는 기존끝부터30일, 만료후는 처리일부터30일로 계산하며 원금/혜택·대표/담당자 권한·복사 감사 등 기존 조건은 유지한다. [API 공동 계약](../comviewers-api/README.md#2026-10-26-fb-57-양방향-상태-전환과-만료-전후-연장), [ADR0032 최신 정책](../docs/decisions/0032-rental-contract-and-pc-operational-status.md#2026-10-26-fb-57-양방향-전환과-만료-전후-30일-기준)을 따른다.
+
+주요 변경은 `rcpcPresentation.ts`의 상태/연장 자격, `RcpcExtensionCheckout.tsx`, `RcpcDialogsControl.tsx`, C매니저 조회·공통 연장 schema/presentation이다. L2 소스/L0 기록·정적 diff/분기·요청/표시 계약만 확인했으며 테스트 파일·테스트/컴파일/빌드/lint/typecheck·브라우저·DB/API 실행·배포/재시작·commit/push는 없다. V238/API·관리자 공동 반영과 실화면 검수는 별도다.
+
 ## 2026-10-26 고객 원격정보의 D+2 제한 제거
 
 사용자 명시 지시로 공통 `RcpcRemoteAccess`의 D+2 `accessDeadline`과 자동 ID·수동 보기/복사의 만료 재차단을 제거했다. 홈·이용 RCPC·즐겨찾기·상세·모바일에서 API의 현재 조회 인가를 따르며 자동 ID와 수동 보기의 30초 임시 표시, 포커스 이탈·언마운트 요청 취소/숨김·메모리만 보관·복사 감사 선행을 유지한다. 403 안내는 만료일이 아닌 계약 상태/권한 확인으로 정렬했다. [API 공동 변경](../comviewers-api/README.md#2026-10-26-고객-원격정보의-d2-제한-제거), [현행 정책](../docs/decisions/0012-customer-remote-access-delivery-and-expiry.md#2026-10-26-고객-원격정보의-d2-만료일-제한-제거)을 따른다. WAN IP·연장·렌탈 상태 계산은 이번 범위가 아니다.

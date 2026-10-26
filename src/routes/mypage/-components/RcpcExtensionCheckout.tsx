@@ -12,7 +12,7 @@ import { extensionResultText } from './rcpcExtensionPresentation'
 type ExtensionQuote = Awaited<ReturnType<MyRcpcReadServices['extensionCheckout']['quote']>>
 const dateTime = (value: string | null) => value ? value.replace('T', ' ').split('.')[0] : '—'
 
-export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialDays = 30, triggerLabel }: {
+export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, triggerLabel }: {
   api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; triggerLabel?: string
 }) {
   const { uiText } = useUiTranslation()
@@ -20,19 +20,15 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
   const location = useLocation()
   const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
   const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState<'days' | 'date'>('days')
-  const [days, setDays] = useState(String(initialDays))
-  const [date, setDate] = useState('')
   const quoteScope = JSON.stringify([api.organizationId, rentalIds])
   const [lastQuote, setLastQuote] = useState<{ scope: string; value: ExtensionQuote } | null>(null)
-  const selection = extensionSelectionSchema.safeParse({ rentalIds: [...rentalIds].sort((a, b) => a - b), pointAmount: 0,
-    ...(mode === 'days' ? { addedDays: Number(days) } : { targetEndDate: date }) })
+  const selection = extensionSelectionSchema.safeParse({ rentalIds: [...rentalIds].sort((a, b) => a - b), pointAmount: 0, addedDays: 30 })
   const selected = selection.success ? selection.data : null
   const quote = useQuery({
     queryKey: ['extension-checkout-quote', api.organizationId, quoteScope, JSON.stringify(selected)],
     enabled: open && selected !== null,
     queryFn: () => {
-      if (!selected) throw new Error('1개월, 2개월, 3개월 또는 통일할 만료일을 선택해 주세요.')
+      if (!selected) throw new Error('30일 연장 조건을 확인해 주세요.')
       return api.extensionCheckout.quote(selected)
     },
     placeholderData: (previous, previousQuery) => previousQuery?.queryKey[2] === quoteScope ? previous : undefined,
@@ -49,9 +45,9 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, initialD
     {open ? <RcpcExtensionSurface action={quoteReady && current?.eligible && selection.success
       ? <Link to="/checkout" state={{ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, selection: selection.data }}>{uiText("연장 결제하기")}</Link>
       : <button disabled type="button">{uiText("연장 결제하기")}</button>}
-      busy={quote.isFetching} dateValue={date} error={uiText(quote.error?.message)} extensionMode={mode === 'days' ? 'period' : 'date'}
-      itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)} onDateChange={setDate}
-      onModeChange={value => setMode(value === 'date' ? 'date' : 'days')} onPeriodChange={setDays} periodValue={days}
+      busy={quote.isFetching} error={uiText(quote.error?.message)} extensionMode="period" fixedThirtyDays
+      itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)}
+      onModeChange={() => {}} periodValue="30"
       rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? current?.items.map(item => ({ rcpcId: item.productNo ?? item.rentalId, location: item.serverRoomName ?? undefined, currentEnd: dateTime(item.previousEnd), specSummary: item.spec ?? undefined })) ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
       rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', location: item.serverRoomName, period: item.addedDays == null ? '-' : uiText('{count}일', { count: item.addedDays }),
         currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : uiText('{amount}원', { amount: item.monthlyFee.toLocaleString('ko-KR') }),

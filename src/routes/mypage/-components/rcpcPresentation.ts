@@ -38,19 +38,19 @@ export function rentalOperationalStatus(item: RentalPeriodItem) {
     && item.operationalStatus !== 'active' && item.operationalStatus !== 'extension_waiting') return item.operationalStatus
   // Refresh time-derived states across KST date boundaries without promoting explicit null or preparation states.
   const days = rentalDaysRemaining(item)
-  if (gracePeriodElapsed(item)) return 'termination_waiting'
   if (days !== null) return days <= 1 ? 'extension_waiting' : 'active'
   if (item.operationalStatus !== undefined) return item.operationalStatus
   return item.usageStatus === 'extension_waiting' ? 'extension_waiting' : item.usageStatus === 'using' ? 'active' : null
 }
 const rentalStartsLater = (item: RentalPeriodItem) => Boolean(item.serviceStartedAt && Date.parse(item.serviceStartedAt) > Date.now())
-const gracePeriodElapsed = (item: RentalPeriodItem, now = new Date()) => (rentalDaysRemaining(item, now) ?? 0) <= -2
 export const rentalActionsEnded = (item: RentalPeriodItem) => endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalOperationalStatus(item) === 'termination_waiting'
 export const extensionBlocked = (item: RentalPeriodItem) =>
-  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalStartsLater(item) || gracePeriodElapsed(item)
+  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalStartsLater(item)
   || (rentalOperationalStatus(item) !== 'active' && rentalOperationalStatus(item) !== 'extension_waiting')
 export const rentalServiceAccessible = (item: RentalPeriodItem) =>
-  item.rentalStatus === 'active' && !extensionBlocked(item) && ['using', 'extension_waiting'].includes(item.usageStatus)
+  // WAN/reboot operations retain their separate API grace window; renewal has no expiry cutoff.
+  item.rentalStatus === 'active' && !extensionBlocked(item) && (rentalDaysRemaining(item) ?? 0) > -2
+  && ['using', 'extension_waiting'].includes(item.usageStatus)
 export const traffic = (bytes: number | null) => bytes === null ? '-' : `${(bytes / 1_000_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 2 })} GB`
 export const totalTraffic = (downloadBytes: number | null, uploadBytes: number | null) =>
   traffic(downloadBytes === null && uploadBytes === null ? null : (downloadBytes ?? 0) + (uploadBytes ?? 0))

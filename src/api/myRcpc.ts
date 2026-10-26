@@ -117,10 +117,10 @@ export function createMyRcpcApi(client: ApiClient, organizationId: string) {
       return readIdentifier(path, requestSignal => client.request(path, remoteIdentifierSchema, { ...context, method: 'POST', signal: requestSignal }), signal)
     },
     copy: (rentalId: number, accessType: RemoteAccessType, field: 'remote_id' | 'password', signal?: AbortSignal) => client.request(`/api/v1/my/rcpcs/${id.parse(rentalId)}/remote-access/${z.enum(['anydesk', 'teamviewer']).parse(accessType)}/copy`, z.undefined(), { ...context, method: 'POST', body: { field: z.enum(['remote_id', 'password']).parse(field) }, signal }),
-    extensionQuote: (rentalId: number, units: number) => client.request(`/api/v1/my/rentals/${id.parse(rentalId)}/extension-quotes`,
+    extensionQuote: (rentalId: number, units?: number) => client.request(`/api/v1/my/rentals/${id.parse(rentalId)}/extension-quotes`,
       z.object({ rentalId: id, extensionType: z.string(), units: z.number().int().positive(), billingUnit: z.string(),
         previousServiceEndsAt: instant, quotedServiceEndsAt: z.iso.datetime({ offset: true }), quotedAmount: count, currency: z.string() }),
-      { ...context, method: 'POST', body: { units: z.number().int().min(1).max(10000).parse(units) } }),
+      { ...context, method: 'POST', body: units === undefined ? {} : { units: z.number().int().min(1).max(10000).parse(units) } }),
     requestExtension: (rentalId: number, units: number, idempotencyKey = `extension:${crypto.randomUUID()}`) => client.request(`/api/v1/my/rentals/${id.parse(rentalId)}/extension-requests`,
       extensionRequestSchema,
       { ...context, method: 'POST', body: { units: z.number().int().min(1).max(10000).parse(units) }, idempotencyKey }),
