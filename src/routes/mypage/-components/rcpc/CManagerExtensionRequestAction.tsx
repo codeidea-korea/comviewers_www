@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { MyRcpcItem } from '@/api/myRcpc'
 import { Button } from '@/components/ui/ButtonControl'
 import { Modal } from '@/components/ui/ModalControl'
+import { NativeSelect } from '@/components/ui/SelectControl'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 
 const billingUnitLabel: Readonly<Record<string, string>> = {
@@ -28,10 +29,14 @@ const dateTime = (value: string | null) => value ? value.replace('T', ' ').slice
 export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadServices; item: MyRcpcItem }) {
   const { uiText } = useUiTranslation()
   const [open, setOpen] = useState(false)
+  const [months, setMonths] = useState(1)
   const quote = useQuery({
-    queryKey: ['c-manager-extension-quote', api.organizationId, item.rentalId, '30-days'],
+    queryKey: ['c-manager-extension-quote', api.organizationId, item.rentalId, months],
     enabled: open,
-    queryFn: () => api.extensionQuote(item.rentalId),
+    queryFn: async () => {
+      const baseline = await api.extensionQuote(item.rentalId)
+      return months === 1 ? baseline : api.extensionQuote(item.rentalId, baseline.units * months)
+    },
     retry: false,
   })
   const history = useQuery({
@@ -53,7 +58,10 @@ export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadS
       <p>{uiText("담당자는 배정된 RCPC의 기간연장 견적과 요청 내역을 조회할 수 있습니다. 연장 신청과 결제는 대표관리자에게 문의해 주세요.")}</p>
       <p>{item.preference.alias ? `${item.preference.alias} · ` : ''}{uiText("품번")} {item.productNo} {uiText("· 현재 만료일")} {item.serviceEndExclusiveDate ?? '-'}</p>
       <label>{uiText("연장 기간")}
-        <input readOnly type="text" value={uiText("30일")}/>
+        <NativeSelect aria-label={uiText('연장 기간')} value={String(months)} onChange={event => {
+          const next = Number(event.target.value)
+          if ([1, 2, 3].includes(next)) setMonths(next)
+        }} options={[1, 2, 3].map(value => ({ value: String(value), label: uiText(`${value}개월`) }))}/>
       </label>
       {quote.isFetching ? <p role="status">{uiText("연장 견적을 확인하고 있습니다.")}</p> : null}
       {quote.error ? <p role="alert">{uiText(quote.error.message)}</p> : null}

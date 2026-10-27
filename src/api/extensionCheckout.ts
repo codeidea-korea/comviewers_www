@@ -11,7 +11,7 @@ const storageItems = z.object({ itemId: id, durationUnits: z.number().int().posi
 const partOffers = z.object({ offerId: id, quantity: z.number().int().positive().max(2147483647) }).array().max(100)
   .refine(items => new Set(items.map(item => item.offerId)).size === items.length)
 export const extensionSelectionSchema = z.object({ rentalIds: uniqueIds,
-  addedDays: z.literal(30).optional(), targetEndDate: z.iso.date().optional(),
+  addedDays: z.number().int().min(1).max(90).optional(), targetEndDate: z.iso.date().optional(),
   offerIds: selectionIds.optional(), cartItemIds: uniqueIds.optional(),
   storageItems: storageItems.optional(), partOffers: partOffers.optional(),
   userCouponId: id.nullable().optional(), pointAmount: z.number().int().nonnegative().max(2147483647).default(0),

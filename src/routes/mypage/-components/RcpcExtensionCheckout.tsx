@@ -12,7 +12,7 @@ import { extensionResultText } from './rcpcExtensionPresentation'
 type ExtensionQuote = Awaited<ReturnType<MyRcpcReadServices['extensionCheckout']['quote']>>
 const dateTime = (value: string | null) => value ? value.replace('T', ' ').split('.')[0] : '—'
 
-export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, triggerLabel }: {
+export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, triggerLabel, initialDays = 30 }: {
   api: MyRcpcReadServices; rentalIds: readonly number[]; displayTargets?: readonly RcpcDialogTarget[]; initialDays?: number; triggerLabel?: string
 }) {
   const { uiText } = useUiTranslation()
@@ -20,15 +20,19 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, triggerL
   const location = useLocation()
   const owner = session.status === 'authenticated' && session.customerSession?.memberRole === 'owner'
   const [open, setOpen] = useState(false)
-  const quoteScope = JSON.stringify([api.organizationId, rentalIds])
+  const [extensionMode, setExtensionMode] = useState<'period' | 'date'>('period')
+  const [periodValue, setPeriodValue] = useState(() => [30, 60, 90].includes(initialDays) ? String(initialDays) : '30')
+  const [dateValue, setDateValue] = useState('')
+  const selection = extensionSelectionSchema.safeParse({ rentalIds: [...rentalIds].sort((a, b) => a - b), pointAmount: 0,
+    ...(extensionMode === 'period' ? { addedDays: Number(periodValue) } : { targetEndDate: dateValue }) })
+  const quoteScope = JSON.stringify([api.organizationId, rentalIds, extensionMode, periodValue, dateValue])
   const [lastQuote, setLastQuote] = useState<{ scope: string; value: ExtensionQuote } | null>(null)
-  const selection = extensionSelectionSchema.safeParse({ rentalIds: [...rentalIds].sort((a, b) => a - b), pointAmount: 0, addedDays: 30 })
   const selected = selection.success ? selection.data : null
   const quote = useQuery({
     queryKey: ['extension-checkout-quote', api.organizationId, quoteScope, JSON.stringify(selected)],
     enabled: open && selected !== null,
     queryFn: () => {
-      if (!selected) throw new Error('30일 연장 조건을 확인해 주세요.')
+      if (!selected) throw new Error('연장 조건을 확인해 주세요.')
       return api.extensionCheckout.quote(selected)
     },
     placeholderData: (previous, previousQuery) => previousQuery?.queryKey[2] === quoteScope ? previous : undefined,
@@ -45,9 +49,11 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, triggerL
     {open ? <RcpcExtensionSurface action={quoteReady && current?.eligible && selection.success
       ? <Link to="/checkout" state={{ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, selection: selection.data }}>{uiText("연장 결제하기")}</Link>
       : <button disabled type="button">{uiText("연장 결제하기")}</button>}
-      busy={quote.isFetching} error={uiText(quote.error?.message)} extensionMode="period" fixedThirtyDays
+      busy={quote.isFetching} dateValue={dateValue}
+      error={uiText(selection.success ? quote.error?.message : '연장 조건을 확인해 주세요.')} extensionMode={extensionMode}
       itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)}
-      onModeChange={() => {}} periodValue="30"
+      onDateChange={setDateValue} onModeChange={mode => { if (mode === 'period' || mode === 'date') setExtensionMode(mode) }}
+      onPeriodChange={value => { if (['30', '60', '90'].includes(value)) setPeriodValue(value) }} periodValue={periodValue}
       rcpc={displayTargets?.[0] ?? { rcpcId: rentalIds[0] }} targets={displayTargets ?? current?.items.map(item => ({ rcpcId: item.productNo ?? item.rentalId, location: item.serverRoomName ?? undefined, currentEnd: dateTime(item.previousEnd), specSummary: item.spec ?? undefined })) ?? rentalIds.map(rentalId => ({ rcpcId: rentalId }))}
       rows={current?.items.map(item => ({ key: item.rentalId, product: item.productNo ?? '-', location: item.serverRoomName, period: item.addedDays == null ? '-' : uiText('{count}일', { count: item.addedDays }),
         currentEnd: dateTime(item.previousEnd), nextEnd: dateTime(item.targetEnd), monthlyFee: item.monthlyFee == null ? '-' : uiText('{amount}원', { amount: item.monthlyFee.toLocaleString('ko-KR') }),
