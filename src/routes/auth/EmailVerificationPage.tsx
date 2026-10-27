@@ -175,7 +175,13 @@ export function EmailVerificationPage() {
           <h1>{signupCompleted ? authText("회원가입이 완료되었습니다") : emailVerified ? authText("이메일 인증이 완료되었습니다") : authText("이메일 인증")}</h1>
           {error ? <p role="alert">{authText(error)}</p> : null}
           {signupCompleted ? (
-            <Button as={Link} size="large" to="/">{authText("메인으로")}</Button>
+            <>
+              <div className="result-copy">
+                <p>{authText("컴뷰어스에 오신 것을 환영합니다.")}</p>
+                <p>{authText("이제 가입한 아이디와 비밀번호로 로그인할 수 있습니다.")}</p>
+              </div>
+              <Button as={Link} size="large" to="/">{authText("메인으로")}</Button>
+            </>
           ) : emailVerified ? (
             <>
               <SignupRegistrationStatus progress={progress} onRetry={() => { void retryRegistration() }} />
@@ -185,6 +191,10 @@ export function EmailVerificationPage() {
             </>
           ) : token ? (
             <>
+              <div className="result-copy">
+                <p>{authText("이메일 주소를 확인하는 단계입니다.")}</p>
+                <p>{authText("아래 ‘이메일 인증하기’ 버튼을 눌러 인증을 완료해 주세요.")}</p>
+              </div>
               <Button disabled={busy || restoring} size="large" onClick={() => { void confirm() }}>
                 {busy ? authText("인증 중…") : authText("이메일 인증하기")}
               </Button>
