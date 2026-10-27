@@ -18,7 +18,7 @@ export function rentalDaysRemaining(item: RentalPeriodItem, now = new Date()): n
 }
 
 export function rentalPeriodText(item: RentalPeriodItem): string {
-  if (endedRental(item.rentalStatus)) return translateUiText('이용 종료')
+  if (endedRental(item.rentalStatus) && !rentalResumptionWaiting(item)) return translateUiText('이용 종료')
   if (rentalStartsLater(item)) return translateUiText('이용 시작 전')
   const endsAt = item.serviceEndsAt ? Date.parse(item.serviceEndsAt) : NaN
   const now = Date.now()
@@ -32,6 +32,7 @@ export function rentalPeriodText(item: RentalPeriodItem): string {
   return days === 0 ? translateUiText('오늘 만료') : translateUiText('{v0}일 남음', { v0: days })
 }
 export function rentalOperationalStatus(item: RentalPeriodItem) {
+  if (rentalResumptionWaiting(item)) return 'extension_waiting'
   if (item.rentalStatus !== 'active') return null
   if (rentalStartsLater(item)) return null
   if (item.operationalStatus !== undefined
@@ -43,10 +44,12 @@ export function rentalOperationalStatus(item: RentalPeriodItem) {
   return item.usageStatus === 'extension_waiting' ? 'extension_waiting' : item.usageStatus === 'using' ? 'active' : null
 }
 const rentalStartsLater = (item: RentalPeriodItem) => Boolean(item.serviceStartedAt && Date.parse(item.serviceStartedAt) > Date.now())
+export const rentalResumptionWaiting = (item: RentalPeriodItem) => endedRental(item.rentalStatus)
+  && item.usageStatus === 'extension_waiting' && item.operationalStatus === 'extension_waiting'
 export const rentalActionsEnded = (item: RentalPeriodItem) => endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalOperationalStatus(item) === 'termination_waiting'
 export const extensionBlocked = (item: RentalPeriodItem) =>
-  endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalStartsLater(item)
-  || (rentalOperationalStatus(item) !== 'active' && rentalOperationalStatus(item) !== 'extension_waiting')
+  !rentalResumptionWaiting(item) && (endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalStartsLater(item)
+  || (rentalOperationalStatus(item) !== 'active' && rentalOperationalStatus(item) !== 'extension_waiting'))
 export const rentalServiceAccessible = (item: RentalPeriodItem) =>
   // WAN/reboot operations retain their separate API grace window; renewal has no expiry cutoff.
   item.rentalStatus === 'active' && !extensionBlocked(item) && (rentalDaysRemaining(item) ?? 0) > -2

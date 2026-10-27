@@ -44,7 +44,13 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const terminal = ['cancelled', 'refunded'].includes(orderStatus)
     || ['cancelled', 'refunded'].includes(paymentStatus)
     || ['cancelled', 'refunded'].includes(item.itemStatus)
-  if (terminal || rentalActionsClosed(item)) return variant === 'default' ? <div className="order-catalog-item__actions order-catalog-item__actions--terminal"><OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} /></div> : null
+  const resumptionWaiting = item.customerRentalStatus === 'extension_waiting'
+    && ['terminated', 'refunded'].includes(item.rentalStatus ?? '')
+  if (terminal || rentalActionsClosed(item)) return variant === 'default' ? <div className="order-catalog-item__actions order-catalog-item__actions--terminal">
+    {!cManager && !item.refundPending && resumptionWaiting && item.rentalId && myAccount.rcpcApi
+      ? <RcpcExtensionCheckout api={myAccount.rcpcApi} rentalIds={[Number(item.rentalId)]} triggerLabel={uiText('기간연장')}/> : null}
+    <OrderItemSupportActions api={api} item={item} orderNo={orderNo} orderDetail={orderDetail} paymentStatus={paymentStatus} orderStatus={orderStatus} />
+  </div> : null
   const active = paid && item.customerRentalStatus === 'active' && item.rentalStatus === 'active' && ['paid', 'active', 'completed'].includes(item.itemStatus)
   const canExtend = !cManager && !item.refundPending
     && paid

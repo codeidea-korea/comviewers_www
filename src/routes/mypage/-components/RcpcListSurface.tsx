@@ -14,7 +14,7 @@ import { RcpcReboot, RcpcWanIp } from './RcpcDeviceActions'
 import { RcpcFavoriteButton } from './RcpcFavoriteButton'
 import { RcpcAliasButton, RcpcPeriodLabel, RcpcSpecButton, RcpcTablePeriod } from './RcpcItemTools'
 import { RcpcRemoteAccess } from './RcpcRemoteAccess'
-import { extensionBlocked, extensionTarget, rentalActionsEnded } from './rcpcPresentation'
+import { extensionBlocked, extensionTarget, rentalActionsEnded, rentalResumptionWaiting } from './rcpcPresentation'
 import { RcpcStatusContents } from './rcpc/RcpcStatusContents'
 import { RcpcExtensionAction } from './rcpc/RcpcExtensionAction'
 import { RcpcExtensionCheckout } from './RcpcExtensionCheckout'
@@ -61,6 +61,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
   const selectedItems = items.filter(item => selectedAssetIds.includes(item.pcAssetId))
   const selectedRentalIds = selectedItems.map(item => item.rentalId)
   const showRentalActions = items.some(item => !rentalActionsEnded(item))
+  const showExtensionActions = items.some(item => !rentalActionsEnded(item) || rentalResumptionWaiting(item))
   const toggle = (id: number, checked: boolean) => setSelectedAssetIds(previous => checked
     ? previous.includes(id) || previous.length >= 20 ? previous : [...previous, id]
     : previous.filter(value => value !== id))
@@ -74,7 +75,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
       <RcpcSelectionMenu label={uiText("선택한 RCPC 처리")} className="rcpc-list__bulk-action-buttons" nativeOnMobile>
         <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} initialTargets={selectedItems} key={selectedAssetIds.join(',')}>{uiText("문의")}</InquiryAction>
         {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => { refundReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : refundTriggerRef.current; setRefundRentalIds([...selectedRentalIds]) }} ref={refundTriggerRef} type="button">{uiText("해지신청")}</button> : null}
-        {showRentalActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel={uiText("기간연장")}/> : <button disabled type="button">{uiText("기간연장")}</button> : null}
+        {showExtensionActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={selectedRentalIds.join(',')} rentalIds={selectedRentalIds} triggerLabel={uiText("기간연장")}/> : <button disabled type="button">{uiText("기간연장")}</button> : null}
       </RcpcSelectionMenu>
     </div>
     {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundReturnFocusRef}/> : null}

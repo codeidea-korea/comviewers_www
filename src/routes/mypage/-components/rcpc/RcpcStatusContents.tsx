@@ -13,7 +13,7 @@ export function RcpcStatusContents({ item }: { item: MyRcpcItem }) {
   if (rentalStatus === 'termination_waiting') {
     return <><img alt="" data-status="disabled" src={serverDisabledIcon}/><span><TranslatedText id="rental.formatWaiting"/></span></>
   }
-  if (endedRental(item.rentalStatus)) {
+  if (endedRental(item.rentalStatus) && rentalStatus !== 'extension_waiting') {
     return <><img alt="" data-status="disabled" src={serverDisabledIcon}/><span>{uiText("종료")}</span></>
   }
   if (rentalStatus === 'extension_waiting') {
