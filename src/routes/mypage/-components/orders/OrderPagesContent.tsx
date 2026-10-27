@@ -34,6 +34,7 @@ import serverOffIcon from '@/assets/figma/icon-server-off.svg'
 import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
+import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
 import { PageBackButton } from '@/components/common/PageBackButton'
 import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
 import { RcpcFilterSelect } from '../RcpcFilterSelect'
@@ -43,6 +44,19 @@ function OrderServerRoomName({ name, originalProductNo }: { name: string | null;
   const { uiText } = useUiTranslation()
   const room = useLocalizedServiceName('serverRoom', name)
   return originalProductNo ? uiText('원 주문 품번 {productNo} · 원 주문 서버실 {room}', { productNo: originalProductNo, room }) : room
+}
+
+function OrderProductInformation({ item }: { item: AccountOrderItem }) {
+  useUiTranslation()
+  const { t } = useTranslation()
+  if (!showsRentalUsagePeriod(item)) {
+    return <AccountInfo rows={[[uiText('상품'), item.title], [uiText('수량'), t('unit.quantity', { count: item.quantity })]]} />
+  }
+  return <AccountInfo rows={[
+    [uiText('PC사양'), <PcSpecSummary text={item.specSummary} fallback={uiText('기록 없음')} />],
+    ...(isRentalExtensionOrderItem(item) ? [] : [[t('money.monthlyRental'), t('money.krwAmount', { amount: item.unitPrice.toLocaleString('ko-KR') })]] as const),
+    [uiText('이용기간'), <OrderItemPeriod item={item} />],
+  ]} />
 }
 
 const rentalStatusKeys: Record<string, TranslationKey> = {
@@ -343,8 +357,8 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         <div className="order-catalog-item__heading"><strong><RelativeLink to={productDetailPath}><TranslatedText id="product.number" /> {item.productNo}</RelativeLink></strong><small><OrderServerRoomName name={item.serverRoomName} originalProductNo={item.replacementSourceProductNo} /></small>{showRentalStatus ? <em className="order-catalog-item__state">{displayRentalStatus === 'termination_waiting' ? <FormatWaitingServerState/> : <><OrderRentalStatusIcon status={displayRentalStatus ?? ''} />{rentalStatusKeys[displayRentalStatus ?? ''] ? <TranslatedText id={rentalStatusKeys[displayRentalStatus ?? '']} /> : '-'}</>}{item.replacementSourceProductNo ? uiText(' · 교체이용') : null}</em> : null}</div>
                         <OrderProductDescription item={item} />
                         </div>
-                        {item.billingUnit !== 'unit' ? (
-                          <span className="order-catalog-item__period"><img src={dateRangeIcon} alt="" />{displayOrderDate(item.serviceStartedAt)}~{displayOrderDate(item.serviceEndsAt)}</span>
+                        {showsRentalUsagePeriod(item) ? (
+                          <div className="order-catalog-item__period"><img src={dateRangeIcon} alt="" />{isRentalExtensionOrderItem(item) ? <OrderItemPeriod item={item} /> : <>{displayOrderDate(item.serviceStartedAt)}~{displayOrderDate(item.serviceEndsAt)}</>}</div>
                         ) : <span className="order-catalog-item__period"><TranslatedText id="unit.quantity" values={{ count: item.quantity }} /></span>}
                         {!terminal && !item.replacementSourceProductNo ? <p className="order-catalog-item__totals">
                           <span><TranslatedText id="order.finalPayment" /> <b>{t('money.krwAmount', { amount: finalItemAmount.toLocaleString('ko-KR') })}</b></span>
@@ -424,7 +438,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
     ] as const : []),
   ] : []
   const content = <div className="order-full-detail content-container"><div className="order-full-detail__heading"><PageBackButton fallbackTo="/mypage/orders" label={uiText("주문내역으로 뒤로가기")}/><h1><TranslatedText id="order.details" /></h1></div><AccountQueryState pending={result.isPending} error={result.error} retry={result.refetch}/>{order && <div className="order-full-detail__body">
-    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? uiText('교체 이용') : isReplacementOriginal(item) ? uiText('교체 완료') : <LocalizedServiceName kind="serverRoom" name={item.serverRoomName} />}</span></header><AccountInfo rows={item.billingUnit === 'unit' ? [[uiText('상품'), item.title], [uiText('수량'), t('unit.quantity', { count: item.quantity })]] : [[uiText('PC사양'), <PcSpecSummary text={item.specSummary} fallback={uiText('기록 없음')} />], [t('money.monthlyRental'), formatPaymentAmount(item.unitPrice)], [uiText('이용기간'), <OrderItemPeriod item={item} />]]}/></article>)}</section>
+    <section className="order-full-products"><h2><TranslatedText id="order.information" /></h2>{order.items.flatMap(displayOrderItems).map(item => <article key={displaySelectionId(item)}><header><span className="order-full-product-number"><TranslatedText id="product.number" /><b>{item.productNo}</b></span><span className="order-full-product-location">{item.replacementSourceProductNo ? uiText('교체 이용') : isReplacementOriginal(item) ? uiText('교체 완료') : <LocalizedServiceName kind="serverRoom" name={item.serverRoomName} />}</span></header><OrderProductInformation item={item} /></article>)}</section>
     <section className="order-full-section"><h2><TranslatedText id="order.paymentInformation" /></h2><AccountInfo rows={paymentRows}/></section>
     {order.refunds.length > 0 ? <section className="order-full-section order-full-section--refund"><h2><TranslatedText id="refund.information" /></h2>{order.refunds.map(refund => {
       const refundedItem = order.items.find(item => item.orderItemId === refund.orderItemId)

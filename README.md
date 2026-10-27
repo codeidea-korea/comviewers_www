@@ -1,5 +1,9 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-27 연장결제 완료와 주문상세 이용기간 표시
+
+연장결제의 `unit` 과금을 일반 단품으로 오인하던 표시를 API의 `fulfillmentType=rental_extension`으로 구분했다. 완료/상세/주문목록에 해당 주문에 저장된 실제 시작/종료를 표시하고 미입금·기간 미확정은 `extensionAddedDays`의 선택 N일만 표시한다. 연장 청구총액을 월렌탈료로 표시하지 않으며 일반 렌탈/단품·기존 FB7 조정 배지 조건은 유지한다. 새 두필드는 optional/nullable로 구응답을 파싱할 수 있다. [API 공동 계약](../comviewers-api/README.md#2026-10-27-연장-주문-이용기간-표시-정보)·[상세 기록](../tmp/extension-completion-period-20261027/REPORT.md)을 따른다. L2 표시/L0 기록·diff/분기/참조 정적 확인이며 테스트/컴파일/빌드/lint/typecheck·새 브라우저 검증·배포는 하지 않았다. 실제 반영에는 API와 고객 웹 공동 배포가 필요하다.
+
 ## 2026-10-27 연장기간 최대3개월 복구
 
 격리Chrome 합성UI19건·고객checkout/보관offer adapter계약1건·실제로컬API9건 및 두웹빌드를 통과했다. 지연/실패한 새견적이 옛기간 결제로 이어지지 않는 것과 담당자 세 과금단위의3개월을 확인했다. [웹 상세](../tmp/rental-extension-90days-local-20261027/web/REPORT.md)를 따르며 실제고객결제·공유DB·배포 변경은 없다.

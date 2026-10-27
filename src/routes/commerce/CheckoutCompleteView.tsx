@@ -17,6 +17,7 @@ import { useInvalidateProductCatalog } from './-components/hooks/useInvalidatePr
 import { useSession } from '@/app/session/SessionProvider'
 import { clearCheckoutRecoveryForOrder } from '@/domain/checkout/checkoutRecovery'
 import { tossConfirmationAmountSchema } from '@/api/ordersPayments'
+import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
 
 export function CheckoutCompletePage() {
   return <CheckoutPaymentResult />
@@ -147,8 +148,11 @@ function CheckoutPaymentResult() {
 const paymentMethods: Record<string, string> = { card: '카드결제', virtual_account: '가상계좌', payco: '페이코', naver_pay: '네이버페이', kakao_pay: '카카오페이' }
 
 export function checkoutCompleteUsagePeriod(item: AccountOrderItem, waitingForDeposit: boolean) {
-  if (item.billingUnit === 'unit') return '-'
+  if (!showsRentalUsagePeriod(item)) return '-'
   if (!waitingForDeposit) return `${accountDate(item.serviceStartedAt)} ~ ${accountDate(item.serviceEndsAt)}`
+  if (isRentalExtensionOrderItem(item)) {
+    return item.extensionAddedDays ? translateUiText('{count}일', { count: item.extensionAddedDays }) : '-'
+  }
   const duration = Math.max(1, item.durationUnits ?? 1)
   const waitingDuration: Record<string, string> = {
     hour: translateUiText('{count}시간', { count: duration }),
@@ -161,7 +165,7 @@ export function checkoutCompleteUsagePeriod(item: AccountOrderItem, waitingForDe
 
 function completeProduct(item: AccountOrderItem, waitingForDeposit: boolean) {
   const usagePeriod = checkoutCompleteUsagePeriod(item, waitingForDeposit)
-  const part = item.billingUnit === 'unit'
+  const part = !showsRentalUsagePeriod(item)
   return { key: item.orderItemId, title: item.title.trim() || item.productNo, productNo: item.productNo, serverRoom: item.serverRoomName ?? '-',
     spec: item.specSummary ?? translateUiText('기록 없음'), specLabel: part ? '기본 설명' as const : 'PC사양' as const,
     availability: part ? undefined : item.instantAvailable ? '바로 접속 가능' : '접속 준비 상태 확인 필요',

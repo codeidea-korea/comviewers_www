@@ -2,6 +2,7 @@ import type { AccountOrderItem } from '@/api/myAccountOrders'
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { accountKstDate } from '@/lib/accountFormat'
 import { isReplacementOriginal } from './orderRentalPresentation'
+import { isRentalExtensionOrderItem } from '@/lib/orderItemPresentation'
 import './order-item-period.css'
 
 export function OrderItemPeriod({ item }: { item: AccountOrderItem }) {
@@ -10,6 +11,9 @@ export function OrderItemPeriod({ item }: { item: AccountOrderItem }) {
   const end = accountKstDate(item.serviceEndsAt)
   const adjustedEnd = accountKstDate(item.adminAdjustedServiceEndsAt ?? null)
   const originalPeriod = `${start} ~ ${end}`
+  if (isRentalExtensionOrderItem(item) && (start === '-' || end === '-')) {
+    return <>{item.extensionAddedDays ? uiText('{count}일', { count: item.extensionAddedDays }) : originalPeriod}</>
+  }
   if (item.billingUnit === 'unit' || isReplacementOriginal(item) || start === '-' || end === '-' || adjustedEnd === '-' || adjustedEnd === end) {
     return <>{originalPeriod}</>
   }

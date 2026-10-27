@@ -9,6 +9,8 @@ export const accountOrderQuerySchema = accountPageQuery.and(z.object({ rentalSta
 export const accountOrderItemSchema = z.object({ orderItemId: accountId, productNo: productNoResponseSchema, title: z.string(), serverRoomName: text, categoryCode: text, categoryName: text, pcAssetId: accountId.nullable(), currentPcAssetId: accountId.nullable().optional(), currentProductNo: productNoResponseSchema.nullable().optional(), currentReplacementUsing: z.boolean().optional(), quantity: z.number().int().positive().max(2147483647), billingUnit: z.string(), durationUnits: z.number().int().positive().max(2147483647).nullable(), unitPrice: amount, setupFee: amount, amount, itemStatus: z.string(), serviceStartedAt: time, serviceEndsAt: time,
   currentRentalOperationalStatus: rentalOperationalStatusSchema.nullable().optional(),
   adminAdjustedServiceEndsAt: time.optional(),
+  fulfillmentType: text.optional(),
+  extensionAddedDays: z.number().int().min(1).max(90).nullable().optional(),
   purchaseConfirmationHidden: z.boolean().optional(),
   rentalId: accountId.nullable(), rentalStatus: text, purchaseConfirmedAt: time, automaticConfirmationAt: time, specSummary: text, imageUrl: text, couponDiscountAmount: amount, pointUsedAmount: amount, refundPending: z.boolean(), reviewId: accountId.nullable(), expectedPoints: amount.nullable(), accruedPoints: amount.nullable(), customerRentalStatus: rentalOperationalStatusSchema.nullable(), instantAvailable: z.boolean() })
 export type AccountOrderItem = z.infer<typeof accountOrderItemSchema>
