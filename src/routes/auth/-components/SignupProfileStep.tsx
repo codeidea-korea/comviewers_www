@@ -30,6 +30,7 @@ function StandardSignupProfileStep() {
       <div className="result-copy signup-request-copy">
         <p>{locale === 'ko' ? <><strong>{profile.name}</strong>님의 회원가입을 위한 <u>{authText("이메일 인증")}</u>이 필요합니다.</> : t('auth.signupForName', { name: profile.name })}</p>
         <p>{authText("입력하신 이메일 주소로 인증 메일을 발송했습니다.")}<br />{authText("이메일 인증을 완료하면 회원가입이 최종 완료되며 서비스를 이용할 수 있습니다.")}</p>
+        <p>{authText('다른 기기에서 이메일을 인증해도 이 화면에서 자동으로 가입이 완료됩니다. 완료될 때까지 이 화면을 닫거나 새로고침하지 마세요.')}</p>
         <p>{authText("인증 링크는 발송 후 24시간 동안 유효합니다.")}<br />{authText("메일 재발송 시 이전 링크는 즉시 만료되며, 인증을 완료한 링크는 다시 사용할 수 없습니다.")}</p>
         <dl><div><dt>{authText("이름")}</dt><dd>{profile.name}</dd></div><div><dt>{authText("아이디")}</dt><dd>{profile.loginId}</dd></div><div><dt>Email</dt><dd>{profile.emailId}@{profile.emailDomain}</dd></div></dl>
         {notice ? <p aria-live="polite" className="auth-notice">{authText(notice)}</p> : null}

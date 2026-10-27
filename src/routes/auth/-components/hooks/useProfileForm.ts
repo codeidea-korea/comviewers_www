@@ -183,7 +183,10 @@ export function useProfileForm() {
           termsAgreements: agreements,
           marketingEmailAgreed: loadSignupMarketingEmailConsent(),
         },
-      })
+      }, requested.signupSessionSecret ? {
+        credentials: { requestId: requested.requestId, signupSessionSecret: requested.signupSessionSecret },
+        expiresAt: requested.expiresAt,
+      } : undefined)
     } catch (cause) {
       if (formRevision.current !== submittedRevision) return
       signupCoordinator.cancel()

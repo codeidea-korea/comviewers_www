@@ -16,8 +16,11 @@ const signupTerm = z.object({
   contentHash: z.string().min(1),
   effectiveFrom: dateTime,
 })
-const verificationRequest = z.object({ requestId: z.string().min(1), expiresAt: dateTime })
-const verificationConfirmation = z.object({ verificationProof: z.string().min(1), expiresAt: dateTime, requestId: z.string().optional().nullable() })
+const verificationRequest = z.object({ requestId: z.string().min(1), expiresAt: dateTime, signupSessionSecret: z.string().regex(/^[A-Za-z0-9_-]{43}$/).optional().nullable() })
+const verificationConfirmation = z.object({ verificationProof: z.string().min(1).optional().nullable(), expiresAt: dateTime, requestId: z.string().optional().nullable() })
+const verificationStatus = z.object({ status: z.enum(['pending', 'verified', 'completed', 'expired', 'invalid']), expiresAt: dateTime.nullish().transform(value => value ?? null) })
+export type EmailVerificationStatus = z.infer<typeof verificationStatus>
+export type EmailVerificationStatusCredentials = { requestId: string; signupSessionSecret: string } | { token: string }
 const registration = z.object({ userId: id, username: z.string().min(1), name: z.string().min(1), email: z.email(), signupBonusPoints: z.number().int().nonnegative().optional() })
 
 export type SignupTerm = z.infer<typeof signupTerm>
@@ -73,7 +76,7 @@ export function createPublicAccountApi(baseUrl: string) {
     },
     async requestEmailVerification(email: string, nickname: string) {
       try {
-        return await client.request('/api/auth/email-verifications', verificationRequest, { method: 'POST', body: { email, nickname } })
+        return await client.request('/api/auth/email-verifications', verificationRequest, { method: 'POST', body: { email, nickname, crossDevice: true } })
       } catch (cause) {
         if (cause instanceof ApiClientError && cause.code === 'U005') {
           throw new NicknameUnavailableError(signupRegistrationErrorMessage(cause.code) ?? '이미 사용 중인 닉네임입니다.')
@@ -85,6 +88,9 @@ export function createPublicAccountApi(baseUrl: string) {
     },
     confirmEmailVerification(token: string) {
       return client.request('/api/auth/email-verifications/confirm', verificationConfirmation, { method: 'POST', body: { token } })
+    },
+    emailVerificationStatus(credentials: EmailVerificationStatusCredentials, signal?: AbortSignal) {
+      return client.request('/api/auth/email-verifications/status', verificationStatus, { method: 'POST', body: credentials, signal })
     },
     async register(input: RegistrationInput, signal?: AbortSignal) {
       try {

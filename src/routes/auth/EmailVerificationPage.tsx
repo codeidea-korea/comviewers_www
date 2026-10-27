@@ -1,5 +1,5 @@
 import { useAuthTranslation } from '@/routes/auth/authTranslation'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 import { useAuthentication } from '@/app/session/AuthProvider'
 import { getPublicAccountApi } from '@/api/publicAccount'
@@ -10,6 +10,7 @@ import { Toast, useToastMessage } from '@/components/ui/ToastControl'
 import { Button } from '@/components/ui/ButtonControl'
 import { deliverEmailVerification, listenForSignupCompletion, listenForSignupProgress, requestSignupRetry, verificationTokenFromLink, type EmailVerificationResult, type SignupRegistrationProgress } from './-components/emailVerificationChannel'
 import { SignupRegistrationStatus } from './-components/SignupRegistrationStatus'
+import { useEmailVerificationPolling } from './-components/hooks/useEmailVerificationPolling'
 
 const expiredLinkMessage = '이메일 인증 유효시간이 만료되었습니다. 회원가입을 다시 시도해 주세요.'
 const invalidLinkMessage = '이미 사용되었거나 유효하지 않은 링크입니다.'
@@ -42,6 +43,10 @@ export function EmailVerificationPage() {
   const [originalScreenNeeded, setOriginalScreenNeeded] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [remoteExpiresAt, setRemoteExpiresAt] = useState<string | null>(null)
+  const statusCredentials = useMemo(() => remoteExpiresAt ? { token } : null, [remoteExpiresAt, token])
+  const remoteStatus = useEmailVerificationPolling(getPublicAccountApi(), statusCredentials,
+    !!remoteExpiresAt && !signupCompleted, false, remoteExpiresAt ?? undefined)
   const { message: toastMessage, toastKey, setMessage } = useToastMessage()
   useLayoutEffect(() => {
     window.history.replaceState(window.history.state, '', window.location.pathname)
@@ -57,6 +62,13 @@ export function EmailVerificationPage() {
       verification.current = null
     }
   }, [])
+  useEffect(() => {
+    if (remoteStatus?.result?.status === 'completed') {
+      completed.current = true
+      setSignupCompleted(true)
+      setError('')
+    }
+  }, [remoteStatus])
   useEffect(() => {
     if (!progress || signupCompleted || !['processing', 'waiting'].includes(progress.state)) return
     const staleAt = progress.state === 'waiting' && progress.retryAt
@@ -108,7 +120,12 @@ export function EmailVerificationPage() {
       const value = await api.confirmEmailVerification(linkToken)
       if (!active.current || generation.current !== currentGeneration) return
       if (!value.requestId) throw new Error('인증 결과를 연결할 수 없습니다. 원래 화면에서 인증 메일을 다시 요청해 주세요.')
-      const message = { ...value, requestId: value.requestId }
+      if (!value.verificationProof) {
+        setEmailVerified(true)
+        setRemoteExpiresAt(value.expiresAt)
+        return
+      }
+      const message = { ...value, verificationProof: value.verificationProof, requestId: value.requestId }
       verification.current = message
       stopCompletionListener.current?.()
       stopProgressListener.current?.()
@@ -183,7 +200,13 @@ export function EmailVerificationPage() {
               <Button as={Link} size="large" to="/">{authText("메인으로")}</Button>
             </>
           ) : emailVerified ? (
-            <>
+            remoteExpiresAt ? <div className="result-copy" aria-live="polite">
+              <p>{authText('회원가입을 시작한 화면을 열어 두시면 자동으로 가입이 완료됩니다.')}</p>
+              <p>{authText('해당 화면을 닫거나 새로고침했다면 회원가입을 다시 신청해 주세요.')}</p>
+              {remoteStatus?.unavailable ? <p role="status">{authText('이메일 인증 상태를 확인하지 못했습니다. 연결되면 자동으로 다시 확인합니다.')}</p> : null}
+              {remoteStatus?.result && ['expired', 'invalid'].includes(remoteStatus.result.status)
+                ? <p role="alert">{authText('이메일 인증 정보가 만료되었거나 현재 신청과 일치하지 않습니다. 회원가입을 다시 신청해 주세요.')}</p> : null}
+            </div> : <>
               <SignupRegistrationStatus progress={progress} onRetry={() => { void retryRegistration() }} />
               {originalScreenNeeded ? (
                 <p><Link to="/signup/profile">{authText('회원가입 화면으로')}</Link></p>
