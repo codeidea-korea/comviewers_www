@@ -72,6 +72,7 @@ export function SessionControls({ loginLabel = '로그인', appearance = 'defaul
       <summary><img key={hasProfileImage ? profileImage : 'default'} alt="" aria-hidden="true" className={hasProfileImage ? undefined : 'is-default'} src={hasProfileImage ? profileImage : userIcon} onError={() => { if (hasProfileImage) setFailedProfileImage(profileImage) }} /><span>{displayName}</span></summary>
       <div>
         <OrganizationSelector />
+        <Link to="/mypage/rcpc?usageStatus=using"><TranslatedText id="nav.activeRcpc" /></Link>
         <Link to="/mypage"><TranslatedText id="nav.myPage" /></Link>
         <button type="button" onClick={() => { void auth.logout().catch(() => setError('로그아웃 상태를 다시 확인해 주세요.')) }}><TranslatedText id="nav.logout" /></button>
       </div>
