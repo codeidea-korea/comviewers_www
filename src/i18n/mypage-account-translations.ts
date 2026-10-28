@@ -1,5 +1,7 @@
 /** Account, orders, benefits, storage and profile interface copy. Business data retain their source values. */
 export const mypageAccountTranslations = [
+  {"key":"mypageAccount.comviewersOrderNumber","source":"mypageAccount","ko":"컴뷰어스 주문번호","vi":"Mã đơn hàng ComViewers","ja":"ComViewers注文番号","en":"ComViewers order number","zh-CN":"ComViewers订单编号","zh-TW":"ComViewers訂單編號"},
+  {"key":"mypageAccount.tossOrderNumber","source":"mypageAccount","ko":"토스 주문번호","vi":"Mã đơn hàng Toss","ja":"Toss注文番号","en":"Toss order number","zh-CN":"Toss订单编号","zh-TW":"Toss訂單編號"},
   {"key":"mypageAccount.adminChangedPeriod","source":"mypageAccount","ko":"관리자 변경","vi":"Quản trị viên thay đổi","ja":"管理者による変更","en":"Changed by admin","zh-CN":"管理员更改","zh-TW":"管理員變更"},
   {"key":"mypageAccount.adminChangedPeriodNotice","source":"mypageAccount","ko":"관리자에 의해 렌탈 종료일이 변경되었습니다.","vi":"Quản trị viên đã thay đổi ngày kết thúc thuê.","ja":"管理者によりレンタル終了日が変更されました。","en":"The rental end date was changed by an administrator.","zh-CN":"管理员已更改租赁结束日期。","zh-TW":"管理員已變更租賃結束日期。"},
   {"key":"mypageAccount.couponTenPercent","source":"mypageAccount","ko":"10% 할인쿠폰","vi":"Phiếu giảm giá 10%","ja":"10%割引クーポン","en":"10% discount coupon","zh-CN":"九折优惠券","zh-TW":"九折優惠券"},

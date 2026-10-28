@@ -51,7 +51,7 @@ export const extensionBlocked = (item: RentalPeriodItem) =>
   !rentalResumptionWaiting(item) && (endedRental(item.rentalStatus) || item.usageStatus === 'ended' || rentalStartsLater(item)
   || (rentalOperationalStatus(item) !== 'active' && rentalOperationalStatus(item) !== 'extension_waiting'))
 export const rentalServiceAccessible = (item: RentalPeriodItem) =>
-  // WAN/reboot operations retain their separate API grace window; renewal has no expiry cutoff.
+  // WAN/reboot operations retain their separate API grace window; renewal eligibility comes from its quote.
   item.rentalStatus === 'active' && !extensionBlocked(item) && (rentalDaysRemaining(item) ?? 0) > -2
   && ['using', 'extension_waiting'].includes(item.usageStatus)
 export const traffic = (bytes: number | null) => bytes === null ? '-' : `${(bytes / 1_000_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 2 })} GB`

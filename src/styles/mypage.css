@@ -217,6 +217,7 @@
 .mypage-tabs--buttons button { align-items: center; background: white; border: 0; border-bottom: 3px solid transparent; display: flex; font-family: inherit; font-size: 14px; justify-content: center; min-width: 132px; padding: 0 24px; }
 .mypage-tabs--buttons button[aria-pressed='true'] { border-color: var(--color-black); font-weight: 700; }
 .rcpc-list-page { height: auto; min-height: 0; }
+.rcpc-list__loading { margin: 20px 0 0; text-align: center; }
 .rcpc-list-toolbar { align-items: end; display: flex; justify-content: space-between; margin: 18px 0 12px; }
 .rcpc-list-filters { align-items: end; display: flex; gap: 8px; min-height: 56px; }
 .rcpc-list-filters label { color: var(--color-gray-600); display: grid; font-size: 12px; gap: 4px; }

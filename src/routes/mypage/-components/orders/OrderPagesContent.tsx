@@ -39,6 +39,7 @@ import { PageBackButton } from '@/components/common/PageBackButton'
 import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
 import { RcpcFilterSelect } from '../RcpcFilterSelect'
 import './orders-mobile.css'
+import './order-identifiers.css'
 
 function OrderServerRoomName({ name, originalProductNo }: { name: string | null; originalProductNo?: string | null }) {
   const { uiText } = useUiTranslation()
@@ -343,9 +344,13 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         ) : null}
                         <strong className={`notranslate${item.refundPending ? ' is-red' : ''}`} translate="no">{rowStatusKeys[status] ? t(rowStatusKeys[status]) : uiText(status)}</strong>
                       </label>
-                      <span>{order.orderNo}</span>
+                      <span>{uiText('컴뷰어스 주문번호')} {order.orderNo}</span>
                       <RelativeLink className="notranslate" translate="no" to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
                     </header>
+                    <div className="order-catalog-item__provider-ids">
+                      <span>{uiText('토스 주문번호')}</span>
+                      <span>{order.providerOrderIds?.length ? order.providerOrderIds.join(' / ') : '-'}</span>
+                    </div>
                     <div className="order-catalog-item__product">
                       <RelativeLink aria-label={uiText('{name} 상품 상세 보기', { name: item.title })} className="order-catalog-item__image" to={productDetailPath}>
                         <img src={item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? item.imageUrl : windowsCard} alt={item.title} />
@@ -419,7 +424,8 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
   const paymentMethod = payment?.method ?? order?.paymentMethod
   const formatPaymentAmount = (amount: number) => t('money.krwAmount', { amount: amount.toLocaleString('ko-KR') })
   const paymentRows: readonly (readonly [string, string])[] = order ? [
-    [uiText('주문번호'), order.orderNo],
+    [uiText('컴뷰어스 주문번호'), order.orderNo],
+    [uiText('토스 주문번호'), order.payments.filter(item => item.providerOrderId).map(item => `${item.providerOrderId} (${uiText(accountStatus(item.status))})`).join(' / ') || '-'],
     [uiText('주문일시'), accountDate(order.orderedAt).slice(0, 19)],
     [uiText('상품금액'), formatPaymentAmount(order.subtotalAmount)],
     ...(order.setupFeeAmount > 0 ? [[uiText('세팅비'), formatPaymentAmount(order.setupFeeAmount)]] as const : []),

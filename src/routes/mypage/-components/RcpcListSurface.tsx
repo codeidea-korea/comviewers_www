@@ -104,7 +104,7 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
         {showExtensionActions ? canExtend && selectedItems.length && selectedItems.length === selectedRentalSelectionIds.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={`extension:${selectedRentalIds.join(',')}`} rentalIds={selectedRentalIds} triggerLabel={uiText("기간연장")}/> : <button disabled type="button">{uiText("기간연장")}</button> : null}
       </RcpcSelectionMenu>
     </div>
-    {selectingAll ? <p role="status">{uiText("정보를 불러오는 중입니다.")}</p> : null}
+    {selectingAll ? <p className="rcpc-list__loading" role="status">{uiText("정보를 불러오는 중입니다.")}</p> : null}
     {selectionError ? <p role="alert">{uiText("이용 RCPC를 불러오지 못했습니다.")} {uiText("다시 시도")}</p> : null}
     {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedRentalSelectionIds([]); setSelectedSnapshot([]) }} returnFocusRef={refundReturnFocusRef}/> : null}
     <RcpcListTable api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={items} mutations={mutations} onSort={onSort} pending={pending} sortConfig={sortConfig} selection={{

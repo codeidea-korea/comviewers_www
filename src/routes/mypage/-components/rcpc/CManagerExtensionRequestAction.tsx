@@ -33,10 +33,7 @@ export function CManagerExtensionRequestAction({ api, item }: { api: MyRcpcReadS
   const quote = useQuery({
     queryKey: ['c-manager-extension-quote', api.organizationId, item.rentalId, months],
     enabled: open,
-    queryFn: async () => {
-      const baseline = await api.extensionQuote(item.rentalId)
-      return months === 1 ? baseline : api.extensionQuote(item.rentalId, baseline.units * months)
-    },
+    queryFn: () => api.extensionQuote(item.rentalId, undefined, months * 30),
     retry: false,
   })
   const history = useQuery({

@@ -156,7 +156,7 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
       {!accessDenied ? <AccountQueryState error={rows.isFetchNextPageError ? null : rows.error} pending={rows.isPending} retry={rows.refetch}/> : null}
       {accessDenied || page ? <>
         <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={inquiryItems ?? []} totalCount={page?.totalElements ?? 0} loadAll={loadAll} key={`${api.organizationId}:${accessDenied}:${JSON.stringify(query)}`} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} pending={false} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
-        {!accessDenied && rows.hasNextPage ? <div ref={sentinelRef} role="status">{rows.isFetchingNextPage ? uiText("정보를 불러오는 중입니다.") : null}</div> : null}
+        {!accessDenied && rows.hasNextPage ? <div ref={sentinelRef} role="status">{rows.isFetchingNextPage ? <p className="rcpc-list__loading">{uiText("정보를 불러오는 중입니다.")}</p> : null}</div> : null}
         {!accessDenied && rows.isFetchNextPageError ? <p role="alert">{uiText("목록을 불러오지 못했습니다.")} <button type="button" onClick={() => void rows.fetchNextPage()}>{uiText("다시 시도")}</button></p> : null}
       </> : null}
     </div>

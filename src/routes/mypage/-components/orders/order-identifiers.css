@@ -1,0 +1,27 @@
+.orders-catalog-list .order-catalog-item__provider-ids {
+  color: var(--color-gray-600);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 4px 8px;
+  overflow-wrap: anywhere;
+  padding-bottom: 8px;
+}
+
+.orders-catalog-list .order-catalog-item__provider-ids span:last-child {
+  min-width: 0;
+}
+
+.order-full-section dd,
+.complete-page .complete-detail-table dd {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .orders-catalog-list .order-catalog-item header > span {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+}

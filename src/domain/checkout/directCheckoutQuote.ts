@@ -18,12 +18,15 @@ export function validateDirectCheckoutQuote(quote: ExtensionQuote, selection: Ex
   }
   const merchandise = quote.purchaseItems.reduce((sum, item) => sum + BigInt(item.lineAmount), 0n)
   const setup = quote.purchaseItems.reduce((sum, item) => sum + BigInt(item.setupFee) * BigInt(item.quantity), 0n)
+  const extensionAmount = quote.items.reduce((sum, item) => sum + BigInt(item.amount ?? 0), 0n)
+  const extensionsEligible = quote.items.every(item => item.eligible && item.amount !== null) && extensionAmount <= 2147483647n
+  const expectedExtensionAmount = extensionsEligible ? extensionAmount : 0n
   if (quote.purchaseItems.some(item => item.productNo === null
     || (item.billingUnit !== 'unit' && item.durationUnits === null)
     || BigInt(item.unitPrice) * BigInt(item.quantity) * BigInt(item.billingUnit === 'unit' ? 1 : item.durationUnits ?? 0) !== BigInt(item.lineAmount))
     || merchandise !== BigInt(quote.purchaseSubtotalAmount) || setup !== BigInt(quote.purchaseSetupFeeAmount)
     || BigInt(quote.totalAmount) !== BigInt(quote.extensionAmount) + merchandise + setup
-    || quote.items.reduce((sum, item) => sum + BigInt(item.amount ?? 0), 0n) !== BigInt(quote.extensionAmount)) {
+    || expectedExtensionAmount !== BigInt(quote.extensionAmount) || (quote.eligible && !extensionsEligible)) {
     throw new Error('주문 견적 금액을 확인할 수 없습니다.')
   }
   return quote

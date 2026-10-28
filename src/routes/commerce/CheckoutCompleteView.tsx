@@ -18,6 +18,7 @@ import { useSession } from '@/app/session/SessionProvider'
 import { clearCheckoutRecoveryForOrder } from '@/domain/checkout/checkoutRecovery'
 import { tossConfirmationAmountSchema } from '@/api/ordersPayments'
 import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
+import '../mypage/-components/orders/order-identifiers.css'
 
 export function CheckoutCompletePage() {
   return <CheckoutPaymentResult />
@@ -197,7 +198,7 @@ function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, pa
     ['입금기한', <span className="complete-deadline" key="deadline"><strong>{accountKstDate(dueAt)}</strong><em>{uiText("* 입금기한 내 미입금 시 자동 취소됩니다.")}</em></span>],
   ] : []
   const paymentRows: readonly (readonly [string, ReactNode])[] = [
-    ['주문번호', order.orderNo], ['주문일시', accountDate(order.orderedAt)],
+    ['컴뷰어스 주문번호', order.orderNo], ['토스 주문번호', payment?.providerOrderId ?? '-'], ['주문일시', accountDate(order.orderedAt)],
     ['결제방식', uiText(paymentMethods[paymentMethod] ?? paymentMethod)], ['결제금액', accountMoney(paymentAmount)],
     ['결제상태', <PaymentStatusText key="payment-status" label={display.label} />],
     ...depositRows,
