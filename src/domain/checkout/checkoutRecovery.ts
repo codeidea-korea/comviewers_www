@@ -9,7 +9,6 @@ import { checkoutPaymentMethodSchema } from './checkoutDraft'
 const prefix = 'comviewers.checkout.recovery.v1:'
 // Tab session only. Keep the creation payload briefly; never persist receipt identifiers or PG credentials.
 const lifetime = 2 * 60 * 60 * 1000
-const requestLimit = 65536
 const recordLimit = 512 * 1024
 const payment = checkoutPaymentMethodSchema
 const globalCardPayment = z.enum(['card', 'foreign_card']).optional()
@@ -47,7 +46,6 @@ export function readCheckoutRecovery(key: string): CheckoutRecovery | null {
   try {
     const raw = sessionStorage.getItem(key)
     if (!raw) return null
-    if (raw.length > recordLimit) { sessionStorage.removeItem(key); return null }
     const parsed = recordSchema.safeParse(JSON.parse(raw))
     if (!parsed.success || parsed.data.expiresAt <= Date.now() || parsed.data.expiresAt > Date.now() + lifetime) { sessionStorage.removeItem(key); return null }
     scheduleExpiry(key, parsed.data.expiresAt)
@@ -58,7 +56,6 @@ export function readCheckoutRecovery(key: string): CheckoutRecovery | null {
 export function saveCheckoutRecovery(key: string, request: CheckoutCancellationRequest, returnTo: string, display?: CheckoutRecoveryDisplay): CheckoutRecovery {
   const record = recordSchema.parse({ expiresAt: Date.now() + lifetime, request, returnTo: checkoutReturnTo(returnTo), orderNo: null })
   const base = JSON.stringify(record)
-  if (base.length > requestLimit) throw new Error('주문서 복구 정보를 보관할 수 없습니다.')
   // Display snapshots cannot create/pay orders and contain no receipt identifiers or PG credentials.
   const parsed = displaySchema.safeParse(display)
   const withDisplay = parsed.success && parsed.data.source === request.source ? { ...record, display: parsed.data } : record

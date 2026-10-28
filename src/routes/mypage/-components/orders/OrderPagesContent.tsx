@@ -225,12 +225,12 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
   const selectableIds = visibleItems
     .filter(({ item }) => Boolean(item.rentalId && currentOrderPcAssetId(item)))
     .map(({ item }) => displaySelectionId(item))
-  const selectableBulkIds = selectableIds.slice(0, 20)
+  const selectableBulkIds = selectableIds
   const allSelected = selectableBulkIds.length > 0 && selectableBulkIds.every((id) => selected.includes(id))
   const selectedInquiryIds = [...new Set(visibleItems
     .filter(({ item }) => selected.includes(displaySelectionId(item)) && item.rentalId && currentOrderPcAssetId(item))
     .map(({ item }) => Number(currentOrderPcAssetId(item)))
-    .filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 20)
+    .filter((id) => Number.isSafeInteger(id) && id > 0))]
   const selectedRefundRentalIds = [...new Set(visibleItems
     .filter(({ item, order }) => selected.includes(displaySelectionId(item))
       && canApplyDirectRefund(item, order.paymentStatus, order.orderStatus))
@@ -243,7 +243,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
 
   const toggleSelected = (id: string, checked: boolean) => {
     setSelected((current) => checked
-      ? [...new Set([...current, id])].slice(0, 20)
+      ? [...new Set([...current, id])]
       : current.filter((value) => value !== id))
   }
 
@@ -307,7 +307,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                     onChange={(event) => setSelected(event.target.checked ? selectableBulkIds : [])}
                     type="checkbox"
                   />
-                  {selectableIds.length > 20 ? uiText('최대 20개 선택') : uiText('모두선택')}
+                  {uiText('모두선택')}
                 </label>
                 <div className="orders-select-all__actions mypage-selection-actions">
                   <InquiryAction key={`inquiry:${listStateKey}`} appearance="text" disabled={selectedInquiryIds.length === 0} fixedTarget initialIds={selectedInquiryIds} onCreated={() => setSelected([])}>{uiText("문의")}</InquiryAction>
@@ -337,7 +337,6 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                           <input
                             aria-label={uiText('{name} 문의 선택', { name: item.productNo })}
                             checked={selected.includes(selectedId)}
-                            disabled={!selected.includes(selectedId) && selected.length >= 20}
                             onChange={(event) => toggleSelected(selectedId, event.target.checked)}
                             type="checkbox"
                           />

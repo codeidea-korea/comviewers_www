@@ -50,7 +50,7 @@ export function RcpcExtensionCheckout({ api, rentalIds, displayTargets, triggerL
       ? <Link to="/checkout" state={{ kind: 'extension', returnTo: `${location.pathname}${location.search}${location.hash}`, selection: selection.data }}>{uiText("연장 결제하기")}</Link>
       : <button disabled type="button">{uiText("연장 결제하기")}</button>}
       busy={quote.isFetching} dateValue={dateValue}
-      error={uiText(selection.success ? quote.error?.message : '연장 조건을 확인해 주세요.')} extensionMode={extensionMode}
+      error={selection.success ? uiText(quote.error?.message) : undefined} extensionMode={extensionMode}
       itemCount={current?.items.length ?? rentalIds.length} onClose={() => setOpen(false)}
       onDateChange={setDateValue} onModeChange={mode => { if (mode === 'period' || mode === 'date') setExtensionMode(mode) }}
       onPeriodChange={value => { if (['30', '60', '90'].includes(value)) setPeriodValue(value) }} periodValue={periodValue}

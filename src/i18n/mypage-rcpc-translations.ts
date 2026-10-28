@@ -303,6 +303,6 @@ export const mypageRcpcTranslations = [
   {"key": "mypageRcpc.ui300", "source": "mypageRcpc", "ko": "문의 관리", "vi": "Quản lý yêu cầu", "ja": "お問い合わせ管理", "en": "Inquiry management", "zh-CN": "咨询管理", "zh-TW": "詢問管理"},
   {"key": "mypageRcpc.ui301", "source": "mypageRcpc", "ko": "RCPC 담당자 관리", "vi": "Quản lý người phụ trách RCPC", "ja": "RCPC担当者管理", "en": "RCPC manager management", "zh-CN": "RCPC负责人管理", "zh-TW": "RCPC負責人管理"},
   {"key": "mypageRcpc.ui302", "source": "mypageRcpc", "ko": "내 정보 수정", "vi": "Sửa thông tin cá nhân", "ja": "登録情報の編集", "en": "Edit my profile", "zh-CN": "修改个人信息", "zh-TW": "修改個人資訊"},
-  {"key": "mypageRcpc.selectedCount", "source": "mypageRcpc", "ko": "선택 {count}대, 최대 20대", "en": "Selected {count} devices, up to 20", "vi": "Đã chọn {count} thiết bị, tối đa 20", "ja": "{count}台選択、最大20台", "zh-CN": "已选{count}台，最多20台", "zh-TW": "已選{count}台，最多20台"},
+  {"key": "mypageRcpc.selectedCount", "source": "mypageRcpc", "ko": "선택 {count}대", "en": "Selected {count} devices", "vi": "Đã chọn {count} thiết bị", "ja": "{count}台選択", "zh-CN": "已选{count}台", "zh-TW": "已選{count}台"},
   {"key": "mypageRcpc.calendarMonth", "source": "mypageRcpc", "ko": "{year}년 {month}월", "en": "{year}-{month}", "vi": "Tháng {month}, {year}", "ja": "{year}年{month}月", "zh-CN": "{year}年{month}月", "zh-TW": "{year}年{month}月"},
 ] as const

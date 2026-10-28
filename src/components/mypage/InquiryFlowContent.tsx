@@ -85,7 +85,7 @@ export function InquiryWriteContent({ composer, inquiryType, onBack, onClose, on
   const submitMessage = () => {
     if (!composer.pending && message.trim()) composer.onSend()
   }
-  const addDisabled = Boolean(composer.pending) || selectedRcpcs.length >= 20
+  const addDisabled = Boolean(composer.pending)
   const selectMenuItem = (action: InquiryChatMenuAction) => {
     setMenuOpen(false)
     if (action === 'products') setProductsOpen(true)

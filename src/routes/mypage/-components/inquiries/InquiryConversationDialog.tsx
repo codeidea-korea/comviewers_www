@@ -150,13 +150,13 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const type = requestInfoData?.items[0] ? inquiryTypeLabel(requestInfoData.items[0].requestType) : uiText("문의")
   const selectProductMenu = (action: 'products' | 'add') => {
     setProductMenuOpen(false)
-    if (action === 'add' && (closed || targetCount >= 20 || !myAccount.rcpcApi)) return
+    if (action === 'add' && (closed || !myAccount.rcpcApi)) return
     setProductsOpen(action === 'products')
     setAddingProducts(action === 'add')
   }
   const conversation = <section aria-label={standalone ? uiText("문의 상세") : undefined} aria-modal={standalone ? undefined : true} className={`inquiry-preview-dialog inquiry-chat${closed ? ' inquiry-chat--complete' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
-      <InquiryChatHeader title={`[${chatData ? uiText(customerStatusLabel(chatData.operationRequest.customerVisibleStatus)) : uiText("조회 중")}] ${uiText(type)}`} standalone={standalone} disabled={!chatData} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
-      <InquiryChatMenu open={productMenuOpen && Boolean(chatData)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || targetCount >= 20 || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
+      <InquiryChatHeader title={`[${chatData ? uiText(customerStatusLabel(chatData.operationRequest.customerVisibleStatus)) : uiText("조회 중")}] ${uiText(type)}`} standalone={standalone} disabled={!chatData} open={productMenuOpen} onToggle={() => setProductMenuOpen(open => !open)} addDisabled={closed || !myAccount.rcpcApi} onSelect={selectProductMenu} onClose={close}/>
+      <InquiryChatMenu open={productMenuOpen && Boolean(chatData)} onClose={() => setProductMenuOpen(false)} addDisabled={closed || !myAccount.rcpcApi} onSelect={selectProductMenu}/>
       <div className="inquiry-chat__scroll" ref={scrollRef}>
         <AccountQueryState pending={chat.isPending || requestInfo.isPending} error={chat.error ?? requestInfo.error ?? accessError} retry={async () => {
           const deniedBeforeRetry = accessError

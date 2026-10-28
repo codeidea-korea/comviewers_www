@@ -30,11 +30,10 @@ export function ProductChoiceRow({ checked = false, disabled = false, onCheckedC
 
 type ServerRoomFilter = { value: number | null; options: readonly { id: number; name: string }[]; onChange: (id: number | null) => void }
 
-export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, busy = false, lockedIds = [], maxSelection = 20, filters, notice, selectionNotice, onClose, onEmpty, onNext, onSelectedChange, selectedIds, products, serverRoomFilter, standalone = false, title = '상품 선택', variant }: { actionLabel?: string; allowEmpty?: boolean; busy?: boolean; lockedIds?: readonly number[]; maxSelection?: number; filters?: ReactNode; notice?: ReactNode; selectionNotice?: string; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (ids: number[]) => void; selectedIds: readonly number[]; products: InquiryChoice[]; serverRoomFilter?: ServerRoomFilter; standalone?: boolean; title?: string; variant?: 'addition' }) {
-  const { uiText, t } = useUiTranslation()
+export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true, busy = false, lockedIds = [], filters, notice, selectionNotice, onClose, onEmpty, onNext, onSelectedChange, selectedIds, products, serverRoomFilter, standalone = false, title = '상품 선택', variant }: { actionLabel?: string; allowEmpty?: boolean; busy?: boolean; lockedIds?: readonly number[]; filters?: ReactNode; notice?: ReactNode; selectionNotice?: string; onClose: () => void; onEmpty?: () => void; onNext: () => void; onSelectedChange: (ids: number[]) => void; selectedIds: readonly number[]; products: InquiryChoice[]; serverRoomFilter?: ServerRoomFilter; standalone?: boolean; title?: string; variant?: 'addition' }) {
+  const { uiText } = useUiTranslation()
   const selectedCount = selectedIds.length
   const allSelected = products.length > 0 && products.every(product => selectedIds.includes(Number(product.rcpcId)))
-  const overLimit = selectedCount > maxSelection
   const missingTargets = selectedIds.some(id => !products.some(product => Number(product.rcpcId) === id))
   const changeOne = (id: number, checked: boolean) => onSelectedChange(checked
     ? [...new Set([...selectedIds, id])]
@@ -47,11 +46,10 @@ export function ProductChoiceContent({ actionLabel = '선택', allowEmpty = true
       <label className="inquiry-product-choice__all"><Checkbox checked={allSelected} disabled={busy || !products.length} onChange={event => onSelectedChange(event.target.checked ? [...new Set([...selectedIds, ...products.map(product => Number(product.rcpcId))])] : [...lockedIds])} /><span>{uiText("모두선택")}</span></label>
       <div className="inquiry-product-choice__products">{notice}{products.map(product => <ProductChoiceRow checked={selectedIds.includes(Number(product.rcpcId))} disabled={busy || lockedIds.includes(Number(product.rcpcId))} key={product.selectionId} onCheckedChange={checked => changeOne(Number(product.rcpcId), checked)} product={product} />)}</div>
       <footer>
-        {overLimit ? <p className="inquiry-product-choice__limit" role="alert">{t("mypageSupport.selectionLimit", { count: maxSelection })}</p> : null}
         {missingTargets ? <p role="alert">{uiText("선택한 문의 대상 RCPC를 확인할 수 없습니다. 다시 확인해 주세요.")}</p> : null}
         {selectionNotice ? <p className="inquiry-product-choice__selection-notice" role="alert">{uiText(selectionNotice)}</p> : null}
         {allowEmpty ? <button onClick={() => { onSelectedChange([]); (onEmpty ?? onNext)() }} type="button">{uiText("선택안함")}</button> : null}
-        <button disabled={busy || !selectedCount || overLimit || missingTargets} onClick={onNext} type="button"><span aria-live="polite">{selectedCount ? <><b>{selectedCount}{uiText("대")}</b> {uiText(actionLabel)}</> : variant === 'addition' ? uiText(actionLabel) : uiText("다음")}</span></button>
+        <button disabled={busy || !selectedCount || missingTargets} onClick={onNext} type="button"><span aria-live="polite">{selectedCount ? <><b>{selectedCount}{uiText("대")}</b> {uiText(actionLabel)}</> : variant === 'addition' ? uiText(actionLabel) : uiText("다음")}</span></button>
       </footer>
     </section>
   )

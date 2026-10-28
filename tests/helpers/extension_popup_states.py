@@ -81,6 +81,15 @@ def common_response(route: Route):
         reply(route, [{"id": "41", "name": "QA 고객사", "role": "owner"}])
     elif path == "/backend/api/v1/my/session":
         owner_session(route)
+    elif path == "/backend/api/v1/my/profile":
+        reply(route, {
+            "username": "qa_owner", "name": "QA 대표", "nickname": "QA",
+            "nicknameChangedAt": None, "nicknameChangeAvailableAt": None,
+            "phone": None, "messengerType": None, "messengerId": None,
+            "email": None, "marketingEmailAgreed": False,
+            "marketingEmailConsentChangedAt": None, "updatedAt": None,
+            "profileImageAttachmentId": None,
+        })
     elif path == "/backend/api/v1/cart":
         reply(route, {"cartId": None, "items": []})
     elif path == "/backend/api/v1/my/rcpcs":

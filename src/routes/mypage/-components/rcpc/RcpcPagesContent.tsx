@@ -1,13 +1,12 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { LocalizedServerRoomOption } from '@/components/mypage/LocalizedServerRoomOption'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 import type { createCustomerRcpcMutations } from '@/api/customerRcpcMutations'
 import type { MyRcpcQuery } from '@/api/myRcpc'
 import { myRcpcQuerySchema } from '@/api/myRcpc'
 import { useSession } from '@/app/session/SessionProvider'
-import { Pagination } from '@/components/ui/PaginationControl'
 import { RcpcFilterSelect as NativeSelect } from '../RcpcFilterSelect'
 import type { MyRcpcReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { MyPageLayout, MyPageTabs, MyPageToolbar } from '../../MypageComponentsView'
@@ -49,22 +48,28 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     }))
   }, [initialProductNo, initialStatus, initialUsage])
 
-  const [canRetainRows, setCanRetainRows] = useState(true)
   const available = useQuery({
     queryKey: ['my-rcpcs', api.organizationId, 'filter-options'],
     queryFn: ({ signal }) => api.filterOptions(signal),
   })
-  const rows = useQuery({
+  const rows = useInfiniteQuery({
     ...serverPresenceQueryOptions,
-    queryKey: ['my-rcpcs', api.organizationId, query],
-    queryFn: ({ signal }) => api.list(query, signal),
-    meta: { rcpcListScope: api },
-    placeholderData: (previous, previousQuery) => canRetainRows && previousQuery?.state.status === 'success'
-      && previousQuery.meta?.rcpcListScope === api
-      && previousQuery.queryKey[0] === 'my-rcpcs'
-      && previousQuery.queryKey[1] === api.organizationId
-      && typeof previousQuery.queryKey[2] === 'object' ? previous : undefined,
+    queryKey: ['my-rcpcs', api.organizationId, 'infinite-list', query],
+    initialPageParam: 0,
+    queryFn: ({ signal, pageParam }) => api.list({ ...query, page: pageParam }, signal),
+    getNextPageParam: last => last.page + 1 < last.totalPages ? last.page + 1 : undefined,
   })
+  const { hasNextPage, isFetching, isFetchNextPageError, fetchNextPage } = rows
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || !hasNextPage || isFetching || isFetchNextPageError) return
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) void fetchNextPage()
+    }, { rootMargin: '300px' })
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetching, isFetchNextPageError, fetchNextPage])
   const listRef = useRef<HTMLDivElement>(null)
   const [listHeight, setListHeight] = useState(0)
   useLayoutEffect(() => {
@@ -76,15 +81,32 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
     observer.observe(element)
     return () => observer.disconnect()
   }, [rows.isPending, rows.isError])
-  // The observer can remember a successful query from before a no-data error.
-  const retentionError = rows.isError || available.isError
-  if (retentionError && canRetainRows) setCanRetainRows(false)
-  if (!retentionError && rows.isSuccess && !rows.isPlaceholderData && !canRetainRows) setCanRetainRows(true)
-  const accessDenied = isAccountReadDenied(available.error) || isAccountReadDenied(rows.error)
-  // A forbidden response must also hide data retained from an earlier successful query.
+  const [selectionAccessDenied, setSelectionAccessDenied] = useState(false)
+  useEffect(() => { setSelectionAccessDenied(false) }, [api.organizationId])
+  const accessDenied = selectionAccessDenied || isAccountReadDenied(available.error) || isAccountReadDenied(rows.error)
   const filterOptions = accessDenied ? undefined : available.data
-  const page = accessDenied ? undefined : rows.data
-  const inquiryItems = useRcpcInquiryItems(api.organizationId, page?.items, rows.dataUpdatedAt)
+  const page = accessDenied ? undefined : rows.data?.pages[0]
+  const loadedItems = accessDenied || !rows.data ? undefined : [...new Map(
+    rows.data.pages.flatMap(part => part.items).map(item => [item.rentalId, item] as const),
+  ).values()]
+  const inquiryItems = useRcpcInquiryItems(api.organizationId, loadedItems, rows.dataUpdatedAt)
+  const loadAll = async (signal: AbortSignal) => {
+    try {
+      const first = await api.list({ ...query, page: 0, size: 100 }, signal)
+      const items = [...first.items]
+      for (let pageNumber = 1; pageNumber < first.totalPages; pageNumber += 1) {
+        const next = await api.list({ ...query, page: pageNumber, size: 100 }, signal)
+        if (next.totalElements !== first.totalElements || next.totalPages !== first.totalPages) throw new Error('목록이 변경되었습니다.')
+        items.push(...next.items)
+      }
+      const unique = [...new Map(items.map(item => [item.rentalId, item] as const)).values()]
+      if (unique.length !== first.totalElements) throw new Error('목록이 변경되었습니다.')
+      return unique
+    } catch (error) {
+      if (error instanceof Error && isAccountReadDenied(error)) setSelectionAccessDenied(true)
+      throw error
+    }
+  }
   const regions = filterOptions?.regions ?? []
   const rooms = (filterOptions?.serverRooms ?? [])
     .filter(room => !query.region || room.region === query.region)
@@ -131,10 +153,11 @@ export function RcpcListContent({ api, mutations }: { api: MyRcpcReadServices; m
         </NativeSelect>
       </MyPageToolbar>
       {!accessDenied && available.error ? <p role="alert">{uiText("서버실 목록을 불러오지 못했습니다.")} <button onClick={() => void available.refetch()} type="button">{uiText("다시 시도")}</button></p> : null}
-      {!accessDenied ? <AccountQueryState error={rows.error} pending={rows.isPending} retry={rows.refetch}/> : null}
+      {!accessDenied ? <AccountQueryState error={rows.isFetchNextPageError ? null : rows.error} pending={rows.isPending} retry={rows.refetch}/> : null}
       {accessDenied || page ? <>
-        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={inquiryItems ?? []} key={`${api.organizationId}:${accessDenied}:${JSON.stringify(query)}`} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} pending={rows.isPlaceholderData} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
-        {page && page.totalPages > 1 ? <Pagination currentPage={(rows.isPlaceholderData ? query.page ?? 0 : page.page) + 1} onPageChange={nextPage => setQuery(previous => ({ ...previous, page: nextPage - 1 }))} totalPages={page.totalPages}/> : null}
+        <RcpcListSurface api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={inquiryItems ?? []} totalCount={page?.totalElements ?? 0} loadAll={loadAll} key={`${api.organizationId}:${accessDenied}:${JSON.stringify(query)}`} mutations={mutations} onSort={sort => { if (!accessDenied) setQuery(previous => ({ ...previous, page: 0, sort: sort.key, sortDirection: sort.direction })) }} pending={false} sortConfig={{ key: query.sort ?? 'serverStatus', direction: query.sortDirection ?? 'asc' }}/>
+        {!accessDenied && rows.hasNextPage ? <div ref={sentinelRef} role="status">{rows.isFetchingNextPage ? uiText("정보를 불러오는 중입니다.") : null}</div> : null}
+        {!accessDenied && rows.isFetchNextPageError ? <p role="alert">{uiText("목록을 불러오지 못했습니다.")} <button type="button" onClick={() => void rows.fetchNextPage()}>{uiText("다시 시도")}</button></p> : null}
       </> : null}
     </div>
     {accessDenied ? <AccountReadDeniedDialog key={api.organizationId} resource="RCPC"/> : null}

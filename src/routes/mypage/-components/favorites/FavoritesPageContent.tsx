@@ -137,7 +137,7 @@ export function FavoritesPageContent({ api, mutations, settings = false }: { api
       count: group.parentGroupId === null ? groupFavoriteCount(group) : group.rcpcCount,
     })),
   ]
-  const inquiryTargets = (rowsData?.items ?? []).filter(item => visibleSelection.has(item.rentalId) && !endedRental(item.rentalStatus)).slice(0, 20)
+  const inquiryTargets = (rowsData?.items ?? []).filter(item => visibleSelection.has(item.rentalId) && !endedRental(item.rentalStatus))
   const selectableItems = (rowsData?.items ?? []).filter(item => !extensionBlocked(item))
   const selectedExtensionItems = selectableItems.filter(item => visibleSelection.has(item.rentalId))
   const selectedRentalIds = (rowsData?.items ?? []).filter(item => visibleSelection.has(item.rentalId)).map(item => item.rentalId)

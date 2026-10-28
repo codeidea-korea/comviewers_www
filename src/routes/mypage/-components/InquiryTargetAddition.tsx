@@ -65,7 +65,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
         return
       }
       const ids = [...new Set(selected)].sort((a, b) => a - b)
-      if (!ids.length || ids.length + total > 20) return
+      if (!ids.length) return
       const selectedTargets = products.filter(item => ids.includes(Number(item.rcpcId)))
       const existingTargets = sortInquiryChoices(options.data ?? []).filter(item => existingIds.includes(Number(item.rcpcId)))
       // The API also checks existing targets absent from this caller's RCPC options (including products).
@@ -91,7 +91,6 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
         busy={save.isPending}
         actionLabel={save.isPending ? uiText("추가 중…") : save.isError ? uiText("다시 확인") : uiText("추가하기")}
         allowEmpty={false}
-        maxSelection={Math.max(0, 20 - total)}
         notice={<><AccountQueryState pending={options.isPending} error={options.error} retry={options.refetch}/>{options.data && !products.length ? <p>{uiText("추가할 수 있는 RCPC가 없습니다.")}</p> : null}{save.isError ? <p role="alert">{uiText(save.error instanceof Error ? save.error.message : uiText("처리 결과를 확인하지 못했습니다."))}</p> : null}</>}
         onClose={closePicker}
         selectionNotice={businessNotice}
@@ -107,7 +106,7 @@ function TargetPicker({ api, rcpcApi, requestId, existingIds, total, closed, pic
   if (embedded && open) return <><Toast message={uiText(outcome, outcomeValues)} toastKey={toastKey}/>{picker}</>
   return <section aria-label={uiText("문의 상품 추가")}>
     <Toast message={uiText(outcome, outcomeValues)} toastKey={toastKey} />
-    {showTrigger ? <button aria-label={uiText("문의 상품 추가")} type="button" disabled={total >= 20 || save.isPending} onClick={() => setOpen(!open)}>{uiText("문의 상품 추가")}</button> : null}
+    {showTrigger ? <button aria-label={uiText("문의 상품 추가")} type="button" disabled={save.isPending} onClick={() => setOpen(!open)}>{uiText("문의 상품 추가")}</button> : null}
     {open && !closed ? mobile ? <main className="inquiry-mobile-page inquiry-flow-page">{picker}</main> : <DialogLayer asChild backdropClassName="inquiry-preview-layer inquiry-preview-layer--select-product" isOpen onClose={closePicker} showTitle={false} title={uiText("문의 상품 추가")}>{picker}</DialogLayer> : null}
   </section>
 }

@@ -63,7 +63,7 @@ export function InquiryListContent({ api, rcpcApi, detailId, onCloseDetail }: { 
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const mobile = useMobileInquiryViewport()
   const FilterSelect = mobile ? RcpcFilterSelect : NativeSelect
-  const initialIds = [...new Set((params.get('pcAssetIds') ?? '').split(',').filter(value => /^[1-9]\d*$/.test(value)).map(Number).filter(Number.isSafeInteger))].slice(0, 20)
+  const initialIds = [...new Set((params.get('pcAssetIds') ?? '').split(',').filter(value => /^[1-9]\d*$/.test(value)).map(Number).filter(Number.isSafeInteger))]
   const createProductNo = params.get('compose') === '1' ? initialProductNo : ''
   const [createOpen, setCreateOpen] = useState(initialIds.length > 0 || params.get('compose') === '1')
   useEffect(() => {

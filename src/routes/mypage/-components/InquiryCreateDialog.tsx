@@ -60,12 +60,11 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
   const additionalProducts = visibleProducts.filter(product => !selectedIds.includes(Number(product.rcpcId))
     && rcpcs.data?.some(item => item.pcAssetId === Number(product.rcpcId) && item.rentalStatus === 'active'))
   const hasMissingTargets = selectedProducts.length !== selectedIds.length
-  const invalidFixedTarget = hasFixedTarget && (!fixedIds.length || fixedIds.length > 20 || fixedIds.some(id => !Number.isSafeInteger(id) || id <= 0))
+  const invalidFixedTarget = hasFixedTarget && (!fixedIds.length || fixedIds.some(id => !Number.isSafeInteger(id) || id <= 0))
   const codes = requestCodes
   const selectedCode = typeIndex === null ? undefined : codes[typeIndex]
   const validateTargets = () => {
     if (invalidFixedTarget || hasMissingTargets || (hasFixedTarget && !fixedIds.every(id => selectedIds.includes(id)))) return "문의 대상 RCPC를 확인할 수 없습니다. 다시 시도해 주세요."
-    if (selectedIds.length > 20) return "최대 20대까지 선택할 수 있습니다. 선택한 상품을 줄여 주세요."
     if (!hasFixedTarget && serverRoomId !== null && selectedProducts.some(product => product.serverRoomId !== serverRoomId)) return "선택한 서버실의 문의 상품을 다시 확인해 주세요."
     if (!selectedIds.length && selectedCode !== 'inquiry') return "선택한 문의 유형은 문의 상품을 선택해 주세요."
     return ''
@@ -106,7 +105,6 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       variant="addition"
       actionLabel={uiText("추가하기")}
       allowEmpty={false}
-      maxSelection={Math.max(0, 20 - selectedIds.length)}
       notice={rcpcs.isPending
         ? <LoadingState className="route-loading--compact" label={uiText("문의 가능한 상품을 확인하고 있습니다.")} />
         : rcpcs.isError
@@ -116,7 +114,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onClose={closeProductPicker}
       onNext={() => {
         const additions = additionalProducts.filter(product => additionalIds.includes(Number(product.rcpcId)))
-        if (!additions.length || additions.length !== additionalIds.length || selectedIds.length + additions.length > 20) return
+        if (!additions.length || additions.length !== additionalIds.length) return
         if (!hasSameInquiryServerRoom([...selectedProducts, ...additions])) { setProductNotice(bulkInquiryServerRoomNotice); return }
         setSelectedIds([...new Set([...selectedIds, ...additionalIds])])
         closeProductPicker()
@@ -150,7 +148,7 @@ export function InquiryCreateDialog({ api, rcpcApi, initialIds, initialProductNo
       onClose={closeProductPicker}
       onEmpty={() => { setSelectedIds([]); setProductNotice(''); setAddingProducts(false); setTypeIndex(null); setTypeNotice(''); create.reset(); setStep('type') }}
       onNext={() => {
-        if (hasMissingTargets || selectedIds.length > 20) return
+        if (hasMissingTargets) return
         if (!hasSameInquiryServerRoom(selectedProducts)) { setProductNotice(bulkInquiryServerRoomNotice); return }
         setProductNotice('')
         setTypeIndex(null); setTypeNotice(''); setStep('type')

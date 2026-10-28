@@ -38,12 +38,14 @@ const columns: ReadonlyArray<{ label: string; sort?: SortKey }> = [
   { label: '빠른 실행' },
 ]
 
-export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, items, mutations, onSort, pending = false, sortConfig }: {
+export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, items, totalCount, loadAll, mutations, onSort, pending = false, sortConfig }: {
   api: MyRcpcReadServices
   canEditAlias: boolean
   canExtend: boolean
   emptyMessage: string
   items: readonly MyRcpcItem[]
+  totalCount: number
+  loadAll: (signal: AbortSignal) => Promise<MyRcpcItem[]>
   mutations?: RcpcMutations
   onSort: (sort: SortConfig<SortKey>) => void
   pending?: boolean
@@ -51,39 +53,65 @@ export function RcpcListSurface({ api, canEditAlias, canExtend, emptyMessage, it
 }) {
   const { uiText, t } = useUiTranslation()
   const { myAccount } = useServices()
-  const [selectedAssetIds, setSelectedAssetIds] = useState<readonly number[]>([])
+  const [selectedRentalSelectionIds, setSelectedRentalSelectionIds] = useState<readonly number[]>([])
   const [refundRentalIds, setRefundRentalIds] = useState<readonly number[] | null>(null)
   const refundTriggerRef = useRef<HTMLButtonElement>(null)
   const refundReturnFocusRef = useRef<HTMLElement>(null)
-  const visibleIds = items.map(item => item.pcAssetId)
-  const selectedVisibleCount = visibleIds.filter(id => selectedAssetIds.includes(id)).length
-  const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length
-  const selectedItems = items.filter(item => selectedAssetIds.includes(item.pcAssetId))
+  const [selectedSnapshot, setSelectedSnapshot] = useState<readonly MyRcpcItem[]>([])
+  const [selectingAll, setSelectingAll] = useState(false)
+  const [selectionError, setSelectionError] = useState(false)
+  const selectionRequest = useRef<AbortController | null>(null)
+  useEffect(() => () => { selectionRequest.current?.abort() }, [])
+  const selectedSet = new Set(selectedRentalSelectionIds)
+  const combinedItems = [...new Map([...selectedSnapshot, ...items].map(item => [item.rentalId, item] as const)).values()]
+  const selectedItems = combinedItems.filter(item => selectedSet.has(item.rentalId))
   const selectedRentalIds = selectedItems.map(item => item.rentalId)
-  const showRentalActions = items.some(item => !rentalActionsEnded(item))
-  const showExtensionActions = items.some(item => !rentalActionsEnded(item) || rentalResumptionWaiting(item))
-  const toggle = (id: number, checked: boolean) => setSelectedAssetIds(previous => checked
-    ? previous.includes(id) || previous.length >= 20 ? previous : [...previous, id]
-    : previous.filter(value => value !== id))
-  const toggleVisible = (checked: boolean) => setSelectedAssetIds(previous => checked
-    ? [...previous, ...visibleIds.filter(id => !previous.includes(id)).slice(0, 20 - previous.length)]
-    : previous.filter(id => !visibleIds.includes(id)))
+  const allSelected = totalCount > 0 && (selectedRentalSelectionIds.length === totalCount || (selectedSnapshot.length === totalCount && selectedSnapshot.every(item => selectedSet.has(item.rentalId))))
+  const showRentalActions = combinedItems.some(item => !rentalActionsEnded(item))
+  const showExtensionActions = combinedItems.some(item => !rentalActionsEnded(item) || rentalResumptionWaiting(item))
+  const toggle = (item: MyRcpcItem, checked: boolean) => {
+    setSelectedRentalSelectionIds(previous => checked
+      ? previous.includes(item.rentalId) ? previous : [...previous, item.rentalId]
+      : previous.filter(value => value !== item.rentalId))
+    setSelectedSnapshot(previous => checked
+      ? [...previous.filter(candidate => candidate.rentalId !== item.rentalId), item]
+      : previous.filter(candidate => candidate.rentalId !== item.rentalId))
+  }
+  const toggleAll = async (checked: boolean) => {
+    if (!checked) { selectionRequest.current?.abort(); setSelectedRentalSelectionIds([]); setSelectedSnapshot([]); setSelectionError(false); return }
+    const controller = new AbortController()
+    selectionRequest.current = controller
+    setSelectingAll(true)
+    setSelectionError(false)
+    try {
+      const all = await loadAll(controller.signal)
+      if (controller.signal.aborted) return
+      setSelectedSnapshot(all)
+      setSelectedRentalSelectionIds([...new Set(all.map(item => item.rentalId))])
+    } catch {
+      if (!controller.signal.aborted) setSelectionError(true)
+    } finally {
+      if (!controller.signal.aborted) setSelectingAll(false)
+    }
+  }
   return <>
-    <div className="rcpc-list__bulk-actions" inert={pending}>
-      <Checkbox checked={allVisibleSelected} className="rcpc-list__bulk-select" disabled={visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)} visualClassName="">{uiText("모두선택")}</Checkbox>
-      <span className="sr-only" role="status">{t('mypageRcpc.selectedCount', { count: selectedAssetIds.length })}</span>
+    <div className="rcpc-list__bulk-actions" inert={pending || selectingAll}>
+      <Checkbox checked={allSelected} className="rcpc-list__bulk-select" disabled={totalCount === 0} indeterminate={selectedRentalSelectionIds.length > 0 && !allSelected} onChange={event => void toggleAll(event.target.checked)} visualClassName="">{uiText("모두선택")}</Checkbox>
+      <span role="status">{t('mypageRcpc.selectedCount', { count: selectedRentalSelectionIds.length })}</span>
       <RcpcSelectionMenu label={uiText("선택한 RCPC 처리")} className="rcpc-list__bulk-action-buttons" nativeOnMobile>
-        <InquiryAction appearance="text" disabled={selectedAssetIds.length === 0} fixedTarget initialIds={selectedAssetIds} initialTargets={selectedItems} key={`inquiry:${selectedAssetIds.join(',')}`}>{uiText("문의")}</InquiryAction>
-        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => { refundReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : refundTriggerRef.current; setRefundRentalIds([...selectedRentalIds]) }} ref={refundTriggerRef} type="button">{uiText("해지신청")}</button> : null}
-        {showExtensionActions ? canExtend && selectedItems.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={`extension:${selectedRentalIds.join(',')}`} rentalIds={selectedRentalIds} triggerLabel={uiText("기간연장")}/> : <button disabled type="button">{uiText("기간연장")}</button> : null}
+        <InquiryAction appearance="text" disabled={selectedRentalSelectionIds.length === 0 || selectedItems.length !== selectedRentalSelectionIds.length} fixedTarget initialIds={[...new Set(selectedItems.map(item => item.pcAssetId))]} initialTargets={selectedItems} key={`inquiry:${selectedRentalSelectionIds.join(',')}`}>{uiText("문의")}</InquiryAction>
+        {showRentalActions ? <button disabled={selectedRentalIds.length === 0 || selectedItems.length !== selectedRentalSelectionIds.length || selectedItems.some(rentalActionsEnded) || !myAccount.inquiryApi} onClick={() => { refundReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : refundTriggerRef.current; setRefundRentalIds([...selectedRentalIds]) }} ref={refundTriggerRef} type="button">{uiText("해지신청")}</button> : null}
+        {showExtensionActions ? canExtend && selectedItems.length && selectedItems.length === selectedRentalSelectionIds.length && !selectedItems.some(extensionBlocked) ? <RcpcExtensionCheckout api={api} displayTargets={selectedItems.map(extensionTarget)} key={`extension:${selectedRentalIds.join(',')}`} rentalIds={selectedRentalIds} triggerLabel={uiText("기간연장")}/> : <button disabled type="button">{uiText("기간연장")}</button> : null}
       </RcpcSelectionMenu>
     </div>
-    {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedAssetIds([]) }} returnFocusRef={refundReturnFocusRef}/> : null}
+    {selectingAll ? <p role="status">{uiText("정보를 불러오는 중입니다.")}</p> : null}
+    {selectionError ? <p role="alert">{uiText("이용 RCPC를 불러오지 못했습니다.")} {uiText("다시 시도")}</p> : null}
+    {refundRentalIds && myAccount.inquiryApi ? <InquiryRefundApplicationDialog api={myAccount.inquiryApi} initialRentalIds={refundRentalIds} onClose={() => setRefundRentalIds(null)} onComplete={() => { setRefundRentalIds(null); setSelectedRentalSelectionIds([]); setSelectedSnapshot([]) }} returnFocusRef={refundReturnFocusRef}/> : null}
     <RcpcListTable api={api} canEditAlias={canEditAlias} canExtend={canExtend} emptyMessage={emptyMessage} items={items} mutations={mutations} onSort={onSort} pending={pending} sortConfig={sortConfig} selection={{
-      header: <Checkbox aria-label={uiText("현재 페이지 RCPC 전체 선택")} checked={allVisibleSelected} disabled={pending || visibleIds.length === 0} indeterminate={selectedVisibleCount > 0 && !allVisibleSelected} onChange={event => toggleVisible(event.target.checked)}/>,
-      isSelected: item => selectedAssetIds.includes(item.pcAssetId),
-      isDisabled: item => selectedAssetIds.length >= 20 && !selectedAssetIds.includes(item.pcAssetId),
-      onChange: (item, checked) => toggle(item.pcAssetId, checked),
+      header: <Checkbox aria-label={uiText("모두선택")} checked={allSelected} disabled={pending || selectingAll || totalCount === 0} indeterminate={selectedRentalSelectionIds.length > 0 && !allSelected} onChange={event => void toggleAll(event.target.checked)}/>,
+      isSelected: item => selectedRentalSelectionIds.includes(item.rentalId),
+      isDisabled: () => selectingAll,
+      onChange: (item, checked) => toggle(item, checked),
     }}/>
   </>
 }

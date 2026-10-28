@@ -44,8 +44,8 @@ const refundPage = z.object({ items: z.array(refundSummary), page: count, size: 
 const refundTarget = z.object({ operationRequestTargetId: id, orderItemId: id, orderNo: z.string(), rentalId: id, productNo: productNoResponseSchema, title: z.string(),
   serverRoomName: z.string().nullable(), billingUnit: z.string(), serviceStartedAt: z.string().nullable(), serviceEndsAt: z.string().nullable(), paymentApprovedAt: z.string().nullable(), paymentMethod: z.string(),
   alias: z.string().nullable(), spec: z.string().nullable(), orderedAt: z.string(), contactPhone: z.string().nullable() })
-const refundQuoteRequest = z.object({ operationRequestId: id, selections: z.array(z.object({ operationRequestTargetId: id, orderItemId: id })).min(1).max(20), method: z.enum(['point', 'original']) })
-const refundDirectQuoteRequest = z.object({ selections: z.array(z.object({ orderItemId: id, rentalId: id })).min(1).max(20), method: z.enum(['point', 'original']) })
+const refundQuoteRequest = z.object({ operationRequestId: id, selections: z.array(z.object({ operationRequestTargetId: id, orderItemId: id })).min(1), method: z.enum(['point', 'original']) })
+const refundDirectQuoteRequest = z.object({ selections: z.array(z.object({ orderItemId: id, rentalId: id })).min(1), method: z.enum(['point', 'original']) })
 const refundQuote = z.object({ items: z.array(z.object({ operationRequestTargetId: id, orderItemId: id, orderNo: z.string(), productNo: productNoResponseSchema, title: z.string(), rentalId: id,
   policyVersionId: id, cashAmount: count, pointAmount: count, couponDeduction: count, usedDays: count, remainingDays: count, bankRequired: z.boolean(), refundMethod: z.string(),
     dailyQuantity: count, usedDaysRateBasisPoints: count, dailyQuantityRateBasisPoints: count, remainingSettlement: z.number().nonnegative(),
@@ -162,13 +162,13 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
     summary: (signal?: AbortSignal) => client.request('/api/v1/operation-requests/summary', operationRequestSummarySchema, { ...context, signal }),
     create: (input: { requestType: z.infer<typeof requestType>; title: string; content: string; targetPcAssetIds: number[] }) => client.request('/api/v1/operation-requests', createdSchema, {
       ...context, method: 'POST', body: z.object({ requestType, title: z.string().trim().max(300),
-        content: z.string().trim().min(1).max(4000), targetPcAssetIds: z.array(id).max(20).refine((ids) => new Set(ids).size === ids.length), targetProductIds: z.array(id).max(20) })
+        content: z.string().trim().min(1).max(4000), targetPcAssetIds: z.array(id).refine((ids) => new Set(ids).size === ids.length), targetProductIds: z.array(id) })
         .parse({ ...input, targetProductIds: [] }),
     }),
     // The backend exposes chat (including request targets), not a standalone detail endpoint.
     addTargets: (operationRequestId: number, pcAssetIds: readonly number[], idempotencyKey: string) => client.request(`/api/v1/operation-requests/${id.parse(operationRequestId)}/targets`,
       z.object({ operationRequestId: id, eventId: id, addedPcAssetIds: z.array(id), totalTargetCount: count, replayed: z.boolean() }),
-      { ...context, method: 'POST', idempotencyKey, body: { pcAssetIds: z.array(id).min(1).max(20).refine((ids) => new Set(ids).size === ids.length).parse(pcAssetIds) } }),
+      { ...context, method: 'POST', idempotencyKey, body: { pcAssetIds: z.array(id).min(1).refine((ids) => new Set(ids).size === ids.length).parse(pcAssetIds) } }),
     chat: (operationRequestId: number, limit = 50, signal?: AbortSignal, beforeCommentId?: number) => client.request(`/api/v1/operation-requests/${id.parse(operationRequestId)}/chat`, operationRequestChatSchema, { ...context, query: { limit: z.number().int().min(1).max(100).parse(limit), beforeCommentId: beforeCommentId === undefined ? undefined : id.parse(beforeCommentId) }, signal }),
     subscribeChatEvents,
     sendMessage: (operationRequestId: number, content: string, clientMessageId = `customer-web:${crypto.randomUUID()}`, attachmentIds: readonly number[] = []) => client.request(`/api/v1/operation-requests/${id.parse(operationRequestId)}/chat/messages`, operationRequestChatSchema, {

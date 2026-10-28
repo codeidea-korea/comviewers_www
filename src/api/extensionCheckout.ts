@@ -4,7 +4,7 @@ import type { ApiClient } from './httpClient'
 
 const id = z.number().int().positive().safe()
 const time = z.iso.datetime({ local: true })
-const uniqueIds = id.array().max(100).refine(ids => new Set(ids).size === ids.length)
+const uniqueIds = id.array().refine(ids => new Set(ids).size === ids.length)
 const selectionIds = uniqueIds.refine(ids => ids.length > 0)
 const storageItems = z.object({ itemId: id, durationUnits: z.number().int().positive().max(2147483647).nullable() }).array().max(100)
   .refine(items => new Set(items.map(item => item.itemId)).size === items.length)
@@ -12,14 +12,14 @@ const partOffers = z.object({ offerId: id, quantity: z.number().int().positive()
   .refine(items => new Set(items.map(item => item.offerId)).size === items.length)
 export const extensionSelectionSchema = z.object({ rentalIds: uniqueIds,
   addedDays: z.number().int().min(1).max(90).optional(), targetEndDate: z.iso.date().optional(),
-  offerIds: selectionIds.optional(), cartItemIds: uniqueIds.optional(),
+  offerIds: selectionIds.optional(), cartItemIds: uniqueIds.refine(ids => ids.length <= 100).optional(),
   storageItems: storageItems.optional(), partOffers: partOffers.optional(),
   userCouponId: id.nullable().optional(), pointAmount: z.number().int().nonnegative().max(2147483647).default(0),
 }).refine(value => [value.addedDays, value.targetEndDate, value.offerIds].filter(item => item !== undefined).length === (value.rentalIds.length ? 1 : 0))
   .refine(value => value.offerIds === undefined || value.offerIds.length === value.rentalIds.length)
   .refine(value => {
     const count = value.rentalIds.length + (value.cartItemIds?.length ?? 0) + (value.storageItems?.length ?? 0) + (value.partOffers?.length ?? 0)
-    return count > 0 && count <= 100
+    return count > 0
   })
   .refine(value => !(value.cartItemIds?.length && ((value.storageItems?.length ?? 0) + (value.partOffers?.length ?? 0))))
 export type ExtensionSelection = z.infer<typeof extensionSelectionSchema>
@@ -47,7 +47,7 @@ export type ExtensionOffer = z.infer<typeof offer>
 const create = z.object({ selection: extensionSelectionSchema, quoteHash: z.string().regex(/^[a-f0-9]{64}$/),
   contact: z.object({ name: z.string().trim().min(1).max(100), email: z.email().max(255), phone: z.string().trim().max(30),
     messengerType: z.string().max(50).nullable(), messengerId: z.string().max(100).nullable() }),
-  offerIds: id.array().max(100).refine(ids => new Set(ids).size === ids.length).optional(),
+  offerIds: id.array().refine(ids => new Set(ids).size === ids.length).optional(),
 }).refine(value => value.selection.offerIds === undefined || (
   value.offerIds !== undefined && value.offerIds.length === value.selection.offerIds.length
   && value.selection.offerIds.every(id => value.offerIds?.includes(id))
