@@ -107,7 +107,7 @@ export const translationOverrides = [
   {"key":"nav.signup","source":"nav","ko":"회원가입","vi":"Đăng ký","ja":"会員登録","en":"Sign up","zh-CN":"注册","zh-TW":"註冊"},
   {"key":"nav.logout","source":"session","ko":"로그아웃","vi":"Đăng xuất","ja":"ログアウト","en":"Log out","zh-CN":"退出登录","zh-TW":"登出"},
   {"key":"nav.myPage","source":"session","ko":"마이페이지","vi":"Tài khoản của tôi","ja":"マイページ","en":"My account","zh-CN":"个人中心","zh-TW":"會員中心"},
-  {"key":"nav.activeRcpc","source":"session","ko":"이용중인 RCPC","vi":"RCPC đang sử dụng","ja":"利用中のRCPC","en":"RCPCs in use","zh-CN":"使用中的RCPC","zh-TW":"使用中的RCPC"},
+  {"key":"nav.activeRcpc","source":"session","ko":"이용 중인 RCPC","vi":"RCPC đang sử dụng","ja":"利用中のRCPC","en":"RCPCs in use","zh-CN":"使用中的RCPC","zh-TW":"使用中的RCPC"},
   {"key":"nav.company","source":"nav","ko":"회사소개","vi":"Giới thiệu công ty","ja":"会社紹介","en":"About us","zh-CN":"公司介绍","zh-TW":"公司介紹"},
   {"key":"nav.support","source":"nav","ko":"고객센터","vi":"Hỗ trợ khách hàng","ja":"カスタマーサポート","en":"Customer support","zh-CN":"客服中心","zh-TW":"客服中心"},
   {"key":"nav.rentalReviews","source":"nav","ko":"렌탈 후기","vi":"Đánh giá dịch vụ thuê","ja":"レンタルレビュー","en":"Rental reviews","zh-CN":"租用评价","zh-TW":"租用評價"},
