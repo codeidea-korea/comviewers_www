@@ -182,12 +182,12 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
             return <article className={isMine ? 'inquiry-chat__message is-mine' : 'inquiry-chat__message'} key={item.id}>
               {!isMine && <small>{item.authorDisplayName ?? item.authorType}</small>}
               <div className="inquiry-chat__message-row">
-                <p>{item.content}</p>
+                {item.content.trim() ? <p>{item.content}</p> : null}
                 <div className="inquiry-chat__message-meta">
                   <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })}</time>
                 </div>
               </div>
-              {item.attachments.map((attachment) => <InquiryAttachmentDownload key={attachment.id} api={api} requestId={id} attachment={attachment}/>)}
+              {item.attachments.map((attachment) => <InquiryAttachmentDownload key={attachment.id} api={api} requestId={id} attachment={attachment} onAccessError={setAccessError}/>)}
             </article>
           })}
           {!messages.length ? <p className="inquiry-chat__system">{uiText("등록된 메시지가 없습니다.")}</p> : null}

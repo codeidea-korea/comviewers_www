@@ -1,0 +1,15 @@
+.inquiry-chat__image-preview {
+  align-items: center;
+  background: var(--color-gray-50);
+  border-radius: 8px;
+  display: flex;
+  height: 186px;
+  justify-content: center;
+  margin-bottom: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  width: 150px;
+}
+.inquiry-chat__image-preview > img { display: block; height: 100%; object-fit: contain; width: 100%; }
+.inquiry-chat__image-preview > span { color: var(--color-gray-700); font-size: 12px; padding: 8px; text-align: center; }
+.inquiry-chat__message.is-mine .inquiry-chat__image-preview { margin-left: auto; }

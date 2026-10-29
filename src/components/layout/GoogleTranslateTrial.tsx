@@ -29,7 +29,7 @@ function resetTranslation() {
 function isPublicTrialPage(pathname: string) {
   pathname = pathname.replace(/\/+$/, '') || '/'
   return pathname === '/' || /^\/(?:products|support)(?:\/[^/]+)?$/.test(pathname)
-    || ['/company', '/terms', '/privacy', '/signup/terms', '/colocation/apply'].includes(pathname)
+    || ['/company', '/terms', '/privacy', '/license-notices', '/signup/terms', '/colocation/apply'].includes(pathname)
     || pathname === '/community/posts' || pathname === '/community/reviews'
     || /^\/community\/posts\/(?!new$)[^/]+$/.test(pathname)
 }

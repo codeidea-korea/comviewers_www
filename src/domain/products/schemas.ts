@@ -36,7 +36,7 @@ export const productSchema = z.object({
   detailRichContent: z.unknown().nullable().optional(),
   detailInformation: z.string().nullable().optional(),
   os: z.string().nullable(), osFilterValue: z.string().nullable().default(null), cpu: z.string().nullable(), cpuCores: z.number().int().positive().safe().nullable().optional(), ram: z.string().nullable(), disk: z.string().nullable(), gpu: z.string().nullable(),
-  country: z.string().nullable(), ip: z.string().nullable(), serverRoom: z.string(), serverRoomProvider: z.string().nullable().default(null),
+  country: z.string().nullable(), countryCode: z.string().regex(/^[A-Z]{2}$/).nullable().optional(), ip: z.string().nullable(), serverRoom: z.string(), serverRoomProvider: z.string().nullable().default(null),
   setupFee: z.number().nonnegative(), monthlyPrice: z.number().nonnegative().nullable(),
   unitPrice: z.number().int().nonnegative().safe().nullable().default(null),
   // available is the instant-access state; saleAvailability is the orderable catalog state.

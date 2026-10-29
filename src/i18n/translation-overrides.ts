@@ -217,6 +217,7 @@ export const translationOverrides = [
   {"key":"order.terminationRequest","source":"orderActions","ko":"해지신청","vi":"Yêu cầu chấm dứt dịch vụ","ja":"解約申請","en":"Request service termination","zh-CN":"申请终止服务","zh-TW":"申請終止服務"},
   {"key":"legal.termsTitle","source":"footer","ko":"서비스 이용약관","vi":"Điều khoản sử dụng dịch vụ","ja":"サービス利用規約","en":"Terms of service","zh-CN":"服务条款","zh-TW":"服務條款"},
   {"key":"legal.privacyTitle","source":"footer","ko":"개인정보처리방침","vi":"Chính sách bảo mật","ja":"プライバシーポリシー","en":"Privacy policy","zh-CN":"隐私政策","zh-TW":"隱私權政策"},
+  {"key":"legal.licensesTitle","source":"footer","ko":"라이선스 안내","vi":"Thông tin giấy phép","ja":"ライセンス情報","en":"License notices","zh-CN":"许可声明","zh-TW":"授權聲明"},
   {"key":"order.completedTab","source":"orderPages","ko":"주문완료","vi":"Đơn hàng hoàn tất","ja":"注文完了","en":"Completed orders","zh-CN":"已完成订单","zh-TW":"已完成訂單"},
   {"key":"order.cancelledRefundedTab","source":"orderPages","ko":"취소/환불완료","vi":"Đã hủy / Đã hoàn tiền","ja":"キャンセル・返金完了","en":"Cancelled / Refunded","zh-CN":"已取消／已退款","zh-TW":"已取消／已退款"},
   {"key":"order.details","source":"orderPages","ko":"주문상세","vi":"Chi tiết đơn hàng","ja":"注文詳細","en":"Order details","zh-CN":"订单详情","zh-TW":"訂單詳情"},

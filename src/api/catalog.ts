@@ -62,6 +62,7 @@ export const catalogSpecSchema = z.object({
   gpuVramGb: int.nullable(),
   maskedIp: nullableText.transform(value => value !== null && /^[0-9]{1,3}\.[0-9]{1,2}\*\.[0-9]\*\*\.\*\*\*$/.test(value) ? value : null),
   country: nullableText.optional(),
+  countryCode: nullableText.transform(value => value !== null && /^[A-Za-z]{2}$/.test(value) ? value.toUpperCase() : null).optional(),
 })
 const inputDeviceStatus = z.object({
   keyboardConnectionStatus: inputStatus.nullable(), mouseConnectionStatus: inputStatus.nullable(),

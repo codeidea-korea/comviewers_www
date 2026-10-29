@@ -90,7 +90,7 @@ export function Footer({ variant = 'default' }: { variant?: 'default' | 'compact
           </div>
         </div>
         <div className="site-footer__bottom">
-          <div><Link to="/terms"><TranslatedText id="legal.termsTitle" /></Link><Link className="site-footer__privacy" to="/privacy"><TranslatedText id="legal.privacyTitle" /></Link></div>
+          <div><Link to="/terms"><TranslatedText id="legal.termsTitle" /></Link><Link className="site-footer__privacy" to="/privacy"><TranslatedText id="legal.privacyTitle" /></Link><Link to="/license-notices"><TranslatedText id="legal.licensesTitle" /></Link></div>
           <p>Copyright © ComViewers.com All rights reserved.</p>
         </div>
       </div>

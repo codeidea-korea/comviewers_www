@@ -5,7 +5,7 @@ import type { Product } from '../../../domain/products/types'
 import { useNavigate } from 'react-router'
 import { ProductCard } from '../../../components/product/ProductCardView'
 import { osFilterLabel } from '@/domain/products/osFilterLabel'
-import flagKorea from '../../../assets/figma/flag-korea.png'
+import { ProductCountryFlag } from '@/components/product/ProductCountryFlagView'
 import keyboardActiveIcon from '../../../assets/figma/keyboard-active.svg'
 import keyboardIcon from '../../../assets/figma/keyboard.svg'
 import mouseActiveIcon from '../../../assets/figma/mouse-active.svg'
@@ -49,7 +49,7 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
       <td>
         <span className="product-table-country">
           {product.country || product.ip ? <>
-            {product.country ? <span className="product-table-country__name">{product.country === 'Korea' ? <img alt={uiText('대한민국')} src={flagKorea} /> : null}<EllipsisText lines={1}>{product.country}</EllipsisText></span> : null}
+            {product.country ? <span className="product-table-country__name"><ProductCountryFlag country={product.country} countryCode={product.countryCode} /><EllipsisText lines={1}>{product.country}</EllipsisText></span> : null}
             {product.ip ? <small><EllipsisText lines={1}>{product.ip}</EllipsisText></small> : null}
           </> : <img alt={uiText('국가/IP 정보 없음')} height={20} src={countryEmptyIcon} width={20} />}
         </span>

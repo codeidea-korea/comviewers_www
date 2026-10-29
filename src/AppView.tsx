@@ -15,6 +15,7 @@ const SignupPages = lazy(() => import('./routes/auth/SignupPagesView').then(modu
 const HomePage = lazy(() => import('./routes/home/HomePageView').then(module => ({ default: module.HomePage })))
 const NotReadyPage = lazy(() => import('./routes/NotReadyPageView').then(module => ({ default: module.NotReadyPage })))
 const LegalPage = lazy(() => import('./routes/legal/LegalPage').then(module => ({ default: module.LegalPage })))
+const LicenseNoticesPage = lazy(() => import('./routes/legal/LicenseNoticesPage').then(module => ({ default: module.LicenseNoticesPage })))
 const CartPage = lazy(() => import('./routes/commerce/CartPageView').then(module => ({ default: module.CartPage })))
 const CheckoutCompletePage = lazy(() => import('./routes/commerce/CheckoutCompleteView').then(module => ({ default: module.CheckoutCompletePage })))
 const CheckoutPage = lazy(() => import('./routes/commerce/CheckoutPageView').then(module => ({ default: module.CheckoutPage })))
@@ -120,6 +121,7 @@ export function App() {
       <Route path="colocation/apply" element={<ColocationApplyPage />} />
       <Route path="terms" element={<LegalPage />} />
       <Route path="privacy" element={<LegalPage privacy />} />
+      <Route path="license-notices" element={<LicenseNoticesPage />} />
       <Route path="*" element={<NotReadyPage title="페이지를 찾을 수 없습니다" />} />
       </Routes></CustomerCapabilityGate></RouteErrorBoundary>
       <RouteScrollRestoration location={location} navigationType={navigationType} />

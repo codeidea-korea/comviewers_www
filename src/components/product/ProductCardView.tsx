@@ -3,7 +3,7 @@ import { CpuCoreBadge } from './CpuCoreBadge'
 import { TranslatedText, useTranslation } from '../../i18n/translation'
 import type { Product } from '../../domain/products/types'
 import { RelativeLink as Link } from '../navigation/RelativeLinkView'
-import flagKorea from '../../assets/figma/flag-korea.png'
+import { ProductCountryFlag } from './ProductCountryFlagView'
 import { ProductPeripherals } from './ProductPeripherals'
 import countryEmptyIcon from '../../assets/figma/product-country-empty.png'
 import { ProductServerState } from './ProductServerStateView'
@@ -72,7 +72,7 @@ export function ProductCard({ onAddToCart, product, size = 'medium' }: { onAddTo
                 className="product-card__spec--ip"
                 label="IP"
                 value={product.country || product.ip ? <>
-                  {product.country ? <>{product.country === 'Korea' ? <img alt={t('catalogUi.korea')} className="flag" src={flagKorea} /> : null}<ProductText to={productHref} lines={1}>{product.country}</ProductText></> : null}
+                  {product.country ? <><ProductCountryFlag className="flag" country={product.country} countryCode={product.countryCode} /><ProductText to={productHref} lines={1}>{product.country}</ProductText></> : null}
                   {product.ip ? <small><ProductText to={productHref} lines={1}>{product.ip}</ProductText></small> : null}
                 </> : <img alt={t('catalogUi.countryUnknown')} className="flag" height={20} src={countryEmptyIcon} width={20} />}
               />

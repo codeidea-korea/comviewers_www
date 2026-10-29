@@ -133,6 +133,7 @@ export function CustomerCapabilityGate({ children }: { children: ReactNode }) {
   const { restoring } = useAuthentication()
   const { pathname } = useLocation()
   if (session.status !== 'authenticated') return children
+  if (/^\/license-notices\/?$/.test(pathname)) return children
   if (/^\/account\/reset-password\/?$/.test(pathname)) return children
   if (managerOrganizationCode(pathname)) return children
   if (session.role === 'C_MANAGER') {

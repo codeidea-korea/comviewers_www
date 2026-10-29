@@ -1,5 +1,25 @@
 # ComViewers 사용자 서비스 프론트
 
+## 2026-10-29 MaxMind 국가 데이터 라이선스 안내
+
+국가 데이터 제공자를 MaxMind GeoLite Country로 전환하는 사용자 요청에 맞춰 DB-IP 푸터 출처 문구를 제거하고, 약관·개인정보처리방침 옆에 `라이선스 안내` 링크를 추가했다. 공개 `/license-notices` 페이지는 기존 약관 레이아웃을 재사용하며 IP 국가 표시 기능, MaxMind 출처 문구·GeoLite 이용약관·CC BY-SA 4.0 링크와 기존 국기 `flag-icons` MIT 원문 링크를 제공한다. 출처 문구는 번역으로 변형되지 않도록 보존하며 기존 언어 선택 흐름을 유지한다.
+
+API의 MaxMind 데이터 전환과 함께 반영해야 한다. DB-IP 데이터를 사용하는 기존 API와 이 웹만 따로 배포하면 기존 데이터의 출처 표시 조건을 충족하지 못한다. MaxMind 데이터 파일 확보·설정은 API 인수인계를 따른다. L2 소스/L0 문서이며 diff·라우트/링크·번역 키·기존 라이선스 보존만 정적으로 확인했다. 테스트 파일/실행·빌드·lint·typecheck·브라우저 검수·DB·배포·재시작·커밋/push는 수행하지 않았다.
+
+## 2026-10-29 문의 첨부 이미지 미리보기
+
+문의 채팅의 PNG·JPEG·WEBP 첨부를 기존 인증 다운로드 API의 Blob으로 조회해 150×186 영역에 비율을 유지하여 표시한다. 고객·C매니저 및 모바일 공통 대화에 적용하며 화면에 들어온 이미지만 조회한다. 로딩·실패 표시와 기존 파일 다운로드를 유지하고, 본문이 비어 있는 메시지는 말풍선을 만들지 않으며 작성자·시각·첨부는 유지한다. 문의/인증 서비스 변경·닫기 시 이전 Blob URL을 해제하고 권한 거부는 대화 접근 오류로 처리한다.
+
+변경: `InquiryImagePreview.tsx`, `inquiry-image-preview.css`, `InquiryAttachments.tsx`, `inquiries/InquiryConversationDialog.tsx` (`src/routes/mypage/-components/` 기준). L2 소스·L0 기록이며 diff·참조·MIME/인증 계약·리소스 정리를 정적으로 검토했다. 테스트 파일/실행·빌드·lint·typecheck·브라우저 검수·배포는 수행하지 않았다.
+
+## 2026-10-29 신규 IP 국가와 국가별 아이콘
+
+API의 nullable `spec.countryCode`를 기존 국가명·마스킹 IP와 함께 전달하고 상품 카드·목록에서 국가별 국기를 표시한다. 구 API의 필드 누락은 허용하며 `country=Korea`인 경우 기존 한국 국기 PNG를 유지한다. 국가/국기 미확인 시 임의 국가를 선택하지 않고 기존 국가명 또는 IP 표시를 유지한다. 상품 상세는 기존 국가명/IP 행을 유지한다.
+
+국기는 `flag-icons` commit `ac7e0eb3259eb62aa6100c435607e2fe03896a97`의 `flags/4x3/[a-z]{2}.svg` 257개를 변경 없이 포함한다. MIT 라이선스와 원천/각 파일 SHA-256은 `src/assets/country-flags/LICENSE` 및 `SOURCE.json`에 보존하고 `public/licenses/flag-icons-LICENSE.txt`를 배포 파일에도 포함한다. 외부 이미지 CDN 대신 빌드에 포함되는 URL을 사용하며 기존 20px 영역 안에서 전체 국기를 표시한다. 후속 사용자 요청으로 국가 데이터 제공자는 MaxMind로 전환하며 출처는 위 라이선스 안내 페이지에 정리한다.
+
+L2 소스·정적 자산/L0 기록이다. DTO→모델→카드/목록 연결, 누락/잘못된 코드 fallback, Vite 로컬 자산 import 옵션, footer 적용 범위와 diff를 정적으로 확인했다. 테스트 파일·테스트·빌드·컴파일·lint·typecheck·브라우저·API 실행·DB·배포·재시작·커밋/push는 수행하지 않았다. 신규 IP 국가 판별은 API GeoIP 변경과 공동 반영이 필요하다.
+
 ## 2026-10-28 기준 종료일 유지 기간연장
 
 고객 1·2·3개월(30·60·90일)과 종료일 지정은 유지하며 팝업·공통 주문서·보관함은 API의 PC별 기준 종료일시·선택 일수·최종 종료일시·불가 사유를 표시한다. 화면의 정수 잔여 일수로 기간을 계산하지 않는다. 서버가 하나라도 불가로 반환하면 기존 항목 경고와 전체 결제 차단을 사용하며 가능한 PC를 자동 제외하지 않는다. 기준 종료일시+선택 일수 및 실제 처리시각의 미래 조건은 [기간 정책](../docs/decisions/0032-rental-contract-and-pc-operational-status.md)을 따른다. 환불 후 재개는 확정된 신청일시를 서버에서 계산하고 승인된 이관 원천 시각은 검증된 이관 근거로만 연결한다.

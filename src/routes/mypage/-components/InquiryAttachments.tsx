@@ -2,6 +2,8 @@ import { useUiTranslation } from '@/i18n/uiTranslation'
 import { useEffect, useRef, useState } from 'react'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { Button } from '@/components/ui/ButtonControl'
+import { ApiClientError } from '@/api/httpClient'
+import { InquiryImagePreview } from './InquiryImagePreview'
 
 export interface InquiryDraftAttachment { attachmentId: number; fileName: string; fileSize: number }
 
@@ -68,8 +70,9 @@ export function InquiryAttachments({ api, requestId, files, onChange, disabled, 
   </fieldset>
 }
 
-export function InquiryAttachmentDownload({ api, requestId, attachment }: {
-  api: InquiryReadServices; requestId: number; attachment: { id: number; fileName: string; fileSize: number }
+export function InquiryAttachmentDownload({ api, requestId, attachment, onAccessError }: {
+  api: InquiryReadServices; requestId: number; attachment: { id: number; fileName: string; fileSize: number; mimeType: string };
+  onAccessError: (error: Error) => void
 }) {
   const { uiText } = useUiTranslation()
   const [busy, setBusy] = useState(false)
@@ -83,8 +86,13 @@ export function InquiryAttachmentDownload({ api, requestId, attachment }: {
       const link = document.createElement('a'); link.href = url; link.download = attachment.fileName
       document.body.append(link); link.click(); link.remove()
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch { setError(true) } finally { setBusy(false) }
+    } catch (failure) {
+      setError(true)
+      if (failure instanceof ApiClientError && [401, 403].includes(failure.status ?? 0)) onAccessError(failure)
+    } finally { setBusy(false) }
   }
-  return <p className="inquiry-chat__attachment-download"><Button size="small" variant="secondary" disabled={busy} onClick={() => void download()}><span>{attachment.fileName} ({attachment.fileSize.toLocaleString('ko-KR')} bytes){busy ? uiText(" · 내려받는 중…") : ''}</span></Button>
+  return <p className="inquiry-chat__attachment-download">
+    <InquiryImagePreview api={api} requestId={requestId} attachmentId={attachment.id} mimeType={attachment.mimeType} fileName={attachment.fileName} onAccessError={onAccessError}/>
+    <Button size="small" variant="secondary" disabled={busy} onClick={() => void download()}><span>{attachment.fileName} ({attachment.fileSize.toLocaleString('ko-KR')} bytes){busy ? uiText(" · 내려받는 중…") : ''}</span></Button>
     {error ? <span role="alert"> {uiText("파일을 내려받지 못했습니다. 다시 시도해 주세요.")}</span> : null}</p>
 }
