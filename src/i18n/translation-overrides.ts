@@ -233,7 +233,7 @@ export const translationOverrides = [
   {"key":"rental.newWaiting","source":"orderPages","ko":"신규대기","vi":"Chờ thiết lập","ja":"新規待機","en":"Awaiting setup","zh-CN":"等待设置","zh-TW":"等待設定"},
   {"key":"rental.available","source":"orderPages","ko":"렌탈 가능","vi":"Có thể thuê","ja":"レンタル可能","en":"Available for rental","zh-CN":"可租用","zh-TW":"可租用"},
   {"key":"rental.using","source":"orderPages","ko":"렌탈 중","vi":"Đang thuê","ja":"レンタル中","en":"Rented","zh-CN":"租用中","zh-TW":"租用中"},
-  {"key":"rental.formatWaiting","source":"orderPages","ko":"포맷대기","vi":"Chờ định dạng","ja":"フォーマット待ち","en":"Awaiting format","zh-CN":"等待格式化","zh-TW":"等待格式化"},
+  {"key":"rental.formatWaiting","source":"orderPages","ko":"종료포맷","vi":"Chờ định dạng","ja":"フォーマット待ち","en":"Awaiting format","zh-CN":"等待格式化","zh-TW":"等待格式化"},
   {"key":"rental.extensionWaiting","source":"orderPages","ko":"연장대기","vi":"Đang chờ gia hạn","ja":"延長待ち","en":"Awaiting extension","zh-CN":"待续租","zh-TW":"待續租"},
   {"key":"rental.extend","source":"orderActions","ko":"기간 연장","vi":"Gia hạn thời gian thuê","ja":"利用期間を延長","en":"Extend rental period","zh-CN":"延长租期","zh-TW":"延長租期"},
   {"key":"refund.requested","source":"orderPages","ko":"환불 접수","vi":"Đã tiếp nhận yêu cầu hoàn tiền","ja":"返金申請受付済み","en":"Refund request received","zh-CN":"退款申请已受理","zh-TW":"退款申請已受理"},

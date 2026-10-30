@@ -347,10 +347,6 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                       <span>{uiText('컴뷰어스 주문번호')} {order.orderNo}</span>
                       <RelativeLink className="notranslate" translate="no" to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
                     </header>
-                    <div className="order-catalog-item__provider-ids">
-                      <span>{uiText('토스 주문번호')}</span>
-                      <span>{order.providerOrderIds?.length ? order.providerOrderIds.join(' / ') : '-'}</span>
-                    </div>
                     <div className="order-catalog-item__product">
                       <RelativeLink aria-label={uiText('{name} 상품 상세 보기', { name: item.title })} className="order-catalog-item__image" to={productDetailPath}>
                         <img src={item.imageUrl && /^(https?:\/\/|\/[^/])/.test(item.imageUrl) ? item.imageUrl : windowsCard} alt={item.title} />
