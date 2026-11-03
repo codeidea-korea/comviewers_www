@@ -105,6 +105,12 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
         setMessage("ID가 복사되었습니다.")
         return
       }
+      if (!field && !passwordConfigured) {
+        const identifier = await api.identifier(item.rentalId, accessType, controller.signal)
+        controller.signal.throwIfAborted()
+        setRevealed({ ...identifier, accessType })
+        return
+      }
       const value = await api.reveal(item.rentalId, accessType, controller.signal)
       controller.signal.throwIfAborted()
       if (field) {
@@ -134,13 +140,13 @@ function RemoteProvider({ api, item, accessType, maskedId, passwordConfigured, c
   if (compact) return <article className="rcpc-remote-provider--compact">{providerHeading}
     <div className="rcpc-remote-provider__credentials">
       <div className="rcpc-remote-provider__line"><TooltipText text={`ID ${displayedId}`} tooltipText={displayedId} enabled={Boolean(revealed?.remoteId ?? visibleId)}/><button aria-label={t("mypageRcpc.ui100", { v0: providerName })} aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}><img alt="" src={copyIcon}/></button></div>
-      <div className="rcpc-remote-provider__line"><TooltipText text={`PW ${displayedPassword}`} tooltipText={displayedPassword} enabled={passwordConfigured && Boolean(revealed?.password)}/><span className="rcpc-remote-provider__actions">{maskedId && passwordConfigured ? <button aria-label={t("mypageRcpc.ui101", { v0: providerName, v1: uiText(revealed ? '숨기기' : '보기') })} aria-pressed={Boolean(revealed)} aria-busy={Boolean(busy.reveal)} disabled={busy.reveal} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}><img alt="" height={16} src={revealed ? eyeIcon : eyeClosedIcon} width={16}/></button> : null}<button aria-label={t("mypageRcpc.ui104", { v0: providerName })} aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}><img alt="" src={copyIcon}/></button></span></div>
+      <div className="rcpc-remote-provider__line"><TooltipText text={`PW ${displayedPassword}`} tooltipText={displayedPassword} enabled={passwordConfigured && Boolean(revealed?.password)}/><span className="rcpc-remote-provider__actions">{maskedId ? <button aria-label={t("mypageRcpc.ui101", { v0: providerName, v1: uiText(revealed ? '숨기기' : '보기') })} aria-pressed={Boolean(revealed)} aria-busy={Boolean(busy.reveal)} disabled={busy.reveal} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}><img alt="" height={16} src={revealed ? eyeIcon : eyeClosedIcon} width={16}/></button> : null}<button aria-label={t("mypageRcpc.ui104", { v0: providerName })} aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}><img alt="" src={copyIcon}/></button></span></div>
     </div>
     {message ? <Toast message={uiText(message)} toastKey={toastKey}/> : null}
   </article>
   return <article>{providerHeading}
     <p>ID: {maskedId ? displayedId : uiText("등록되지 않음")}</p><p>{uiText("비밀번호:")} {passwordConfigured ? revealed ? revealed.password ?? uiText("등록되지 않음") : '••••••••' : uiText("등록되지 않음")}</p>
-    <button aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId || !passwordConfigured} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}>{revealed ? uiText("숨기기") : uiText("보기")}</button>
+    <button aria-busy={Boolean(busy.reveal)} disabled={busy.reveal || !maskedId} type="button" onClick={() => { if (revealed) setRevealed(null); else void access() }}>{revealed ? uiText("숨기기") : uiText("보기")}</button>
     <button aria-busy={Boolean(busy.remote_id)} disabled={busy.remote_id || !maskedId} type="button" onClick={() => void access('remote_id')}>{uiText("ID 복사")}</button>
     <button aria-busy={Boolean(busy.password)} disabled={busy.password || !maskedId || !passwordConfigured} type="button" onClick={() => void access('password')}>{uiText("비밀번호 복사")}</button>
     {message ? <Toast message={uiText(message)} toastKey={toastKey}/> : null}

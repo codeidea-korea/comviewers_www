@@ -101,7 +101,7 @@ export const mypageRcpcTranslations = [
   {"key": "mypageRcpc.ui098", "source": "mypageRcpc", "ko": "비밀번호가 복사되었습니다.", "vi": "Đã sao chép mật khẩu.", "ja": "パスワードをコピーしました。", "en": "Password copied.", "zh-CN": "已复制密码。", "zh-TW": "已複製密碼。"},
   {"key": "mypageRcpc.ui099", "source": "mypageRcpc", "ko": "원격정보 없음", "vi": "Không có thông tin từ xa", "ja": "遠隔情報なし", "en": "No remote info", "zh-CN": "无远程信息", "zh-TW": "無遠端資訊"},
   {"key": "mypageRcpc.ui100", "source": "mypageRcpc", "ko": "{v0} ID 복사", "vi": "Sao chép ID {v0}", "ja": "{v0}のIDをコピー", "en": "Copy {v0} ID", "zh-CN": "复制{v0} ID", "zh-TW": "複製{v0} ID"},
-  {"key": "mypageRcpc.ui101", "source": "mypageRcpc", "ko": "{v0} 비밀번호 {v1}", "vi": "{v1} mật khẩu {v0}", "ja": "{v0}のパスワードを{v1}", "en": "{v1} {v0} password", "zh-CN": "{v1}{v0}密码", "zh-TW": "{v1}{v0}密碼"},
+  {"key": "mypageRcpc.ui101", "source": "mypageRcpc", "ko": "{v0} 접속정보 {v1}", "vi": "{v1} thông tin truy cập {v0}", "ja": "{v0}の接続情報を{v1}", "en": "{v1} {v0} connection information", "zh-CN": "{v1}{v0}连接信息", "zh-TW": "{v1}{v0}連線資訊"},
   {"key": "mypageRcpc.ui102", "source": "mypageRcpc", "ko": "숨기기", "vi": "Ẩn", "ja": "非表示", "en": "Hide", "zh-CN": "隐藏", "zh-TW": "隱藏"},
   {"key": "mypageRcpc.ui103", "source": "mypageRcpc", "ko": "보기", "vi": "Hiện", "ja": "表示", "en": "Show", "zh-CN": "显示", "zh-TW": "顯示"},
   {"key": "mypageRcpc.ui104", "source": "mypageRcpc", "ko": "{v0} 비밀번호 복사", "vi": "Sao chép mật khẩu {v0}", "ja": "{v0}のパスワードをコピー", "en": "Copy {v0} password", "zh-CN": "复制{v0}密码", "zh-TW": "複製{v0}密碼"},
