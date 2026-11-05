@@ -28,7 +28,7 @@ export const productQuerySchema = z.object({
   keyboardConnectionStatus: z.enum(['connected', 'disconnected', 'unknown']).optional(),
   mouseConnectionStatus: z.enum(['connected', 'disconnected', 'unknown']).optional(),
   saleAvailableOnly: z.boolean().optional(),
-  sort: z.enum(['newest', 'priceAsc', 'priceDesc']).optional(),
+  sort: z.enum(['newest', 'priceAsc', 'priceDesc', 'displayPriceAsc', 'displayPriceDesc']).optional(),
 })
 export const productSchema = z.object({
   id: z.string(), productId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/), image: z.string().nullable(),

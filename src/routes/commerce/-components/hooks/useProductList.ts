@@ -63,7 +63,7 @@ export function useProductList() {
     queryFn: async ({ signal }) => productPageSchema.parse(await products.list(query, signal)),
     placeholderData: (previous, previousQuery) => {
       const previousFilters = previousQuery?.queryKey[2] as ProductListQuery | undefined
-      return previousFilters?.categoryCode === query.categoryCode && previousFilters?.priceBasis === query.priceBasis && previousFilters?.couponId === query.couponId
+      return previousFilters?.categoryCode === query.categoryCode && previousFilters?.priceBasis === query.priceBasis && previousFilters?.couponId === query.couponId && previousFilters?.sort === query.sort
         ? previous : undefined
     },
   }, query.couponId !== undefined ? scopedClient : publicCatalogClient)

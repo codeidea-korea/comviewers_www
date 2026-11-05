@@ -11,7 +11,7 @@ const id = z.number().int().positive().safe()
 const count = z.number().int().nonnegative().safe()
 const nullableText = z.string().nullable()
 export const catalogProductNoSchema = productNoPathSchema
-export const catalogSortSchema = z.enum(['newest', 'priceAsc', 'priceDesc'])
+export const catalogSortSchema = z.enum(['newest', 'priceAsc', 'priceDesc', 'displayPriceAsc', 'displayPriceDesc'])
 const inputStatus = z.enum(['connected', 'disconnected', 'unknown'])
 const categoryCode = z.string().trim().toLowerCase().transform((value) => value || undefined)
   .pipe(z.string().regex(/^[a-z0-9][a-z0-9_-]{0,49}$/).optional()).optional()

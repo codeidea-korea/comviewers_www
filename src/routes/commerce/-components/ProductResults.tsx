@@ -1,7 +1,7 @@
 import { CpuCoreBadge } from '@/components/product/CpuCoreBadge'
 import { useTranslation } from '@/i18n/translation'
 import { useUiTranslation } from '@/i18n/uiTranslation'
-import type { Product } from '../../../domain/products/types'
+import type { Product, ProductListQuery } from '../../../domain/products/types'
 import { useNavigate } from 'react-router'
 import { ProductCard } from '../../../components/product/ProductCardView'
 import { osFilterLabel } from '@/domain/products/osFilterLabel'
@@ -62,9 +62,10 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
   )
 }
 
-export function ProductResults({ products, view, onAddToCart }: { products: Product[]; view: 'cards' | 'list'; onAddToCart: (product: Product) => void }) {
+export function ProductResults({ products, view, onAddToCart, sort, onSortChange }: { products: Product[]; view: 'cards' | 'list'; onAddToCart: (product: Product) => void; sort: ProductListQuery['sort']; onSortChange: (sort: ProductListQuery['sort']) => void }) {
   const { locale, t } = useTranslation()
   if (view === 'cards') return <div className="product-card-grid">{products.map((product) => <ProductCard key={product.id} onAddToCart={onAddToCart} product={product} size="large" />)}</div>
+  const direction = sort === 'displayPriceAsc' ? 'ascending' : sort === 'displayPriceDesc' ? 'descending' : 'none'
   const partOnly = products.length > 0 && products.every((product) => product.pricingType === 'one_time' && product.billingUnit === 'unit')
   return (
 <div className={`product-table-wrap${locale !== 'ko' ? ' product-table-wrap--translated' : ''}`}>
@@ -85,7 +86,7 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
                   <col style={{ width: '88px' }} />
                   <col style={{ width: '68px' }} />
                 </colgroup>
-                <thead><tr>{[t('product.number'), 'OS', 'CPU', 'CORE', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee'), t(partOnly ? 'money.productAmount' : 'money.monthlyRental'), t('cart.add')].map((label) => <th key={label} scope="col"><EllipsisText lines={1}>{label}</EllipsisText></th>)}</tr></thead>
+                <thead><tr>{[t('product.number'), 'OS', 'CPU', 'CORE', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee')].map((label) => <th key={label} scope="col"><EllipsisText lines={1}>{label}</EllipsisText></th>)}<th aria-sort={direction} scope="col"><button className="product-list-sort" onClick={() => onSortChange(direction === 'none' ? 'displayPriceAsc' : direction === 'ascending' ? 'displayPriceDesc' : 'newest')} type="button"><span className="product-list-sort__label">{t(partOnly ? 'money.productAmount' : 'money.monthlyRental')}</span><span aria-hidden="true">{direction === 'ascending' ? '↑' : direction === 'descending' ? '↓' : '↕'}</span></button></th><th scope="col"><EllipsisText lines={1}>{t('cart.add')}</EllipsisText></th></tr></thead>
                 <tbody>{products.map((product) => <ProductListRow key={product.id} onAddToCart={onAddToCart} product={product} />)}</tbody>
               </table>
             </div>
