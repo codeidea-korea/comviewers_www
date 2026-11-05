@@ -33,13 +33,13 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
 
   return (
     <tr className="product-list-table__row" role="link" tabIndex={0} onClick={event => { if (!(event.target as HTMLElement).closest('button,a,input,select,textarea')) openProduct() }} onKeyDown={event => { if (event.key === 'Enter' && event.target === event.currentTarget) openProduct() }}>
-      <td><EllipsisText>{product.productId}</EllipsisText></td>
-      <td><EllipsisText className="product-table-copy">{osFilterLabel(product.osFilterValue) ?? product.os ?? t('common.noInformation')}</EllipsisText></td>
-      <td><EllipsisText className="product-table-copy">{product.cpu ?? t('common.noInformation')}</EllipsisText></td>
-      <td className="product-table-cores notranslate" translate="no"><CpuCoreBadge value={product.cpuCores} truncate /></td>
-      <td><span className="tag tag--blue"><EllipsisText>{product.ram ?? t('common.noInformation')}</EllipsisText></span></td>
-      <td><span className="tag tag--gray"><EllipsisText>{product.disk ?? t('common.noInformation')}</EllipsisText></span></td>
-      <td><span className="tag tag--red"><EllipsisText>{product.gpu ?? t('common.noInformation')}</EllipsisText></span></td>
+      <td><EllipsisText lines={1}>{product.productId}</EllipsisText></td>
+      <td><EllipsisText className="product-table-copy" lines={1}>{osFilterLabel(product.osFilterValue) ?? product.os ?? t('common.noInformation')}</EllipsisText></td>
+      <td><EllipsisText className="product-table-copy" lines={1}>{product.cpu ?? t('common.noInformation')}</EllipsisText></td>
+      <td className="product-table-cores notranslate" translate="no"><CpuCoreBadge value={product.cpuCores} truncate truncateLines={1} /></td>
+      <td><span className="tag tag--blue"><EllipsisText lines={1}>{product.ram ?? t('common.noInformation')}</EllipsisText></span></td>
+      <td><span className="tag tag--gray"><EllipsisText lines={1}>{product.disk ?? t('common.noInformation')}</EllipsisText></span></td>
+      <td><span className="tag tag--red"><EllipsisText lines={1}>{product.gpu ?? t('common.noInformation')}</EllipsisText></span></td>
       <td>
         <span className="product-table-peripherals">
           <i className="is-mouse"><img alt={uiText(product.mouseIncluded === null ? '마우스 정보 없음' : mouseActive ? '마우스 사용 가능' : '마우스 사용 불가')} src={mouseActive ? mouseActiveIcon : mouseIcon} /></i>
@@ -55,8 +55,8 @@ function ProductListRow({ onAddToCart, product }: { onAddToCart: (product: Produ
         </span>
       </td>
       <td><ProductServerState state={product.serverState} /></td>
-      <td className="product-table-price"><strong><EllipsisText>{t('money.krwAmount', { amount: product.setupFee.toLocaleString('ko-KR') })}</EllipsisText></strong></td>
-      <td className="product-table-price"><strong><EllipsisText>{productPrice === null ? t('common.noInformation') : t('money.krwAmount', { amount: productPrice.toLocaleString('ko-KR') })}</EllipsisText></strong></td>
+      <td className="product-table-price"><strong><EllipsisText lines={1}>{t('money.krwAmount', { amount: product.setupFee.toLocaleString('ko-KR') })}</EllipsisText></strong></td>
+      <td className="product-table-price"><strong><EllipsisText lines={1}>{productPrice === null ? t('common.noInformation') : t('money.krwAmount', { amount: productPrice.toLocaleString('ko-KR') })}</EllipsisText></strong></td>
       <td><button disabled={productPrice === null} aria-label={t('catalogUi.addProduct', { id: product.productId })} onClick={() => onAddToCart(product)} type="button"><img alt="" src={shoppingBagIcon} /></button></td>
     </tr>
   )
@@ -68,19 +68,19 @@ export function ProductResults({ products, view, onAddToCart }: { products: Prod
   const partOnly = products.length > 0 && products.every((product) => product.pricingType === 'one_time' && product.billingUnit === 'unit')
   return (
 <div className={`product-table-wrap${locale !== 'ko' ? ' product-table-wrap--translated' : ''}`}>
-              <table className="product-list-table product-list-table--clamped notranslate" translate="no">
+              <table className="product-list-table notranslate" translate="no">
                 <caption className="sr-only">{t('catalogUi.productList')}</caption>
                 <colgroup>
-                  <col style={{ width: '52px' }} />
-                  <col style={{ width: '108px' }} />
-                  <col style={{ width: '132px' }} />
-                  <col style={{ width: '80px' }} />
-                  <col style={{ width: '90px' }} />
-                  <col style={{ width: '90px' }} />
-                  <col style={{ width: '170px' }} />
-                  <col style={{ width: '140px' }} />
-                  <col style={{ width: '104px' }} />
-                  <col style={{ width: '70px' }} />
+                  <col style={{ width: '60px' }} />
+                  <col />
+                  <col />
+                  <col style={{ width: '91px' }} />
+                  <col style={{ width: '91px' }} />
+                  <col style={{ width: '91px' }} />
+                  <col style={{ width: '182px' }} />
+                  <col />
+                  <col style={{ width: '105px' }} />
+                  <col style={{ width: '50px' }} />
                   <col style={{ width: '88px' }} />
                   <col style={{ width: '88px' }} />
                   <col style={{ width: '68px' }} />
