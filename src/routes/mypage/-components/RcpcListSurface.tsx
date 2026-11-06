@@ -210,7 +210,7 @@ function RcpcState({ item }: { item: MyRcpcItem }) {
 
 function RcpcActions({ api, canExtend, item }: { api: MyRcpcReadServices; canExtend: boolean; item: MyRcpcItem }) {
   return <div className="rcpc-list__actions" role="cell">
-    <span><RcpcReboot api={api} item={item}/><InquirySearchAction disabled={!item.latestInquiry} productNo={item.productNo}/></span>
+    <span><RcpcReboot api={api} item={item}/><InquirySearchAction productNo={item.productNo}/></span>
     <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
   </div>
 }
@@ -244,7 +244,7 @@ export function MobileRcpcCard({ api, canEditAlias, canExtend, item, mutations, 
       <div><dt>{uiText("최근 문의")}</dt><dd className="rcpc-latest-inquiry"><RcpcLatestInquiry item={item}/></dd></div>
     </dl>
     <footer>
-      <span><RcpcReboot api={api} item={item}/><InquirySearchAction disabled={!item.latestInquiry} productNo={item.productNo}/></span>
+      <span><RcpcReboot api={api} item={item}/><InquirySearchAction productNo={item.productNo}/></span>
       <RcpcExtensionAction api={api} canExtend={canExtend} item={item}/>
     </footer>
   </article>
