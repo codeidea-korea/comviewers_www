@@ -155,6 +155,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   function requestQuote(nextMethod = method) {
     attempt.current = null
     setAgreed(false)
+    submit.reset()
     quote.mutate({ ...quoteInput, method: nextMethod })
   }
 
@@ -200,7 +201,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const back = () => { if (locked) return; if (step === 1) close(); else { attempt.current = null; submit.reset(); setAgreed(false); setStep(1) } }
   const content = <section aria-label={uiText("중도해지 및 환불 신청")} aria-modal={standalone ? undefined : true} className={`modal modal--refund-application modal--refund-step-${step}${standalone ? ' refund-application-page' : ''}`} role={standalone ? undefined : 'dialog'} tabIndex={standalone ? undefined : -1}>
     <header className="refund-application-page__header"><button aria-label={uiText("이전 화면으로")} disabled={locked} onClick={back} type="button"><img alt="" src={backIcon}/></button><h2>{uiText("중도해지 및 환불 신청")}</h2></header><div className="modal__content">
-    {invalidFixedSelectionCount > 0 ? <p className="refund-application__count" role="alert">{t("mypageSupport.unavailableCancellationSelection", { count: invalidFixedSelectionCount })}</p> : null}
+    {invalidFixedSelectionCount > 0 ? <div className="refund-application__alert" role="alert">{t("mypageSupport.unavailableCancellationSelection", { count: invalidFixedSelectionCount })}</div> : null}
     {step === 1 ? <form id={formId} className="refund-application refund-application--select" onSubmit={(event) => {
       event.preventDefault()
       if (!targetsReady || !selectedCount || !reason || invalidFixedSelectionCount > 0) return
@@ -229,11 +230,10 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
       if (!submit.isPending && (ambiguousFailure || (targetsReady && invalidFixedSelectionCount === 0 && quoteCurrent))) submit.mutate()
     }}>
       <div className="refund-application__quote-details" aria-busy={quote.isPending}>
-      {!quoteCurrent ? <div className={displayedQuote ? 'refund-application__quote-status' : undefined}>
-        {quote.isPending ? <LoadingState className="refund-application__loading" label={uiText("환불 예상 금액을 계산하고 있습니다.")} /> : null}
-        {quote.isError ? <p role="alert">{uiText(quote.error instanceof Error ? quote.error.message : uiText("환불 예상 금액을 확인하지 못했습니다."))} <button type="button" onClick={() => requestQuote()}>{uiText("다시 시도")}</button></p> : null}
+      {!quoteCurrent && quote.isPending ? <div className={displayedQuote ? 'refund-application__quote-status' : undefined}>
+        <LoadingState className="refund-application__loading" label={uiText("환불 예상 금액을 계산하고 있습니다.")} />
       </div> : null}
-      {displayedQuote ? <div aria-hidden={!quoteCurrent}>
+      {displayedQuote && !quote.isError ? <div aria-hidden={!quoteCurrent}>
         <section className="refund-application__summary" aria-label={uiText("최종 환불 예상 금액 요약")}>
           <p><span>{uiText("신청 품목")} <strong>{selectedCount}{uiText("개")}</strong></span></p>
           <p><span>{uiText("건별 환불 예상금액 합계")}</span><strong>{displayMoney(beforeBulkRefundTotal)}</strong></p>
@@ -261,8 +261,11 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
         }}><option value="">{uiText("은행명")}</option>{bankOptions.map(([code, name]) => <option key={code} value={code}>{uiText(name)}</option>)}</select><input required aria-label={uiText("계좌번호")} inputMode="numeric" pattern="[0-9 -]{8,40}" placeholder={uiText("계좌번호 숫자만 입력")} value={bank.accountNumber} onChange={(event) => { setBank(current => ({ ...current, accountNumber: event.target.value })); attempt.current = null }}/><input required aria-label={uiText("예금주")} placeholder={uiText("예금주")} value={bank.holder} onChange={(event) => { setBank(current => ({ ...current, holder: event.target.value })); attempt.current = null }}/></fieldset> : null}
         <RefundContactPhone disabled={!quoteCurrent || locked} value={contactPhone} onChange={value => { setPhone(value); attempt.current = null }}/>
         <section className="refund-application__terms"><h3>{uiText("약관동의")}</h3><div className="refund-application__agreement-row"><label className="refund-application__agreement"><Checkbox disabled={!quoteCurrent || locked} checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span>{uiText("[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.")}</span></label><RelativeLink to="/terms?section=refund" target="_blank" rel="noopener noreferrer">{uiText("환불 정책을 확인해주세요.")}</RelativeLink></div></section>
-      {submit.isError ? <p role="alert">{uiText(ambiguousFailure ? uiText("접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요.") : submit.error instanceof Error ? submit.error.message : uiText("신청을 접수하지 못했습니다."))}</p> : null}
     </form>}
-  </div><footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || invalidFixedSelectionCount > 0}>{uiText("다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
+  </div>{step === 2 && (quote.isError || submit.isError || pointOnlyReason) ? <div className="refund-application__alerts">
+    {quote.isError ? <div className="refund-application__alert" role="alert"><p>{uiText(quote.error instanceof Error ? quote.error.message : "환불 예상 금액을 확인하지 못했습니다.")}</p><button type="button" disabled={locked} onClick={() => requestQuote()}>{uiText("다시 시도")}</button></div> : null}
+    {submit.isError ? <div className="refund-application__alert" role="alert"><p>{uiText(ambiguousFailure ? "접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요." : submit.error instanceof Error ? submit.error.message : "신청을 접수하지 못했습니다.")}</p>{!ambiguousFailure ? <button type="button" onClick={() => requestQuote()}>{uiText("다시 계산")}</button> : null}</div> : null}
+    {pointOnlyReason ? <div className="refund-application__alert" role="status"><p>{uiText(pointOnlyReason)}</p></div> : null}
+  </div> : null}<footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || invalidFixedSelectionCount > 0}>{uiText("다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
   return standalone ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main> : <DialogLayer asChild backdropClassName="modal-backdrop" isOpen onClose={close} returnFocusRef={returnFocusRef} showTitle={false} title={uiText("중도해지 및 환불 신청")}>{content}</DialogLayer>
 }

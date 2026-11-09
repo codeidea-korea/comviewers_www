@@ -41,6 +41,11 @@
 .refund-application .refund-application__agreement > .checkbox__input { margin: 0; }
 .refund-application__agreement-row .refund-application__agreement > span { display: block; font-weight: 400; }
 .refund-application__agreement-row > a { color: var(--color-system-error); flex-shrink: 0; font-size: 12px; text-decoration: underline; }
+.refund-application__alerts { flex: 0 1 auto; margin-top: 16px; max-height: 25dvh; overflow-y: auto; }
+.refund-application__alert { align-items: center; background: #fff3f2; border: 1px solid var(--color-system-error); border-radius: 8px; color: var(--color-black); display: flex; flex-wrap: wrap; font-size: 14px; gap: 8px 16px; line-height: 1.5; padding: 12px 16px; }
+.refund-application__alert + .refund-application__alert { margin-top: 8px; }
+.refund-application__alert p { flex: 1 1 200px; margin: 0; overflow-wrap: anywhere; }
+.refund-application__alert button { background: var(--color-white); border: 1px solid var(--color-system-error); border-radius: 4px; color: var(--color-system-error); font-weight: 600; padding: 6px 12px; }
 .modal--refund-application > .refund-application__actions { background: var(--color-white); display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 30px; }
 .refund-application__actions > button { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 4px; color: var(--color-black); font-size: 16px; font-weight: 500; height: 50px; min-width: 0; padding: 0 20px; }
 .refund-application__actions > button:last-child { background: var(--color-black); border-color: var(--color-black); color: var(--color-white); }

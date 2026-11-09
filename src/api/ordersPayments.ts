@@ -40,6 +40,10 @@ const foreignPaymentQuote = z.object({ available: z.boolean(), krwAmount: count,
 export type ForeignPaymentQuote = z.infer<typeof foreignPaymentQuote>
 export type DirectEasyPayMethods = z.infer<typeof directEasyPayMethods>
 export type PaymentAbandonment = z.infer<typeof abandonment>
+export interface PaymentFailureDiagnostic {
+  stage: 'PAYLOAD_VALIDATION' | 'PAYMENT_OPTIONS' | 'SDK_LOAD' | 'SDK_INITIALIZATION' | 'SDK_REQUEST' | 'SDK_CLEANUP' | 'FOREIGN_REQUEST' | 'PAYMENT_CALLBACK' | 'UNKNOWN'
+  code: string
+}
 export type PaymentConfirmation = z.infer<typeof confirmation>
 export type PaymentConfirmationRequest = z.infer<typeof confirmationRequest>
 export interface PaymentPreparationRequest {
@@ -72,7 +76,7 @@ export function createOrdersPaymentsApi(client: ApiClient, organizationId: strin
     settleInternal: (orderNo: string, key: string) => client.request('/api/v1/payments/internal/settle', prepared, { ...scoped, method: 'POST', body: { orderNo }, idempotencyKey: z.uuidv4().parse(key) }),
     confirm: (body: PaymentConfirmationRequest, key: string) => client.request('/api/v1/payments/toss/confirm', confirmation, { ...scoped, method: 'POST', body: confirmationRequest.parse(body), idempotencyKey: z.uuidv4().parse(key) }),
     refresh: (providerOrderId: string, key: string) => client.request('/api/v1/payments/toss/refresh', confirmation, { ...scoped, method: 'POST', body: { orderId: providerOrderId }, idempotencyKey: z.uuidv4().parse(key) }),
-    abandon: (providerOrderId: string, customerCancelled = false, allowRetry = false) => client.request('/api/v1/payments/toss/abandon', abandonment, { ...scoped, method: 'POST', query: { customerCancelled, allowRetry }, body: { orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/).parse(providerOrderId) } }),
+    abandon: (providerOrderId: string, customerCancelled = false, allowRetry = false, diagnostic?: PaymentFailureDiagnostic) => client.request('/api/v1/payments/toss/abandon', abandonment, { ...scoped, method: 'POST', query: { customerCancelled, allowRetry }, body: { orderId: z.string().regex(/^[A-Za-z0-9_-]{6,64}$/).parse(providerOrderId), ...(diagnostic ? { diagnostic } : {}) } }),
     payment: (paymentId: number, signal?: AbortSignal) => client.request(`/api/v1/payments/${id.parse(paymentId)}`, detail, { ...scoped, signal }),
   }
 }

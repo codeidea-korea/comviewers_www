@@ -28,7 +28,7 @@ export interface CheckoutRepository {
   cancelCheckout?(input: import('@/api/ordersPayments').CheckoutCancellationRequest): Promise<import('@/api/ordersPayments').CheckoutCancellation>
   preparePayment?(input: CheckoutPaymentPreparation): Promise<CheckoutStartResult>
   payment?(paymentId: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').PaymentDetail>
-  abandon?(providerOrderId: string, customerCancelled?: boolean, allowRetry?: boolean): Promise<import('@/api/ordersPayments').PaymentAbandonment>
+  abandon?(providerOrderId: string, customerCancelled?: boolean, allowRetry?: boolean, diagnostic?: import('@/api/ordersPayments').PaymentFailureDiagnostic): Promise<import('@/api/ordersPayments').PaymentAbandonment>
   resume?(orderNo: string, key: string): Promise<CheckoutStartResult>
   refresh?(providerOrderId: string, key: string): Promise<import('@/api/ordersPayments').PaymentConfirmation>
   benefitQuote?(cartItemIds: readonly string[], userCouponId: number | null, pointAmount: number, signal?: AbortSignal): Promise<import('@/api/ordersPayments').OrderBenefitQuote>

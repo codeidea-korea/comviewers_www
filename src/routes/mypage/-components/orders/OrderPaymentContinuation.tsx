@@ -4,7 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
 import { Modal } from '@/components/ui/ModalControl'
-import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } from '@/routes/commerce/-components/checkout/tossPaymentWindow'
+import { isPaymentWindowCancelled, openTossPaymentWindow, paymentFailureDiagnostic, paymentWindowError } from '@/routes/commerce/-components/checkout/tossPaymentWindow'
+import type { PaymentFailureDiagnostic } from '@/api/ordersPayments'
 
 export function OrderPaymentContinuation({ orderNo, orderStatus, paymentStatus }: { orderNo: string; orderStatus: string; paymentStatus: string }) {
   useUiTranslation()
@@ -13,23 +14,26 @@ export function OrderPaymentContinuation({ orderNo, orderStatus, paymentStatus }
   const client = useQueryClient()
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const unresolvedCustomerCancellation = useRef(false)
+  const unresolvedDiagnostic = useRef<PaymentFailureDiagnostic | undefined>(undefined)
   const [cancelled, setCancelled] = useState(false)
   const key = useRef(crypto.randomUUID())
   const [open, setOpen] = useState(false)
   const busy = useRef(false)
   const windowAbort = useRef<AbortController | null>(null)
   useEffect(() => () => windowAbort.current?.abort(), [])
-  async function checkAbandonedPayment(providerOrderId: string, customerCancelled = false) {
+  async function checkAbandonedPayment(providerOrderId: string, customerCancelled = false, diagnostic?: PaymentFailureDiagnostic) {
     setOpen(false)
     setUnresolvedOrderId(providerOrderId)
     unresolvedCustomerCancellation.current ||= customerCancelled
+    if (diagnostic) unresolvedDiagnostic.current = diagnostic
     if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     let status: string
-    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current)).status }
+    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current, false, unresolvedDiagnostic.current)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
     if (status === 'cancelled' || status === 'failed') {
       setCancelled(true)
       unresolvedCustomerCancellation.current = false
+      unresolvedDiagnostic.current = undefined
     }
     await Promise.all(['checkout', 'cart', 'my-account', 'products'].map(query => client.invalidateQueries({ queryKey: [query] })))
     throw new Error(status === 'failed'
@@ -54,7 +58,7 @@ export function OrderPaymentContinuation({ orderNo, orderStatus, paymentStatus }
       catch (error) {
         if (controller.signal.aborted) return
         if (value.provider === 'toss_payments' && value.providerOrderId) {
-          await checkAbandonedPayment(value.providerOrderId, isPaymentWindowCancelled(error))
+          await checkAbandonedPayment(value.providerOrderId, isPaymentWindowCancelled(error), paymentFailureDiagnostic(error))
         }
         throw new Error(paymentWindowError(error))
       }

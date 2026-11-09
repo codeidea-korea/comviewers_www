@@ -63,7 +63,7 @@ async function waitForVisibleDocument(signal: AbortSignal): Promise<void> {
 
 // The USD-only merchant/variant must be enabled on the server after the provider contract is verified.
 export async function openForeignPaymentWindow(client: ForeignTossClient, payload: ForeignPayload, signal: AbortSignal,
-  cancelled: () => Error): Promise<void> {
+  cancelled: () => Error, failed: (error: unknown) => Error, cleanupFailed: (original: unknown) => Error): Promise<void> {
   // A background document can defer the provider iframe's handshake beyond its SDK deadline.
   await waitForVisibleDocument(signal)
   const widgets = client.widgets({ customerKey: payload.customerKey })
@@ -71,6 +71,7 @@ export async function openForeignPaymentWindow(client: ForeignTossClient, payloa
   await waitForVisibleDocument(signal)
   let control: WidgetWindow | undefined
   let redirected = false
+  let originalFailure: unknown
   try {
     control = await widgets.renderPaymentWindow({ orderName: payload.paymentRequest.orderName,
       variantKey: { paymentMethod: payload.variantKey,
@@ -112,14 +113,17 @@ export async function openForeignPaymentWindow(client: ForeignTossClient, payloa
         }).catch(error => {
           const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined
           finish(code === 'PAY_PROCESS_CANCELED' || code === 'USER_CANCEL' || code === 'PAYMENT_REQUEST_ABORTED'
-            ? cancelled() : new Error('결제가 완료되지 않았습니다. 주문내역을 확인하거나 다시 시도해 주세요.'))
+            ? cancelled() : failed(error))
         })
       })
     })
+  } catch (error) {
+    originalFailure = error
+    throw error
   } finally {
     if (control && !redirected) {
       try { await control.destroy() }
-      catch { throw new Error('결제창을 닫지 못했습니다. 페이지를 새로고침해 주세요.') }
+      catch { throw cleanupFailed(originalFailure) }
     }
   }
 }

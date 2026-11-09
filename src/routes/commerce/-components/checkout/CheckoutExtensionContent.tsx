@@ -7,7 +7,7 @@ import { AppShell } from '@/components/layout/AppShellView'
 import { Button } from '@/components/ui/ButtonControl'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
 import type { ExtensionCheckoutInput } from '@/api/extensionCheckout'
-import type { OrderBenefitQuote } from '@/api/ordersPayments'
+import type { OrderBenefitQuote, PaymentFailureDiagnostic } from '@/api/ordersPayments'
 import type { CheckoutPaymentPreparation } from '@/domain/checkout/checkoutRepository'
 import type { ExtensionCheckoutState } from '@/domain/checkout/extensionCheckoutState'
 import { PageTitle } from '../../CommerceComponents'
@@ -23,7 +23,7 @@ import { useCheckoutForm } from './hooks/useCheckoutForm'
 import { useForeignPaymentQuote } from './hooks/useForeignPaymentQuote'
 import { useCheckoutPaymentModes } from './hooks/useCheckoutPaymentModes'
 import { directCheckoutSummary, validateDirectCheckoutQuote } from '@/domain/checkout/directCheckoutQuote'
-import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } from './tossPaymentWindow'
+import { isPaymentWindowCancelled, openTossPaymentWindow, paymentFailureDiagnostic, paymentWindowError } from './tossPaymentWindow'
 import { CheckoutCancellation } from './CheckoutCancellation'
 import { checkoutReturnTo } from '@/domain/checkout/checkoutReturnTo'
 import { useCheckoutRecovery } from './hooks/useCheckoutRecovery'
@@ -52,6 +52,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
   const windowAbort = useRef<AbortController | null>(null)
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const customerCancelled = useRef(false)
+  const unresolvedDiagnostic = useRef<PaymentFailureDiagnostic | undefined>(undefined)
   const [paymentRetryReady, setPaymentRetryReady] = useState(false)
   const [paymentClosed, setPaymentClosed] = useState(false)
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
@@ -104,18 +105,20 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
   async function invalidate() {
     await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account', 'my-rcpcs'].map(key => client.invalidateQueries({ queryKey: [key] }))])
   }
-  async function reconcile(providerOrderId: string, cancelled = false) {
+  async function reconcile(providerOrderId: string, cancelled = false, diagnostic?: PaymentFailureDiagnostic) {
     setUnresolvedOrderId(providerOrderId)
     customerCancelled.current ||= cancelled
+    if (diagnostic) unresolvedDiagnostic.current = diagnostic
     if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     let status: string
-    try { status = (await checkout.abandon(providerOrderId, customerCancelled.current, true)).status }
+    try { status = (await checkout.abandon(providerOrderId, customerCancelled.current, true, unresolvedDiagnostic.current)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
     if (windowAbort.current?.signal.aborted) return
     if (status === 'retryable') {
       foreign.clearPrepared()
       setUnresolvedOrderId(null)
       customerCancelled.current = false
+      unresolvedDiagnostic.current = undefined
       setPaymentRetryReady(true)
       setPaymentNotice(null)
       return
@@ -132,6 +135,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
       setUnresolvedOrderId(null)
       setPaymentRetryReady(false)
       customerCancelled.current = false
+      unresolvedDiagnostic.current = undefined
       setPaymentNotice('결제가 종료되었습니다. 주문내역에서 처리 결과를 확인해 주세요.')
       await invalidate()
       return
@@ -178,7 +182,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
     }
     catch (error) {
       if (controller.signal.aborted) return
-      if (payment.provider === 'toss_payments' && payment.providerOrderId) return reconcile(payment.providerOrderId, isPaymentWindowCancelled(error))
+      if (payment.provider === 'toss_payments' && payment.providerOrderId) return reconcile(payment.providerOrderId, isPaymentWindowCancelled(error), paymentFailureDiagnostic(error))
       throw new Error(paymentWindowError(error))
     }
   } })

@@ -17,6 +17,7 @@ import { useInvalidateProductCatalog } from './-components/hooks/useInvalidatePr
 import { useSession } from '@/app/session/SessionProvider'
 import { clearCheckoutRecoveryForOrder } from '@/domain/checkout/checkoutRecovery'
 import { tossConfirmationAmountSchema } from '@/api/ordersPayments'
+import { safePaymentErrorCode } from './-components/checkout/tossPaymentWindow'
 import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
 import '../mypage/-components/orders/order-identifiers.css'
 
@@ -33,12 +34,14 @@ function CheckoutPaymentResult() {
   const invalidateCatalog = useInvalidateProductCatalog()
   // Keep paymentKey in memory only; the retry helper stores only the opaque orderId and UUID.
   const [returned] = useState(() => ({ paymentKey: params.get('paymentKey') ?? '', orderId: params.get('orderId') ?? '', amount: params.get('amount') ?? '', failed: params.has('code'),
-    customerCancelled: ['PAY_PROCESS_CANCELED', 'USER_CANCEL', 'PAYMENT_REQUEST_ABORTED'].includes(params.get('code') ?? '') }))
+    customerCancelled: ['PAY_PROCESS_CANCELED', 'USER_CANCEL', 'PAYMENT_REQUEST_ABORTED'].includes(params.get('code') ?? ''),
+    failureCode: safePaymentErrorCode({ code: params.get('code') }) }))
   const [key] = useState(() => confirmAttemptKey(returned.orderId))
   const started = useRef(false)
   const confirmInFlight = useRef(false)
   const abandonmentStarted = useRef(false)
-  const abandon = useMutation({ mutationFn: () => checkout.abandon!(returned.orderId, returned.customerCancelled),
+  const abandon = useMutation({ mutationFn: () => checkout.abandon!(returned.orderId, returned.customerCancelled, false,
+    { stage: 'PAYMENT_CALLBACK', code: returned.failureCode }),
     onSuccess: async () => {
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
     }, retry: false })
@@ -189,7 +192,8 @@ function CompleteResult({ order, paymentMethod, paymentAmount, paymentStatus, pa
   const display = orderPaymentDisplay({ ...order, virtualAccountStatus: currentAttempt ? order.virtualAccountStatus : null }, now, paymentStatus)
   // A historical attempt must not expose the current attempt's deposit instructions.
   const waitingForDeposit = paymentMethod === 'virtual_account' && currentAttempt && display.waitingForDeposit
-  const bank = virtualAccount?.bankCode ?? payment?.bankName ?? '-'
+  const bankName = payment?.bankName?.trim()
+  const bank = bankName && !/^\d+$/.test(bankName) ? bankName : '-'
   const account = virtualAccount?.accountNumber ?? uiText(accountLoading ? '입금계좌 조회 중…' : '입금계좌를 확인하지 못했습니다.')
   const depositor = virtualAccount?.customerName ?? payment?.depositorName ?? '-'
   const dueAt = virtualAccount?.dueDate ?? payment?.depositDueAt ?? null

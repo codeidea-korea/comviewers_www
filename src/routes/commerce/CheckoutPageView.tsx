@@ -15,8 +15,8 @@ import { CheckoutDiscounts } from './-components/checkout/CheckoutDiscounts'
 import { CheckoutCustomer } from './-components/checkout/CheckoutCustomer'
 import { CheckoutReceipt } from './-components/checkout/CheckoutReceipt'
 import { CheckoutSummary } from './-components/checkout/CheckoutSummary'
-import { isPaymentWindowCancelled, openTossPaymentWindow, paymentWindowError } from './-components/checkout/tossPaymentWindow'
-import type { OrderBenefitQuote } from '@/api/ordersPayments'
+import { isPaymentWindowCancelled, openTossPaymentWindow, paymentFailureDiagnostic, paymentWindowError } from './-components/checkout/tossPaymentWindow'
+import type { OrderBenefitQuote, PaymentFailureDiagnostic } from '@/api/ordersPayments'
 import { ApiClientError } from '@/api/httpClient'
 import type { CheckoutQuote, CheckoutSubmission } from '@/domain/checkout/checkoutRepository'
 import { CommerceCartState } from './-components/CommerceCartState'
@@ -43,6 +43,7 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
   const invalidateCatalog = useInvalidateProductCatalog()
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string | null>(null)
   const unresolvedCustomerCancellation = useRef(false)
+  const unresolvedDiagnostic = useRef<PaymentFailureDiagnostic | undefined>(undefined)
   const [paymentRetryReady, setPaymentRetryReady] = useState(false)
   const [paymentClosed, setPaymentClosed] = useState(false)
   const [couponId, setCouponId] = useState<number | null>(null)
@@ -96,18 +97,20 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
     if (!recovering && myAccount.readApi && !profileLoaded.current) { profileLoaded.current = true; profile.mutate(false) }
   }, [myAccount.readApi, profile, recovering])
   const showReceipt = form.payment === 'virtual-account'
-  async function checkAbandonedPayment(providerOrderId: string, customerCancelled = false) {
+  async function checkAbandonedPayment(providerOrderId: string, customerCancelled = false, diagnostic?: PaymentFailureDiagnostic) {
     setUnresolvedOrderId(providerOrderId)
     unresolvedCustomerCancellation.current ||= customerCancelled
+    if (diagnostic) unresolvedDiagnostic.current = diagnostic
     if (!checkout.abandon) throw new Error('결제 상태를 확인할 수 없습니다. 주문내역을 확인해 주세요.')
     let status: string
-    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current, true)).status }
+    try { status = (await checkout.abandon(providerOrderId, unresolvedCustomerCancellation.current, true, unresolvedDiagnostic.current)).status }
     catch { throw new Error('결제 상태를 확인하지 못했습니다. 결제 상태를 다시 확인해 주세요.') }
     if (windowAbort.current?.signal.aborted) return
     if (status === 'retryable') {
       foreign.clearPrepared()
       setUnresolvedOrderId(null)
       unresolvedCustomerCancellation.current = false
+      unresolvedDiagnostic.current = undefined
       setPaymentRetryReady(true)
       setPaymentNotice(null)
       return
@@ -117,6 +120,7 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
       setUnresolvedOrderId(null)
       setPaymentRetryReady(false)
       unresolvedCustomerCancellation.current = false
+      unresolvedDiagnostic.current = undefined
       setPaymentNotice('결제가 종료되었습니다. 주문내역에서 처리 결과를 확인해 주세요.')
       await Promise.all([invalidateCatalog(), ...['checkout', 'cart', 'my-account'].map(key => client.invalidateQueries({ queryKey: [key] }))])
       return
@@ -162,7 +166,7 @@ function CheckoutContent({ ids, returnTo }: { ids: readonly string[]; returnTo: 
       if (controller.signal.aborted) return
       // The SDK cancellation is a signal to reconcile, not proof that the PG payment ended.
       if (payment.provider === 'toss_payments' && payment.providerOrderId) {
-        return checkAbandonedPayment(payment.providerOrderId, isPaymentWindowCancelled(error))
+        return checkAbandonedPayment(payment.providerOrderId, isPaymentWindowCancelled(error), paymentFailureDiagnostic(error))
       }
       throw new Error(paymentWindowError(error))
     }
