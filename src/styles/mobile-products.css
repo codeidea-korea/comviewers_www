@@ -344,8 +344,6 @@
     border-top: 1px solid var(--color-gray-200);
     display: grid;
     flex: 0 0 auto;
-    gap: 8px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 12px 12px max(12px, env(safe-area-inset-bottom));
   }
   .product-filter__mobile-actions button {
@@ -356,7 +354,6 @@
     min-height: 48px;
   }
   .product-filter__mobile-dismiss { background: var(--color-white); border: 1px solid var(--color-gray-300); color: var(--color-black); }
-  .product-filter__mobile-apply { background: var(--color-black); border: 1px solid var(--color-black); color: var(--color-white); }
   .product-filter--drawer > .product-filter__caption,
   .product-filter--drawer > .product-filter__close { display: none; }
   .product-filter--drawer .product-filter__section > h2 { padding: 12px 0; }

@@ -123,7 +123,7 @@ export function ProductListPage({ navigationType }: { navigationType: Navigation
             showTitle={false}
             title="상세 상품 필터"
           >
-            <ProductFilter controls={productList} detailSelections={detailSelections} drawer facets={facets} filterRef={filterRef} mobile={mobileViewport} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} />
+            <ProductFilter controls={productList} detailSelections={detailSelections} drawer facets={facets} filterRef={filterRef} mobile={mobileViewport} navigationType={navigationType} onClose={closeFilter} onDetailSelectionChange={setDetailSelection} />
           </DialogLayer>
         ) : null}
         <div className={`products-layout${filterOpen && !filterDrawer ? ' products-layout--filter-open' : ''}`}>

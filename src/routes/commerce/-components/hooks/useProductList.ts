@@ -1,8 +1,8 @@
 import { productQueryKeys } from '@/domain/products/productQueryKeys'
 import { usePublicCatalogQueryClient } from '@/app/PublicCatalogQueryProvider'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { useSearchParams } from 'react-router'
+import { hashKey, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLayoutEffect, useState } from 'react'
+import { useLocation, useSearchParams } from 'react-router'
 import { useServices } from '@/app/ServiceProvider'
 import { UnsupportedProductFilterError } from '@/domain/products/httpProductRepository'
 import { detailSelectionsSchema, productPageSchema, productQuerySchema } from '@/domain/products/schemas'
@@ -12,6 +12,7 @@ import { serverPresenceQueryOptions } from '@/lib/serverPresenceQueryOptions'
 type Selectors = Pick<ProductListQuery, 'line' | 'ip' | 'purpose'>
 type Update<T> = T | ((current: T) => T)
 const resolve = <T,>(update: Update<T>, current: T): T => typeof update === 'function' ? (update as (value: T) => T)(current) : update
+const sortedOptionIds = (ids: readonly number[]) => [...new Set(ids)].sort((left, right) => left - right)
 
 function readDetails(raw: string | null): DetailSelections {
   if (!raw || raw.length > 6000) return {}
@@ -43,11 +44,18 @@ function readQuery(params: URLSearchParams, defaultInstantOnly = true): ProductL
     sort: params.get('sort') ?? 'newest',
   }
   const result = productQuerySchema.safeParse(candidate)
-  return result.success ? result.data : { page: 1, pageSize: 12, categoryCode: candidate.categoryCode, couponId: candidate.couponId, instantOnly: defaultInstantOnly, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {} }
+  return result.success ? { ...result.data, filterOptionIds: sortedOptionIds(result.data.filterOptionIds ?? []) }
+    : { page: 1, pageSize: 12, categoryCode: candidate.categoryCode, couponId: candidate.couponId, instantOnly: defaultInstantOnly, rooms: [], line: '전체', ip: '전체', purpose: '전체', details: {} }
 }
 
 export function useProductList() {
-  const [params, setParams] = useSearchParams()
+  const { key } = useLocation()
+  const [urlParams, setParams] = useSearchParams()
+  const [pending, setPending] = useState<{ key: string; params: URLSearchParams } | null>(null)
+  // The mobile controls must reflect the latest selection before the deferred location catches up.
+  const pendingParams = pending?.key === key ? pending.params : null
+  if (pending && !pendingParams) setPending(null)
+  const params = pendingParams ?? urlParams
   const { products } = useServices()
   const publicCatalogClient = usePublicCatalogQueryClient()
   const scopedClient = useQueryClient()
@@ -68,42 +76,44 @@ export function useProductList() {
     },
   }, query.couponId !== undefined ? scopedClient : publicCatalogClient)
   const resolvedPage = result.data?.page
-  useEffect(() => {
-    if (result.isPlaceholderData || resolvedPage === undefined || resolvedPage === query.page) return
+  useLayoutEffect(() => {
+    if (pendingParams || result.isPlaceholderData || resolvedPage === undefined || resolvedPage === query.page) return
     setParams((previous) => {
       const next = new URLSearchParams(previous)
       next.set('page', String(resolvedPage))
       return next
     }, { replace: true })
-  }, [resolvedPage, result.isPlaceholderData, query.page, setParams])
-  function updateQuery(changes: Partial<ProductListQuery>, resetPage = true) {
-    setParams((previous) => {
-      const nextQuery = { ...readQuery(previous, defaultInstantOnly), priceBasis: query.priceBasis, ...changes, ...(resetPage ? { page: 1 } : {}) }
-      const next = new URLSearchParams(previous)
-      next.set('page', String(nextQuery.page))
-      if (nextQuery.keyword) next.set('keyword', nextQuery.keyword)
-      else next.delete('keyword')
-      next.set('instantOnly', String(nextQuery.instantOnly))
-      next.delete('room')
-      nextQuery.rooms.forEach((room) => next.append('room', room))
-      for (const key of ['line', 'ip', 'purpose'] as const) {
-        if (nextQuery[key] === '전체') next.delete(key)
-        else next.set(key, nextQuery[key])
-      }
-      if (Object.values(nextQuery.details).some((values) => values && values.length > 0)) next.set('details', JSON.stringify(nextQuery.details))
-      else next.delete('details')
-      next.delete('filterOptionId')
-      nextQuery.filterOptionIds?.forEach(id => next.append('filterOptionId', String(id)))
-      for (const key of ['minPrice', 'maxPrice', 'priceBasis', 'sort', 'saleAvailableOnly'] as const) {
-        if (nextQuery[key] === undefined || nextQuery[key] === false) next.delete(key)
-        else next.set(key, String(nextQuery[key]))
-      }
-      if (nextQuery.keyboardConnectionStatus) next.set('keyboard', nextQuery.keyboardConnectionStatus)
-      else next.delete('keyboard')
-      if (nextQuery.mouseConnectionStatus) next.set('mouse', nextQuery.mouseConnectionStatus)
-      else next.delete('mouse')
-      return next
-    })
+  }, [pendingParams, resolvedPage, result.isPlaceholderData, query.page, setParams])
+  function updateQuery(changes: Partial<ProductListQuery>, resetPage = true, history?: { replace: boolean }) {
+    const patch = changes.filterOptionIds ? { ...changes, filterOptionIds: sortedOptionIds(changes.filterOptionIds) } : changes
+    if (history && hashKey([query]) === hashKey([{ ...query, ...patch }])) return false
+    const nextQuery = { ...query, ...patch, ...(resetPage ? { page: 1 } : {}) }
+    const next = new URLSearchParams(params)
+    next.set('page', String(nextQuery.page))
+    if (nextQuery.keyword) next.set('keyword', nextQuery.keyword)
+    else next.delete('keyword')
+    next.set('instantOnly', String(nextQuery.instantOnly))
+    next.delete('room')
+    nextQuery.rooms.forEach((room) => next.append('room', room))
+    for (const key of ['line', 'ip', 'purpose'] as const) {
+      if (nextQuery[key] === '전체') next.delete(key)
+      else next.set(key, nextQuery[key])
+    }
+    if (Object.values(nextQuery.details).some((values) => values && values.length > 0)) next.set('details', JSON.stringify(nextQuery.details))
+    else next.delete('details')
+    next.delete('filterOptionId')
+    nextQuery.filterOptionIds?.forEach(id => next.append('filterOptionId', String(id)))
+    for (const key of ['minPrice', 'maxPrice', 'priceBasis', 'sort', 'saleAvailableOnly'] as const) {
+      if (nextQuery[key] === undefined || nextQuery[key] === false) next.delete(key)
+      else next.set(key, String(nextQuery[key]))
+    }
+    if (nextQuery.keyboardConnectionStatus) next.set('keyboard', nextQuery.keyboardConnectionStatus)
+    else next.delete('keyboard')
+    if (nextQuery.mouseConnectionStatus) next.set('mouse', nextQuery.mouseConnectionStatus)
+    else next.delete('mouse')
+    if (history) setPending({ key, params: next })
+    setParams(next, history)
+    return true
   }
   const selectorSelections: Selectors = { line: query.line, ip: query.ip, purpose: query.purpose }
   return {
@@ -111,7 +121,7 @@ export function useProductList() {
     filterMetadataPending: metadata.isPending, filterMetadataError: metadata.isError, refetchFilterMetadata: metadata.refetch,
     catalogSelections: query,
     isCouponProductList: Boolean(query.couponId) || params.get('couponProducts') === 'true',
-    setCatalogSelections: (changes: Partial<ProductListQuery>) => updateQuery(changes),
+    setCatalogSelections: (changes: Partial<ProductListQuery>, history?: { replace: boolean }) => updateQuery(changes, true, history),
     ...result, errorMessage: result.error instanceof UnsupportedProductFilterError ? result.error.message : '상품 목록을 불러오지 못했습니다.',
     visibleProducts: result.data?.items ?? [], resultTotal: result.data?.total ?? 0,
     totalPages: result.data?.totalPages ?? 0, currentPage: result.isPlaceholderData ? query.page : result.data?.page ?? query.page,
