@@ -35,6 +35,7 @@ import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
 import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
+import { useRefreshBenefitsAfterPayment } from '@/lib/useRefreshBenefitsAfterPayment'
 import { PageBackButton } from '@/components/common/PageBackButton'
 import { FormatWaitingServerState } from '@/components/common/FormatWaitingServerState'
 import { RcpcFilterSelect } from '../RcpcFilterSelect'
@@ -363,7 +364,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         {!terminal && !item.replacementSourceProductNo ? <p className="order-catalog-item__totals">
                           <span><TranslatedText id="order.finalPayment" /> <b>{t('money.krwAmount', { amount: finalItemAmount.toLocaleString('ko-KR') })}</b></span>
                           <span><i aria-hidden="true" /><TranslatedText id="order.discountAmount" /> <b>{t('money.krwAmount', { amount: discountAmount.toLocaleString('ko-KR') })}</b></span>
-                          <span><i aria-hidden="true" />{uiText("포인트 적립")} <b><TranslatedText id="money.pointAmount" values={{ points: (item.accruedPoints ?? 0).toLocaleString('ko-KR') }} /></b></span>
+                          <span><i aria-hidden="true" />{uiText(item.accruedPoints != null ? '지급 완료 포인트' : item.expectedPoints == null ? '포인트 적립' : item.commercePolicyVersion === 'payment_reward_v1' ? '결제 시 적립 예정' : '구매확정 시 적립 예정')} <b><TranslatedText id="money.pointAmount" values={{ points: (item.accruedPoints ?? item.expectedPoints ?? 0).toLocaleString('ko-KR') }} /></b></span>
                         </p> : null}
                         {terminal && orderDetail
                           ? <OrderRefundSummary result={orderDetail} itemId={item.orderItemId} originalAmount={finalItemAmount} />
@@ -406,6 +407,7 @@ export function OrderDetailPageContent({ api }: { api: MyAccountReadServices }) 
   const number = orderId ?? id ?? ''
   const result = useAccountRead(['order', number], (signal) => api.order(number, signal))
   const order = result.data
+  useRefreshBenefitsAfterPayment(order?.orderId, order?.paymentStatus)
   const payment = order?.payments[0]
   const pending = order?.paymentStatus === 'pending'
   const now = usePaymentDisplayClock(Boolean(pending && order?.paymentMethod === 'virtual_account'))

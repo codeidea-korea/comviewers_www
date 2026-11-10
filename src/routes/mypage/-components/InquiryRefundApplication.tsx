@@ -118,6 +118,9 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const previousQuote = lastQuote && JSON.stringify(lastQuote.input.selections) === JSON.stringify(quoteInput.selections) ? lastQuote : null
   const displayedQuote = quoteCurrent ? quote.data : previousQuote?.data
   const displayedMethod = quoteCurrent ? method : previousQuote?.input.method ?? method
+  const originalMethodBlockedReason = pointOnlyReason
+    || displayedQuote?.items.find(item => item.originalRefundUnavailableReason)?.originalRefundUnavailableReason
+    || ''
   const submit = useMutation({
     mutationFn: async () => {
       const currentAttempt = attempt.current ?? buildAttempt()
@@ -169,7 +172,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   }
 
   function changeMethod(nextMethod: RefundDirectQuoteRequest['method']) {
-    if (nextMethod === method || (nextMethod === 'original' && pointOnlyReason)) return
+    if (nextMethod === method || (nextMethod === 'original' && originalMethodBlockedReason)) return
     setMethod(nextMethod)
     setBank({ code: '', name: '', accountNumber: '', holder: '' })
     requestQuote(nextMethod)
@@ -193,9 +196,15 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const dailyDeduction = displayedQuote?.items.reduce((total, item) => total + item.dailyQuantityDeduction, 0) ?? 0
   const beforeBulkRefundTotal = displayedQuote?.items.reduce((total, item) => total + (displayedMethod === 'point' ? item.pointAmount : item.cashAmount) + item.dailyQuantityDeduction, 0) ?? 0
   const selectedCount = selectedTargets.length
+  const originalRefundDays = [...new Set((displayedQuote?.items ?? []).flatMap(item => item.originalPaymentRefundDays ?? []))]
+  const originalMethodNotice = originalMethodBlockedReason || (originalRefundDays.length === 1
+    ? uiText('결제 완료 후 {days}일 이내, 구매확정 전에 선택할 수 있습니다.', { days: originalRefundDays[0]! })
+    : originalRefundDays.length > 1
+      ? uiText('각 주문의 결제 완료 후 5일 또는 7일 이내, 구매확정 전에 선택할 수 있습니다.')
+      : uiText('기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.'))
   const methodChoices = <fieldset className="refund-application__method" disabled={locked}><legend>{uiText("환불 방법 선택")}</legend><div>
-    <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>{uiText("포인트 적립")}</strong><small>{uiText("최종 환불금이 포인트로 즉시 적립되며, 상품 구매에 이용하실 수 있습니다.")}</small></span></label>
-    <label><input type="radio" name="refund-method" checked={method === 'original'} disabled={Boolean(pointOnlyReason)} onChange={() => changeMethod('original')}/><span><strong>{uiText("결제수단 환불")}</strong><small>{uiText(pointOnlyReason || "기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.")}</small></span></label>
+    <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>{uiText("포인트 적립")}</strong><small>{uiText("포인트로 지급된 환불금은 바로 상품 구매에 사용할 수 있습니다.")}</small></span></label>
+    <label><input type="radio" name="refund-method" checked={method === 'original'} disabled={Boolean(originalMethodBlockedReason)} onChange={() => changeMethod('original')}/><span><strong>{uiText("결제수단 환불")}</strong><small>{uiText(originalMethodNotice)}</small></span></label>
   </div></fieldset>
 
   const back = () => { if (locked) return; if (step === 1) close(); else { attempt.current = null; submit.reset(); setAgreed(false); setStep(1) } }
@@ -247,11 +256,11 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
             const expiredPointDeduction = item.pointRestorationAllocation?.plan.expiredAmount ?? 0
             const restoredPointAmount = item.pointRestorationAllocation?.plan.restoredAmount ?? (displayedMethod === 'point' ? 0 : item.pointAmount)
             const deductionTotal = item.usedDaysDeduction + item.dailyQuantityDeduction + item.setupFee + item.formatFee + item.promotionalPointDeduction + item.purchaseConfirmationPointReversal + item.couponDeduction + expiredPointDeduction
-            return <tr key={item.orderItemId}><td>{target?.alias || item.productNo}</td><td>{item.remainingDays}{uiText("일 /")} {displayMoney(item.remainingSettlement, 8)}</td><td>{item.usedDays}{uiText("일")} {item.usedDaysRateBasisPoints / 100}% / {displayMoney(item.usedDaysDeduction, 8)}</td><td>{displayMoney(item.setupFee)}</td><td>{displayMoney(item.formatFee)}</td><td>{displayMoney(item.promotionalPointDeduction)}</td><td>{expiredPointDeduction.toLocaleString('ko-KR')}P</td><td>{displayMoney(item.couponDeduction)}</td><td>{displayMoney(deductionTotal, 8)}</td><td>{displayMoney(displayedMethod === 'point' ? item.pointAmount : item.cashAmount)}</td><td>{restoredPointAmount.toLocaleString('ko-KR')}P</td></tr>
+            return <tr key={item.orderItemId}><td>{target?.alias || item.productNo}</td><td>{item.remainingDays}{uiText("일 /")} {displayMoney(item.remainingSettlement, 8)}</td><td>{item.usedDays}{uiText("일")} {item.usedDaysRateBasisPoints / 100}% / {displayMoney(item.usedDaysDeduction, 8)}</td><td>{displayMoney(item.setupFee)}</td><td>{displayMoney(item.formatFee)}</td><td>{displayMoney(item.promotionalPointDeduction)}</td><td>{expiredPointDeduction.toLocaleString('ko-KR')}P</td><td>{displayMoney(item.couponDeduction)}</td><td>{displayMoney(deductionTotal, 8)}{item.purchaseConfirmationPointReversal > 0 ? <><br /><small>{uiText('구매 적립 포인트 공제 {points}P', { points: item.purchaseConfirmationPointReversal.toLocaleString('ko-KR') })}</small></> : null}</td><td>{displayMoney(displayedMethod === 'point' ? item.pointAmount : item.cashAmount)}</td><td>{restoredPointAmount.toLocaleString('ko-KR')}P</td></tr>
           })}</tbody></table></div>
         </section>
         <section className="refund-application__bulk"><h3>{uiText("다량 중도해지 공제")}</h3><dl><div><dt>{uiText("해지 요청 건 수")}</dt><dd>{dailyQuantity}{uiText("건")}</dd></div><div><dt>{uiText("공제율")}</dt><dd>{dailyRate}%</dd></div><div><dt>{uiText("공제금")}</dt><dd>{dailyDeduction > 0 ? `-${displayMoney(dailyDeduction)}` : displayMoney(0)}</dd></div></dl></section>
-        <ul className="refund-application__notice"><li>{uiText("표시 금액은 해지 신청 기준 예상 금액입니다.")}</li><li>{uiText("이미 사용한 쿠폰은 복원되지 않습니다.")}</li><li>{uiText("구매확정으로 지급받은 포인트는 전액 회수되며, 결제 시 사용한 포인트는 환불 산정 비율에 따라 기존 유형으로 복원됩니다.")}</li><li>{uiText("환불 처리 시점에 유효한 포인트만 기존 유형·만료일을 유지해 복원됩니다. 만료된 포인트는 자동 복원되지 않으며, 별도 지급이 필요한 경우 관리자 확인 후 수기로 처리합니다.")}</li></ul>
+        <ul className="refund-application__notice"><li>{uiText("표시 금액은 해지 신청 기준 예상 금액입니다.")}</li><li>{uiText("이미 사용한 쿠폰은 복원되지 않습니다.")}</li><li>{uiText("지급된 구매 적립 포인트는 사용 여부와 관계없이 환불액에서 공제하며, 결제에 사용한 포인트는 환불 산정 비율에 따라 기존 유형으로 복원합니다.")}</li><li>{uiText("환불 처리 시점에 유효한 포인트만 기존 유형·만료일을 유지해 복원됩니다. 만료된 포인트는 자동 복원되지 않으며, 별도 지급이 필요한 경우 관리자 확인 후 수기로 처리합니다.")}</li></ul>
       </div> : null}
       </div>
       {methodChoices}

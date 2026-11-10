@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
 
-test('[source contract] 포인트·쿠폰 정책 링크는 독립 포인트 정책 문서로 이동한다', () => {
+test('[source contract] 포인트·쿠폰 정책 링크와 이전 point 주소는 통합 환불 정책 문서로 이동한다', () => {
   const benefit = readFileSync(
     `${projectRoot}src/routes/mypage/-components/benefits/BenefitPagesContent.tsx`,
     'utf8',
@@ -13,11 +13,11 @@ test('[source contract] 포인트·쿠폰 정책 링크는 독립 포인트 정�
   const legal = readFileSync(`${projectRoot}src/routes/legal/LegalPage.tsx`, 'utf8')
 
   assert.equal(
-    benefit.match(/to="\/terms\?section=point">포인트·쿠폰 정책/g)?.length,
+    benefit.match(/to="\/terms\?section=refund">\{uiText\("포인트·쿠폰 정책"\)\}/g)?.length,
     2,
   )
-  assert.doesNotMatch(benefit, /to="\/terms\?section=refund">포인트·쿠폰 정책/)
-  assert.match(legal, /params\.get\('section'\) === 'point' \? 'point'/)
+  assert.doesNotMatch(benefit, /to="\/terms\?section=point"/)
+  assert.match(legal, /params\.get\('section'\) === 'point' \|\| params\.get\('section'\) === 'refund' \? 'refund'/)
   assert.match(legal, /<DocumentBody key=\{section\} kind=\{section\}/)
 })
 
@@ -27,11 +27,11 @@ test('[source contract] 중도해지 환불 신청의 최종 버튼은 PDF 문�
     'utf8',
   )
 
-  assert.match(refund, /: '환불 신청하기'/)
-  assert.doesNotMatch(refund, /: '해지 신청하기'/)
+  assert.match(refund, /uiText\("환불 신청하기"\)/)
+  assert.doesNotMatch(refund, /uiText\("해지 신청하기"\)/)
 })
 
-test('[source contract] 환불 목록 진입은 후보 상품을 복수 선택하고 구매확정 포인트 회수를 별도로 표시한다', () => {
+test('[source contract] 환불 목록 진입은 후보 상품을 복수 선택하고 구매 적립 포인트 공제를 별도로 표시한다', () => {
   const refund = readFileSync(
     `${projectRoot}src/routes/mypage/-components/InquiryRefundApplication.tsx`,
     'utf8',
@@ -39,8 +39,10 @@ test('[source contract] 환불 목록 진입은 후보 상품을 복수 선택�
 
   assert.match(refund, /const selectFromCandidates = !initialRentalKey/)
   assert.match(refund, /<input type="checkbox" checked=\{checked\}/)
-  assert.match(refund, /current\.length < 20 \? \[\.\.\.current, orderItemId\]/)
-  assert.match(refund, /<th>프로모션 포인트 공제<\/th><th>구매확정 적립금 회수<\/th>/)
+  assert.match(refund, /current\.filter\(value => value !== orderItemId\)/)
+  assert.match(refund, /: \[\.\.\.current, orderItemId\]/)
+  assert.match(refund, /구매 적립 포인트 공제 \{points\}P/)
+  assert.match(refund, /points: item\.purchaseConfirmationPointReversal\.toLocaleString/)
   assert.doesNotMatch(refund, /displayMoney\(item\.promotionalPointDeduction \+ item\.purchaseConfirmationPointReversal\)/)
 })
 

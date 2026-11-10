@@ -38,6 +38,7 @@ function couponBenefit(item: { discountType: string; discountValue: number; maxi
 
 const pointReasonLabels: Readonly<Record<string, string>> = {
   purchase_confirmation: '구매확정 적립',
+  purchase_payment: '결제 완료 적립',
   qa_usage: '포인트 사용',
   order_payment: '주문 결제 사용',
   refund_restore: '환불 포인트 복원',

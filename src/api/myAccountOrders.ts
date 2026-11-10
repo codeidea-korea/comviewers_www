@@ -12,6 +12,7 @@ export const accountOrderItemSchema = z.object({ orderItemId: accountId, product
   fulfillmentType: text.optional(),
   extensionAddedDays: z.number().int().min(1).max(90).nullable().optional(),
   purchaseConfirmationHidden: z.boolean().optional(),
+  commercePolicyVersion: text.optional(),
   rentalId: accountId.nullable(), rentalStatus: text, purchaseConfirmedAt: time, automaticConfirmationAt: time, specSummary: text, imageUrl: text, couponDiscountAmount: amount, pointUsedAmount: amount, refundPending: z.boolean(), reviewId: accountId.nullable(), expectedPoints: amount.nullable(), accruedPoints: amount.nullable(), customerRentalStatus: rentalOperationalStatusSchema.nullable(), instantAvailable: z.boolean() })
 export type AccountOrderItem = z.infer<typeof accountOrderItemSchema>
 const fields = { orderId: accountId, orderNo: z.string(), orderStatus: z.string(), paymentStatus: z.string(), paymentMethod: text, paymentRecordStatus: text, virtualAccountStatus: text, virtualAccountDepositDueAt: time, paymentTerminationReason: text, currency: z.literal('KRW'), subtotalAmount: amount, setupFeeAmount: amount, couponDiscountAmount: amount, pointUsedAmount: amount, finalAmount: amount, orderedAt: accountTime, reservationExpiresAt: time, items: z.array(accountOrderItemSchema) }
