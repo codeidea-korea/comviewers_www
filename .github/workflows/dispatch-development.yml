@@ -6,7 +6,8 @@ on:
     workflows: ["Customer web CI"]
     types: [completed]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   dispatch:
@@ -28,6 +29,7 @@ jobs:
         shell: bash
         env:
           TOKEN: ${{ steps.dispatch-app.outputs.token }}
+          LOCAL_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -40,7 +42,13 @@ jobs:
           try:
               with urllib.request.urlopen(request,timeout=20) as response:
                   if response.status != 200: raise ValueError('unexpected response')
-              probe=urllib.request.Request(url+'/dispatches',data=json.dumps({'ref':'main','inputs':{'mode':'probe'}}).encode(),
+              local_token=os.environ.get('LOCAL_TOKEN','')
+              if not re.fullmatch(r'[A-Za-z0-9_.-]+',local_token): raise ValueError('invalid local token')
+              head_request=urllib.request.Request('https://api.github.com/repos/codeidea-korea/comviewers_www/git/ref/heads/develop',
+                  headers={'Authorization':'Bearer '+local_token,'Accept':'application/vnd.github+json','User-Agent':'comviewers-dispatch-probe'})
+              with urllib.request.urlopen(head_request,timeout=20) as response: head=json.load(response)['object']['sha']
+              if not re.fullmatch(r'[0-9a-f]{40}',head): raise ValueError('invalid develop head')
+              probe=urllib.request.Request(url+'/dispatches',data=json.dumps({'ref':'main','inputs':{'mode':'single_probe','component':'user','single_sha':head}}).encode(),
                   method='POST',headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json',
                   'X-GitHub-Api-Version':'2022-11-28','User-Agent':'comviewers-dispatch-probe'})
               with urllib.request.urlopen(probe,timeout=20) as response:
