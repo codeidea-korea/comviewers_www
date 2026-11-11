@@ -34,9 +34,10 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const busy = useRef(false)
   const client = useQueryClient()
   const { message: confirmationMessage, setMessage: setConfirmationMessage, toastKey } = useToastMessage()
+  const rewardOnPayment = item.commercePolicyVersion === 'payment_reward_v1'
   const confirmation = useMutation({ mutationFn: () => api.confirmPurchase(item.orderItemId, key), onSuccess: async (result) => {
     setOpen(false)
-    setConfirmationMessage(t('order.confirmedPoints', { points: result.accruedPoints.toLocaleString('ko-KR') }))
+    setConfirmationMessage(rewardOnPayment ? uiText('구매확정되었습니다.') : t('order.confirmedPoints', { points: result.accruedPoints.toLocaleString('ko-KR') }))
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] })])
   }, onSettled: () => { busy.current = false } })
   const confirmedAt = confirmation.data?.confirmedAt ?? item.purchaseConfirmedAt
@@ -60,15 +61,15 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const now = Date.now()
   const canConfirm = !item.purchaseConfirmationHidden && (!cManager || Boolean(item.rentalId)) && active && !confirmedAt && Boolean(item.automaticConfirmationAt && item.serviceStartedAt && item.serviceEndsAt
     && new Date(`${item.serviceStartedAt}+09:00`).getTime() <= now && new Date(`${item.serviceEndsAt}+09:00`).getTime() > now)
-  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open && !item.purchaseConfirmationHidden} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={uiText(confirmation.error?.message)} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} />
+  const confirmDialog = <OrderPurchaseConfirmDialog isOpen={open && !item.purchaseConfirmationHidden} onClose={() => { if (!confirmation.isPending) setOpen(false) }} confirmLabel={confirmation.isPending ? t('common.processing') : t('order.confirmPurchase')} confirmDisabled={confirmation.isPending} error={uiText(confirmation.error?.message)} onConfirm={() => { if (!busy.current) { busy.current = true; confirmation.mutate() } }} points={item.expectedPoints} rewardOnPayment={rewardOnPayment} accruedPoints={item.accruedPoints} />
   if (variant === 'dashboard') return <>
-    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>{uiText("포인트 받기")}</span> : null}</Button> : null}
+    {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><span><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</span>{!rewardOnPayment && item.expectedPoints !== null ? <span className="mypage-home-use__tooltip"><img alt="" src={tollIcon}/>{uiText("포인트 받기")}</span> : null}</Button> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
   if (variant === 'purchase-summary') return <>
     {canConfirm ? <Button fullWidth variant="secondary" disabled={confirmation.isPending} onClick={() => setOpen(true)}><TranslatedText id="order.purchaseConfirmation" /> {item.automaticConfirmationAt ? <span className="notranslate" translate="no">({t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})</span> : null}</Button> : null}
-    {!item.purchaseConfirmationHidden && item.expectedPoints !== null ? <b><img alt="" src={tollIcon}/>{uiText('포인트 {points}P 받기', { points: item.expectedPoints.toLocaleString('ko-KR') })}</b> : null}
+    {!item.purchaseConfirmationHidden && (rewardOnPayment ? item.accruedPoints != null : item.expectedPoints !== null) ? <b><img alt="" src={tollIcon}/>{rewardOnPayment ? uiText('포인트 {points}P 지급 완료', { points: (item.accruedPoints ?? 0).toLocaleString('ko-KR') }) : uiText('포인트 {points}P 받기', { points: (item.expectedPoints ?? 0).toLocaleString('ko-KR') })}</b> : null}
     {confirmDialog}
     <Toast message={confirmationMessage} toastKey={toastKey} />
   </>
@@ -85,7 +86,7 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
       {confirmedAt
         ? t('order.confirmedDate', { date: accountDate(confirmedAt).slice(0, 10) })
         : `${t('order.purchaseConfirmation')}${item.automaticConfirmationAt ? ` (${t('order.automaticConfirmationDate', { date: accountDate(item.automaticConfirmationAt).slice(0, 10) })})` : ''}`}
-      {canConfirm && item.expectedPoints !== null ? <span className="order-catalog-item__points-tooltip"><span className="order-catalog-item__points-icon" aria-hidden="true"><img alt="" src="/assets/figma-tooltip.svg" /></span>{uiText("포인트 받기")}<i aria-hidden="true" /></span> : null}
+      {canConfirm && !rewardOnPayment && item.expectedPoints !== null ? <span className="order-catalog-item__points-tooltip"><span className="order-catalog-item__points-icon" aria-hidden="true"><img alt="" src="/assets/figma-tooltip.svg" /></span>{uiText("포인트 받기")}<i aria-hidden="true" /></span> : null}
     </button>}
     <div className="order-catalog-item__actions">
       {!cManager && <div className="order-catalog-item__action-primary">

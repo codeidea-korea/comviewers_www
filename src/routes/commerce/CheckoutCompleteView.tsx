@@ -19,6 +19,7 @@ import { clearCheckoutRecoveryForOrder } from '@/domain/checkout/checkoutRecover
 import { tossConfirmationAmountSchema } from '@/api/ordersPayments'
 import { safePaymentErrorCode } from './-components/checkout/tossPaymentWindow'
 import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
+import { useRefreshBenefitsAfterPayment } from '@/lib/useRefreshBenefitsAfterPayment'
 import '../mypage/-components/orders/order-identifiers.css'
 
 export function CheckoutCompletePage() {
@@ -75,6 +76,7 @@ function CheckoutPaymentResult() {
   const valid = Number.isSafeInteger(paymentId) && paymentId > 0 && Boolean(checkout.payment)
   const result = useQuery({ queryKey: ['checkout', 'payment', paymentId], enabled: valid && !compensated, queryFn: ({ signal }) => checkout.payment!(paymentId, signal), retry: false,
     refetchInterval: query => query.state.data && ['pending', 'ready', 'waiting_for_deposit'].includes(query.state.data.status) ? 10000 : false })
+  useRefreshBenefitsAfterPayment(result.data?.paymentId, result.data?.status)
   const cancelled = compensated || result.data?.status === 'cancelled'
   const order = useQuery({ queryKey: ['my-account', 'read', 'order', result.data?.orderNo], enabled: !cancelled && Boolean(myAccount.readApi && result.data?.orderNo), queryFn: ({ signal }) => myAccount.readApi!.order(result.data!.orderNo, signal), retry: false,
     refetchInterval: query => query.state.data?.paymentStatus === 'pending' ? 10000 : false })
