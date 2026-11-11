@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import os, re, sys, urllib.error, urllib.request
+          import json, os, re, sys, urllib.error, urllib.request
           token = os.environ.get('TOKEN','')
           if not re.fullmatch(r'[A-Za-z0-9_.-]+',token): sys.exit('::error::Invalid dispatch token')
           url='https://api.github.com/repos/codeidea-korea/comviewers_api/actions/workflows/auto-development.yml'
@@ -40,6 +40,11 @@ jobs:
           try:
               with urllib.request.urlopen(request,timeout=20) as response:
                   if response.status != 200: raise ValueError('unexpected response')
+              probe=urllib.request.Request(url+'/dispatches',data=json.dumps({'ref':'main','inputs':{'mode':'probe'}}).encode(),
+                  method='POST',headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json',
+                  'X-GitHub-Api-Version':'2022-11-28','User-Agent':'comviewers-dispatch-probe'})
+              with urllib.request.urlopen(probe,timeout=20) as response:
+                  if response.status != 204: raise ValueError('unexpected dispatch response')
               print('Dispatch app access verified; no deployment requested')
           except (urllib.error.URLError,ValueError):
               sys.exit('::error::Dispatch app access failed')
