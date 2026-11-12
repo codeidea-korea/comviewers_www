@@ -72,19 +72,19 @@ export function ProductResults({ products, view, onAddToCart, sort, onSortChange
               <table className="product-list-table notranslate" translate="no">
                 <caption className="sr-only">{t('catalogUi.productList')}</caption>
                 <colgroup>
-                  <col style={{ width: '60px' }} />
                   <col />
                   <col />
-                  <col style={{ width: '91px' }} />
-                  <col style={{ width: '91px' }} />
-                  <col style={{ width: '91px' }} />
-                  <col style={{ width: '182px' }} />
                   <col />
-                  <col style={{ width: '105px' }} />
-                  <col style={{ width: '50px' }} />
-                  <col style={{ width: '88px' }} />
-                  <col style={{ width: '88px' }} />
-                  <col style={{ width: '68px' }} />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
                 </colgroup>
                 <thead><tr>{[t('product.number'), 'OS', 'CPU', 'CORE', 'RAM', 'DISK', 'GPU', t('product.peripherals'), 'IP', t('product.serverStatus'), t(partOnly ? 'money.additionalCost' : 'money.setupFee')].map((label) => <th key={label} scope="col"><EllipsisText lines={1}>{label}</EllipsisText></th>)}<th aria-sort={direction} scope="col"><button className="product-list-sort" onClick={() => onSortChange(direction === 'none' ? 'displayPriceAsc' : direction === 'ascending' ? 'displayPriceDesc' : 'newest')} type="button"><span className="product-list-sort__label">{t(partOnly ? 'money.productAmount' : 'money.monthlyRental')}</span><span aria-hidden="true">{direction === 'ascending' ? '↑' : direction === 'descending' ? '↓' : '↕'}</span></button></th><th scope="col"><EllipsisText lines={1}>{t('cart.add')}</EllipsisText></th></tr></thead>
                 <tbody>{products.map((product) => <ProductListRow key={product.id} onAddToCart={onAddToCart} product={product} />)}</tbody>

@@ -36,12 +36,14 @@
 .refund-application__phone > div { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .refund-application .refund-application__phone :is(input, select) { background: var(--color-white); border: 0; border-bottom: 1px solid var(--color-black); border-radius: 0; color: var(--color-black); font-size: 18px; font-weight: 500; height: 50px; letter-spacing: -.03em; min-width: 0; padding: 4px 0; width: 100%; }
 .refund-application .refund-application__phone select { appearance: none; background: var(--color-white) url('../../../assets/figma/selector-chevron-down.svg') right center / 12px 7.4px no-repeat; padding-right: 24px; }
+.refund-application__bank-field { min-width: 0; }
+.refund-application__bank-field small, .refund-application__field-error { color: var(--color-system-error); display: block; margin-top: 8px; }
 .refund-application__agreement-row { align-items: flex-start; display: flex; gap: 8px; justify-content: space-between; }
 .refund-application__agreement-row > .refund-application__agreement { min-width: 0; }
 .refund-application .refund-application__agreement > .checkbox__input { margin: 0; }
 .refund-application__agreement-row .refund-application__agreement > span { display: block; font-weight: 400; }
 .refund-application__agreement-row > a { color: var(--color-system-error); flex-shrink: 0; font-size: 12px; text-decoration: underline; }
-.refund-application__alerts { flex: 0 1 auto; margin-top: 16px; max-height: 25dvh; overflow-y: auto; }
+.refund-application__alerts { margin-top: 16px; }
 .refund-application__alert { align-items: center; background: #fff3f2; border: 1px solid var(--color-system-error); border-radius: 8px; color: var(--color-black); display: flex; flex-wrap: wrap; font-size: 14px; gap: 8px 16px; line-height: 1.5; padding: 12px 16px; }
 .refund-application__alert + .refund-application__alert { margin-top: 8px; }
 .refund-application__alert p { flex: 1 1 200px; margin: 0; overflow-wrap: anywhere; }

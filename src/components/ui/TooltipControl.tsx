@@ -17,6 +17,16 @@ export function EllipsisText({ children, lines = 2, className = '', asChild = fa
 
 type TriggerElement = ReactElement<HTMLAttributes<HTMLSpanElement> & { ref?: Ref<HTMLSpanElement> }>
 
+function isClipped(node: HTMLSpanElement, lines: 1 | 2 | undefined) {
+  if (node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight) return true
+  if (lines !== 1 || !node.textContent) return false
+
+  // scrollWidth and clientWidth are rounded, so a fractional overflow can be missed.
+  const range = node.ownerDocument.createRange()
+  range.selectNodeContents(node)
+  return range.getBoundingClientRect().width - node.getBoundingClientRect().width > 1 / 1024
+}
+
 function ActiveTooltipText({ text, tooltipText, className, children, lines, asChild = false }: { text?: string; tooltipText?: string; className: string; children?: ReactNode; lines?: 1 | 2; asChild?: boolean }) {
   const id = useId()
   const trigger = useRef<HTMLSpanElement>(null)
@@ -38,7 +48,7 @@ function ActiveTooltipText({ text, tooltipText, className, children, lines, asCh
   const show = () => {
     cancelClose()
     const node = content.current
-    if (isEllipsis && (!node || (node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight))) return
+    if (isEllipsis && (!node || !isClipped(node, lines))) return
     setDisclosedText(tooltipText ?? trigger.current?.textContent?.trim() ?? '')
     setOpen(true)
   }
@@ -58,7 +68,7 @@ function ActiveTooltipText({ text, tooltipText, className, children, lines, asCh
     let active = true
     const measure = () => {
       if (!active) return
-      const clipped = node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight
+      const clipped = isClipped(node, lines)
       setTruncated(clipped)
       setOpen(false)
       setPlacement(null)
