@@ -1,3 +1,6 @@
 .product-catalog-selectors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (min-width: 768px) {
+  .product-catalog-selectors .product-selector-field .server-room-select-panel { width: 100%; }
+}
 .selected-filters__close { display: block; flex: 0 0 14px; height: 14px; width: 14px; }
 .product-catalog-filter__inline-action { background: transparent; border: 0; color: inherit; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }

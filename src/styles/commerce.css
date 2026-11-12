@@ -77,6 +77,30 @@
   width: var(--layout-content);
 }
 .products-content { padding-bottom: 80px; width: var(--layout-content); }
+@media (min-width: 1440px) {
+  .products-body--list { --product-list-max-width: 1700px; }
+  .products-body--list:not(.products-body--filter-open) {
+    max-width: min(var(--product-list-max-width), calc(100vw - 48px));
+    width: min(var(--product-list-max-width), calc(100vw - 48px));
+  }
+  .products-body--list:not(.products-body--filter-open) .products-layout,
+  .products-body--list:not(.products-body--filter-open) .products-content {
+    max-width: 100%;
+    width: 100%;
+  }
+  .products-body.products-body--list:not(.products-body--filter-open) .product-filter-trigger {
+    left: calc((100vw - min(var(--product-list-max-width), calc(100vw - 48px))) / -2);
+  }
+  .products-body--list.products-body--filter-open { --product-filter-width: 360px; }
+  .products-body--list .products-layout--filter-open {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+  .products-body--list .products-layout--filter-open .products-content {
+    margin-inline: auto;
+    max-width: var(--product-list-max-width);
+    width: calc(100% - 48px);
+  }
+}
 .product-filter-trigger-rail { height: 0; position: sticky; top: 0; z-index: 3; }
 .product-filter-trigger { align-items: center; background: var(--color-gray-800); border: 0; border-radius: 0 4px 4px 0; color: white; cursor: pointer; display: flex; font-size: 18px; font-weight: 700; gap: 10px; height: 48px; justify-content: center; left: 0; padding: 0 14px; position: absolute; top: 12px; width: 132px; z-index: 1; }
 .product-filter-trigger--desktop { padding: 0; width: 40px; }
@@ -175,14 +199,45 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
 .product-view-toggle { gap: 12px !important; }.product-view-toggle button { align-items: center; background: white; border: 0; cursor: pointer; display: flex; height: 32px; justify-content: center; padding: 0; width: 32px; }.product-view-toggle button img { height: 24px; opacity: .28; width: 24px; }.product-view-toggle button[aria-pressed='true'] img { opacity: 1; }
 .product-card-grid { display: grid; gap: 16px 18.6667px; grid-template-columns: repeat(4, 286px); margin-bottom: 60px; }
 .product-list-table__row { cursor: pointer; }.product-list-table__row:focus-visible { outline: 2px solid var(--color-black); outline-offset: -2px; }
-.product-list-table { border-collapse: separate; border-spacing: 0; font-size: 12px; min-width: 1200px; table-layout: fixed; width: 100%; }
+.product-list-table { border-collapse: separate; border-spacing: 0; font-size: 12px; table-layout: fixed; width: 100%; }
+.product-list-table col:nth-child(1) { width: 60px; }
+.product-list-table col:nth-child(2) { width: 100px; }
+/* CPU receives 60% of the space left after the fixed-width columns. */
+.product-list-table col:nth-child(3) { width: calc(60% - 626.4px); }
+.product-list-table col:nth-child(4) { width: 91px; }
+.product-list-table col:nth-child(5) { width: 110px; }
+.product-list-table col:nth-child(6) { width: 180px; }
+.product-list-table col:nth-child(8) { width: 80px; }
+.product-list-table col:nth-child(9) { width: 105px; }
+.product-list-table col:nth-child(10) { width: 50px; }
+.product-list-table col:nth-child(11) { width: 100px; }
+.product-list-table col:nth-child(12) { width: 100px; }
+.product-list-table col:nth-child(13) { width: 68px; }
+@media (max-width: 1247px) {
+  .product-list-table col:nth-child(1) { width: 5%; }
+  .product-list-table col:nth-child(2) { width: 8.33%; }
+  .product-list-table col:nth-child(3) { width: 11%; }
+  .product-list-table col:nth-child(4) { width: 7.58%; }
+  .product-list-table col:nth-child(5) { width: 9.17%; }
+  .product-list-table col:nth-child(6) { width: 9%; }
+  .product-list-table col:nth-child(7) { width: 8%; }
+  .product-list-table col:nth-child(8) { width: 6.67%; }
+  .product-list-table col:nth-child(9) { width: 8.75%; }
+  .product-list-table col:nth-child(10) { width: 4.17%; }
+  .product-list-table col:nth-child(11),
+  .product-list-table col:nth-child(12) { width: 8.33%; }
+  .product-list-table col:nth-child(13) { width: 5.67%; }
+  .product-list-table tbody td { padding-inline: 2px; }
+  .product-list-table td button { max-width: 100%; }
+  .product-list-table .product-table-peripherals i { height: 20px; width: 20px; }
+}
 .product-list-sort { align-items: center; background: transparent; border: 0; color: inherit; cursor: pointer; display: inline-flex; font: inherit; gap: 2px; max-width: 100%; padding: 0; }
 .product-list-sort:focus-visible { outline: 2px solid var(--color-black); outline-offset: 2px; }
 .product-list-sort__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .product-list-sort > span:last-child { flex: none; }
 .product-list-table th { background: var(--color-gray-50); box-shadow: inset 0 -1px 0 var(--color-gray-200); color: var(--color-gray-700); font-size: 14px; font-weight: 400; height: 40px; letter-spacing: -.42px; overflow-wrap: anywhere; padding: 0 4px; }
 .product-list-table td { border-bottom: 0; box-shadow: inset 0 -1px 0 var(--color-gray-200); font-size: 14px; height: 73px; line-height: normal; overflow-wrap: anywhere; padding: 8px; vertical-align: middle; }
-.product-list-table td:first-child { color: var(--color-gray-600); font-size: 12px; letter-spacing: -.36px; overflow-wrap: anywhere; }
+.product-list-table td:first-child { color: var(--color-gray-600); font-size: 12px; letter-spacing: -.36px; overflow-wrap: anywhere; text-align: center; }
 .product-table-copy { align-items: center; display: flex; justify-content: center; letter-spacing: -.42px; line-height: 20px; min-height: 34px; overflow-wrap: anywhere; text-align: center; }
 .product-list-table .tag { display: inline-block; font-weight: 500; letter-spacing: -.28px; max-width: 100%; overflow-wrap: anywhere; vertical-align: middle; white-space: normal; }
 .product-list-table td:nth-child(n+4) { text-align: center; }
@@ -191,6 +246,7 @@ html.translated-ltr .product-filter-pills button { flex: 1 0 calc((100% - 12px) 
 .product-table-peripherals i { flex-shrink: 0; font-style: normal; }
 .product-table-peripherals i.is-unknown { font-size: 12px; padding: 0 4px; white-space: nowrap; width: auto; }
 .product-table-wrap { margin-bottom: 60px; max-width: 100%; overflow-x: auto; }
+.products-body--list .product-table-wrap { overflow-x: clip; }
 .product-table-wrap--translated { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 .product-list-table .tag { box-sizing: border-box; min-width: 0; }
 .product-list-table .product-table-copy { display: block; min-height: 0; }
