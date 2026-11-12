@@ -31,7 +31,7 @@ import serverWaitingIcon from '@/assets/figma/icon-server-waiting.svg'
 import serverOnIcon from '@/assets/figma/icon-server-on.svg'
 import serverDisabledIcon from '@/assets/figma/icon-server-disabled.svg'
 import serverOffIcon from '@/assets/figma/icon-server-off.svg'
-import dateRangeIcon from '@/assets/figma/icon-date-range.svg'
+import dateRangeIcon from '@/assets/figma/order-list-date-range.svg'
 import { orderPaymentDisplay, usePaymentDisplayClock } from '@/lib/orderPaymentDisplay'
 import { accountKstDate } from '@/lib/accountFormat'
 import { isRentalExtensionOrderItem, showsRentalUsagePeriod } from '@/lib/orderItemPresentation'
@@ -345,7 +345,7 @@ export function OrdersPageContent({ api }: { api: MyAccountReadServices }) {
                         ) : null}
                         <strong className={`notranslate${item.refundPending ? ' is-red' : ''}`} translate="no">{rowStatusKeys[status] ? t(rowStatusKeys[status]) : uiText(status)}</strong>
                       </label>
-                      <span>{uiText('컴뷰어스 주문번호')} {order.orderNo}</span>
+                      <span>{order.orderNo}</span>
                       <RelativeLink className="notranslate" translate="no" to={`/mypage/orders/${encodeURIComponent(order.orderNo)}`}>{t('order.details')}</RelativeLink>
                     </header>
                     <div className="order-catalog-item__product">

@@ -1200,6 +1200,9 @@ img.mypage-home-sort,img.rcpc-sort { display: block; height: 14.2632px; position
 .orders-catalog-list .orders-by-date:first-of-type .order-catalog-item,
 .orders-catalog-list .orders-by-date .order-catalog-item--compact { height: auto; min-height: 0; padding-bottom: 24px; }
 .orders-catalog-list .order-catalog-item__product { height: auto; min-height: 116px; }
+@media (min-width: 768px) {
+  .orders-catalog-list .order-catalog-item__product { margin-bottom: 16px; }
+}
 .orders-catalog-list .order-catalog-item header input[type='checkbox'] { appearance: none; background: white; border: 1px solid var(--color-gray-300); border-radius: 2px; height: 18px; margin: 0 5px 0 0; vertical-align: middle; width: 18px; }
 .orders-catalog-list .order-catalog-item header input[type='checkbox']:checked { background: var(--color-black) center / 8px 6px no-repeat url('../assets/figma/auth-checkbox-check.svg'); border-color: var(--color-black); }
 .orders-catalog-list .order-catalog-item__actions { grid-template-columns: repeat(2, minmax(0, 1fr)); height: auto; }
