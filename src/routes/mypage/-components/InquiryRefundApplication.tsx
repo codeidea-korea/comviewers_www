@@ -4,6 +4,7 @@ import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useEffect, useId, useMemo, useRef, useState, type RefObject } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiClientError } from '@/api/httpClient'
+import { RefundApplicationInputError } from '@/api/operationRequests'
 import type { RefundApplicationQuote, RefundDirectApplicationInput, RefundDirectQuoteRequest } from '@/api/operationRequests'
 import type { InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
@@ -28,7 +29,24 @@ const bankOptions = [
 ] as const
 
 function finalInputError(error: unknown) {
-  return error instanceof ApiClientError && (error.status === 400 || error.status === 422)
+  return error instanceof RefundApplicationInputError || (error instanceof ApiClientError && (error.status === 400 || error.status === 422))
+}
+
+function refundSubmissionError(error: unknown, ambiguous: boolean): string {
+  if (error instanceof RefundApplicationInputError) {
+    if (error.field === 'bank.accountNumber') return '계좌번호를 확인해 주세요.'
+    if (error.field === 'bank.holder') return '환불 계좌의 예금주를 확인해 주세요.'
+    if (error.field.startsWith('bank')) return '환불 계좌의 은행과 계좌정보를 확인해 주세요.'
+    if (error.field === 'contactPhone') return '연락처 형식을 확인해 주세요.'
+    return '환불 신청 정보를 확인한 후 다시 신청해 주세요.'
+  }
+  if (ambiguous) {
+    if (error instanceof ApiClientError && error.kind === 'network') return '서버 연결이 끊겨 접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 확인해 주세요.'
+    if (error instanceof ApiClientError && error.kind === 'contract') return '서버 응답을 확인할 수 없어 접수 결과가 불명확합니다. 같은 요청으로 다시 접수해 확인해 주세요.'
+    if (error instanceof ApiClientError && error.status && error.status >= 500) return '서버 처리 중 오류가 발생해 접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 확인해 주세요.'
+    return '접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요.'
+  }
+  return error instanceof Error ? error.message : '신청을 접수하지 못했습니다.'
 }
 
 function displayDate(value: string | null) {
@@ -78,6 +96,8 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const [reasonTouched, setReasonTouched] = useState(false)
   const [phone, setPhone] = useState<string | null>(null)
   const [bank, setBank] = useState({ code: '', name: '', accountNumber: '', holder: '' })
+  const [bankTouched, setBankTouched] = useState({ code: false, accountNumber: false, holder: false })
+  const [phoneTouched, setPhoneTouched] = useState(false)
   const [agreed, setAgreed] = useState(false)
   const [step, setStep] = useState<1 | 2>(1)
   const [lastQuote, setLastQuote] = useState<{ data: RefundApplicationQuote; input: RefundDirectQuoteRequest } | null>(null)
@@ -140,6 +160,17 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   })
   const locked = submit.isPending || (submit.isError && !finalInputError(submit.error) && attempt.current !== null)
   const ambiguousFailure = submit.isError && !finalInputError(submit.error) && attempt.current !== null
+  const inputError = submit.error instanceof RefundApplicationInputError ? submit.error : null
+  const serverAccountError = submit.error instanceof ApiClientError && (submit.error.status === 400 || submit.error.status === 422) && submit.error.message === '환불 계좌번호를 확인해 주세요.'
+  const bankCodeError = (bankTouched.code && !bank.code) || inputError?.field === 'bank.code' || inputError?.field === 'bank.name'
+  const bankAccountError = (bankTouched.accountNumber && !/^[0-9 -]{8,40}$/.test(bank.accountNumber)) || inputError?.field === 'bank.accountNumber' || serverAccountError
+  const bankHolderError = (bankTouched.holder && (!bank.holder.trim() || bank.holder.trim().length > 100)) || inputError?.field === 'bank.holder'
+  const phoneError = (phoneTouched && !/^(?:[0-9+() -]{8,30})?$/.test(contactPhone.trim())) || inputError?.field === 'contactPhone'
+  const inlineInputError = serverAccountError || (inputError && ['bank.code', 'bank.name', 'bank.accountNumber', 'bank.holder', 'contactPhone'].includes(inputError.field))
+
+  function clearInputError() {
+    if (submit.error instanceof RefundApplicationInputError || serverAccountError) submit.reset()
+  }
 
   function buildAttempt(): SubmitAttempt {
     if (!quoteCurrent || !quote.data || !agreed || !reason) throw new Error("환불 신청 내용을 다시 확인해 주세요.")
@@ -264,17 +295,19 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
       </div> : null}
       </div>
       {methodChoices}
-        {displayedQuote?.bankRequired ? <fieldset className="refund-application__bank" disabled={!quoteCurrent || locked}><legend>{uiText("환불 계좌정보")}</legend><select required aria-label={uiText("은행명")} value={bank.code} onChange={(event) => {
+        {displayedQuote?.bankRequired ? <fieldset className="refund-application__bank" disabled={!quoteCurrent || locked}><legend>{uiText("환불 계좌정보")}</legend><div className="refund-application__bank-field"><select required aria-label={uiText("은행명")} aria-invalid={!!bankCodeError} aria-describedby={bankCodeError ? `${formId}-bank-error` : undefined} value={bank.code} onBlur={() => setBankTouched(current => ({ ...current, code: true }))} onInvalid={event => { event.preventDefault(); setBankTouched(current => ({ ...current, code: true })) }} onChange={(event) => {
           const selectedBank = bankOptions.find(([code]) => code === event.target.value)
-          setBank(current => ({ ...current, code: selectedBank?.[0] ?? '', name: selectedBank?.[1] ?? '' })); attempt.current = null
-        }}><option value="">{uiText("은행명")}</option>{bankOptions.map(([code, name]) => <option key={code} value={code}>{uiText(name)}</option>)}</select><input required aria-label={uiText("계좌번호")} inputMode="numeric" pattern="[0-9 -]{8,40}" placeholder={uiText("계좌번호 숫자만 입력")} value={bank.accountNumber} onChange={(event) => { setBank(current => ({ ...current, accountNumber: event.target.value })); attempt.current = null }}/><input required aria-label={uiText("예금주")} placeholder={uiText("예금주")} value={bank.holder} onChange={(event) => { setBank(current => ({ ...current, holder: event.target.value })); attempt.current = null }}/></fieldset> : null}
-        <RefundContactPhone disabled={!quoteCurrent || locked} value={contactPhone} onChange={value => { setPhone(value); attempt.current = null }}/>
+          setBank(current => ({ ...current, code: selectedBank?.[0] ?? '', name: selectedBank?.[1] ?? '' })); setBankTouched(current => ({ ...current, code: true })); clearInputError(); attempt.current = null
+        }}><option value="">{uiText("은행명")}</option>{bankOptions.map(([code, name]) => <option key={code} value={code}>{uiText(name)}</option>)}</select>{bankCodeError ? <small id={`${formId}-bank-error`} role="alert">{uiText('환불 계좌의 은행과 계좌정보를 확인해 주세요.')}</small> : null}</div>
+        <div className="refund-application__bank-field"><input required aria-label={uiText("계좌번호")} aria-invalid={!!bankAccountError} aria-describedby={bankAccountError ? `${formId}-account-error` : undefined} inputMode="numeric" pattern="[0-9 \-]{8,40}" placeholder={uiText("계좌번호 숫자만 입력")} value={bank.accountNumber} onBlur={() => setBankTouched(current => ({ ...current, accountNumber: true }))} onInvalid={event => { event.preventDefault(); setBankTouched(current => ({ ...current, accountNumber: true })) }} onChange={(event) => { setBank(current => ({ ...current, accountNumber: event.target.value })); setBankTouched(current => ({ ...current, accountNumber: true })); clearInputError(); attempt.current = null }}/>{bankAccountError ? <small id={`${formId}-account-error`} role="alert">{uiText('계좌번호를 확인해 주세요.')}</small> : null}</div>
+        <div className="refund-application__bank-field"><input required maxLength={100} aria-label={uiText("예금주")} aria-invalid={!!bankHolderError} aria-describedby={bankHolderError ? `${formId}-holder-error` : undefined} placeholder={uiText("예금주")} value={bank.holder} onBlur={() => setBankTouched(current => ({ ...current, holder: true }))} onInvalid={event => { event.preventDefault(); setBankTouched(current => ({ ...current, holder: true })) }} onChange={(event) => { setBank(current => ({ ...current, holder: event.target.value })); setBankTouched(current => ({ ...current, holder: true })); clearInputError(); attempt.current = null }}/>{bankHolderError ? <small id={`${formId}-holder-error`} role="alert">{uiText('환불 계좌의 예금주를 확인해 주세요.')}</small> : null}</div></fieldset> : null}
+        <RefundContactPhone disabled={!quoteCurrent || locked} value={contactPhone} error={phoneError ? uiText('연락처 형식을 확인해 주세요.') : undefined} onInvalid={() => setPhoneTouched(true)} onChange={value => { setPhone(value); setPhoneTouched(true); clearInputError(); attempt.current = null }}/>
         <section className="refund-application__terms"><h3>{uiText("약관동의")}</h3><div className="refund-application__agreement-row"><label className="refund-application__agreement"><Checkbox disabled={!quoteCurrent || locked} checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span>{uiText("[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.")}</span></label><RelativeLink to="/terms?section=refund" target="_blank" rel="noopener noreferrer">{uiText("환불 정책을 확인해주세요.")}</RelativeLink></div></section>
     </form>}
-  </div>{step === 2 && (quote.isError || submit.isError || pointOnlyReason) ? <div className="refund-application__alerts">
+  {step === 2 && (quote.isError || (submit.isError && !inlineInputError) || pointOnlyReason) ? <div className="refund-application__alerts">
     {quote.isError ? <div className="refund-application__alert" role="alert"><p>{uiText(quote.error instanceof Error ? quote.error.message : "환불 예상 금액을 확인하지 못했습니다.")}</p><button type="button" disabled={locked} onClick={() => requestQuote()}>{uiText("다시 시도")}</button></div> : null}
-    {submit.isError ? <div className="refund-application__alert" role="alert"><p>{uiText(ambiguousFailure ? "접수 결과를 확인하지 못했습니다. 같은 요청으로 다시 접수해 중복 여부를 확인해 주세요." : submit.error instanceof Error ? submit.error.message : "신청을 접수하지 못했습니다.")}</p>{!ambiguousFailure ? <button type="button" onClick={() => requestQuote()}>{uiText("다시 계산")}</button> : null}</div> : null}
+    {submit.isError && !inlineInputError ? <div className="refund-application__alert" role="alert"><p>{uiText(refundSubmissionError(submit.error, ambiguousFailure))}</p>{!ambiguousFailure && !(submit.error instanceof RefundApplicationInputError) ? <button type="button" onClick={() => requestQuote()}>{uiText("다시 계산")}</button> : null}</div> : null}
     {pointOnlyReason ? <div className="refund-application__alert" role="status"><p>{uiText(pointOnlyReason)}</p></div> : null}
-  </div> : null}<footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || invalidFixedSelectionCount > 0}>{uiText("다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
+  </div> : null}</div><footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || invalidFixedSelectionCount > 0}>{uiText("다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
   return standalone ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main> : <DialogLayer asChild backdropClassName="modal-backdrop" isOpen onClose={close} returnFocusRef={returnFocusRef} showTitle={false} title={uiText("중도해지 및 환불 신청")}>{content}</DialogLayer>
 }

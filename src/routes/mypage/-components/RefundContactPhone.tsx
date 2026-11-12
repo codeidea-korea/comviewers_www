@@ -1,5 +1,5 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { NativeSelect } from '@/components/ui/SelectControl'
 import { phonePrefixOptions } from '@/lib/formOptions'
 
@@ -12,8 +12,9 @@ function phoneParts(value: string) {
   return complete ? complete.slice(1) : null
 }
 
-export function RefundContactPhone({ disabled, onChange, value }: { disabled: boolean; onChange: (value: string) => void; value: string }) {
+export function RefundContactPhone({ disabled, error, onChange, onInvalid, value }: { disabled: boolean; error?: string; onChange: (value: string) => void; onInvalid: () => void; value: string }) {
   const { uiText, locale } = useUiTranslation()
+  const errorId = useId()
   const validationRef = useRef<HTMLInputElement>(null)
   const parts = phoneParts(value)
   useEffect(() => {
@@ -24,12 +25,13 @@ export function RefundContactPhone({ disabled, onChange, value }: { disabled: bo
     const updated = parts.map((part, partIndex) => partIndex === index ? next : part)
     onChange(updated.some(Boolean) ? updated.join('-') : '')
   }
-  return <fieldset className="refund-application__phone" disabled={disabled}>
+  return <fieldset className="refund-application__phone" disabled={disabled} onInvalid={event => { event.preventDefault(); onInvalid() }}>
     <legend>{uiText("연락처")}</legend>
     {parts ? <div>
-      <NativeSelect aria-label={uiText("연락처 앞자리")} value={parts[0]} onChange={event => changePart(0, event.target.value)}>{phonePrefixOptions.map(prefix => <option key={prefix}>{prefix}</option>)}</NativeSelect>
-      <input aria-label={uiText("연락처 중간자리")} inputMode="numeric" maxLength={4} ref={validationRef} value={parts[1]} onChange={event => changePart(1, event.target.value.replace(/\D/g, ''))}/>
-      <input aria-label={uiText("연락처 끝자리")} inputMode="numeric" maxLength={4} value={parts[2]} onChange={event => changePart(2, event.target.value.replace(/\D/g, ''))}/>
-    </div> : <input aria-label={uiText("연락처")} maxLength={30} value={value} pattern="[0-9+() -]{8,30}" inputMode="tel" placeholder={uiText("연락처 숫자만 입력")} onChange={event => onChange(event.target.value)}/>}
+      <NativeSelect aria-label={uiText("연락처 앞자리")} aria-invalid={!!error} aria-describedby={error ? errorId : undefined} value={parts[0]} onChange={event => changePart(0, event.target.value)}>{phonePrefixOptions.map(prefix => <option key={prefix}>{prefix}</option>)}</NativeSelect>
+      <input aria-label={uiText("연락처 중간자리")} aria-invalid={!!error} aria-describedby={error ? errorId : undefined} inputMode="numeric" maxLength={4} ref={validationRef} value={parts[1]} onChange={event => changePart(1, event.target.value.replace(/\D/g, ''))}/>
+      <input aria-label={uiText("연락처 끝자리")} aria-invalid={!!error} aria-describedby={error ? errorId : undefined} inputMode="numeric" maxLength={4} value={parts[2]} onChange={event => changePart(2, event.target.value.replace(/\D/g, ''))}/>
+    </div> : <input aria-label={uiText("연락처")} aria-invalid={!!error} aria-describedby={error ? errorId : undefined} maxLength={30} value={value} pattern="[0-9+() -]{8,30}" inputMode="tel" placeholder={uiText("연락처 숫자만 입력")} onChange={event => onChange(event.target.value)}/>}
+    {error ? <small id={errorId} className="refund-application__field-error" role="alert">{error}</small> : null}
   </fieldset>
 }

@@ -59,6 +59,18 @@ const refundSubmission = z.object({ quote: refundQuoteRequest, expectedFingerpri
   contactPhone: z.string().trim().regex(/^(?:[0-9+() -]{8,30})?$/), refundPolicyAgreed: z.literal(true), terminationAgreed: z.literal(true),
   bank: z.object({ code: z.string().regex(/^[0-9]{2,3}$/), name: z.string().trim().min(1).max(100), accountNumber: z.string().regex(/^[0-9 -]{8,40}$/), holder: z.string().trim().min(1).max(100) }).nullable() })
 const refundDirectSubmission = refundSubmission.extend({ quote: refundDirectQuoteRequest })
+export class RefundApplicationInputError extends Error {
+  constructor(readonly field: string) {
+    super('Invalid refund application input')
+    this.name = 'RefundApplicationInputError'
+  }
+}
+
+function parseDirectRefundSubmission(input: RefundDirectApplicationInput): RefundDirectApplicationInput {
+  const result = refundDirectSubmission.safeParse(input)
+  if (!result.success) throw new RefundApplicationInputError(result.error.issues[0]?.path.join('.') ?? '')
+  return result.data
+}
 export type RefundQuoteRequest = z.infer<typeof refundQuoteRequest>
 export type RefundDirectQuoteRequest = z.infer<typeof refundDirectQuoteRequest>
 export type RefundApplicationQuote = z.infer<typeof refundQuote>
@@ -197,7 +209,7 @@ export function createOperationRequestsApi(client: ApiClient, organizationId: st
     refundApplicationQuote: (input: RefundQuoteRequest) => client.request('/api/v1/my/refunds/application-quote', refundQuote, { ...context, method: 'POST', body: refundQuoteRequest.parse(input) }),
     refundDirectApplicationQuote: (input: RefundDirectQuoteRequest) => client.request('/api/v1/my/refunds/direct-application-quote', refundQuote, { ...context, method: 'POST', body: refundDirectQuoteRequest.parse(input) }),
     submitRefundApplication: (input: RefundApplicationInput, key: string) => client.request('/api/v1/my/refunds/applications', refundDetail.array(), { ...context, method: 'POST', body: refundSubmission.parse(input), idempotencyKey: z.uuidv4().parse(key) }),
-    submitDirectRefundApplication: (input: RefundDirectApplicationInput, key: string) => client.request('/api/v1/my/refunds/direct-applications', refundDetail.array(), { ...context, method: 'POST', body: refundDirectSubmission.parse(input), idempotencyKey: z.uuidv4().parse(key) }),
+    submitDirectRefundApplication: (input: RefundDirectApplicationInput, key: string) => client.request('/api/v1/my/refunds/direct-applications', refundDetail.array(), { ...context, method: 'POST', body: parseDirectRefundSubmission(input), idempotencyKey: z.uuidv4().parse(key) }),
     refundDetail: (requestId: number, signal?: AbortSignal) => client.request(`/api/v1/my/refunds/${id.parse(requestId)}`, refundDetail, { ...context, signal }),
     cancelRefund: (requestId: number) => client.request(`/api/v1/my/refunds/${id.parse(requestId)}/cancel`, refundDetail, { ...context, method: 'POST', body: {} }),
   }
