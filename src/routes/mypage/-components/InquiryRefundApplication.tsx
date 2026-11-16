@@ -227,12 +227,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const dailyDeduction = displayedQuote?.items.reduce((total, item) => total + item.dailyQuantityDeduction, 0) ?? 0
   const beforeBulkRefundTotal = displayedQuote?.items.reduce((total, item) => total + (displayedMethod === 'point' ? item.pointAmount : item.cashAmount) + item.dailyQuantityDeduction, 0) ?? 0
   const selectedCount = selectedTargets.length
-  const originalRefundDays = [...new Set((displayedQuote?.items ?? []).flatMap(item => item.originalPaymentRefundDays ?? []))]
-  const originalMethodNotice = originalMethodBlockedReason || (originalRefundDays.length === 1
-    ? uiText('결제 완료 후 {days}일 이내, 구매확정 전에 선택할 수 있습니다.', { days: originalRefundDays[0]! })
-    : originalRefundDays.length > 1
-      ? uiText('각 주문의 결제 완료 후 5일 또는 7일 이내, 구매확정 전에 선택할 수 있습니다.')
-      : uiText('기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.'))
+  const originalMethodNotice = originalMethodBlockedReason || uiText('결제수단 환불은 결제사 처리 가능 여부를 확인한 후 진행됩니다.')
   const methodChoices = <fieldset className="refund-application__method" disabled={locked}><legend>{uiText("환불 방법 선택")}</legend><div>
     <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>{uiText("포인트 적립")}</strong><small>{uiText("포인트로 지급된 환불금은 바로 상품 구매에 사용할 수 있습니다.")}</small></span></label>
     <label><input type="radio" name="refund-method" checked={method === 'original'} disabled={Boolean(originalMethodBlockedReason)} onChange={() => changeMethod('original')}/><span><strong>{uiText("결제수단 환불")}</strong><small>{uiText(originalMethodNotice)}</small></span></label>

@@ -34,10 +34,10 @@ export function OrderItemActions({ api, item, orderNo, paymentStatus, orderStatu
   const busy = useRef(false)
   const client = useQueryClient()
   const { message: confirmationMessage, setMessage: setConfirmationMessage, toastKey } = useToastMessage()
-  const rewardOnPayment = item.commercePolicyVersion === 'payment_reward_v1'
+  const rewardOnPayment = item.commercePolicyVersion === 'payment_reward_v1' || item.accruedPoints != null
   const confirmation = useMutation({ mutationFn: () => api.confirmPurchase(item.orderItemId, key), onSuccess: async (result) => {
     setOpen(false)
-    setConfirmationMessage(rewardOnPayment ? uiText('구매확정되었습니다.') : t('order.confirmedPoints', { points: result.accruedPoints.toLocaleString('ko-KR') }))
+    setConfirmationMessage(rewardOnPayment || result.accruedPoints === 0 ? uiText('구매확정되었습니다.') : t('order.confirmedPoints', { points: result.accruedPoints.toLocaleString('ko-KR') }))
     await Promise.all([client.invalidateQueries({ queryKey: ['my-account'] }), client.invalidateQueries({ queryKey: ['productReviewEligible', item.productNo] })])
   }, onSettled: () => { busy.current = false } })
   const confirmedAt = confirmation.data?.confirmedAt ?? item.purchaseConfirmedAt
