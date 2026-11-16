@@ -99,6 +99,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const [bankTouched, setBankTouched] = useState({ code: false, accountNumber: false, holder: false })
   const [phoneTouched, setPhoneTouched] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [quoteChanged, setQuoteChanged] = useState(false)
   const [step, setStep] = useState<1 | 2>(1)
   const [lastQuote, setLastQuote] = useState<{ data: RefundApplicationQuote; input: RefundDirectQuoteRequest } | null>(null)
   const attempt = useRef<SubmitAttempt | null>(null)
@@ -142,12 +143,24 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     || displayedQuote?.items.find(item => item.originalRefundUnavailableReason)?.originalRefundUnavailableReason
     || ''
   const submit = useMutation({
+    onMutate: () => setQuoteChanged(false),
     mutationFn: async () => {
       const currentAttempt = attempt.current ?? buildAttempt()
       attempt.current = currentAttempt
       return api.submitDirectRefundApplication(currentAttempt.input, currentAttempt.key)
     },
-    onError: (error) => { if (finalInputError(error)) attempt.current = null },
+    onError: (error) => {
+      if (!finalInputError(error)) return
+      const failedAttempt = attempt.current
+      attempt.current = null
+      if (error instanceof ApiClientError && (error.status === 400 || error.status === 422)
+        && error.message === '환불 예상 금액이나 정책이 변경되었습니다. 다시 확인해 주세요.'
+        && failedAttempt && JSON.stringify(failedAttempt.input.quote) === JSON.stringify(quoteInput)) {
+        setAgreed(false)
+        setQuoteChanged(true)
+        quote.mutate(failedAttempt.input.quote)
+      }
+    },
     onSuccess: async () => {
       await Promise.all([
         client.invalidateQueries({ queryKey: ['my-refund-requests', api.organizationId] }),
@@ -189,6 +202,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   function requestQuote(nextMethod = method) {
     attempt.current = null
     setAgreed(false)
+    setQuoteChanged(false)
     submit.reset()
     quote.mutate({ ...quoteInput, method: nextMethod })
   }
@@ -227,12 +241,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
   const dailyDeduction = displayedQuote?.items.reduce((total, item) => total + item.dailyQuantityDeduction, 0) ?? 0
   const beforeBulkRefundTotal = displayedQuote?.items.reduce((total, item) => total + (displayedMethod === 'point' ? item.pointAmount : item.cashAmount) + item.dailyQuantityDeduction, 0) ?? 0
   const selectedCount = selectedTargets.length
-  const originalRefundDays = [...new Set((displayedQuote?.items ?? []).flatMap(item => item.originalPaymentRefundDays ?? []))]
-  const originalMethodNotice = originalMethodBlockedReason || (originalRefundDays.length === 1
-    ? uiText('결제 완료 후 {days}일 이내, 구매확정 전에 선택할 수 있습니다.', { days: originalRefundDays[0]! })
-    : originalRefundDays.length > 1
-      ? uiText('각 주문의 결제 완료 후 5일 또는 7일 이내, 구매확정 전에 선택할 수 있습니다.')
-      : uiText('기존 결제수단으로 환불되며 영업일 기준 3~7일 소요될 수 있습니다.'))
+  const originalMethodNotice = originalMethodBlockedReason || uiText('결제수단 환불은 결제사 처리 가능 여부를 확인한 후 진행됩니다.')
   const methodChoices = <fieldset className="refund-application__method" disabled={locked}><legend>{uiText("환불 방법 선택")}</legend><div>
     <label><input type="radio" name="refund-method" checked={method === 'point'} onChange={() => changeMethod('point')}/><span><strong>{uiText("포인트 적립")}</strong><small>{uiText("포인트로 지급된 환불금은 바로 상품 구매에 사용할 수 있습니다.")}</small></span></label>
     <label><input type="radio" name="refund-method" checked={method === 'original'} disabled={Boolean(originalMethodBlockedReason)} onChange={() => changeMethod('original')}/><span><strong>{uiText("결제수단 환불")}</strong><small>{uiText(originalMethodNotice)}</small></span></label>
@@ -304,9 +313,10 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
         <RefundContactPhone disabled={!quoteCurrent || locked} value={contactPhone} error={phoneError ? uiText('연락처 형식을 확인해 주세요.') : undefined} onInvalid={() => setPhoneTouched(true)} onChange={value => { setPhone(value); setPhoneTouched(true); clearInputError(); attempt.current = null }}/>
         <section className="refund-application__terms"><h3>{uiText("약관동의")}</h3><div className="refund-application__agreement-row"><label className="refund-application__agreement"><Checkbox disabled={!quoteCurrent || locked} checked={agreed} onChange={(event) => { setAgreed(event.target.checked); attempt.current = null }}/><span>{uiText("[필수] 환불 안내 및 정책을 모두 확인했으며, 이에 동의합니다.")}</span></label><RelativeLink to="/terms?section=refund" target="_blank" rel="noopener noreferrer">{uiText("환불 정책을 확인해주세요.")}</RelativeLink></div></section>
     </form>}
-  {step === 2 && (quote.isError || (submit.isError && !inlineInputError) || pointOnlyReason) ? <div className="refund-application__alerts">
+  {step === 2 && (quote.isError || quoteChanged || (submit.isError && !inlineInputError) || pointOnlyReason) ? <div className="refund-application__alerts">
     {quote.isError ? <div className="refund-application__alert" role="alert"><p>{uiText(quote.error instanceof Error ? quote.error.message : "환불 예상 금액을 확인하지 못했습니다.")}</p><button type="button" disabled={locked} onClick={() => requestQuote()}>{uiText("다시 시도")}</button></div> : null}
-    {submit.isError && !inlineInputError ? <div className="refund-application__alert" role="alert"><p>{uiText(refundSubmissionError(submit.error, ambiguousFailure))}</p>{!ambiguousFailure && !(submit.error instanceof RefundApplicationInputError) ? <button type="button" onClick={() => requestQuote()}>{uiText("다시 계산")}</button> : null}</div> : null}
+    {quoteChanged ? <div className="refund-application__alert" role="status"><p>{uiText('환불 예상 금액이나 정책이 변경되었습니다. 다시 확인해 주세요.')}</p></div> : null}
+    {submit.isError && !inlineInputError && !quoteChanged ? <div className="refund-application__alert" role="alert"><p>{uiText(refundSubmissionError(submit.error, ambiguousFailure))}</p>{!ambiguousFailure && !(submit.error instanceof RefundApplicationInputError) ? <button type="button" onClick={() => requestQuote()}>{uiText("다시 계산")}</button> : null}</div> : null}
     {pointOnlyReason ? <div className="refund-application__alert" role="status"><p>{uiText(pointOnlyReason)}</p></div> : null}
   </div> : null}</div><footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || invalidFixedSelectionCount > 0}>{uiText("다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
   return standalone ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main> : <DialogLayer asChild backdropClassName="modal-backdrop" isOpen onClose={close} returnFocusRef={returnFocusRef} showTitle={false} title={uiText("중도해지 및 환불 신청")}>{content}</DialogLayer>
