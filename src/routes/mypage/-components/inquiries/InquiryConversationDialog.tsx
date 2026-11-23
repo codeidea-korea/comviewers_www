@@ -80,7 +80,8 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   const requestInfoData = accessDenied ? undefined : requestInfo.data
   const refundLink = useQuery({ queryKey: ['my-refund-requests', api.organizationId, 'operation-request', id], queryFn: ({ signal }) => api.refundsForOperationRequest(id, signal), enabled: !isManager && requestInfoData?.items[0]?.requestType === 'refund_cancel' })
   const refund = refundLink.data?.items.find((item) => item.operationRequestId === id)
-  const closed = chatData?.operationRequest.customerVisibleStatus === '처리 완료' || ['completed', 'cancelled'].includes(chatData?.operationRequest.status ?? '')
+  const operationExcludedReadOnly = chatData?.operationExcludedReadOnly === true
+  const closed = operationExcludedReadOnly || chatData?.operationRequest.customerVisibleStatus === '처리 완료' || ['completed', 'cancelled'].includes(chatData?.operationRequest.status ?? '')
   const messages = [...new Map([...olderMessages, ...(chatData?.messages ?? [])].map((item) => [item.id, item])).values()]
     .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt) || left.id - right.id)
   const hasEarlierMessages = !historyEnd && (olderMessages.length > 0 || (chatData?.messages.length ?? 0) >= 100)
@@ -129,6 +130,8 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
   }, [api, chatKey, client, id, lastId])
   const send = useMutation({ mutationKey: ['operation-requests', api.organizationId, 'send', id], mutationFn: () => api.sendMessage(id, message, messageId, files.map((file) => file.attachmentId)), onError: error => {
     if (error instanceof ApiClientError && [401, 403].includes(error.status ?? 0)) setAccessError(error)
+    // Refresh exclusion state when the PC was excluded after this conversation was opened.
+    void client.invalidateQueries({ queryKey: chatKey })
   }, onSuccess: async (response) => {
     setAccessError(null); setMessage(''); setFiles([]); setMessageId(`customer-web:${crypto.randomUUID()}`)
     client.setQueryData(chatKey, response)
@@ -196,7 +199,7 @@ function InquiryChat({ api, id, onClose, onSelectInquiry, standalone }: { api: I
       </div>
       {!accessDenied && productConversation && <InquiryProductConversations key={productConversation} api={api} requestId={id} productNo={productConversation} onSelect={onSelectInquiry} onClose={() => setProductConversation(null)}/>}
       {!accessDenied && refundOpen && refund ? <RefundDetail key={refund.id} api={api} requestId={refund.id} onClose={() => setRefundOpen(false)}/> : null}
-      {chatData && requestInfoData ? (closed ? <footer className="inquiry-chat__closed" role="status">{uiText("처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.")}</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
+      {chatData && requestInfoData ? (closed ? <footer className="inquiry-chat__closed" role="status">{uiText(operationExcludedReadOnly ? "문의 대상 PC가 모두 운영 제외되어 기존 채팅 내역만 볼 수 있습니다." : "처리 완료된 문의에는 메시지와 파일을 추가할 수 없습니다.")}</footer> : <form className="inquiry-chat__composer" onSubmit={(event) => { event.preventDefault(); submit() }}>
         <div className="inquiry-chat__attachments"><InquiryAttachments api={api} requestId={id} files={files} disabled={send.isPending} onBusy={setAttachmentBusy} onChange={(next) => { setFiles(next); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }}/></div>
         <label><span className="sr-only">{uiText("새 메시지")}</span><textarea aria-label={uiText("새 메시지")} ref={composerRef} readOnly={send.isPending || attachmentBusy} maxLength={4000} placeholder={uiText("메시지를 입력해 주세요.")} value={message} onChange={(event) => { setMessage(event.target.value); setMessageId(`customer-web:${crypto.randomUUID()}`); send.reset() }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit() } }}/></label>
         <Button disabled={send.isPending || attachmentBusy || (!message.trim() && !files.length)} type="submit">{send.isPending ? uiText("전송 중…") : send.isError ? uiText("재전송") : uiText("전송")}</Button>
