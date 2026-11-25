@@ -256,7 +256,7 @@ export function CheckoutExtensionContent({ state }: { state: ExtensionCheckoutSt
       </CommerceCartState> : current || recovering ? <div className="checkout-layout" aria-busy={!attempt && !recoveredDisplay && quote.isFetching}><div className="checkout-main">
         {!current && <CommerceCartState status={quote.isFetching ? 'loading' : 'error'} loadingLabel={uiText("선택 상품의 예상 금액을 불러오는 중입니다.")} errorMessage={uiText(quote.error?.message ?? '선택한 상품을 조회하지 못했습니다. 상품이 삭제되었거나 장바구니 상태가 변경되었을 수 있습니다.')} onRetry={retryQuotes} />}
         {hasPurchase && currentSummary && <CheckoutProducts items={currentSummary.items} benefits={shownBenefits} refreshing={refreshing} />}
-        {current && current.items.length > 0 && <CheckoutExtensionProducts quote={current} mixed={hasPurchase} />}
+        {current && current.items.length > 0 && <CheckoutExtensionProducts quote={current} mixed={hasPurchase} refreshing={refreshing} />}
         {!attempt && !recovering && current && (!quote.isFetching && current.eligible && !benefitsMatch) && <div className="checkout-product-error">
           <p role="alert">{uiText("선택한 상품의 상태 또는 금액이 변경되었습니다. 다시 확인해 주세요.")}</p>
           <Button size="small" variant="secondary" disabled={quote.isFetching} onClick={retryQuotes}>{uiText("상품 상태 다시 확인")}</Button>

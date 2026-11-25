@@ -40,7 +40,8 @@ export function directCheckoutSummary(quote: ExtensionQuote): CheckoutQuote {
     spec: item.spec || null, osFilterValue: null, available: true, instantAvailable: null,
     billingUnit: item.billingUnit, durationUnits: item.durationUnits, quantity: item.quantity,
     setupFee: item.setupFee, rentalFee: item.unitPrice, quotedAmount: item.lineAmount + item.setupFee * item.quantity,
-    expectedPoints: item.pointAmount, checkoutEligible: true, quantityEditable: false, issues: [], maximumQuantity: null,
+    expectedPoints: quote.benefits?.itemExpectedPoints?.find(row => row.cartItemId === item.benefitKey)?.expectedPoints ?? item.pointAmount,
+    checkoutEligible: true, quantityEditable: false, issues: [], maximumQuantity: null,
   })))
   const rentals = quote.purchaseItems.filter(item => item.billingUnit !== 'unit')
   const rentalSetupTotal = rentals.reduce((sum, item) => sum + item.setupFee * item.quantity, 0)
@@ -50,7 +51,7 @@ export function directCheckoutSummary(quote: ExtensionQuote): CheckoutQuote {
     rentalSetupTotal, rentalMonthlyTotal: hasPurchase ? rentalMonthlyTotal : quote.extensionAmount,
     rentalTotal: hasPurchase ? rentalMonthlyTotal + rentalSetupTotal : quote.extensionAmount,
     partTotal: quote.purchaseItems.filter(item => item.billingUnit === 'unit').reduce((sum, item) => sum + item.lineAmount + item.setupFee * item.quantity, 0),
-    expectedTotal: quote.totalAmount, pointTotal: null,
+    expectedTotal: quote.totalAmount, pointTotal: quote.benefits?.expectedPoints ?? null,
     subtotalAmount: quote.extensionAmount + quote.purchaseSubtotalAmount, setupFeeAmount: quote.purchaseSetupFeeAmount,
   } }
 }

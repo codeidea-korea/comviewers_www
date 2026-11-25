@@ -28,6 +28,9 @@ const row = z.object({ rentalId: id, productNo: productNoResponseSchema.nullable
   addedDays: z.number().int().nullable(), amount: z.number().int().nonnegative().safe().nullable(), monthlyFee: z.number().int().nonnegative().safe().nullable(), eligible: z.boolean(), reason: z.string().nullable() })
 const benefit = z.object({ subtotalAmount: z.number(), setupFeeAmount: z.number(), couponDiscountAmount: z.number().int().nonnegative(), pointUsedAmount: z.number().int().nonnegative(),
   finalAmount: z.number().int().nonnegative().safe(), availablePoints: z.number().int().nonnegative(), userCouponId: id.nullable(),
+  expectedPoints: z.number().int().nonnegative().safe().nullable().optional(),
+  // Positive purchase allocation keys and negative extension rental IDs share the quote.
+  itemExpectedPoints: z.object({ cartItemId: z.number().int().safe().refine(value => value !== 0), expectedPoints: z.number().int().nonnegative().safe() }).array().optional(),
   coupons: z.object({ userCouponId: id, name: z.string(), serverRoomId: id.nullable(), expiresAt: time.nullable(), discountAmount: z.number().int().nonnegative() }).array(),
 })
 const purchaseRow = z.object({ sourceType: z.enum(['storage_rental', 'storage_part', 'cart']), sourceId: id,
@@ -36,6 +39,7 @@ const purchaseRow = z.object({ sourceType: z.enum(['storage_rental', 'storage_pa
   quantity: z.number().int().positive().safe(), billingUnit: z.enum(['thirty_day', 'day', 'hour', 'unit']),
   durationUnits: z.number().int().positive().safe().nullable(), unitPrice: z.number().int().nonnegative().safe(),
   setupFee: z.number().int().nonnegative().safe(), lineAmount: z.number().int().nonnegative().safe(), pointAmount: z.number().int().nonnegative().safe(),
+  benefitKey: id.optional(),
 })
 const quote = z.object({ items: row.array(), purchaseItems: purchaseRow.array(), totalAmount: z.number().int().nonnegative().safe(), eligible: z.boolean(), quoteHash: z.string().regex(/^[a-f0-9]{64}$/), benefits: benefit.nullable(),
   extensionAmount: z.number().int().nonnegative().safe(), purchaseSubtotalAmount: z.number().int().nonnegative().safe(), purchaseSetupFeeAmount: z.number().int().nonnegative().safe() })
