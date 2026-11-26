@@ -12,7 +12,7 @@ export function ManagerSettingsDialog({ managers, onClose, onEdit }: {
   return <PopupLayer className="manager-preview" dialogClassName="manager-modal manager-settings-dialog" isOpen onClose={onClose} showTitle={false} title={uiText("담당자 설정")}>
     <header><h2>{uiText("담당자 설정")}</h2><button aria-label={uiText("닫기")} onClick={onClose} type="button"><img alt="" src={closeIcon}/></button></header>
     <div className="manager-settings-dialog__list">
-      {managers.map(manager => <button key={manager.id} onClick={() => onEdit(manager.id)} type="button"><strong>{manager.name} ({manager.assignedRcpcIds.length})</strong><span>{manager.loginId}</span></button>)}
+      {managers.map(manager => <button key={manager.id} onClick={() => onEdit(manager.id)} type="button"><strong>{manager.name} ({(manager.assignedRcpcCount ?? manager.assignedRcpcIds.length)})</strong><span>{manager.loginId}</span></button>)}
       {!managers.length ? <p>{uiText("등록된 담당자가 없습니다.")}</p> : null}
     </div>
   </PopupLayer>

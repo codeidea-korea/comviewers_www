@@ -60,19 +60,25 @@ test('product invalidation reaches the public catalog cache and retains unrelate
   catalog.clear(); account.clear()
 }))
 
-test('manager workspace reads only RCPCs and assignments and keeps assigned rental ids', async () => {
+test('manager workspace reads one catalog page and keeps assignments and global counts', async () => {
   const calls = []
   const api = {
+    catalog: async () => { calls.push('catalog'); return {
+      items: [{ rentalId: 3, productNo: 'PC3', assignable: true }],
+      managers: [{ memberId: 2, username: 'manager', name: '담당자', status: 'active' }],
+      assignments: [{ memberId: 2, rentalId: 3 }], counts: [{ memberId: 2, count: 51 }], totalElements: 80,
+    } },
     list: async () => { calls.push('managers'); return [{ memberId: 2, username: 'manager', name: '담당자', status: 'active' }] },
     rcpcs: async () => { calls.push('assignable'); return [{ rentalId: 3, assetNo: 'PC3' }] },
     detail: async id => { calls.push(`detail:${id}`); return { rcpcs: [{ rentalId: 3 }] } },
   }
   const rcpcApi = { list: async () => { calls.push('rcpcs'); return { page: 0, totalPages: 1, totalElements: 1, items: [{ rentalId: 3, productNo: 'PC3', preference: {}, rentalStatus: 'active', trafficDownloadTotalBytes: null, trafficUploadTotalBytes: null }] } } }
   const result = await createManagerReader(api, rcpcApi)()
-  assert.deepEqual(Object.keys(result).sort(), ['managers', 'rcpcs'])
+  assert.equal(result.totalElements, 80)
+  assert.equal(result.managers[0].assignedRcpcCount, 51)
   assert.deepEqual(result.managers[0].assignedRcpcIds, ['3'])
   assert.equal(result.rcpcs[0].assignable, true)
-  assert.deepEqual(calls.sort(), ['assignable', 'detail:2', 'managers', 'rcpcs'])
+  assert.deepEqual(calls, ['catalog'])
 })
 
 test('point ordering uses signed numeric amounts and never mutates the response', () => {

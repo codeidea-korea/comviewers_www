@@ -1,8 +1,8 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
 import { Toast, useToastMessage } from '@/components/ui/ToastControl'
-import { isActiveManager } from '@/domain/myAccount/managerServices'
+import { isActiveManager, type ManagerCatalogQuery } from '@/domain/myAccount/managerServices'
 import { useSession } from '@/app/session/SessionProvider'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import moreIcon from '../../../assets/figma/comment-more-fill.svg'
 import addIcon from '../../../assets/figma/icon-add.svg'
@@ -19,7 +19,8 @@ import './managerCatalog.css'
 import { RcpcSelectionMenu } from './RcpcSelectionMenu'
 import './manager-qa.css'
 
-export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelectedRows, onCreate, onEdit, onAssign, onUnassign, onSettings, onCloseMenu, onToggleMenu, openMenuRow = null }: {
+export function ManagerCatalog({ query, onQueryChange, selectedRows, onSelectedRowsChange: setSelectedRows, onCreate, onEdit, onAssign, onUnassign, onSettings, onCloseMenu, onToggleMenu, openMenuRow = null }: {
+  query: ManagerCatalogQuery; onQueryChange: Dispatch<SetStateAction<ManagerCatalogQuery>>;
   selectedRows: string[]; onSelectedRowsChange: Dispatch<SetStateAction<string[]>>;
   onCreate: () => void; onEdit: (id: string) => void;
   onSettings: () => void;
@@ -27,24 +28,31 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
   onCloseMenu: () => void; onToggleMenu: (id: string) => void; openMenuRow?: string | null;
 }) {
   const { uiText, t } = useUiTranslation()
-  const account = useManagerWorkspace()
+  const account = useManagerWorkspace(query)
   const session = useSession()
   const managers = useMemo(() => [...(account.data?.managers ?? [])].filter(isActiveManager).sort((left, right) => left.name.localeCompare(right.name, 'ko')), [account.data?.managers])
   const managerRows = (account.data?.rcpcs ?? []).map((item) => {
     const assigned = managers.filter((manager) => manager.assignedRcpcIds.includes(item.id) || manager.assignedRcpcIds.includes(item.rcpcId))
     return { id: item.id, rcpc: item.rcpcId, alias: item.alias, period: `${item.startedAt}~${item.endsAt}`, remain: t("mypageSupport.template6", { value0: item.daysLeft }), managerIds: assigned.map((manager) => manager.id), managerNames: assigned.map((manager) => manager.name), managers: assigned }
   })
-  const [search, setSearch] = useState('')
-  const [managerFilter, setManagerFilter] = useState<string | 'unassigned' | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
+  const search = query.keyword ?? ''
+  const setSearch = (keyword: string) => onQueryChange(current => ({ ...current, keyword, page: 0 }))
+  const managerFilter = query.managerId === undefined ? null : query.managerId === 0 ? 'unassigned' : String(query.managerId)
+  const setManagerFilter = (value: string | null) => onQueryChange(current => ({ ...current, managerId: value === null ? undefined : value === 'unassigned' ? 0 : Number(value), page: 0 }))
+  const currentPage = query.page + 1
+  const setCurrentPage = (page: number) => onQueryChange(current => ({ ...current, page: page - 1 }))
   const { message: copyMessage, setMessage: setCopyMessage, toastKey } = useToastMessage()
   const openMenuContainerRef = useRef<HTMLSpanElement | null>(null)
-  const filteredRows = managerRows.filter((row) => (managerFilter === null || (managerFilter === 'unassigned' ? !row.managerIds.length : row.managerIds.includes(managerFilter)))
+  const serverPaged = account.data?.totalElements !== undefined
+  const filteredRows = serverPaged ? managerRows : managerRows.filter((row) => (managerFilter === null || (managerFilter === 'unassigned' ? !row.managerIds.length : row.managerIds.includes(managerFilter)))
     && managerCatalogRowMatches(row, search))
-  const pageSize = 10
-  const totalPages = Math.ceil(filteredRows.length / pageSize)
+  const pageSize = query.size
+  const totalPages = Math.ceil((account.data?.totalElements ?? filteredRows.length) / pageSize)
   const safePage = totalPages ? Math.min(currentPage, totalPages) : 1
-  const visibleRows = filteredRows.slice((safePage - 1) * pageSize, safePage * pageSize)
+  const visibleRows = serverPaged ? filteredRows : filteredRows.slice((safePage - 1) * pageSize, safePage * pageSize)
+  useEffect(() => {
+    if (account.data && currentPage > Math.max(totalPages, 1)) onQueryChange(current => ({ ...current, page: Math.max(totalPages - 1, 0) }))
+  }, [account.data, currentPage, totalPages, onQueryChange])
   const allVisibleSelected = visibleRows.length > 0 && visibleRows.every((row) => selectedRows.includes(row.id))
   const changeAll = (checked: boolean) => setSelectedRows((current) => checked
     ? [...new Set([...current, ...visibleRows.map((row) => row.id)])]
@@ -62,11 +70,10 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
     } catch { setCopyMessage("접속 링크를 복사하지 못했습니다. 다시 시도해 주세요.") }
   }
   useEffect(() => {
-    if (managerFilter && managerFilter !== 'unassigned' && !managers.some(manager => manager.id === managerFilter)) {
-      setManagerFilter(null)
-      setCurrentPage(1)
+    if (account.data && managerFilter && managerFilter !== 'unassigned' && !managers.some(manager => manager.id === managerFilter)) {
+      onQueryChange(current => ({ ...current, managerId: undefined, page: 0 }))
     }
-  }, [managerFilter, managers])
+  }, [account.data, managerFilter, managers, onQueryChange])
   useEffect(() => {
     if (!openMenuRow) return
 
@@ -87,7 +94,7 @@ export function ManagerCatalog({ selectedRows, onSelectedRowsChange: setSelected
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [onCloseMenu, openMenuRow])
-  const unassignedCount = managerRows.filter((row) => !row.managerIds.length).length
+  const unassignedCount = account.data?.unassignedCount ?? managerRows.filter((row) => !row.managerIds.length).length
   const chooseGroup = (groupId: string | 'unassigned' | null) => {
     setManagerFilter(groupId)
     setCurrentPage(1)

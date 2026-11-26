@@ -1,15 +1,9 @@
 import assert from 'node:assert/strict'
-import path from 'node:path'
 import test from 'node:test'
-import { fileURLToPath } from 'node:url'
-import { createServer } from 'vite'
+import { withSourceModules } from './helpers/withSourceModules.mjs'
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-
-test('RCPC 상세 응답은 목록 전용 productTitle과 orderedAt 없이 파싱된다', async () => {
-  const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true, hmr: false } })
-  try {
-    const { myRcpcDetailSchema } = await server.ssrLoadModule('/src/api/myRcpc.ts')
+test('RCPC 상세 응답은 목록 전용 productTitle과 orderedAt 없이 파싱된다', async () => withSourceModules(async load => {
+    const { myRcpcDetailSchema } = await load('/src/api/myRcpc.ts')
     const detail = myRcpcDetailSchema.parse({
       rentalId: 1,
       pcAssetId: 2,
@@ -40,7 +34,4 @@ test('RCPC 상세 응답은 목록 전용 productTitle과 orderedAt 없이 파�
     assert.equal(detail.productNo, '28001')
     assert.equal(detail.productTitle, null)
     assert.equal(detail.orderedAt, null)
-  } finally {
-    await server.close()
-  }
-})
+}))

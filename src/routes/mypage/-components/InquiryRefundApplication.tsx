@@ -199,12 +199,14 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     return { input, key: crypto.randomUUID() }
   }
 
-  function requestQuote(nextMethod = method) {
+  function requestQuote(nextMethod = method, advance = false) {
     attempt.current = null
     setAgreed(false)
     setQuoteChanged(false)
     submit.reset()
-    quote.mutate({ ...quoteInput, method: nextMethod })
+    quote.mutate({ ...quoteInput, method: nextMethod }, {
+      onSuccess: () => { if (advance) setStep(2) },
+    })
   }
 
   function handleQuoteError(error: unknown, input: RefundDirectQuoteRequest): void {
@@ -213,7 +215,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     setPointOnlyReason(error.message)
     setMethod('point')
     setBank({ code: '', name: '', accountNumber: '', holder: '' })
-    requestQuote('point')
+    requestQuote('point', step === 1)
   }
 
   function changeMethod(nextMethod: RefundDirectQuoteRequest['method']) {
@@ -225,6 +227,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
 
   function toggleCandidate(orderItemId: number) {
     attempt.current = null
+    quote.reset()
     setPointOnlyReason('')
     setSelected(current => current.includes(orderItemId)
       ? current.filter(value => value !== orderItemId)
@@ -253,13 +256,12 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     {invalidFixedSelectionCount > 0 ? <div className="refund-application__alert" role="alert">{t("mypageSupport.unavailableCancellationSelection", { count: invalidFixedSelectionCount })}</div> : null}
     {step === 1 ? <form id={formId} className="refund-application refund-application--select" onSubmit={(event) => {
       event.preventDefault()
-      if (!targetsReady || !selectedCount || !reason || invalidFixedSelectionCount > 0) return
-      setStep(2)
-      requestQuote()
+      if (!targetsReady || !selectedCount || !reason || locked || quote.isPending || invalidFixedSelectionCount > 0) return
+      requestQuote(method, true)
     }}>
       <p className="refund-application__count">{uiText("신청 품목")} <strong>{selectedCount}{uiText("개")}</strong></p>
       <AccountQueryState pending={targets.isPending || targets.isFetching} error={targets.error} retry={targets.refetch}/>
-      <fieldset className="refund-application__candidates" disabled={locked || !targetsReady}>
+      <fieldset className="refund-application__candidates" disabled={locked || quote.isPending || !targetsReady}>
         <legend className="sr-only">{uiText("해지 신청 상품")}</legend>
         {selectFromCandidates ? (targets.data ?? []).map(item => {
           const checked = selected.includes(item.orderItemId)
@@ -274,6 +276,7 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
         <option value="">{uiText("환불 사유를 선택해 주세요.")}</option>
         {reasonOptions.map(value => <option key={value} value={value}>{uiText(value)}</option>)}
       </select>{reasonTouched && !reason ? <small role="alert">{uiText("환불 사유를 선택해 주세요.")}</small> : null}</label>
+      {quote.isError ? <div className="refund-application__alert" role="alert">{uiText(quote.error instanceof Error ? quote.error.message : "환불 예상 금액을 확인하지 못했습니다.")}</div> : null}
     </form> : <form id={formId} className="refund-application refund-application--quote" onSubmit={(event) => {
       event.preventDefault()
       if (!submit.isPending && (ambiguousFailure || (targetsReady && invalidFixedSelectionCount === 0 && quoteCurrent))) submit.mutate()
@@ -318,6 +321,6 @@ export function InquiryRefundApplicationDialog({ api, initialRentalIds, onClose,
     {quoteChanged ? <div className="refund-application__alert" role="status"><p>{uiText('환불 예상 금액이나 정책이 변경되었습니다. 다시 확인해 주세요.')}</p></div> : null}
     {submit.isError && !inlineInputError && !quoteChanged ? <div className="refund-application__alert" role="alert"><p>{uiText(refundSubmissionError(submit.error, ambiguousFailure))}</p>{!ambiguousFailure && !(submit.error instanceof RefundApplicationInputError) ? <button type="button" onClick={() => requestQuote()}>{uiText("다시 계산")}</button> : null}</div> : null}
     {pointOnlyReason ? <div className="refund-application__alert" role="status"><p>{uiText(pointOnlyReason)}</p></div> : null}
-  </div> : null}</div><footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || invalidFixedSelectionCount > 0}>{uiText("다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
+  </div> : null}</div><footer className="refund-application__actions"><button type="button" disabled={locked} onClick={close}>{uiText("취소")}</button>{step === 1 ? <button type="submit" form={formId} disabled={!targetsReady || !selectedCount || !reason || locked || quote.isPending || invalidFixedSelectionCount > 0}>{uiText(quote.isPending ? "확인 중…" : "다음")}</button> : <button type="submit" form={formId} disabled={submit.isPending || (!ambiguousFailure && (!targetsReady || invalidFixedSelectionCount > 0 || !quoteCurrent || !agreed))}>{submit.isPending ? uiText("접수 중…") : ambiguousFailure ? uiText("같은 요청으로 다시 접수") : uiText("환불 신청하기")}</button>}</footer></section>
   return standalone ? <main className="inquiry-mobile-page inquiry-flow-page">{content}</main> : <DialogLayer asChild backdropClassName="modal-backdrop" isOpen onClose={close} returnFocusRef={returnFocusRef} showTitle={false} title={uiText("중도해지 및 환불 신청")}>{content}</DialogLayer>
 }

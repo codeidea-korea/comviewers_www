@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import test, { after } from 'node:test'
+import test from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { createServer } from 'vite'
+import { withSourceModules } from './helpers/withSourceModules.mjs'
 
 import { createCommunityApi } from '../src/api/community.ts'
 import { createApiClient } from '../src/api/httpClient.ts'
 import { customerProfilePatchSchema } from '../src/api/customerProfileMutations.ts'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
-const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true, hmr: false } })
-after(() => server.close())
-const { profileResponseSchema } = await server.ssrLoadModule('/src/api/myAccountSchemas.ts')
-const { getProfileFieldErrors } = await server.ssrLoadModule('/src/routes/mypage/-components/profile/profileEditorModel.ts')
+const [ { profileResponseSchema }, { getProfileFieldErrors } ] = await withSourceModules(load => Promise.all([
+  load('/src/api/myAccountSchemas.ts'),
+  load('/src/routes/mypage/-components/profile/profileEditorModel.ts'),
+]))
 
 test('[source contract] U49 social-only profile response selects the password-reset notice branch', () => {
   const profile = profileResponseSchema.parse({

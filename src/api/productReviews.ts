@@ -42,8 +42,8 @@ export function createProductReviewsApi(client: ApiClient) {
         authenticated, query: { sort: options.sort ?? 'latest', keyword: options.keyword || undefined, mineOnly: options.mineOnly, page, size }, signal: options.signal,
       })
     },
-    detail(reviewId: string, authenticated: boolean) {
-      return client.request(`/api/v1/product-reviews/${safeId.parse(reviewId)}`, productReviewResponseSchema.nullable(), { authenticated })
+    detail(reviewId: string, authenticated: boolean, signal?: AbortSignal) {
+      return client.request(`/api/v1/product-reviews/${safeId.parse(reviewId)}`, productReviewResponseSchema.nullable(), { authenticated, signal })
     },
     list(productNo: string, page: number, size: number, authenticated: boolean, signal?: AbortSignal) {
       return client.request(`/api/v1/products/${encodeURIComponent(catalogProductNoSchema.parse(productNo))}/reviews`,

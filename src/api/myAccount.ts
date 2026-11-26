@@ -4,7 +4,7 @@ import { partFulfillmentSchema } from './partFulfillment'
 import type { ApiClient } from './httpClient'
 import { createChangeOrderRefundApi } from './changeOrderRefunds'
 import { accountId, accountPageQuery, accountPathId, profileResponseSchema, benefitSummarySchema, pointPageSchema, couponPageSchema, downloadableCouponSchema, storagePageSchema, storageSummarySchema, storageItemResponseSchema } from './myAccountSchemas'
-import { accountOrderQuerySchema, accountOrderPageSchema, accountOrderDetailSchema, type AccountOrderQuery } from './myAccountOrders'
+import { accountOrderQuerySchema, accountOrderPageSchema, accountOrderDetailSchema, accountOrderItemSchema, type AccountOrderQuery } from './myAccountOrders'
 export type AccountPageQuery = z.input<typeof accountPageQuery>
 const benefitDateQuery = z.object({ from: z.iso.date().optional(), to: z.iso.date().optional() }).refine(value => !value.from || !value.to || value.from <= value.to)
 export type BenefitDateQuery = z.input<typeof benefitDateQuery>
@@ -33,6 +33,10 @@ export function createMyAccountApi(client: ApiClient, organizationId: string | n
     downloadCoupon: (couponId: string, key: string = crypto.randomUUID()) => client.request(`/api/v1/my/benefits/coupons/${accountPathId.parse(couponId)}/download`,
       z.object({ userCouponId: accountId, couponId: accountId, downloadedAt: z.iso.datetime({ local: true }), expiresAt: z.iso.datetime({ local: true }).nullable(), replayed: z.boolean() }),
       { ...context(), method: 'POST', idempotencyKey: `coupon:${idempotencyKeyPartSchema.parse(key)}` }),
+    pendingConfirmations: (input: AccountPageQuery = {}, signal?: AbortSignal) => client.request('/api/v1/my/orders/pending-confirmations',
+      z.object({ items: z.array(z.object({ order: z.object({ orderNo: z.string(), orderStatus: z.string(), paymentStatus: z.string() }), item: accountOrderItemSchema })),
+        totalElements: z.number().int().nonnegative().safe(), page: z.number().int().nonnegative(), size: z.number().int().positive(), totalPages: z.number().int().nonnegative() }),
+      { ...context(), signal, query: accountPageQuery.parse(input) }),
     orders: (input: AccountOrderQuery = {}, signal?: AbortSignal) => client.request('/api/v1/my/orders', accountOrderPageSchema, { ...context(), signal, query: accountOrderQuerySchema.parse(input) }),
     order: (orderNo: string, signal?: AbortSignal) => client.request(`/api/v1/my/orders/${encodeURIComponent(z.string().regex(/^[A-Za-z0-9_-]{1,100}$/).parse(orderNo))}`, accountOrderDetailSchema, { ...context(), signal }),
     confirmPurchase: (orderItemId: string, key: string = crypto.randomUUID()) => client.request(`/api/v1/my/order-items/${accountPathId.parse(orderItemId)}/purchase-confirmation`,

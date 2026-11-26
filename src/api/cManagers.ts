@@ -37,6 +37,14 @@ export function createCManagersApi(client: ApiClient, organizationId: string) {
   const path = (memberId: number) => `/api/v1/my/c-managers/${id.parse(memberId)}`
   return {
     organizationId,
+    catalog: (query: { page: number; size: number; keyword?: string; managerId?: number }, signal?: AbortSignal) =>
+      client.request('/api/v1/my/c-managers/catalog', z.object({
+        items: z.array(z.object({ rentalId: id, productNo: productNoResponseSchema, alias: z.string(),
+          serviceStartedAt: time, serviceEndsAt: time, serviceEndExclusiveDate: z.iso.date().nullable(), assignable: z.boolean() })),
+        managers: summary.array(), assignments: z.array(z.object({ rentalId: id, memberId: id })),
+        counts: z.array(z.object({ memberId: id.nullable(), count: z.number().int().nonnegative().safe() })),
+        totalElements: z.number().int().nonnegative().safe(), page: z.number().int().nonnegative(), size: z.number().int().positive(),
+      }), { ...context, query, signal }),
     list: (signal?: AbortSignal) => client.request('/api/v1/my/c-managers', summary.array(), { ...context, signal }),
     detail: (memberId: number, signal?: AbortSignal) => client.request(path(memberId), detail, { ...context, signal }),
     rcpcs: (signal?: AbortSignal) => client.request('/api/v1/my/c-managers/rcpcs', rcpc.array(), { ...context, signal }),

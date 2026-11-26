@@ -3,65 +3,37 @@ import type { MyRcpcReadServices } from './rcpcInquiryReadServices'
 import type { ManagerServices, ManagerWorkspace } from './managerServices'
 
 const date = (value: string | null | undefined) => value?.slice(0, 10) ?? '-'
-const statusLabel = (value: string) => ({ active: '이용중', terminated: '이용종료', refunded: '환불' }[value] ?? value)
 
-async function readAllRcpcs(api: MyRcpcReadServices, signal?: AbortSignal) {
-  const first = await api.list({ page: 0, size: 100 }, signal)
-  let items = first.items
-  for (let page = 1; page < first.totalPages; page += 1) {
-    const next = await api.list({ page, size: 100 }, signal)
-    if (next.page !== page || next.items.length === 0 || next.totalElements !== first.totalElements || next.totalPages !== first.totalPages) {
-      throw new Error('RCPC 목록이 변경되었습니다. 다시 조회해 주세요.')
-    }
-    items = [...items, ...next.items]
+async function readCatalog(api: CManagersApi, query: import('./managerServices').ManagerCatalogQuery, signal?: AbortSignal): Promise<ManagerWorkspace> {
+  const result = await api.catalog(query, signal)
+  return {
+    totalElements: result.totalElements,
+    unassignedCount: result.counts.find(count => count.memberId === null)?.count ?? 0,
+    rcpcs: result.items.map(item => ({
+      id: String(item.rentalId), rcpcId: item.productNo, alias: item.alias, assignable: item.assignable,
+      company: '-', center: '-', status: '이용중',
+      daysLeft: item.serviceEndExclusiveDate ? Math.ceil((Date.parse(`${item.serviceEndExclusiveDate}T00:00:00Z`) - Date.now()) / 86_400_000) : 0,
+      startedAt: date(item.serviceStartedAt), endsAt: date(item.serviceEndsAt) === '-' ? item.serviceEndExclusiveDate ?? '-' : date(item.serviceEndsAt),
+      wanIp: '-', remote: '-', remotePassword: '-', disk: '-', traffic: '-', state: '이용중', favorite: false, groupId: 'unclassified',
+    })),
+    managers: result.managers.map(item => ({
+      id: String(item.memberId), managerId: String(item.memberId), name: item.name ?? item.username, loginId: item.username,
+      assignedRcpcIds: result.assignments.filter(assignment => assignment.memberId === item.memberId).map(assignment => String(assignment.rentalId)),
+      assignedRcpcCount: result.counts.find(count => count.memberId === item.memberId)?.count ?? 0,
+      assignmentHistory: [], memo: item.managementMemo ?? '', status: item.status === 'active' ? '활성' : item.status,
+      permissionGroupId: item.permissionGroupId, permissionGroupName: item.permissionGroupName,
+    })),
   }
-  if (first.page !== 0 || items.length !== first.totalElements || new Set(items.map(item => item.rentalId)).size !== items.length) {
-    throw new Error('RCPC 목록이 변경되었습니다. 다시 조회해 주세요.')
-  }
-  return items
 }
 
-/** Only manager assignments and RCPCs belong to this workspace; account/commerce reads are independent. */
-export function createManagerReader(api: CManagersApi, rcpcApi: MyRcpcReadServices) {
-  return async (signal?: AbortSignal): Promise<ManagerWorkspace> => {
-    const [rcpcs, managers, assignableRcpcs] = await Promise.all([
-      readAllRcpcs(rcpcApi, signal), api.list(signal), api.rcpcs(signal),
-    ])
-    const details = await Promise.all(managers.map(manager => api.detail(manager.memberId, signal)))
-    const byRental = new Map(assignableRcpcs.map(item => [item.rentalId, item]))
-    const currentRcpcs = rcpcs.filter(item => item.rentalStatus === 'active'
-      && item.usageStatus !== 'ended')
-    const currentRentalIds = new Set(currentRcpcs.map(item => item.rentalId))
-    return {
-      rcpcs: currentRcpcs.map(item => {
-        const assignable = byRental.get(item.rentalId)
-        return {
-          id: String(item.rentalId), rcpcId: assignable?.assetNo ?? item.productNo,
-          assignable: byRental.has(item.rentalId), alias: item.preference.alias ?? assignable?.deviceAlias ?? item.productNo,
-          company: item.serverRoomName ?? '-', center: item.serverRoomName ?? '-', status: statusLabel(item.rentalStatus),
-          daysLeft: item.serviceEndExclusiveDate ? Math.ceil((Date.parse(`${item.serviceEndExclusiveDate}T00:00:00Z`) - Date.now()) / 86_400_000) : 0,
-          startedAt: date(assignable?.serviceStartedAt),
-          endsAt: date(assignable?.serviceEndsAt) === '-' ? item.serviceEndExclusiveDate ?? '-' : date(assignable?.serviceEndsAt),
-          wanIp: '-', remote: '-', remotePassword: '-', disk: '-',
-          traffic: item.trafficDownloadTotalBytes === null && item.trafficUploadTotalBytes === null ? '-'
-            : `${((item.trafficDownloadTotalBytes ?? 0) + (item.trafficUploadTotalBytes ?? 0)).toLocaleString('ko-KR')} B`,
-          state: statusLabel(item.rentalStatus), favorite: item.preference.favorite,
-          groupId: item.preference.groupId ? String(item.preference.groupId) : 'unclassified',
-        }
-      }),
-      managers: managers.map((item, index) => ({
-        id: String(item.memberId), managerId: String(item.memberId), name: item.name ?? item.username, loginId: item.username,
-        assignedRcpcIds: details[index].rcpcs.filter(rcpc => currentRentalIds.has(rcpc.rentalId)).map(rcpc => String(rcpc.rentalId)), assignmentHistory: [],
-        memo: item.managementMemo ?? '', status: item.status === 'active' ? '활성' : item.status,
-        permissionGroupId: item.permissionGroupId, permissionGroupName: item.permissionGroupName,
-      })),
-    }
-  }
+export function createManagerReader(api: CManagersApi, _rcpcApi: MyRcpcReadServices) {
+  return (signal?: AbortSignal) => readCatalog(api, { page: 0, size: 10 }, signal)
 }
 
 export function createHttpManagerServices(api: CManagersApi, rcpcApi: MyRcpcReadServices): ManagerServices {
   return {
     read: createManagerReader(api, rcpcApi),
+    readPage: (query, signal) => readCatalog(api, query, signal),
     isManagerLoginAvailable: async loginId => (await api.availability(loginId)).available,
     async saveManager({ id, draft }) {
       if (id) {

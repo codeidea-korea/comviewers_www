@@ -33,27 +33,33 @@ const rcpc = rentalId => ({ rentalId, productNo: `PC${rentalId}`, serverRoomName
 const managerApi = { list: async () => [], rcpcs: async () => [], detail: async () => ({ rcpcs: [] }) }
 const dependencies = list => ({ list })
 
-test('담당자 목록은 201대 전체를 읽어 100대 이후 장비를 보존한다', async () => modules(async ({ createManagerReader }) => {
+test('담당자 목록은 요청 페이지만 읽고 전체 건수와 마지막 페이지 장비를 보존한다', async () => modules(async ({ createHttpManagerServices }) => {
   const calls = []
-  const reader = createManagerReader(managerApi, dependencies(async ({ page, size }) => {
+  const catalog = async ({ page, size }) => {
     calls.push({ page, size })
-    return { items: Array.from({ length: page < 2 ? 100 : 1 }, (_, i) => rcpc(page * 100 + i + 1)), page, size, totalElements: 201, totalPages: 3 }
-  }))
-  const snapshot = await reader()
-  assert.equal(snapshot.rcpcs.length, 201)
-  assert.equal(snapshot.rcpcs[200].id, '201')
-  assert.deepEqual(calls, [0, 1, 2].map(page => ({ page, size: 100 })))
+    return { items: Array.from({ length: page < 20 ? 10 : 1 }, (_, i) => ({ ...rcpc(page * 10 + i + 1), assignable: true })), managers: [], assignments: [], counts: [{ memberId: null, count: 201 }], page, size, totalElements: 201, totalPages: 21 }
+  }
+  const services = createHttpManagerServices({ ...managerApi, catalog }, dependencies(() => { throw new Error('full RCPC fetch is forbidden') }))
+  const first = await services.readPage({ page: 0, size: 10 })
+  assert.equal(first.rcpcs.length, 10)
+  assert.equal(first.totalElements, 201)
+  const last = await services.readPage({ page: 20, size: 10 })
+  assert.equal(last.rcpcs.length, 1)
+  assert.equal(last.rcpcs[0].id, '201')
+  assert.equal(last.unassignedCount, 201)
+  assert.deepEqual(calls, [0, 20].map(page => ({ page, size: 10 })))
 }))
 
-for (const mode of ['network', 'empty', 'duplicate', 'count_changed']) {
-  test(`담당자 전체 조회 ${mode} 실패를 부분 성공으로 반환하지 않는다`, async () => modules(async ({ createManagerReader }) => {
-    const reader = createManagerReader(managerApi, dependencies(async ({ page, size }) => {
-      if (page === 1 && mode === 'network') throw new Error('page unavailable')
-      return { items: page === 0 ? Array.from({ length: 100 }, (_, i) => rcpc(i + 1)) : mode === 'empty' ? [] : [rcpc(mode === 'duplicate' ? 1 : 101)], page, size, totalElements: page === 1 && mode === 'count_changed' ? 102 : 101, totalPages: 2 }
-    }))
-    await assert.rejects(reader(), mode === 'network' ? /page unavailable/ : /다시 조회/)
-  }))
-}
+test('담당자 페이지 조회는 필터와 취소 신호를 전달하고 실패를 숨기지 않는다', async () => modules(async ({ createHttpManagerServices }) => {
+  const controller = new AbortController()
+  const query = { page: 2, size: 10, keyword: 'PC20', managerId: 7 }
+  const services = createHttpManagerServices({ ...managerApi, catalog: async (actual, signal) => {
+    assert.deepEqual(actual, query)
+    assert.equal(signal, controller.signal)
+    throw new Error('page unavailable')
+  } }, dependencies(() => assert.fail('unexpected RCPC request')))
+  await assert.rejects(services.readPage(query, controller.signal), /page unavailable/)
+}))
 
 test('담당자 계정 생성·수정 요청에 선택한 그룹을 함께 보내고 다른 조직 경로를 쓰지 않는다', async () => modules(async ({ createCManagersApi }) => {
   const requests = []
