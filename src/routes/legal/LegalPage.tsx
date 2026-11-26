@@ -6,6 +6,7 @@ import { usePublicLegalDocuments } from '@/domain/legal/usePublicLegalDocuments'
 import { RichContentRenderer } from '@/components/ui/RichContentRendererControl'
 import { LoadingState } from '@/components/ui/LoadingStateControl'
 import { useUiTranslation } from '@/i18n/uiTranslation'
+import { TranslatedText } from '@/i18n/translation'
 
 function revisionLabel(document: LegalDocument, documents: LegalDocument[]) {
   const [year, month, day] = document.effectiveDate.split('-')
@@ -48,6 +49,7 @@ export function LegalPage({ privacy = false }: { privacy?: boolean }) {
       </nav>}
       <div className="legal-page__content">
         <DocumentBody key={section} kind={section} />
+        {!privacy && <p className="legal-page__licenses"><Link to="/license-notices"><TranslatedText id="legal.licensesTitle" /></Link></p>}
       </div>
     </div>
   </section></AppShell>
