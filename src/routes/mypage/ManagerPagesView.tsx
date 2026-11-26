@@ -1,6 +1,6 @@
 import { useUiTranslation } from '@/i18n/uiTranslation'
-import { isActiveManager } from '@/domain/myAccount/managerServices'
-import { useRef, useState } from 'react'
+import { isActiveManager, type ManagerCatalogQuery } from '@/domain/myAccount/managerServices'
+import { useEffect, useRef, useState } from 'react'
 import { Modal } from '@/components/ui/ModalControl'
 import { ManagerSurface as PopupLayer } from './-components/modals/ManagerSurface'
 import { useMobileInquiryViewport } from './-components/inquiries/inquiryViewport'
@@ -16,7 +16,15 @@ type ManagerDialog = { kind: 'closed' } | { kind: 'settings' } | { kind: 'create
 function ManagersContent() {
   const { uiText } = useUiTranslation()
   const mobile = useMobileInquiryViewport()
-  const account = useManagers()
+  const [catalogQuery, setCatalogQuery] = useState<ManagerCatalogQuery>({ page: 0, size: 10 })
+  const account = useManagers(catalogQuery)
+  const knownRcpcs = useRef(new Map<string, { assignable: boolean; assigned: boolean }>())
+  useEffect(() => {
+    for (const rcpc of account.data?.rcpcs ?? []) knownRcpcs.current.set(rcpc.id, {
+      assignable: rcpc.assignable,
+      assigned: account.data?.managers.some(manager => manager.assignedRcpcIds.includes(rcpc.id) || manager.assignedRcpcIds.includes(rcpc.rcpcId)) ?? false,
+    })
+  }, [account.data])
   const [dialog, setDialog] = useState<ManagerDialog>({ kind: 'closed' })
   const [openMenuRow, setOpenMenuRow] = useState<string | null>(null)
   const [selectedManagerId, setSelectedManagerId] = useState('')
@@ -28,7 +36,7 @@ function ManagersContent() {
   const pending = account.save.isPending || account.assign.isPending || account.remove.isPending
   const managers = (account.data?.managers ?? []).filter(isActiveManager)
   const target = dialog.kind === 'edit' || dialog.kind === 'delete' ? managers.find((item) => item.id === dialog.id) : undefined
-  const assignmentUnavailable = (ids: readonly string[]) => ids.some((id) => account.data?.rcpcs.find((item) => item.id === id)?.assignable === false)
+  const assignmentUnavailable = (ids: readonly string[]) => ids.some((id) => knownRcpcs.current.get(id)?.assignable === false)
   const assignmentUnavailableMessage = uiText("이용 기간이 끝났거나 배정할 수 없는 RCPC가 포함되어 있습니다.")
   const close = () => { if (!pending) { setDialog({ kind: 'closed' }); setError('') } }
   function showAssignmentUnavailable(action: 'assign' | 'unassign') {
@@ -69,18 +77,17 @@ function ManagersContent() {
     } finally { confirming.current = false }
   }
   const assignmentTitle = dialog.kind === 'assign' && dialog.ids.some(id => {
-    const rcpc = account.data?.rcpcs.find(item => item.id === id)
-    return managers.some(manager => manager.assignedRcpcIds.includes(id) || (rcpc ? manager.assignedRcpcIds.includes(rcpc.rcpcId) : false))
+    return knownRcpcs.current.get(id)?.assigned ?? false
   }) ? uiText("담당자 변경") : uiText("담당자 설정")
   return <>
-    {!mobile || !['settings', 'create', 'edit', 'assign'].includes(dialog.kind) ? <ManagerCatalog selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onSettings={() => open({ kind: 'settings' })} onCreate={() => { setEditingFromSettings(false); open({ kind: 'create' }) }} onEdit={(id) => { setEditingFromSettings(false); open({ kind: 'edit', id }) }} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} onCloseMenu={() => setOpenMenuRow(null)} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} /> : null}
+    {!mobile || !['settings', 'create', 'edit', 'assign'].includes(dialog.kind) ? <ManagerCatalog query={catalogQuery} onQueryChange={setCatalogQuery} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onSettings={() => open({ kind: 'settings' })} onCreate={() => { setEditingFromSettings(false); open({ kind: 'create' }) }} onEdit={(id) => { setEditingFromSettings(false); open({ kind: 'edit', id }) }} onAssign={(ids) => open({ kind: 'assign', ids })} onUnassign={(ids) => open({ kind: 'unassign', ids })} onCloseMenu={() => setOpenMenuRow(null)} openMenuRow={openMenuRow} onToggleMenu={(id) => setOpenMenuRow((current) => current === id ? null : id)} /> : null}
     {dialog.kind === 'settings' ? <ManagerSettingsDialog managers={managers} onClose={close} onEdit={id => { setEditingFromSettings(true); open({ kind: 'edit', id }) }}/> : null}
     <Toast message={uiText(notice)} toastKey={toastKey} />
     {(dialog.kind === 'create' || dialog.kind === 'edit') && <PopupLayer isOpen className="manager-preview manager-preview--create" dialogClassName="manager-modal manager-modal--register manager-modal--editor" onClose={close} showTitle={false} title={dialog.kind === 'create' ? uiText("담당자 등록") : uiText("담당자 수정")}>
       {dialog.kind === 'edit' && !target ? <p role="alert">{uiText("담당자를 찾을 수 없습니다.")}</p> : <ManagerEditorForm key={target?.id ?? 'new'} manager={target} pending={pending} checkLogin={account.checkLogin} onBack={editingFromSettings ? () => open({ kind: 'settings' }) : undefined} onClose={close} onDelete={target ? () => open({ kind: 'delete', id: target.id }) : undefined} onSave={async (draft) => { await account.save.mutateAsync({ id: target?.id, draft }); setNotice("담당자 정보를 저장했습니다."); setDialog({ kind: editingFromSettings ? 'settings' : 'closed' }) }} />}
     </PopupLayer>}
     {dialog.kind === 'assign' && <PopupLayer isOpen className="manager-preview manager-preview--edit" dialogClassName="manager-modal manager-modal--change" onClose={close} title={assignmentTitle} showTitle={false}>
-      <h2>{assignmentTitle}</h2><strong>{uiText("담당자 목록")}</strong><div>{managers.map((item) => <label className={selectedManagerId === item.id ? 'is-selected' : ''} key={item.id}><input type="radio" name="assignment-manager" value={item.id} checked={selectedManagerId === item.id} disabled={pending} onChange={() => setSelectedManagerId(item.id)} /><span><b>{item.name} ({item.assignedRcpcIds.length})</b><small>{item.loginId}</small></span></label>)}</div>
+      <h2>{assignmentTitle}</h2><strong>{uiText("담당자 목록")}</strong><div>{managers.map((item) => <label className={selectedManagerId === item.id ? 'is-selected' : ''} key={item.id}><input type="radio" name="assignment-manager" value={item.id} checked={selectedManagerId === item.id} disabled={pending} onChange={() => setSelectedManagerId(item.id)} /><span><b>{item.name} ({(item.assignedRcpcCount ?? item.assignedRcpcIds.length)})</b><small>{item.loginId}</small></span></label>)}</div>
       {!managers.length && <p>{uiText("등록된 담당자가 없습니다.")}</p>}{error && <p className="manager-modal__action-error" role="alert">{uiText(error)}</p>}<DialogActions><button type="button" disabled={pending} onClick={close}>{uiText("취소")}</button><button type="button" disabled={pending || !selectedManagerId || !dialog.ids.length} onClick={() => void confirm()}>{uiText("완료")}</button></DialogActions>
     </PopupLayer>}
     <Modal isOpen={dialog.kind === 'unassign'} className="manager-confirm-modal" title={uiText("담당자 지정을 해제하시겠습니까?")} closeLabel={uiText("취소")} confirmLabel={uiText("해제하기")} confirmDisabled={pending} onClose={close} onConfirm={() => void confirm()}>{error && <p role="alert">{uiText(error)}</p>}</Modal>

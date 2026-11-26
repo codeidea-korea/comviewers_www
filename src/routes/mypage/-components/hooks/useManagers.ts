@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useServices } from '@/app/ServiceProvider'
-import type { ManagerInput } from '@/domain/myAccount/managerServices'
+import type { ManagerCatalogQuery, ManagerInput } from '@/domain/myAccount/managerServices'
 import { managerWorkspaceKey, useManagerWorkspace } from './useManagerWorkspace'
-export function useManagers() {
-  const account = useManagerWorkspace()
+export function useManagers(input?: ManagerCatalogQuery) {
+  const account = useManagerWorkspace(input)
   const { managers } = useServices().myAccount
   const client = useQueryClient()
   const service = () => { if (!managers) throw new Error('담당자 관리 권한을 확인해 주세요.'); return managers }

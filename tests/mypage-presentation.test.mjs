@@ -8,8 +8,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router'
 import { withSourceModules } from './helpers/withSourceModules.mjs'
 
-import { totalTraffic } from '../src/routes/mypage/-components/rcpcPresentation.ts'
-import { extensionResultText } from '../src/routes/mypage/-components/rcpcExtensionPresentation.ts'
+const { totalTraffic } = await withSourceModules(load => load('/src/routes/mypage/-components/rcpcPresentation.ts'))
+const { extensionResultText } = await withSourceModules(load => load('/src/routes/mypage/-components/rcpcExtensionPresentation.ts'))
 
 const source = (path) => readFileSync(resolve(import.meta.dirname, '..', path), 'utf8')
 
@@ -19,8 +19,9 @@ test('누적 트래픽은 다운로드와 업로드를 합산해 한 값으로 �
   assert.equal(totalTraffic(null, null), '-')
 })
 
-test('91일 이상 연장 행은 PDF 경고 문구로 표시한다', () => {
-  assert.equal(extensionResultText({ addedDays: 91, amount: null, eligible: false, reason: '서버 원문' }), '최대 3개월까지만 연장할 수 있습니다.')
+test('연장 불가 사유는 API 판정을 보존하고 허용된 행은 금액을 표시한다', () => {
+  assert.equal(extensionResultText({ addedDays: 91, amount: null, eligible: false, reason: '최대 90일까지 연장할 수 있습니다.' }), '최대 90일까지 연장할 수 있습니다.')
+  assert.equal(extensionResultText({ addedDays: 91, amount: null, eligible: false, reason: '현재 계약은 연장할 수 없습니다.' }), '현재 계약은 연장할 수 없습니다.')
   assert.equal(extensionResultText({ addedDays: 30, amount: 50_000, eligible: true, reason: null }), '50,000원')
 })
 
@@ -50,7 +51,8 @@ test('mobile RCPC render puts alias editing outside the title and preserves the 
     assert.match(withoutAlias, /<\/strong><button aria-label="PC001 RCPC 별명 설정"/)
     assert.match(withoutAlias, /class="mobile-rcpc-card__spec"><a href="rcpc\/1">PC001<\/a>/)
     assert.match(withAlias, /서울 \/ 센터/)
-    assert.match(withAlias, /트래픽 사용량/)
+    assert.match(withAlias, /최근 문의/)
+    assert.doesNotMatch(withAlias, /트래픽 사용량/)
   } finally {
     client.clear()
     if (previousWindow === undefined) delete globalThis.window; else globalThis.window = previousWindow

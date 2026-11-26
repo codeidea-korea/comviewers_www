@@ -1,15 +1,13 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import test, { after } from 'node:test'
+import test from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { createServer } from 'vite'
+import { withSourceModules } from './helpers/withSourceModules.mjs'
 
 import { ApiClientError, createApiClient } from '../src/api/httpClient.ts'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
-const server = await createServer({ root: projectRoot, logLevel: 'error', server: { middlewareMode: true, hmr: false } })
-after(() => server.close())
-const { createOperationRequestsApi } = await server.ssrLoadModule('/src/api/operationRequests.ts')
+const { createOperationRequestsApi } = await withSourceModules(load => load('/src/api/operationRequests.ts'))
 
 test('U46 authenticated SSE sends bearer and organization headers and parses wake-up metadata', async () => {
   let request

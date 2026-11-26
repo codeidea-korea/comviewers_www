@@ -39,15 +39,16 @@ export interface StorefrontServices {
   loadPostImage?(attachmentId: number): Promise<Blob>
   loadArticleImage?(attachmentId: number): Promise<Blob>
   listActivePopups(signal?: AbortSignal): Promise<StorefrontPopup[]>
-  listPostPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<StorefrontPage<Post>>
-  getPost(id: string): Promise<Post | null>
+  listPostPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }, signal?: AbortSignal): Promise<StorefrontPage<Post>>
+  getPost(id: string, signal?: AbortSignal): Promise<Post | null>
   savePost(draft: PostDraft, id?: string, idempotencyKey?: string): Promise<Post>
   removePost(id: string): Promise<void>
-  listComments(postId: string): Promise<Comment[]>
+  listComments(postId: string, signal?: AbortSignal): Promise<Comment[]>
+  listCommentPage?(postId: string, afterId: number | null, signal?: AbortSignal): Promise<{ items: Comment[]; nextCursor: number | null; totalCount: number }>
   saveComment(postId: string, content: string, id?: string): Promise<void>
   removeComment(postId: string, id: string): Promise<void>
-  listArticlePage(input: StorefrontPageInput & { keyword?: string; sort?: string }): Promise<StorefrontPage<Article>>
-  getArticle(id: string): Promise<Article | null>
-  listReviewPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }): Promise<StorefrontPage<RentalReview>>
-  getReview(id: string): Promise<RentalReview | null>
+  listArticlePage(input: StorefrontPageInput & { keyword?: string; sort?: string }, signal?: AbortSignal): Promise<StorefrontPage<Article>>
+  getArticle(id: string, signal?: AbortSignal): Promise<Article | null>
+  listReviewPage(input: StorefrontPageInput & { keyword?: string; mineOnly?: boolean; sort?: string }, signal?: AbortSignal): Promise<StorefrontPage<RentalReview>>
+  getReview(id: string, signal?: AbortSignal): Promise<RentalReview | null>
 }

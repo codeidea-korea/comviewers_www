@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url'
 
 import { contentDateTime } from '../src/domain/storefront/contentDateTime.ts'
 import { communityListReturnTo } from '../src/routes/community/communityNavigation.ts'
-import { managerCatalogRowMatches } from '../src/routes/mypage/-components/managerCatalogSearch.ts'
+import { withSourceModules } from './helpers/withSourceModules.mjs'
+
+const { managerCatalogRowMatches } = await withSourceModules(load => load('/src/routes/mypage/-components/managerCatalogSearch.ts'))
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const source = relativePath => readFileSync(`${root}${relativePath}`, 'utf8')

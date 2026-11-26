@@ -41,7 +41,7 @@ export function ManagerFilterToolbar({ managers, selected, unassignedCount, onSe
       <button aria-controls={mobileOpen ? `${menuId}-sheet` : menuId} aria-expanded={open || mobileOpen} aria-haspopup={mobileOpen ? 'dialog' : true} className="favorites-group-toolbar__trigger" onClick={() => { if (window.matchMedia('(max-width: 767px)').matches) { setOpen(false); setMobileOpen(true) } else { setMobileOpen(false); setOpen(value => !value) } }} ref={triggerRef} type="button">{label}<img alt="" src={unfoldIcon}/></button>
       {open ? <div aria-label={uiText("담당자 목록")} className="favorites-group-menu manager-filter-menu" id={menuId}>
         <button aria-pressed={selected === null} onClick={() => choose(null)} type="button">{uiText("전체")}</button>
-        {managers.map(manager => <button aria-pressed={selected === manager.id} key={manager.id} onClick={() => choose(manager.id)} type="button"><b>{manager.name}</b><span>{manager.assignedRcpcIds.length}</span></button>)}
+        {managers.map(manager => <button aria-pressed={selected === manager.id} key={manager.id} onClick={() => choose(manager.id)} type="button"><b>{manager.name}</b><span>{(manager.assignedRcpcCount ?? manager.assignedRcpcIds.length)}</span></button>)}
         <button aria-pressed={selected === 'unassigned'} onClick={() => choose('unassigned')} type="button"><b>{uiText("미배정")}</b><span>{unassignedCount}</span></button>
       </div> : null}
     </div>
@@ -51,7 +51,7 @@ export function ManagerFilterToolbar({ managers, selected, unassignedCount, onSe
     {createPortal(<MobileBottomSheet id={`${menuId}-search-sheet`} label={uiText("담당자 검색")} onClose={closeSearch} open={searchOpen}><form onSubmit={event => { event.preventDefault(); onSearch(searchDraft); closeSearch() }}><SearchField className="mypage-mobile-search" controlClassName="mypage-mobile-search__control" label={uiText("담당자 검색")} onChange={event => setSearchDraft(event.target.value)} placeholder={uiText("담당자명, RCPC 품번 또는 별명 검색")} value={searchDraft}/><button className="mypage-mobile-search__submit" type="submit">{uiText("조회")}</button></form></MobileBottomSheet>, document.body)}
     {createPortal(<MobileBottomSheet id={`${menuId}-sheet`} label={uiText("담당자 선택")} onClose={() => setMobileOpen(false)} open={mobileOpen}>
       <div className="manager-mobile-picker-options"><button aria-pressed={selected === null} onClick={() => choose(null)} type="button">{uiText("전체")}</button>
-        {managers.map(manager => <button aria-pressed={selected === manager.id} key={manager.id} onClick={() => choose(manager.id)} type="button"><span>{manager.name}</span><span>{manager.assignedRcpcIds.length}</span></button>)}
+        {managers.map(manager => <button aria-pressed={selected === manager.id} key={manager.id} onClick={() => choose(manager.id)} type="button"><span>{manager.name}</span><span>{(manager.assignedRcpcCount ?? manager.assignedRcpcIds.length)}</span></button>)}
         <button aria-pressed={selected === 'unassigned'} onClick={() => choose('unassigned')} type="button"><span>{uiText("미배정")}</span><span>{unassignedCount}</span></button>
       </div>
     </MobileBottomSheet>, document.body)}

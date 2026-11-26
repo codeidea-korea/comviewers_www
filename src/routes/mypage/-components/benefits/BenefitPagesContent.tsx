@@ -1,7 +1,7 @@
 import { translateUiText as uiText, useUiTranslation } from '@/i18n/uiTranslation'
 import { LocalizedServiceName } from '@/components/common/LocalizedServiceName'
 import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { PointEntryType } from '@/api/myAccount'
 import { useServices } from '@/app/ServiceProvider'
 import { RelativeLink } from '@/components/navigation/RelativeLinkView'
@@ -13,7 +13,7 @@ import { accountDateRange } from '../shared/AccountDatePresets'
 import { MyPagePeriodDialog } from '../shared/MyPagePeriodDialog'
 import { ReadPages, accountDate, accountMoney, useAccountRead } from '../shared/AccountReadCommon'
 import { OrderItemActions } from '../orders/OrderItemActions'
-import { pendingOrders } from '../shared/pendingConfirmationOrders'
+import { pendingConfirmationKey, pendingOrders } from '../shared/pendingConfirmationOrders'
 import pointOrderProduct from '@/assets/figma/window-bg-rendered-1.png'
 import carouselNextIcon from '@/assets/figma/pagination-chevron-right.svg'
 import periodChevronIcon from '@/assets/figma/selector-chevron-down.svg'
@@ -83,13 +83,11 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
     }, signal),
     { retainPreviousList: { scope: api, prefix: ['points'] } },
   )
-  const recent = useAccountRead(
-    ['orders', 'purchase-confirmation-candidates'],
-    (signal) => pendingOrders(api, signal),
-  )
-  const candidates = recent.data?.flatMap((order) =>
-    order.items.map((item) => ({ order, item })),
-  ) ?? []
+  const recent = useInfiniteQuery({ queryKey: [...pendingConfirmationKey, 'pages'], initialPageParam: 0,
+    queryFn: ({ pageParam, signal }) => pendingOrders(api, signal, pageParam), retry: false,
+    getNextPageParam: last => last.page + 1 < last.totalPages ? last.page + 1 : undefined,
+  })
+  const candidates = recent.data?.pages.flatMap(page => page.items) ?? []
 
   useEffect(() => {
     const viewport = carouselViewport.current
@@ -120,7 +118,12 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
     }
   }, [candidates.length])
 
-  const scrollOrders = (direction: -1 | 1) => {
+  const scrollOrders = async (direction: -1 | 1) => {
+    if (direction === 1 && !carouselEdges.next && recent.hasNextPage) {
+      if (recent.isFetchingNextPage) return
+      await recent.fetchNextPage()
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+    }
     const viewport = carouselViewport.current
     const track = carouselTrack.current
     if (!viewport || !track) return
@@ -136,7 +139,7 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
         {candidates.length > 0 ? (
           <section className="point-carousel">
             <header>
-              <strong>{uiText("구매확정이 필요한 주문")} <b>{candidates.length}</b></strong>
+              <strong>{uiText("구매확정이 필요한 주문")} <b>{recent.data?.pages[0]?.totalElements ?? 0}</b></strong>
               <RelativeLink to="/mypage/orders">{uiText("주문내역 보기")}</RelativeLink>
             </header>
             <div aria-label={uiText("구매확정이 필요한 주문 목록")} className="point-carousel__viewport" id="point-confirmation-orders" ref={carouselViewport} role="region" tabIndex={0}><div className="point-carousel__track" ref={carouselTrack}>
@@ -148,8 +151,8 @@ export function PointsPageContent({ api }: { api: MyAccountReadServices }) {
                 <OrderItemActions api={api} item={item} orderStatus={order.orderStatus} paymentStatus={order.paymentStatus} variant="purchase-summary" />
               </article>)}
             </div></div>
-            {candidates.length > 1 && carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label={uiText("이전 주문 보기")} className="point-carousel__previous" style={{ top: carouselArrowTop, transform: 'translateY(-50%)' }} onClick={() => scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
-            {candidates.length > 1 && carouselEdges.next ? <button aria-controls="point-confirmation-orders" aria-label={uiText("다음 주문 보기")} className="point-carousel__next" style={{ top: carouselArrowTop, transform: 'translateY(-50%)' }} onClick={() => scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {candidates.length > 1 && carouselEdges.previous ? <button aria-controls="point-confirmation-orders" aria-label={uiText("이전 주문 보기")} className="point-carousel__previous" style={{ top: carouselArrowTop, transform: 'translateY(-50%)' }} onClick={() => void scrollOrders(-1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
+            {candidates.length > 1 && (carouselEdges.next || recent.hasNextPage) ? <button aria-controls="point-confirmation-orders" aria-label={uiText("다음 주문 보기")} className="point-carousel__next" style={{ top: carouselArrowTop, transform: 'translateY(-50%)' }} disabled={recent.isFetchingNextPage} onClick={() => void scrollOrders(1)} type="button"><img alt="" src={carouselNextIcon} /></button> : null}
           </section>
         ) : null}
 

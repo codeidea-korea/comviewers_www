@@ -49,6 +49,6 @@ export function usePostDetail(post: Post, listUrl: string) {
     try { await actions.remove.mutateAsync(post.postId); void navigate(listUrl) }
     catch (error) { setNotice(error instanceof Error ? error.message : '게시글 삭제에 실패했습니다.'); setDeleteOpen(false) } finally { mutationInFlight.current = false }
   }
-  const displayedCommentCount = comments.length
+  const displayedCommentCount = commentQuery.totalCount ?? post.comments
   return { postId, navigate, compact, menuOpen, setMenuOpen, setDeleteOpen, attachments, displayTitle, postContent, commentQuery, comments, comment, setComment, commentMenuIndex, setCommentMenuIndex, editingCommentId, setEditingCommentId, addComment, deleteComment, deletePost, displayedCommentCount, notice, toastKey, actions, deleteOpen, commentDeleteId, setCommentDeleteId, commentAuthenticated: session.status === 'authenticated' }
 }

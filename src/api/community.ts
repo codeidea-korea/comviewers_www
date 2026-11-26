@@ -21,7 +21,7 @@ const post = z.object({ id, boardCode: z.string(), boardName: z.string(), author
   authorProfileImageUrl: z.string().nullable().optional(),
   contentFormat: z.string().optional(), richContent: z.unknown().optional().nullable(),
   notice: z.boolean(), pinned: z.boolean(), viewCount: count, status: z.string(), createdAt: time, updatedAt: time.nullable(), commentCount: count, attachmentCount: count })
-const detail = post.omit({ commentCount: true, attachmentCount: true }).extend({ moderationReason: z.string().nullable(), comments: comment.array(), attachments: attachment.array() })
+const detail = post.omit({ commentCount: true, attachmentCount: true }).extend({ moderationReason: z.string().nullable(), commentCount: count.optional(), comments: comment.array(), attachments: attachment.array() })
 const nullableDetail = detail.nullish().transform((value) => value ?? null)
 const page = z.object({ items: post.array(), page: count, size: count.min(1).max(100), totalCount: count, totalPages: count })
 const draft = z.object({
@@ -35,8 +35,13 @@ export function createCommunityApi(client: ApiClient, authenticated: boolean) {
   const auth = { authenticated } as const
   return {
     posts(pageNumber = 0, options: { keyword?: string; mineOnly?: boolean; sort?: string; size?: number; signal?: AbortSignal } = {}) { return client.request('/api/v1/community/posts', page, { ...auth, query: { page: pageNumber, size: options.size ?? 100, keyword: options.keyword || undefined, mineOnly: options.mineOnly, sort: options.sort }, signal: options.signal }) },
-    post(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, nullableDetail, { ...auth, includeCredentials: true, signal }) },
+    post(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}`, nullableDetail, { ...auth, includeCredentials: true, signal, query: { includeComments: false } }) },
     comments(postId: number, signal?: AbortSignal) { return client.request(`/api/v1/community/posts/${id.parse(postId)}/comments`, comment.array(), { ...auth, signal }) },
+    commentPage(postId: number, afterId: number | null, signal?: AbortSignal) {
+      return client.request(`/api/v1/community/posts/${id.parse(postId)}/comments/page`,
+        z.object({ items: comment.array(), nextCursor: id.nullable(), totalCount: count }),
+        { ...auth, signal, query: { afterId: afterId ?? undefined, size: 50 } })
+    },
     uploadAttachment(file: File) {
       const form = new FormData()
       form.set('file', file)

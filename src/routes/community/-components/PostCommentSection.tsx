@@ -72,6 +72,9 @@ export function PostCommentSection({
           </article>
         ))}
       </div>
+      {commentQuery.hasNextPage ? <button type="button" disabled={commentQuery.isFetchingNextPage}
+        onClick={() => void commentQuery.fetchNextPage()}>{uiText(commentQuery.isFetchingNextPage ? '불러오는 중' : '댓글 더보기')}</button> : null}
+      {commentQuery.isError ? <button type="button" onClick={() => void commentQuery.refetch()}>{uiText('다시 시도')}</button> : null}
       <Modal closeLabel={uiText("취소")} confirmLabel={uiText("로그인하기")} isOpen={loginOpen} onClose={() => setLoginOpen(false)} onConfirm={() => navigate(`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`)} returnFocusRef={registerButtonRef} title={uiText("로그인이 필요합니다.")}><p>{uiText("댓글을 작성하려면 로그인해 주세요.")}<br />{uiText("로그인 후 댓글 작성을 계속할 수 있습니다.")}</p></Modal>
     </section>
   )

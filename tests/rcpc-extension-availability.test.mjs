@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { extensionBlocked } from '../src/routes/mypage/-components/rcpcPresentation.ts'
+import { withSourceModules } from './helpers/withSourceModules.mjs'
+
+const { extensionBlocked } = await withSourceModules(load => load('/src/routes/mypage/-components/rcpcPresentation.ts'))
 
 const available = {
   rentalStatus: 'active',

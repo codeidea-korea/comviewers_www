@@ -23,7 +23,7 @@ const paragraphs = (value: string) => htmlToText(value).split(/\r?\n/).filter((l
 function richContent(value: unknown) { if (typeof value !== 'string') return value ?? null; try { return JSON.parse(value) } catch { return null } }
 const toPost = (row: CommunityPostDto | CommunityDetailDto, baseUrl: string): Post => ({ id: String(row.id), postId: String(row.id), number: row.id,
   boardName: row.boardName, title: row.title, author: row.author, authorProfileImageUrl: row.authorProfileImageUrl ?? null, date: date(row.createdAt), dateTime: contentDateTime(row.createdAt), views: row.viewCount,
-  comments: 'comments' in row ? row.comments.filter((comment) => comment.status !== 'hidden').length : row.commentCount, isMine: row.mine,
+  comments: row.commentCount ?? ('comments' in row ? row.comments.filter((comment) => comment.status !== 'hidden').length : 0), isMine: row.mine,
   attachmentCount: 'attachmentCount' in row ? row.attachmentCount : row.attachments.length,
   content: paragraphs(row.content), richContent: richContent(row.richContent), attachments: 'attachments' in row ? row.attachments.map((file) => toPublicAttachment(file, baseUrl)) : [] })
 const toArticle = (row: CommunityPostDto | CommunityDetailDto, baseUrl: string): Article => ({
@@ -71,11 +71,11 @@ export function createHttpStorefrontServices(client: ApiClient, authenticated: b
     async listActivePopups(signal) {
       return (await popupApi.active(signal)).map((popup) => ({ ...popup, imageUrl: publicApiResourceUrl(popup.imageUrl, baseUrl) ?? null }))
     },
-    async listPostPage(input) {
-      const result = await (input.anonymous ? publicApi : api).posts(input.page - 1, { ...input, size: input.size })
+    async listPostPage(input, signal) {
+      const result = await (input.anonymous ? publicApi : api).posts(input.page - 1, { ...input, size: input.size, signal })
       return { items: result.items.map((row) => toPost(row, baseUrl)), totalCount: result.totalCount, totalPages: result.totalPages }
     },
-    async getPost(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.post(id); return row ? toPost(row, baseUrl) : null },
+    async getPost(value, signal) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.post(id, signal); return row ? toPost(row, baseUrl) : null },
     async savePost(draft, value, idempotencyKey) {
       if (!value && !idempotencyKey) throw new Error('게시글 저장 요청을 확인할 수 없습니다.')
       const body = { title: draft.title, content: draft.content.join('\n'), richContent: draft.richContent == null ? null : structuredClone(draft.richContent) }
@@ -112,20 +112,24 @@ export function createHttpStorefrontServices(client: ApiClient, authenticated: b
       }
     },
     async removePost(value) { await api.remove(Number(value)) },
-    async listComments(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return []; return (await api.comments(id)).map(toComment) },
+    async listComments(value, signal) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return []; return (await api.comments(id, signal)).map(toComment) },
+    async listCommentPage(value, afterId, signal) {
+      const result = await api.commentPage(Number(value), afterId, signal)
+      return { ...result, items: result.items.map(toComment) }
+    },
     async saveComment(postId, content, value) { if (value) await api.updateComment(Number(value), content); else await api.createComment(Number(postId), content) },
     async removeComment(_postId, value) { await api.removeComment(Number(value)) },
-    async listArticlePage(input) {
-      const result = await (input.anonymous ? publicApi : api).articles(input.page - 1, { ...input, size: input.size })
+    async listArticlePage(input, signal) {
+      const result = await (input.anonymous ? publicApi : api).articles(input.page - 1, { ...input, size: input.size, signal })
       return { items: result.items.map((row) => toArticle(row, baseUrl)), totalCount: result.totalCount, totalPages: result.totalPages }
     },
-    async getArticle(value) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.article(id); return row ? toArticle(row, baseUrl) : null },
-    async listReviewPage(input) {
-      const result = await reviewApi.listPublic(input.page - 1, input.size, !input.anonymous && authenticated, input)
+    async getArticle(value, signal) { const id = Number(value); if (!Number.isSafeInteger(id) || id <= 0) return null; const row = await api.article(id, signal); return row ? toArticle(row, baseUrl) : null },
+    async listReviewPage(input, signal) {
+      const result = await reviewApi.listPublic(input.page - 1, input.size, !input.anonymous && authenticated, { ...input, signal })
       return { items: result.items.map(toReview), totalCount: result.totalCount, totalPages: result.totalPages }
     },
-    async getReview(value) {
-      const row = await reviewApi.detail(value, authenticated)
+    async getReview(value, signal) {
+      const row = await reviewApi.detail(value, authenticated, signal)
       return row ? toReview(row) : null
     },
   }

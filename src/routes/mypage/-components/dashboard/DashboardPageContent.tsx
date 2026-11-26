@@ -10,7 +10,7 @@ import { ApiClientError } from '@/api/httpClient'
 import { RelativeLink as Link } from '@/components/navigation/RelativeLinkView'
 import type { MyAccountReadServices } from '@/domain/myAccount/httpServices'
 import type { MyRcpcReadServices, InquiryReadServices } from '@/domain/myAccount/rcpcInquiryReadServices'
-import { pendingOrders } from '../shared/pendingConfirmationOrders'
+import { pendingConfirmationKey, pendingOrders } from '../shared/pendingConfirmationOrders'
 import { MyPageLayout } from '../../MypageComponentsView'
 import { AccountQueryState } from '../AccountQueryState'
 import type { MyRcpcQuery } from '@/api/myRcpc'
@@ -79,12 +79,12 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
     queryFn: ({ signal }) => rcpcs.summary(signal), retry: false })
   const recentInquiries = useQuery({ queryKey: ['my-account', 'read', 'home-inquiries'],
     queryFn: ({ signal }) => inquiries.list({ page: 0, size: 5 }, signal), retry: false })
-  const orders = useQuery({ queryKey: ['my-account', 'read', 'home-unconfirmed-orders'], enabled: commerce,
-    queryFn: ({ signal }) => pendingOrders(read, signal), retry: false })
+  const orders = useQuery({ queryKey: [...pendingConfirmationKey, 'preview'], enabled: commerce,
+    queryFn: ({ signal }) => pendingOrders(read, signal, 0, 2), retry: false })
   const storage = useQuery({ queryKey: ['my-account', 'read', 'home-storage'], enabled: commerce,
     queryFn: ({ signal }) => readStorageSummary(read, signal), retry: false })
   const posts = useQuery({ queryKey: ['storefront', 'post-page', { page: 1, size: 5, mineOnly: true, sort: 'latest' }], enabled: owner, staleTime: 0,
-    queryFn: () => storefront.listPostPage({ page: 1, size: 5, mineOnly: true, sort: 'latest' }), retry: false })
+    queryFn: ({ signal }) => storefront.listPostPage({ page: 1, size: 5, mineOnly: true, sort: 'latest' }, signal), retry: false })
   const counts = summary.data?.usageCounts
   const favoriteHeading = detailMode ? uiText("RCPC 상세") : owner ? uiText("즐겨찾기 그룹") : uiText("즐겨찾기 내역")
   const favoriteItems = useRcpcInquiryItems(rcpcs.organizationId,
@@ -93,7 +93,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
   const favoritePending = detailMode ? detail.isPending : favorites.isPending
   const favoriteError = detailMode ? detail.error : favorites.error
   const refetchFavorites = detailMode ? detail.refetch : favorites.refetch
-  const pendingOrderItems = orders.data?.flatMap(order => order.items.map(item => ({ item, order }))) ?? []
+  const pendingOrderItems = orders.data?.items ?? []
   const heading = (title: string, href?: string) => <div className="mypage-home-heading"><h2>{uiText(title)}</h2>{href ? <Link to={href}>{uiText("더보기")} <img alt="" src={moreIcon}/></Link> : null}</div>
   return <MyPageLayout><>
     <div className={`mypage-home${owner ? '' : ' is-manager'}`}>
@@ -120,7 +120,7 @@ export function MypageDashboardContent({ detailMode = false, read, rcpcs, inquir
             <AccountQueryState pending={summary.isPending || (owner && orders.isPending)} error={summary.error ?? (owner ? orders.error : null)} retry={() => { void summary.refetch(); if (owner) void orders.refetch() }}/>
             <div className="mypage-home-use">
               <div><span>{uiText("이용 중")}<strong>{counts?.using ?? 0}<small>{uiText("대")}</small></strong></span><span>{uiText("연장대기")}<strong>{counts?.extension_waiting ?? 0}<small>{uiText("대")}</small></strong></span><span>{uiText("종료")}<strong>{counts?.ended ?? 0}<small>{uiText("대")}</small></strong></span></div>
-              {owner && pendingOrderItems.length > 0 ? <div className={`mypage-home-use__orders${locale === 'en' ? ' mypage-home-use__orders--translated' : ''}`}><p>{uiText("구매 확정이 필요한 주문")} <b>{pendingOrderItems.length}</b><Link to="/mypage/orders">{t("mypageRcpc.ui139")}</Link></p><div className="mypage-home-use__order-list">{pendingOrderItems.slice(0, 2).map(({ item, order }) => <article key={item.orderItemId}><div className="mypage-home-use__product"><img alt="" src={windowsBackground}/><span><strong>{item.productNo}</strong><small>{uiText("주문번호")} {order.orderNo}</small></span></div><OrderItemActions api={read} item={item} paymentStatus={order.paymentStatus} orderStatus={order.orderStatus} variant="dashboard"/></article>)}</div></div> : null}
+              {owner && pendingOrderItems.length > 0 ? <div className={`mypage-home-use__orders${locale === 'en' ? ' mypage-home-use__orders--translated' : ''}`}><p>{uiText("구매 확정이 필요한 주문")} <b>{orders.data?.totalElements ?? 0}</b><Link to="/mypage/orders">{t("mypageRcpc.ui139")}</Link></p><div className="mypage-home-use__order-list">{pendingOrderItems.slice(0, 2).map(({ item, order }) => <article key={item.orderItemId}><div className="mypage-home-use__product"><img alt="" src={windowsBackground}/><span><strong>{item.productNo}</strong><small>{uiText("주문번호")} {order.orderNo}</small></span></div><OrderItemActions api={read} item={item} paymentStatus={order.paymentStatus} orderStatus={order.orderStatus} variant="dashboard"/></article>)}</div></div> : null}
             </div>
           </section>
           {owner ? <section className="mypage-home-storage">{heading(uiText("보관함"), '/mypage/storage')}<AccountQueryState pending={storage.isPending} error={storage.error} retry={storage.refetch}/><div className="mypage-home-storage__card"><span>{uiText("결제 대기")}</span><strong>{storage.data?.totalCount ?? '—'}<small>{uiText("건")}</small></strong></div></section> : null}
